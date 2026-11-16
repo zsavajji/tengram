@@ -456,3 +456,39 @@ the `bb10-cxx20` image, then a static `tdprobe` on the Q10 that sets the TDLib p
 Order after it: the engine with login, chats, messages and history paging; then media and the
 message kinds; then the rest. If the probe passes, a rough guess at HyperBerry's pace is two to
 four weeks to HyperBerry's features minus calls.
+
+## Engine: the plan being built (2026-11-17, unattended session)
+
+`tengramd`, C++, in `engine/`. Contract: `docs/protocol.md` (HyperBerry's protocol and tables
+with Telegram's meanings). One commit per step.
+
+1. Skeleton: the loop, the TDLib thread, login (`link.*`, QR and phone), the socket server,
+   encrypted `chats.db`, `tests/dbq` (reads the encrypted database, as the UI will) and
+   `tests/engine_client.py` (talks to the engine on the phone through an ssh tunnel).
+2. Chat list: TDLib's main and archived lists mirrored into `chats`, names, chat photos.
+3. Messages: live updates into `messages`, `chat.open`, `chat.history`, `msg.send`, `chat.read`,
+   `chat.set`, `chat.typing`.
+4. Delivery mode: `ui.state`, `prefs.set`, batched syncs.
+5. Measure on the phone: one idle hour and memory against the probe's 1.95 s/h and 47 MB.
+
+Decisions taken for it, with the reasons:
+- **TDLib's SQLite and JSON are used directly** (`td::SqliteDb`, `td/utils/JsonBuilder.h`):
+  both are already linked, so `chats.db` gets SQLCipher with no second SQLite and no JSON
+  library. Checked on the phone (`build/spike`). The price: the engine includes TDLib-internal
+  headers, tied to the pinned commit.
+- **`chats.db` is a cache**, unlike HyperBerry's (TDLib and Telegram hold the data). A failed
+  open or another `user_version` deletes and rebuilds it. No migrations.
+- **The whole chat list is loaded at every engine start**, in the background. TDLib reports a
+  chat's position only inside the part of the list that is loaded, and reports order 0 for a
+  chat that drops below it, so a first-page-only engine could not tell "left the list" from
+  "below the loaded part". The cost is the 6–8 s of CPU measured, once per engine start (per
+  boot), never per UI open. After the load, rows the session did not see are swept.
+- **History is verified page by page.** Live messages are written for every chat so a cold
+  open paints from `chats.db` at once, but a channel can lose messages silently after a long
+  offline gap (TDLib skips them). So `chat.open` and `chat.history` make each page exactly
+  TDLib's and tell the UI the oldest verified id; older rows are shown only once covered.
+- **Replies can come in any order** (TDLib answers asynchronously), matched on `"@"`.
+- **Not in these steps:** Hub notifications and the headless packaging (BB10 platform work),
+  media download, text entities, reactions, the passcode lock, pruning old message rows.
+- **Testing on the real account, safely:** sends, reads and chat settings are only tried on
+  Saved Messages; `link.logout` is never run (it would end the session).
