@@ -1,0 +1,37 @@
+# Don't refetch every installed sticker set at each start: a set loaded before the installed list only changes the temporary list's order (measured: 6-8 s of CPU per start with 189 sets).
+diff --git a/td/telegram/StickersManager.cpp b/td/telegram/StickersManager.cpp
+index f38f999..63560c5 100644
+--- a/td/telegram/StickersManager.cpp
++++ b/td/telegram/StickersManager.cpp
+@@ -5309,6 +5309,20 @@ void StickersManager::on_load_installed_sticker_sets_from_database(StickerType s
+       }));
+ }
+ 
++// The list kept before the installed sets are loaded is built by putting each set at the front as
++// it is loaded. A set that something else loaded first (a message, a recent sticker) is therefore
++// out of place in it, although nothing has changed: the same sets in another order are not a
++// reason to fetch all of them from the server again. The order from the database stands, and the
++// regular getAllStickers request, sent with the list's hash, still notices a real change.
++static bool is_same_sticker_set_list(vector<StickerSetId> lhs, vector<StickerSetId> rhs) {
++  auto less = [](StickerSetId a, StickerSetId b) {
++    return a.get() < b.get();
++  };
++  std::sort(lhs.begin(), lhs.end(), less);
++  std::sort(rhs.begin(), rhs.end(), less);
++  return lhs == rhs;
++}
++
+ void StickersManager::on_load_installed_sticker_sets_finished(StickerType sticker_type,
+                                                               vector<StickerSetId> &&installed_sticker_set_ids,
+                                                               bool from_database) {
+@@ -5336,8 +5350,8 @@ void StickersManager::on_load_installed_sticker_sets_finished(StickerType sticke
+                << installed_sticker_set_ids_[type].size() << " of " << installed_sticker_set_ids.size()
+                << " are really installed after loading from " << (from_database ? "database" : "server");
+     reload_installed_sticker_sets(sticker_type, true);
+-  } else if (!old_installed_sticker_set_ids.empty() &&
+-             old_installed_sticker_set_ids != installed_sticker_set_ids_[type]) {
++  } else if (!old_installed_sticker_set_ids.empty() && old_installed_sticker_set_ids != installed_sticker_set_ids_[type] &&
++             !(from_database && is_same_sticker_set_list(old_installed_sticker_set_ids, installed_sticker_set_ids_[type]))) {
+     LOG(ERROR) << "Reload installed " << sticker_type << " sticker sets, because they have changed from "
+                << old_installed_sticker_set_ids << " to " << installed_sticker_set_ids_[type] << " after loading from "
+                << (from_database ? "database" : "server");

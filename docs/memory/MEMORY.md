@@ -1,0 +1,1 @@
+- [Tengram direction](tengram-direction.md) — Telegram for BB10: 100% C++, HyperBerry UI fork, TDLib/TDLight, first gate = TDLib on QNX + 30 MB cap
