@@ -1,0 +1,28 @@
+# Recognise QNX (platform.h falls through to Cygwin otherwise) and pick poll() plus the socketpair eventfd, as for Solaris.
+diff --git a/tdutils/td/utils/port/config.h b/tdutils/td/utils/port/config.h
+index 901576f..a2e0335 100644
+--- a/tdutils/td/utils/port/config.h
++++ b/tdutils/td/utils/port/config.h
+@@ -25,6 +25,9 @@
+ #elif TD_CYGWIN
+   #define TD_POLL_SELECT 1
+   #define TD_EVENTFD_BSD 1
++#elif TD_QNX
++  #define TD_POLL_POLL 1
++  #define TD_EVENTFD_BSD 1
+ #elif TD_EMSCRIPTEN
+   #define TD_POLL_POLL 1
+   #define TD_EVENTFD_UNSUPPORTED 1
+diff --git a/tdutils/td/utils/port/platform.h b/tdutils/td/utils/port/platform.h
+index 20894ec..cd306dc 100644
+--- a/tdutils/td/utils/port/platform.h
++++ b/tdutils/td/utils/port/platform.h
+@@ -58,6 +58,8 @@
+ #elif defined(__sun)
+   #define TD_SOLARIS 1
+   // TD_ILLUMOS can be already defined by CMake
++#elif defined(__QNX__)
++  #define TD_QNX 1
+ #elif defined(__unix__)  // all unices not caught above
+   #define TD_UNIX_UNKNOWN 1
+   #define TD_CYGWIN 1

@@ -1,0 +1,35 @@
+# QNX 6.6 has no sigaltstack, SA_ONSTACK, SA_RESTART or MINSIGSTKSZ: no alternate signal stack, plain sa_flags.
+diff --git a/tdutils/td/utils/port/signals.cpp b/tdutils/td/utils/port/signals.cpp
+index 880bb35..62b5226 100644
+--- a/tdutils/td/utils/port/signals.cpp
++++ b/tdutils/td/utils/port/signals.cpp
+@@ -31,7 +31,7 @@
+ 
+ namespace td {
+ 
+-#if TD_PORT_POSIX && !TD_DARWIN_TV_OS && !TD_DARWIN_WATCH_OS
++#if TD_PORT_POSIX && !TD_DARWIN_TV_OS && !TD_DARWIN_WATCH_OS && !TD_QNX  // QNX 6.6 has no sigaltstack
+ static Status protect_memory(void *addr, size_t len) {
+   if (mprotect(addr, len, PROT_NONE) != 0) {
+     return OS_ERROR("mprotect failed");
+@@ -41,7 +41,7 @@ static Status protect_memory(void *addr, size_t len) {
+ #endif
+ 
+ Status setup_signals_alt_stack() {
+-#if TD_PORT_POSIX && !TD_DARWIN_TV_OS && !TD_DARWIN_WATCH_OS
++#if TD_PORT_POSIX && !TD_DARWIN_TV_OS && !TD_DARWIN_WATCH_OS && !TD_QNX  // QNX 6.6 has no sigaltstack
+   auto page_size = getpagesize();
+   auto stack_size = (MINSIGSTKSZ + 16 * page_size - 1) / page_size * page_size;
+ 
+@@ -82,7 +82,11 @@ static Status set_signal_handler_impl(vector<int> &&signals, F func) {
+   for (auto signal : signals) {
+     sigaddset(&act.sa_mask, signal);
+   }
++#if TD_QNX  // QNX 6.6 has neither SA_RESTART nor SA_ONSTACK
++  act.sa_flags = 0;
++#else
+   act.sa_flags = SA_RESTART | SA_ONSTACK;
++#endif
+   set_handler(act, func);
+ 
+   for (auto signal : signals) {

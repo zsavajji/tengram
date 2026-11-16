@@ -1,0 +1,68 @@
+# poll() is level-triggered: ask only for readiness the owner has cleared, as Select::run does. Without this a connected socket (always writable) makes the loop spin: 64% of a core on the Q10.
+diff --git a/tdutils/td/utils/port/detail/Poll.cpp b/tdutils/td/utils/port/detail/Poll.cpp
+index f21dfe2..ee8c4c7 100644
+--- a/tdutils/td/utils/port/detail/Poll.cpp
++++ b/tdutils/td/utils/port/detail/Poll.cpp
+@@ -26,6 +26,7 @@ void Poll::init() {
+ 
+ void Poll::clear() {
+   pollfds_.clear();
++  events_.clear();
+ }
+ 
+ void Poll::subscribe(PollableFd fd, PollFlags flags) {
+@@ -41,6 +42,7 @@ void Poll::subscribe(PollableFd fd, PollFlags flags) {
+   }
+   pollfd.revents = 0;
+   pollfds_.push_back(pollfd);
++  events_.push_back(pollfd.events);
+   fds_.push_back(std::move(fd));
+ }
+ 
+@@ -51,8 +53,10 @@ void Poll::unsubscribe(PollableFdRef fd_ref) {
+   };
+   for (auto it = pollfds_.begin(); it != pollfds_.end(); ++it) {
+     if (it->fd == fd.native_fd().fd()) {
++      auto pos = it - pollfds_.begin();
+       pollfds_.erase(it);
+-      fds_.erase(fds_.begin() + (it - pollfds_.begin()));
++      events_.erase(events_.begin() + pos);
++      fds_.erase(fds_.begin() + pos);
+       return;
+     }
+   }
+@@ -63,6 +67,22 @@ void Poll::unsubscribe_before_close(PollableFdRef fd) {
+ }
+ 
+ void Poll::run(int timeout_ms) {
++  // poll() is level-triggered: a connected socket is always writable, so asking again for what the
++  // owner already knows would make every call return at once (a busy loop). Ask only for the flags
++  // the owner has cleared, as Select::run does.
++  for (size_t i = 0; i < pollfds_.size(); i++) {
++    PollFlags known = fds_[i].get_flags_unsafe();  // concurrent calls are UB
++    short events = events_[i];
++    if (known.can_read()) {
++      events &= ~POLLIN;
++    }
++    if (known.can_write()) {
++      events &= ~POLLOUT;
++    }
++    pollfds_[i].events = events;
++    pollfds_[i].revents = 0;
++  }
++
+   int err = poll(pollfds_.data(), narrow_cast<int>(pollfds_.size()), timeout_ms);
+   auto poll_errno = errno;
+   LOG_IF(FATAL, err == -1 && poll_errno != EINTR) << Status::PosixError(poll_errno, "poll failed");
+diff --git a/tdutils/td/utils/port/detail/Poll.h b/tdutils/td/utils/port/detail/Poll.h
+index b16b204..6891d1f 100644
+--- a/tdutils/td/utils/port/detail/Poll.h
++++ b/tdutils/td/utils/port/detail/Poll.h
+@@ -47,6 +47,7 @@ class Poll final : public PollBase {
+ 
+  private:
+   vector<pollfd> pollfds_;
++  vector<short> events_;  // what each descriptor subscribed to; pollfds_[i].events is recomputed per run
+   vector<PollableFd> fds_;
+ };
+ 

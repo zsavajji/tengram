@@ -1,0 +1,15 @@
+# QNX 6.6 struct stat has whole-second times only: fall back to zero nanoseconds instead of the deliberate compile error.
+diff --git a/tdutils/td/utils/port/Stat.cpp b/tdutils/td/utils/port/Stat.cpp
+index 98b96d8..d5e2e62 100644
+--- a/tdutils/td/utils/port/Stat.cpp
++++ b/tdutils/td/utils/port/Stat.cpp
+@@ -70,7 +70,9 @@ using void_t = typename voider<T...>::type;
+ template <class T, class = void>
+ struct TimeNsec {
+   static std::pair<int, int> get(const T &) {
++#if !TD_QNX  // QNX 6.6 struct stat has whole-second times only
+     T().warning("Platform lacks support of precise access/modification file times, comment this line to continue");
++#endif
+     return {0, 0};
+   }
+ };

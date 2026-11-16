@@ -1,0 +1,22 @@
+# BB10: no SIGILL probing of CPU features (it leaves the thread without an FPU: SIGFPE at the next VFP instruction); NEON is on every BB10 phone.
+--- a/crypto/armcap.c
++++ b/crypto/armcap.c
+@@ -267,6 +267,18 @@
+         return;
+     }
+ 
++#if defined(__QNX__)
++    /*
++     * BlackBerry 10: after the SIGILL probes the thread is left without an
++     * FPU (its next VFP instruction dies with SIGFPE, FPE_NOFPU). Every BB10
++     * phone's CPU has NEON and none has the ARMv8 extensions, so the mask
++     * is known, as for 32-bit iOS below.
++     */
++    if (1) {
++        OPENSSL_armcap_P = ARMV7_NEON;
++        return;
++    }
++#endif
+ #if defined(__APPLE__)
+ #if !defined(__aarch64__)
+     /*

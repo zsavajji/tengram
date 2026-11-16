@@ -1,0 +1,35 @@
+# BB10: SQLite page cache 8 MB per connection (default 2 MB), no SQLCipher memory wiping, pread/pwrite. A page-cache miss costs filesystem messages plus AES and HMAC-SHA512.
+diff --git a/sqlite/CMakeLists.txt b/sqlite/CMakeLists.txt
+index 3464dfd..86fb10b 100644
+--- a/sqlite/CMakeLists.txt
++++ b/sqlite/CMakeLists.txt
+@@ -56,6 +56,11 @@ if (NOT WIN32)
+   target_compile_definitions(tdsqlite PRIVATE -DHAVE_USLEEP -DNDEBUG=1)
+ endif()
+ 
++if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
++  # One message to the filesystem per page read or write (pread/pwrite) instead of two (lseek, then read/write).
++  target_compile_definitions(tdsqlite PRIVATE -DUSE_PREAD=1)
++endif()
++
+ if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+   target_compile_definitions(tdsqlite PRIVATE -DSQLITE_OS_WINRT=1)
+ endif()
+diff --git a/tddb/td/db/SqliteDb.cpp b/tddb/td/db/SqliteDb.cpp
+index 34e25a3..752096e 100644
+--- a/tddb/td/db/SqliteDb.cpp
++++ b/tddb/td/db/SqliteDb.cpp
+@@ -236,6 +236,13 @@ Result<SqliteDb> SqliteDb::do_open_with_key(CSlice path, bool allow_creation, co
+     }
+     db.set_cipher_version(cipher_version);
+   }
++#if TD_QNX
++  // BB10: every page that misses SQLite's cache costs two or three messages to the filesystem
++  // process plus an AES pass and an HMAC-SHA512, and the default cache is 2 MB (500 pages).
++  // 8 MB per connection. SQLCipher 4.4 also wipes every block it frees unless told not to.
++  TRY_STATUS(db.exec("PRAGMA cache_size = -8192"));
++  TRY_STATUS(db.exec("PRAGMA cipher_memory_security = OFF"));
++#endif
+   TRY_STATUS_PREFIX(db.check_encryption(), "Can't check database: ");
+   return std::move(db);
+ }

@@ -1,0 +1,33 @@
+# QNX 6.6 has no fdopendir and no dirent d_type: walk_path reopens directories by path.
+diff --git a/tdutils/td/utils/port/path.cpp b/tdutils/td/utils/port/path.cpp
+index a641f79..df4226d 100644
+--- a/tdutils/td/utils/port/path.cpp
++++ b/tdutils/td/utils/port/path.cpp
+@@ -305,7 +305,7 @@ Result<bool> walk_path_subdir(string &path, DIR *dir, const WalkFunction &func)
+       status = walk_path_symlink(path, func);
+     }
+ #else
+-#if !TD_SOLARIS
++#if !TD_SOLARIS && !TD_QNX
+ #warning "Slow walk_path"
+ #endif
+     status = walk_path(path, func);
+@@ -343,6 +343,10 @@ Result<bool> walk_path_dir(string &path, DIR *subdir, const WalkFunction &func)
+ }
+ 
+ Result<bool> walk_path_dir(string &path, FileFd fd, const WalkFunction &func) {
++#if TD_QNX  // QNX 6.6 has no fdopendir
++  fd.close();
++  return walk_path_dir(path, func);
++#else
+   auto native_fd = fd.move_as_native_fd();
+   auto *subdir = fdopendir(native_fd.fd());
+   if (subdir == nullptr) {
+@@ -350,6 +354,7 @@ Result<bool> walk_path_dir(string &path, FileFd fd, const WalkFunction &func) {
+   }
+   native_fd.release();
+   return walk_path_dir(path, subdir, func);
++#endif
+ }
+ 
+ Result<bool> walk_path_dir(string &path, const WalkFunction &func) {
