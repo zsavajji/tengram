@@ -74,7 +74,7 @@ never reconnect (navigator: `pps_fd (-1)`, "pthread_mutex_lock failed - Resource
 put everything back. A patched `sys.acl` can only work if the link exists before authman starts at boot, and
 root arrives about 4 minutes too late for that.
 
-## Route 2: a new class with authman's own `load`, no restart
+## Route 2: a new class with authman's own `load`, no restart — ruled out
 
 What the disassembly says (2026-11-17):
 - **The wire format** is not a `write()`: the launcher sends an `_IO_MSG` with `MsgSendv`, a 16-byte header
@@ -97,3 +97,27 @@ allowed to any app (`allow *`). An app asks for one in its bar descriptor, besid
 Still unknown, to test on the phone: whether root-as-`carrier_mgr` passes the whitelist; the `.res` syntax
 (`allow *`); whether the installer keeps an app permission it doesn't know; whether the launcher applies
 `RLM` from a loaded capability, and which limit wins beside `_sys_headless_xlarge`.
+
+### Tried on the phone, 2026-11-17
+
+`authman-send -u carrier_mgr 'regprefix hmem'` → ok (root as `carrier_mgr` passes the whitelist).
+`load hmem /var/etc/hmem/hmem.res` → ok. **Every `.acl` → `EINVAL`**, the RLM one and a minimal probe
+(`GRP nto`) alike; as root without `-u`, `EACCES` (the prefix is `carrier_mgr`'s). The disassembly says why:
+each action creator gets the prefix, and `arlm_create` (`0x4a4c`) takes the refusal path as soon as a prefix is
+set (`cmp r7, #0; bne 0x4b2c`, right after it recognises `RLM`). Authman never accepts an `RLIMIT` from a
+capability loaded at run time. The addon in `tools/authman/` cannot work as designed; it stays as the record
+of the protocol. The `hmem` prefix and its `.res` stay in authman until the next reboot, harmless.
+
+## What is left: an overlay before authman starts
+
+The only moment a patched `sys.acl` counts is authman's start, early in runlevel 0. The OS mounts
+**system-data packages** before that: each has `assets/links` lines such as
+`mount:assets/data/fs1.rcfs:/base/bin:rcfs` (getroot's, which is how this phone has root) and the carrier
+package's `mount:assets/data/fs4.rcfs:/etc/authman/subsystem:rcfs`. Runlevel 0 runs `filesystem` before
+`authman`. A QNX mount at an existing path is a union: an rcfs holding only `sys.acl`, mounted on
+`/base/etc/authman`, would shadow that one file and let the rest show through.
+
+Unknowns, all for the user: how a system-data package gets installed (getroot's MANIFEST says RIM authored and
+carries digests, so it was installed by whatever made the root); whether the boot mounter would take a second,
+unsigned one, or an extra `links` line; how to build an rcfs image. Touching getroot's own package risks the
+root itself.
