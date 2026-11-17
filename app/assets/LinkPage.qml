@@ -1,8 +1,8 @@
 import bb.cascades 1.4
 import "errors.js" as Errors
 
-// The linking page, the root while not linked (PLAN.md §7): a QR code to scan, or a pairing code
-// to type, by what the engine's link state says.
+// The linking page, the root while not linked (PLAN.md §7): a QR code to scan, the code Telegram
+// sent to type, or the two-step password, by what the engine's link state says.
 Page {
     id: page
     property bool up: engine.connected
@@ -22,7 +22,7 @@ Page {
             title: qsTr("Link with phone number")
             ActionBar.placement: ActionBarPlacement.OnBar
             enabled: page.linkState != "linking" && page.linkState != "ready"
-            onTriggered: nav.push(numberDef.createObject())
+            onTriggered: page.openNumber()
         }
     ]
     attachedObjects: ComponentDefinition {
@@ -37,6 +37,39 @@ Page {
             engine.request("link.qr", {})
         }
     }
+    // TDLib takes no phone number while a QR code waits; a logout there ends nothing, there is no
+    // session yet. The state goes back to "unlinked" and the number page can then ask.
+    // asked: the "unlinked" that follows must not ask for a QR code under the number page.
+    function openNumber() {
+        asked = true
+        if (linkState == "qr")
+            engine.request("link.logout", {})
+        nav.push(numberDef.createObject())
+    }
+    // Where the code went, by the type TDLib reports.
+    function codeWhere() {
+        var phone = engine.link.phone || ""
+        if (phone != "" && phone.charAt(0) != "+")
+            phone = "+" + phone
+        var t = engine.link.codeType
+        if (t == "app")
+            return qsTr("Telegram sent the code to the Telegram app on your other devices, not by SMS. Look in the chat named Telegram.")
+        if (t == "sms")
+            return qsTr("Telegram sent the code by SMS to %1.").arg(phone)
+        if (t == "call")
+            return qsTr("Telegram will call %1 and tell you the code.").arg(phone)
+        return qsTr("Type the code Telegram sent to %1.").arg(phone)
+    }
+    function sendCode() {
+        if (codeField.text == "")
+            return
+        engine.request("link.code", {"code": codeField.text})
+    }
+    function sendPassword() {
+        if (passwordField.text == "")
+            return
+        engine.request("link.password", {"password": passwordField.text})
+    }
     onUpChanged: {
         if (!up)
             asked = false
@@ -45,6 +78,10 @@ Page {
     onLinkStateChanged: {
         if (linkState == "qr")
             shown = true
+        if (linkState == "code")
+            codeField.text = ""
+        if (linkState == "password")
+            passwordField.text = ""
         ask()
     }
     onCreationCompleted: {
@@ -84,12 +121,60 @@ Page {
                     horizontalAlignment: HorizontalAlignment.Fill
                     Label {
                         multiline: true
-                        text: qsTr("On your phone, open Telegram, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:")
+                        text: page.codeWhere()
+                    }
+                    TextField {
+                        id: codeField
+                        inputMode: TextFieldInputMode.NumbersAndPunctuation
+                        hintText: qsTr("Code")
+                        input.submitKey: SubmitKey.Submit
+                        input.onSubmitted: page.sendCode()
+                    }
+                    Button {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        text: qsTr("Log in")
+                        onClicked: page.sendCode()
+                    }
+                    Button {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        text: qsTr("Show a QR code instead")
+                        onClicked: engine.request("link.qr", {})
                     }
                     Label {
+                        visible: engine.failure.cmd == "link.code"
+                        multiline: true
+                        text: Errors.errorText(engine.failure)
+                    }
+                }
+                Container {
+                    visible: page.up && page.linkState == "password"
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    Label {
+                        multiline: true
+                        text: qsTr("Your account has a two-step verification password.")
+                    }
+                    Label {
+                        visible: (engine.link.hint || "") != ""
+                        multiline: true
+                        textFormat: TextFormat.Plain
+                        text: qsTr("Hint: %1").arg(engine.link.hint || "")
+                    }
+                    TextField {
+                        id: passwordField
+                        inputMode: TextFieldInputMode.Password
+                        hintText: qsTr("Password")
+                        input.submitKey: SubmitKey.Submit
+                        input.onSubmitted: page.sendPassword()
+                    }
+                    Button {
                         horizontalAlignment: HorizontalAlignment.Center
-                        textStyle.base: SystemDefaults.TextStyles.BigText
-                        text: engine.link.code || ""
+                        text: qsTr("Log in")
+                        onClicked: page.sendPassword()
+                    }
+                    Label {
+                        visible: engine.failure.cmd == "link.password"
+                        multiline: true
+                        text: Errors.errorText(engine.failure)
                     }
                 }
                 Container {
@@ -107,7 +192,7 @@ Page {
                     }
                 }
                 Label {
-                    visible: engine.failure.cmd == "link.qr"
+                    visible: engine.failure.cmd == "link.qr" || engine.failure.cmd == "link.logout"
                     multiline: true
                     text: Errors.errorText(engine.failure)
                 }
@@ -116,8 +201,8 @@ Page {
         Busy {
             running: !page.up || page.linkState == "linking" || page.syncing
             text: !page.up ? qsTr("Starting…")
-                : page.linkState == "ready" ? qsTr("Getting your chats from your phone… This can take a few minutes.")
-                : qsTr("Linking… Keep Telegram open on your phone.")
+                : page.syncing ? qsTr("Getting your chats… This can take a minute.")
+                : qsTr("Checking…")
         }
     }
 }

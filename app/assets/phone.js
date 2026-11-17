@@ -63,7 +63,7 @@ function detect(list, digits, home) {
     return null
 }
 
-// The number for link.code: "+", the calling code, and the national number without its
+// The number for link.phone: "+", the calling code, and the national number without its
 // national prefix ("07911 123456" in the UK is "+447911123456"; Italy keeps its 0).
 function international(country, national) {
     var d = national.replace(/\D/g, "")

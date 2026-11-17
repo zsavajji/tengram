@@ -3,14 +3,16 @@ import "errors.js" as Errors
 import "countries.js" as Countries
 import "phone.js" as Phone
 
-// Linking by pairing code (PLAN.md §7): pick the country, type the phone's number, the engine
-// returns a code, and the linking page below shows it in large type. A number typed or pasted
-// with "+" or "00" picks its own country (user, 2026-10-31).
+// Linking by phone number: pick the country, type the phone's number, Telegram sends a code, and
+// this page pops when the link state turns "code"; the linking page below then asks for the code.
+// A number typed or pasted with "+" or "00" picks its own country (user, 2026-10-31).
 Page {
     id: page
     property bool asking: false
     property string failedCmd: engine.failure.cmd || ""
     property string linkState: engine.link.state || ""
+    // While a logout from "qr" runs, the state is "linking" or "qr": wait for the next one.
+    property bool canAsk: linkState == "unlinked" || linkState == "code" || linkState == "password"
     // The chosen country, from phone.js; the phone's region to start with.
     property variant country: Phone.byRegion(Phone.all(Countries.data, phoneLocale.language), phoneLocale.region)
     // When the picker closed: the Enter that chose a country can reach the number field too.
@@ -23,7 +25,7 @@ Page {
         ActionItem {
             title: qsTr("Get code")
             ActionBar.placement: ActionBarPlacement.Signature
-            enabled: !page.asking && page.country != null && number.text != ""
+            enabled: page.canAsk && !page.asking && page.country != null && number.text != ""
             onTriggered: page.submit()
         }
     ]
@@ -33,10 +35,10 @@ Page {
     }
 
     function submit() {
-        if (!country || number.text == "" || asking)
+        if (!canAsk || !country || number.text == "" || asking)
             return
         asking = true
-        engine.request("link.code", {"phone": Phone.international(country, number.text)})
+        engine.request("link.phone", {"phone": Phone.international(country, number.text)})
     }
     function pickCountry() {
         var picker = countryDef.createObject()
@@ -65,11 +67,12 @@ Page {
     }
     // The request ended in failure; on success the state change pops this page.
     onFailedCmdChanged: {
-        if (failedCmd == "link.code")
+        if (failedCmd == "link.phone")
             asking = false
     }
     onLinkStateChanged: {
-        if (linkState == "code")
+        // Only while asking: a refused number asked from "code" goes back to "code" after its failure.
+        if (linkState == "code" && asking)
             nav.pop()
     }
     onCreationCompleted: number.requestFocus()
@@ -134,7 +137,7 @@ Page {
                 }
             }
             Label {
-                visible: engine.failure.cmd == "link.code"
+                visible: engine.failure.cmd == "link.phone"
                 multiline: true
                 text: Errors.errorText(engine.failure)
             }

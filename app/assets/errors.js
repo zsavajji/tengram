@@ -9,6 +9,18 @@ function errorText(f) {
         return qsTr("Tengram's engine isn't running yet. Try again in a moment.")
     case "linked":
         return qsTr("This BlackBerry is already linked.")
+    case "bad_code":
+        return qsTr("That code isn't right. Check it and type it again.")
+    case "bad_password":
+        return qsTr("That password isn't right.")
+    case "bad_state":
+        return qsTr("Telegram is still busy with the last step. Try again in a moment.")
+    case "td":
+        // Flood wait: "429 Too Many Requests: retry after 38".
+        var wait = /retry after (\d+)/.exec(f.message || "")
+        if (wait && (f.message || "").indexOf("429") == 0)
+            return qsTr("Telegram asks you to wait %1 minutes before trying again.").arg(Math.ceil(wait[1] / 60))
+        break
     }
     return qsTr("That didn't work: %1").arg(f.message)
 }

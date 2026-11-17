@@ -39,8 +39,8 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | cmd | fields | result | own errors |
 |---|---|---|---|
 | `hello` | `token`, `proto: 1` | the link body | `auth`, `proto` |
-| `link.qr` | — | — (the code comes as a `link` event, state `qr`) | `linked`, `bad_state` |
-| `link.phone` | `phone` (international, non-digits ignored) | — (then state `code`) | `linked`, `bad_state`, `bad_phone` |
+| `link.qr` | — (states `unlinked`, `code`, `password`) | — (the code comes as a `link` event, state `qr`) | `linked`, `bad_state` |
+| `link.phone` | `phone` (international, non-digits ignored; states `unlinked`, `code`, `password`) | — (then state `code`) | `linked`, `bad_state`, `bad_phone` |
 | `link.code` | `code` | — (then `password` or `ready`) | `bad_state`, `bad_code` |
 | `link.password` | `password` | — (then `ready`) | `bad_state`, `bad_password` |
 | `link.logout` | — | — | — |
@@ -61,6 +61,10 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 (`requestQrCodeAuthentication`); `link.phone`, `link.code` and `link.password` are the phone
 number, the code Telegram sends and the two-step password. Each answers when TDLib took it;
 the new state comes as a `link` event. `bad_state` is a command the current state doesn't expect.
+`link.qr` and `link.phone` are accepted only in `unlinked`, `code` and `password` (TDLib refuses
+both while a QR code waits, state `qr`, with "unexpected"); any other state answers `bad_state`.
+From `qr` the way to a phone login is `link.logout`, which ends in `unlinked` (nothing is lost:
+no session exists yet), then `link.phone`.
 `link.logout` logs out on Telegram's side, empties `chats.db` (a `chats` event names the rows
 that went) and starts a fresh TDLib client.
 

@@ -189,11 +189,11 @@ void step(std::uint64_t conn, const std::string &id, td_api::object_ptr<td_api::
   cur.state = State::Linking;
   changed();
   tdlib.send(std::move(f), [=](Obj o) {
+    answer(conn, id, o);  // first: a page that waits for the next state sees the failure before the state goes back
     if (as_error(o) && cur.state == State::Linking) {
       cur.state = before;
       changed();
     }
-    answer(conn, id, o);
   });
 }
 
@@ -310,7 +310,7 @@ bool link_request(std::uint64_t conn, const std::string &id, const std::string &
     if (s == State::Ready) {
       return fail("linked", "already linked");
     }
-    if (s != State::Unlinked && s != State::Qr) {
+    if (s != State::Unlinked && s != State::Code && s != State::Password) {
       return bad_state();
     }
     step(conn, id, td_api::make_object<td_api::requestQrCodeAuthentication>(std::vector<std::int64_t>()));
@@ -323,7 +323,7 @@ bool link_request(std::uint64_t conn, const std::string &id, const std::string &
     if (s == State::Ready) {
       return fail("linked", "already linked");
     }
-    if (s != State::Unlinked && s != State::Qr && s != State::Code) {
+    if (s != State::Unlinked && s != State::Code && s != State::Password) {
       return bad_state();
     }
     std::string digits;  // international format, anything that is not a digit ignored
