@@ -2754,6 +2754,11 @@
         <translation>Telegram prosi o odczekanie %1 min przed ponowną próbą.</translation>
     </message>
     <message>
+        <location filename="../assets/errors.js" line="25"/>
+        <source>Telegram lets a device end other sessions only after it has been signed in for about a day. Try again tomorrow, or end it from another device.</source>
+        <translation>Telegram pozwala urządzeniu kończyć inne sesje dopiero po około dniu od zalogowania. Spróbuj jutro albo zakończ ją z innego urządzenia.</translation>
+    </message>
+    <message>
         <location filename="../assets/errors.js" line="26"/>
         <source>That didn&apos;t work: %1</source>
         <translation>To się nie udało: %1</translation>

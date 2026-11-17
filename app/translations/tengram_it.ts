@@ -2751,6 +2751,11 @@
         <translation>Telegram ti chiede di attendere %1 min prima di riprovare.</translation>
     </message>
     <message>
+        <location filename="../assets/errors.js" line="25"/>
+        <source>Telegram lets a device end other sessions only after it has been signed in for about a day. Try again tomorrow, or end it from another device.</source>
+        <translation>Telegram permette a un dispositivo di terminare altre sessioni solo dopo circa un giorno dall’accesso. Riprova domani, o terminala da un altro dispositivo.</translation>
+    </message>
+    <message>
         <location filename="../assets/errors.js" line="26"/>
         <source>That didn&apos;t work: %1</source>
         <translation>Operazione non riuscita: %1</translation>

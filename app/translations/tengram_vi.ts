@@ -2748,6 +2748,11 @@
         <translation>Telegram yêu cầu chờ %1 phút trước khi thử lại.</translation>
     </message>
     <message>
+        <location filename="../assets/errors.js" line="25"/>
+        <source>Telegram lets a device end other sessions only after it has been signed in for about a day. Try again tomorrow, or end it from another device.</source>
+        <translation>Telegram chỉ cho phép một thiết bị kết thúc các phiên khác sau khi đã đăng nhập khoảng một ngày. Hãy thử lại vào ngày mai, hoặc kết thúc từ thiết bị khác.</translation>
+    </message>
+    <message>
         <location filename="../assets/errors.js" line="26"/>
         <source>That didn&apos;t work: %1</source>
         <translation>Không thành công: %1</translation>

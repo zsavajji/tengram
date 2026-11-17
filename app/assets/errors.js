@@ -20,6 +20,9 @@ function errorText(f) {
         var wait = /retry after (\d+)/.exec(f.message || "")
         if (wait && (f.message || "").indexOf("429") == 0)
             return qsTr("Telegram asks you to wait %1 minutes before trying again.").arg(Math.ceil(wait[1] / 60))
+        // Ending other sessions from a device signed in less than about a day ago (sessions.terminate, 2026-11-17).
+        if ((f.message || "").indexOf("FRESH_RESET_AUTHORISATION_FORBIDDEN") >= 0)
+            return qsTr("Telegram lets a device end other sessions only after it has been signed in for about a day. Try again tomorrow, or end it from another device.")
         break
     }
     return qsTr("That didn't work: %1").arg(f.message)

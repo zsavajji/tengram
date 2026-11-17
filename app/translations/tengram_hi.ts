@@ -2751,6 +2751,11 @@
         <translation>Telegram आपसे %1 मिनट रुकने को कहता है, फिर दोबारा कोशिश करें।</translation>
     </message>
     <message>
+        <location filename="../assets/errors.js" line="25"/>
+        <source>Telegram lets a device end other sessions only after it has been signed in for about a day. Try again tomorrow, or end it from another device.</source>
+        <translation>Telegram किसी डिवाइस को अन्य सत्र तभी समाप्त करने देता है जब वह लगभग एक दिन से साइन इन हो। कल फिर से कोशिश करें, या इसे किसी दूसरे डिवाइस से समाप्त करें।</translation>
+    </message>
+    <message>
         <location filename="../assets/errors.js" line="26"/>
         <source>That didn&apos;t work: %1</source>
         <translation>यह नहीं हो सका: %1</translation>
