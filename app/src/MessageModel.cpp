@@ -64,6 +64,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_bridgeNewest(0)
     , m_bridgeBefore(0)
     , m_window(false)
+    , m_awaitOpen(false)
     , m_newerMore(false)
     , m_readInbox(0)
     , m_low(kFar)
@@ -315,6 +316,19 @@ void MessageModel::takeOpen(const QVariantMap &r)
     m_floor = oldest.isEmpty() ? kNoFloor : oldest.toLongLong();
     m_top = newest;
     m_more = r["more"].toBool() && !oldest.isEmpty();
+    if (m_awaitOpen) {
+        // Left the window for a jump (reveal): msgs events were skipped while loading, so the newest page is
+        // read again, now from the floor up, and the spinner goes; the page's pending jump runs on that.
+        m_awaitOpen = false;
+        m_windowGiveUp.stop();
+        const QStringList old = keys();
+        m_all.clear();
+        refresh(old, QSet<QString>());
+        loadPage();
+        m_loading = false;
+        emit loadingChanged();
+        return;
+    }
     if (m_loading) // the first page reads from the floor up
         return;
     dropBelowFloor();
@@ -522,7 +536,9 @@ void MessageModel::joinLive()
 // or the user sent a message (toLiveEnd). Everything loaded goes (a window is not the newest page); the
 // cache's newest page shows as the first paint of any chat and chat.open, sent again by the controller,
 // sets the floor.
-void MessageModel::leaveWindow()
+// awaitOpen (a jump to a message the window doesn't hold): the spinner stays until chat.open sets the floor,
+// since reveal can't load back to a message before that; the page's pending jump then runs (ChatPage.loaded).
+void MessageModel::leaveWindow(bool awaitOpen)
 {
     const bool wasLoading = m_loading;
     const bool had = !m_entries.isEmpty();
@@ -544,7 +560,14 @@ void MessageModel::leaveWindow()
     if (had)
         emit itemsChanged(DataModelChangeType::Init);
     loadPage();
-    if (wasLoading) {
+    if (awaitOpen) {
+        m_awaitOpen = true;
+        m_windowGiveUp.start(); // an answer that never comes ends the spinner (giveUp)
+        if (!wasLoading) {
+            m_loading = true;
+            emit loadingChanged();
+        }
+    } else if (wasLoading) {
         m_loading = false;
         emit loadingChanged();
     }
@@ -560,6 +583,12 @@ void MessageModel::toLiveEnd()
 // The window's first reply never came.
 void MessageModel::giveUp()
 {
+    if (m_awaitOpen) { // chat.open never answered after leaving for a jump: the newest page stays, no jump
+        m_awaitOpen = false;
+        m_loading = false;
+        emit loadingChanged();
+        return;
+    }
     if (m_window && !m_floorKnown) {
         qDebug() << "chat: no window after" << kWindowGiveUpMs << "ms, opening at the newest";
         leaveWindow();
@@ -606,7 +635,15 @@ QString MessageModel::shownUpTo(int first) const
 int MessageModel::reveal(const QString &id)
 {
     const int at = entryOf(id);
-    if (at >= 0 || atStart() || m_all.isEmpty())
+    if (at >= 0)
+        return at;
+    // Search and pins reach anywhere: a message the window doesn't hold leaves it for the regular chat, and the
+    // page jumps once chat.open has set the floor (-1 now, the model loading meanwhile; the user's ask).
+    if (m_window) {
+        leaveWindow(true);
+        return -1;
+    }
+    if (atStart() || m_all.isEmpty())
         return at;
     if (!m_floorKnown)
         return -1;

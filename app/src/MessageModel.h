@@ -168,7 +168,7 @@ private:
     void askNewer();
     void loadNewer();
     void joinLive();
-    void leaveWindow();
+    void leaveWindow(bool awaitOpen = false);
     void dropBelowFloor();
     bool atStart() const;
     void merge(const QStringList &asked, const QList<Msg> &fresh, bool older);
@@ -203,6 +203,7 @@ private:
     qint64 m_bridgeNewest; // the newest id of the chat.open page that started the bridge
     qint64 m_bridgeBefore; // the before of the bridge's last request
     bool m_window; // window mode (the class comment): the rows from m_floor to the newest loaded, not the newest end
+    bool m_awaitOpen; // left the window for a jump: loading until chat.open sets the floor (leaveWindow)
     bool m_newerMore; // newer messages exist beyond m_top (chat.newer's more)
     qint64 m_readInbox; // chats.read_inbox when the window was chosen: the window starts after it
     QString m_newerId; // the chat.newer request in flight (the window's first included), "" for none

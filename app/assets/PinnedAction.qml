@@ -32,8 +32,10 @@ ActionItem {
         }
     }
     // The preview is "" when chats.db doesn't hold the message; reveal is -1 when it can't be shown.
+    // In a window far back (MessageModel.window) the page's jump leaves it first and jumps once the chat is
+    // regular again, so reveal's -1 there is not "not on this phone".
     function go(pin) {
-        if (pin.preview == "" || chatCtl.messages.reveal(pin.id) < 0) {
+        if (pin.preview == "" || (!chatCtl.messages.window && chatCtl.messages.reveal(pin.id) < 0)) {
             notHere.show()
         } else {
             jump(pin.id)

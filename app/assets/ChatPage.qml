@@ -384,6 +384,10 @@ Page {
         var i = ctl.messages.reveal(id)
         if (i >= 0) {
             list.scrollToItem([i], ScrollAnimation.None)
+        } else if (ctl.messages.loading) {
+            // A window far back that doesn't hold it: the model left it for the regular chat and loads until
+            // chat.open answers; loaded() jumps then.
+            page.jumpPending = id
         }
     }
     property string jumpPending: ""
