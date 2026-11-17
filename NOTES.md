@@ -593,3 +593,8 @@ and started again with `orbctl` (it had no containers). About three hours were l
 4. Package (`bar-descriptor.xml`, engine with `--service`), the user installs it, and the list
    above is checked on the phone.
 5. Engine, later: text entities, reactions, pruning old rows, calls' notifications.
+- **Login path on the phone** (2026-11-17 06:15, a second engine on an empty folder, removed
+  afterwards; nothing was logged in): `hello` gives `unlinked`; `link.phone` with a bad number
+  gives `bad_phone` from Telegram and the state returns to `unlinked`; `link.qr` gives a `link`
+  event in state `qr` with the `tg://login?token=…` link 0.2 s later. Not tried: a real code
+  (it would have sent one to the user's phone at night), the password step, `link.logout`.
