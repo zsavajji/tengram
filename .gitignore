@@ -1,3 +1,7 @@
 build/
 third_party/
 .DS_Store
+app/assets/fonts/
+app/assets/emoji/
+app/assets/translations/
+lib/

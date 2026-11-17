@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<qnx xmlns="http://www.qnx.com/schemas/application/1.0">
+    <!-- Fixed for good: a new id is a different app beside this one, and uninstalling deletes
+         data/ (session.db holds the link, chats.db the only copy of the history). -->
+    <id>com.zsavajji.hyperberry</id>
+    <name>HyperBerry</name>
+    <versionNumber>0.1.6</versionNumber>
+    <!-- Overwritten at packaging by -buildIdFile (scripts/build-app.sh): the installer keeps
+         the old app when Package-Version (versionNumber.buildId) didn't change. -->
+    <buildId>1</buildId>
+    <description>WhatsApp for BlackBerry 10.</description>
+    <author>zsavajji</author>
+
+    <initialWindow>
+        <autoOrients>false</autoOrients>
+        <aspectRatio>portrait</aspectRatio>
+        <systemChrome>none</systemChrome>
+    </initialWindow>
+
+    <configuration name="Device-Release">
+        <platformArchitecture>armle-v7</platformArchitecture>
+        <asset entryPointId="HyperBerry" path="../build/ui/app/hyperberry" entry="true" type="Qnx/Elf">hyperberry</asset>
+        <asset entryPointId="HyperBerryService" path="../build/hyperberryd" type="Qnx/Elf">hyperberryd</asset>
+    </configuration>
+
+    <entryPoint id="HyperBerry">
+        <name>HyperBerry</name>
+    </entryPoint>
+    <!-- The engine (PLAN.md §3): headless, started by the UI and kept running. Not at boot
+         (user, 2026-10-29): an unsigned app can't run until root is up, and the boot event
+         also fires on every install. -->
+    <entryPoint id="HyperBerryService">
+        <name>HyperBerry Service</name>
+        <entryPointType>Qnx/Elf</entryPointType>
+        <permission system="true">_sys_run_headless</permission>
+        <permission system="true">_sys_headless_nostop</permission>
+        <!-- Without a memory class the launcher caps a headless heap at 3 MB
+             (headless_heapsize_limit_mb in /etc/system/config/launcher.cfg), and the Go
+             runtime exits within 47 ms, before main (Q10, 2026-10-29). -->
+        <permission system="true">_sys_headless_xlarge</permission>
+    </entryPoint>
+
+    <invoke-target id="com.zsavajji.hyperberry.service">
+        <invoke-target-type>application.headless</invoke-target-type>
+        <entry-point-id>HyperBerryService</entry-point-id>
+        <filter>
+            <action>com.zsavajji.hyperberry.START</action>
+            <mime-type>*</mime-type>
+            <property var="uris" value="data://local"/>
+        </filter>
+        <!-- Start at boot (step 8.2): a fire starts the engine, or finds it running and does nothing. -->
+        <filter>
+            <action>bb.action.system.TIMER_FIRED</action>
+            <mime-type>*</mime-type>
+            <property var="uris" value="data://local"/>
+        </filter>
+        <!-- The Hub items' Mark as read, Mark as unread and Delete. -->
+        <filter>
+            <action>com.zsavajji.hyperberry.MARKREAD</action>
+            <action>com.zsavajji.hyperberry.MARKUNREAD</action>
+            <action>com.zsavajji.hyperberry.DELETE</action>
+            <mime-type>application/vnd.zsavajji.hyperberry.chat</mime-type>
+            <property var="uris" value="data://,pim:"/>
+        </filter>
+    </invoke-target>
+    <!-- The UI, opened by a tap on a chat's item in the Hub (engine/hub_qnx.go). Without the pim:
+         uri a tap matches nothing. -->
+    <invoke-target id="com.zsavajji.hyperberry">
+        <invoke-target-type>application</invoke-target-type>
+        <entry-point-id>HyperBerry</entry-point-id>
+        <filter>
+            <action>bb.action.OPEN</action>
+            <action>bb.action.VIEW</action>
+            <mime-type>application/vnd.zsavajji.hyperberry.chat</mime-type>
+            <property var="uris" value="pim:"/>
+        </filter>
+        <!-- The phone's Share menu: a file of any type, or a text. src/OpenRequests.cpp takes it,
+             SharePage.qml picks the chat. -->
+        <filter>
+            <action>bb.action.SHARE</action>
+            <mime-type>*</mime-type>
+            <property var="uris" value="file://"/>
+        </filter>
+        <filter>
+            <action>bb.action.SHARE</action>
+            <mime-type>text/plain</mime-type>
+            <property var="uris" value="data://local"/>
+        </filter>
+    </invoke-target>
+
+    <asset path="assets">assets</asset>
+    <!-- The app's icon (the user's design, 2026-11-06), made by scripts/gen-icons.py: every size the home
+         screens pick from. The Q10 takes 90. -->
+    <asset path="assets/images/icon-86.png">icon-86.png</asset>
+    <asset path="assets/images/icon-90.png">icon-90.png</asset>
+    <asset path="assets/images/icon-96.png">icon-96.png</asset>
+    <asset path="assets/images/icon-110.png">icon-110.png</asset>
+    <asset path="assets/images/icon-144.png">icon-144.png</asset>
+    <icon>
+        <image>icon-86.png</image>
+        <image>icon-90.png</image>
+        <image>icon-96.png</image>
+        <image>icon-110.png</image>
+        <image>icon-144.png</image>
+    </icon>
+    <!-- The launch screen, which the phone shows from the tap until the app's first frame (the user's
+         ask, 2026-11-06: it stayed black). Made by scripts/gen-icons.py, one per screen the app can
+         meet in portrait, which it stays in: Q10 and Classic, Z30, Z10, Passport. -->
+    <asset path="assets/images/splash-720x720.png">splash-720x720.png</asset>
+    <asset path="assets/images/splash-720x1280.png">splash-720x1280.png</asset>
+    <asset path="assets/images/splash-768x1280.png">splash-768x1280.png</asset>
+    <asset path="assets/images/splash-1440x1440.png">splash-1440x1440.png</asset>
+    <splashScreens>
+        <image>splash-720x720.png</image>
+        <image>splash-720x1280.png</image>
+        <image>splash-768x1280.png</image>
+        <image>splash-1440x1440.png</image>
+    </splashScreens>
+    <!-- The Hub is another process: it reads these from /apps/<pkg>/public/ (engine/hub_qnx.go
+         hands it that folder). -->
+    <asset path="assets/images/hub.png" public="true">hub.png</asset>
+    <asset path="assets/images/hub_unread.png" public="true">hub_unread.png</asset>
+    <asset path="assets/images/hub_read.png" public="true">hub_read.png</asset>
+    <asset path="assets/images/hub_account.png" public="true">hub_account.png</asset>
+    <asset path="assets/images/tick_action.png" public="true">tick_action.png</asset>
+    <asset path="assets/images/unread_action.png" public="true">unread_action.png</asset>
+    <asset path="assets/images/delete_action.png" public="true">delete_action.png</asset>
+
+    <permission system="true">run_native</permission>
+    <permission>access_internet</permission>
+    <permission>run_when_backgrounded</permission>
+    <permission>post_notification</permission>
+    <permission>record_audio</permission>
+    <permission>use_camera</permission>
+    <permission>play_audio</permission>
+    <!-- The phone's address book, read by the UI (src/ContactBook.cpp) and handed to the engine, so
+         a person saved on the Q10 shows under that name. -->
+    <permission>access_pimdomain_contacts</permission>
+    <!-- Downloads, for the chat export (step 5.8b) and Phase 6's files. -->
+    <permission>access_shared</permission>
+    <!-- The Hub account (step 5.7). The name is from BBTelega's bar, an unsigned app with a
+         working Hub account on the Q10. -->
+    <permission system="true">_sys_access_pim_unified</permission>
+    <env var="LD_LIBRARY_PATH" value="app/native/lib:/usr/lib/qt4/lib"/>
+    <env var="CASCADES_THEME" value="dark?primaryColor=0x1BD862&amp;primaryBase=0x14A249"/>
+</qnx>
