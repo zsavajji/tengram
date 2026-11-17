@@ -26,10 +26,12 @@ using Clock = std::chrono::steady_clock;
 constexpr int kBatchMin = 1;
 constexpr auto kQuiet = std::chrono::milliseconds(300);
 constexpr auto kSyncMax = std::chrono::seconds(3);
+constexpr auto kBusy = std::chrono::milliseconds(300);  // how long after a request the engine counts as busy
 #else
 constexpr int kBatchMin = 60;
 constexpr auto kQuiet = std::chrono::seconds(2);
 constexpr auto kSyncMax = std::chrono::seconds(60);
+constexpr auto kBusy = std::chrono::seconds(10);
 #endif
 constexpr int kBatchMax = 3600;
 
@@ -66,7 +68,6 @@ bool front() {
 // The engine is doing something a client asked for: a request came in the last 10 s, or TDLib still owes an
 // answer (a download, a history page). The network stays on meanwhile, whoever asked (a UI that is not in
 // front, a Hub action), and our own account showing as online is our own doing (sending marks it online).
-constexpr auto kBusy = std::chrono::seconds(10);
 bool requested = false;
 Clock::time_point last_request;
 
@@ -340,7 +341,7 @@ void mode_network(bool available, bool wifi) {
 void mode_ready() {
   apply_network();  // the system's word may have come before TDLib was ready for it
   tdlib.set_bool_option("online", front());  // what the UI says, from the start
-  if (wants_batched() && network_on && !syncing) {
+  if (mode_batched() && network_on && !syncing) {  // busy or not: the chat list load is usually still out
     // The engine has just started: what came in while it was away, and the chat list, are fetched now, not
     // after batchSecs. The network goes off when this first sync ends.
     begin_sync();

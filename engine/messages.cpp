@@ -80,6 +80,133 @@ Val extra_of(F &&fill) {
   return s == "{}" ? Val() : Val(std::move(s));
 }
 
+// The code of an entity type we keep (docs/protocol.md, `extra.ent`) and its argument, if it has one. False for the
+// types that are left out.
+bool entity_code(const td_api::TextEntityType &t, const char *&code, std::string &argument, bool &has_argument) {
+  has_argument = false;
+  switch (t.get_id()) {
+    case td_api::textEntityTypeBold::ID:
+      code = "b";
+      return true;
+    case td_api::textEntityTypeItalic::ID:
+      code = "i";
+      return true;
+    case td_api::textEntityTypeUnderline::ID:
+      code = "u";
+      return true;
+    case td_api::textEntityTypeStrikethrough::ID:
+      code = "s";
+      return true;
+    case td_api::textEntityTypeSpoiler::ID:
+      code = "sp";
+      return true;
+    case td_api::textEntityTypeCode::ID:
+      code = "c";
+      return true;
+    case td_api::textEntityTypePre::ID:
+      code = "p";
+      return true;
+    case td_api::textEntityTypePreCode::ID:
+      code = "p";
+      argument = static_cast<const td_api::textEntityTypePreCode &>(t).language_;
+      has_argument = !argument.empty();
+      return true;
+    case td_api::textEntityTypeBlockQuote::ID:
+    case td_api::textEntityTypeExpandableBlockQuote::ID:
+      code = "q";
+      return true;
+    case td_api::textEntityTypeTextUrl::ID:
+      code = "a";
+      argument = static_cast<const td_api::textEntityTypeTextUrl &>(t).url_;
+      has_argument = true;
+      return true;
+    case td_api::textEntityTypeUrl::ID:
+      code = "a";
+      return true;
+    case td_api::textEntityTypeMention::ID:
+      code = "m";
+      return true;
+    case td_api::textEntityTypeMentionName::ID:
+      code = "m";
+      argument = std::to_string(static_cast<const td_api::textEntityTypeMentionName &>(t).user_id_);
+      has_argument = true;
+      return true;
+    case td_api::textEntityTypeHashtag::ID:
+      code = "h";
+      return true;
+    case td_api::textEntityTypeBotCommand::ID:
+      code = "cmd";
+      return true;
+    case td_api::textEntityTypeEmailAddress::ID:
+      code = "e";
+      return true;
+    case td_api::textEntityTypePhoneNumber::ID:
+      code = "t";
+      return true;
+    default:
+      return false;
+  }
+}
+
+// The formatting of the text a row shows goes into extra as `ent`: [offset, length, code(, argument)] for each
+// entity we keep, offsets and lengths as TDLib gives them (UTF-16 code units). extra is a JSON object this file has
+// just encoded (never "{}": that is NULL), so `ent` is added before its closing brace.
+void add_entities(Row &r, const td_api::formattedText *text) {
+  if (!text) {
+    return;
+  }
+  bool any = false;
+  const std::string list = td::json_encode<std::string>(td::json_array([&](auto &all) {
+    for (const auto &e : text->entities_) {
+      const char *code = nullptr;
+      std::string argument;
+      bool has_argument = false;
+      if (e && e->type_ && entity_code(*e->type_, code, argument, has_argument)) {
+        any = true;
+        all(td::json_array([&](auto &one) {
+          one(e->offset_);
+          one(e->length_);
+          one(code);
+          if (has_argument) {
+            one(argument);
+          }
+        }));
+      }
+    }
+  }));
+  if (!any) {
+    return;
+  }
+  if (auto *old = std::get_if<std::string>(&r.v[kExtra])) {
+    old->pop_back();
+    *old += ",\"ent\":" + list + "}";
+  } else {
+    r.v[kExtra] = "{\"ent\":" + list + "}";
+  }
+}
+
+// The text, of those kinds of content that show a formatted one (a document's is its caption), or nullptr.
+const td_api::formattedText *shown_text(const td_api::MessageContent &c) {
+  switch (c.get_id()) {
+    case td_api::messageText::ID:
+      return static_cast<const td_api::messageText &>(c).text_.get();
+    case td_api::messagePhoto::ID:
+      return static_cast<const td_api::messagePhoto &>(c).caption_.get();
+    case td_api::messageVideo::ID:
+      return static_cast<const td_api::messageVideo &>(c).caption_.get();
+    case td_api::messageAnimation::ID:
+      return static_cast<const td_api::messageAnimation &>(c).caption_.get();
+    case td_api::messageVoiceNote::ID:
+      return static_cast<const td_api::messageVoiceNote &>(c).caption_.get();
+    case td_api::messageAudio::ID:
+      return static_cast<const td_api::messageAudio &>(c).caption_.get();
+    case td_api::messageDocument::ID:
+      return static_cast<const td_api::messageDocument &>(c).caption_.get();
+    default:
+      return nullptr;
+  }
+}
+
 const td_api::photoSize *largest(const td_api::photo &p) {
   const td_api::photoSize *best = nullptr;
   for (const auto &s : p.sizes_) {
@@ -336,6 +463,7 @@ void content(Row &r, const td_api::message &m) {
     }
   }
   set_file(r, message_file(m));
+  add_entities(r, shown_text(c));
 }
 
 Row row_of(const td_api::message &m) {
