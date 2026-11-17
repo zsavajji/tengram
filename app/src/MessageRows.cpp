@@ -31,7 +31,7 @@ static const char *const kDb = "chats";
 // last two columns are the message's reactions, all and ours (sender '' is us); the engine makes
 // that table when it migrates chats.db, before the UI reads it.
 #define QUOTED(col) "(SELECT " col " FROM messages q WHERE q.chat = messages.chat AND q.id = messages.quote_id)"
-static const char *const kColumns = "rowid, id, ts, out, state, sender, sender_name, kind, "
+static const char *const kColumns = "CAST(id AS INTEGER), id, ts, out, state, sender, sender_name, kind, "
                                     "text, quote_preview, edited, deleted, "
                                     QUOTED("out") ", " QUOTED("sender") ", " QUOTED("sender_name") ", duration, waveform, media_state, played, "
                                     "thumb, width, height, size, path, "
@@ -211,7 +211,7 @@ QList<qint64> MessageModel::pageTimes(const QString &where, const QVariantList &
     if (!db.isOpen())
         return times;
     QSqlQuery q(db);
-    q.prepare(QString("SELECT ts FROM messages WHERE chat = ? %1 ORDER BY ts DESC, rowid DESC LIMIT %2")
+    q.prepare(QString("SELECT ts FROM messages WHERE chat = ? %1 ORDER BY ts DESC, CAST(id AS INTEGER) DESC LIMIT %2")
                   .arg(where).arg(limit));
     q.addBindValue(m_chat);
     foreach (const QVariant &a, args)
@@ -236,7 +236,7 @@ QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVaria
     m_clock = timeFormat(m_locale, DateFormat::Short);
     m_now = QDateTime::currentDateTime().toTime_t();
     QSqlQuery q(db);
-    q.prepare(QString("SELECT %1 FROM messages WHERE chat = ? %2 ORDER BY ts DESC, rowid DESC "
+    q.prepare(QString("SELECT %1 FROM messages WHERE chat = ? %2 ORDER BY ts DESC, CAST(id AS INTEGER) DESC "
                       "LIMIT %3").arg(kColumns, where).arg(limit));
     q.addBindValue(m_chat);
     foreach (const QVariant &a, args)

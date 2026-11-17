@@ -26,6 +26,10 @@ static const int kPageMin = 20;
 static const int kNearTop = 8;
 // Long enough for the page's push to reach the system before the first page takes the UI thread.
 static const int kFirstLoadMs = 50;
+// How long a chat.history request is waited for before one that failed quietly is asked again.
+static const int kHistoryMs = 15000;
+// The floor of an empty chat: no row is old enough to show.
+static const qint64 kNoFloor = 0x7fffffffffffffffLL;
 
 bool MessageModel::lessThan(const Msg &a, const Msg &b)
 {
@@ -38,7 +42,10 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_chat(chat)
     , m_group(group)
     , m_channel(channel)
-    , m_atStart(false)
+    , m_floor(0)
+    , m_floorKnown(false)
+    , m_more(false)
+    , m_starved(false)
     , m_loading(true)
     , m_region(bb::system::LocaleType::Region)
     , m_now(0)
@@ -47,6 +54,9 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     connect(engine, SIGNAL(msgsChanged(QString, QStringList)), this,
             SLOT(onMsgs(QString, QStringList)));
     connect(engine, SIGNAL(connectedChanged()), this, SLOT(onConnected()));
+    connect(engine, SIGNAL(replied(QString, QString, QVariant)), this,
+            SLOT(onReplied(QString, QString, QVariant)));
+    m_historyAt.invalidate(); // QElapsedTimer has no constructor
     QTimer::singleShot(kFirstLoadMs, this, SLOT(loadFirst()));
 }
 
@@ -60,6 +70,7 @@ void MessageModel::loadFirst()
     loadPage();
     m_loading = false;
     emit loadingChanged();
+    askOlder(); // loadPage's own call came while loading; a chat.open reply may already be in
     qDebug() << "chat: first page," << m_all.size() << "messages in" << took.elapsed() << "ms";
 }
 
@@ -131,66 +142,166 @@ int MessageModel::entryOf(const QString &id) const
     return -1;
 }
 
+// The condition for the rows older than the oldest loaded one (none loaded: no condition) and not
+// below the verified floor (once chat.open answered).
+void MessageModel::olderWhere(QString &where, QVariantList &args) const
+{
+    if (!m_all.isEmpty()) {
+        const Msg &o = m_all.first();
+        where = "AND (ts < ? OR (ts = ? AND CAST(id AS INTEGER) < ?))";
+        args << o.ts << o.ts << o.rowid;
+    }
+    if (m_floorKnown) {
+        where += " AND CAST(id AS INTEGER) >= ?";
+        args << m_floor;
+    }
+}
+
 // The newest page, or the page older than the oldest loaded message. A row is dear to read, about
 // 3 ms with its JSON and pictures (Q10, 0.0.1.156: 123 rows, 416 ms, for 13 cards), so a page stops at
-// the first day's end with kPageMin rows in it, found from the rows' times alone. With no day's end
-// in kPage rows it takes the rest of its oldest row's day. Either way the loaded set holds whole days.
+// the first day's end with kPageMin rows in it, found from the rows' times alone. With no day's end in
+// kPage rows it takes kPage. Pages no longer hold whole days (a busy group has more than a page a day):
+// the header rule in rebuild keeps their rows at the model's end.
 void MessageModel::loadPage()
 {
     QString where;
     QVariantList args;
-    if (!m_all.isEmpty()) {
-        const Msg &o = m_all.first();
-        where = "AND (ts < ? OR (ts = ? AND rowid < ?))";
-        args << o.ts << o.ts << o.rowid;
-    }
+    olderWhere(where, args);
     const QList<qint64> times = pageTimes(where, args, kPage);
     int cut = -1;
     for (int i = kPageMin; i < times.size() && cut < 0; ++i) {
         if (QDateTime::fromTime_t(times[i]).date() != QDateTime::fromTime_t(times[i - 1]).date())
             cut = i;
     }
-    // A short page with no cut is the start of the chat.
-    m_atStart = cut < 0 && times.size() < kPage;
-    QList<Msg> rows = select(where, args, cut >= 0 ? cut : kPage);
-    if (cut < 0 && !m_atStart && !rows.isEmpty()) {
-        const Msg o = rows.first();
-        const uint midnight =
-            QDateTime(QDateTime::fromTime_t(o.ts).date(), QTime(0, 0)).toTime_t();
-        rows = select("AND ts >= ? AND (ts < ? OR (ts = ? AND rowid < ?))",
-                      QVariantList() << midnight << o.ts << o.ts << o.rowid, -1) + rows;
-    }
+    const QList<Msg> rows = select(where, args, cut >= 0 ? cut : kPage);
+    m_starved = rows.isEmpty(); // before merge: its rebuild asks atStart()
     merge(QStringList(), rows, true);
+    askOlder();
 }
 
-// In a bottom-to-top list the model's end is the top.
+// The oldest message is loaded and the engine has no older verified page. m_starved: the message at
+// the floor may have been deleted since, so the oldest loaded row is above it with nothing older.
+bool MessageModel::atStart() const
+{
+    return m_floorKnown && !m_more
+           && (m_all.isEmpty() || m_all.first().rowid <= m_floor || m_starved);
+}
+
+// One page ahead of chats.db running out of verified rows, so the list never waits at the top for
+// the network (docs/ui-fork.md 3.6). The reply comes as a replied signal (takeHistory).
+void MessageModel::askOlder()
+{
+    if (!m_floorKnown || !m_more || !m_engine || m_loading)
+        return;
+    // A request that failed quietly is asked again on a later call.
+    if (!m_historyId.isEmpty() && m_historyAt.isValid() && m_historyAt.elapsed() < kHistoryMs)
+        return;
+    QString where;
+    QVariantList args;
+    olderWhere(where, args);
+    if (pageTimes(where, args, kPage).size() >= kPage)
+        return;
+    QVariantMap ask;
+    ask["chat"] = m_chat;
+    ask["before"] = QString::number(m_floor); // a string: ids exceed 2^53
+    ask["limit"] = kPage;
+    m_historyId = m_engine->requestQuiet("chat.history", ask);
+    m_historyAt.start();
+}
+
+void MessageModel::expectOpen(const QString &requestId)
+{
+    m_openId = requestId;
+}
+
+void MessageModel::onReplied(const QString &id, const QString &cmd, const QVariant &result)
+{
+    Q_UNUSED(cmd);
+    if (id == m_openId)
+        takeOpen(result.toMap());
+    else if (id == m_historyId)
+        takeHistory(result.toMap());
+}
+
+// chat.open verified the newest 50 and says where they start.
+void MessageModel::takeOpen(const QVariantMap &r)
+{
+    const QString oldest = r["oldest"].toString();
+    if (m_floorKnown) {
+        // ponytail: a later chat.open (the app back in front, the engine reconnected) only lowers the
+        // floor. A gap that opens below the newest 50 while the chat stays open (long minimised in a
+        // busy group, Telegram's "too long" difference) is not detected; drop the rows below a later
+        // reply's oldest when its page does not reach the loaded rows, if it shows.
+        if (!oldest.isEmpty())
+            m_floor = qMin(m_floor, oldest.toLongLong());
+        return;
+    }
+    m_floorKnown = true;
+    m_floor = oldest.isEmpty() ? kNoFloor : oldest.toLongLong();
+    m_more = r["more"].toBool() && !oldest.isEmpty();
+    if (m_loading) // the first page reads from the floor up
+        return;
+    // The first paint came from the cache: what is older than the verified page goes, and comes
+    // back verified with the next page. Those rows are at the model's end, so this is safe.
+    const QStringList old = keys();
+    QList<Msg> kept;
+    foreach (const Msg &m, m_all) {
+        if (m.rowid >= m_floor)
+            kept.append(m);
+    }
+    m_all = kept;
+    refresh(old, QSet<QString>());
+    askOlder();
+}
+
+// chat.history verified the page before the floor.
+void MessageModel::takeHistory(const QVariantMap &r)
+{
+    m_historyId.clear();
+    const QString oldest = r["oldest"].toString();
+    if (!oldest.isEmpty())
+        m_floor = qMin(m_floor, oldest.toLongLong());
+    m_more = r["more"].toBool() && !oldest.isEmpty();
+    if (m_starved)
+        loadPage(); // the list was waiting at its top
+    else
+        refresh(keys(), QSet<QString>()); // atStart() may have just become true: the oldest day's header
+}
+
+// In a bottom-to-top list the model's end is the top. Until chat.open answers only the first paint
+// from the cache shows: paging waits.
 void MessageModel::nearTop(const QVariantList &firstVisible)
 {
-    if (m_atStart || firstVisible.isEmpty())
+    if (!m_floorKnown || atStart() || firstVisible.isEmpty())
+        return;
+    // Nothing more in chats.db and the engine's page is on its way: every scroll would read nothing.
+    if (m_starved && !m_historyId.isEmpty() && m_historyAt.elapsed() < kHistoryMs)
         return;
     if (firstVisible.value(0).toInt() >= m_entries.size() - kNearTop)
         loadPage();
 }
 
-// The entry index of a message to jump to, -1 when it isn't shown. One older than what is loaded
-// brings in every message back to its day first.
+// The entry index of a message to jump to, -1 when it isn't shown (or is below the verified floor). One
+// older than what is loaded brings in every message back to its day first.
 // ponytail: a match far back loads every message in between, one itemAdded each; a window around
 // the match if that is slow.
 int MessageModel::reveal(const QString &id)
 {
     const int at = entryOf(id);
-    if (at >= 0 || m_atStart || m_all.isEmpty())
+    if (at >= 0 || atStart() || m_all.isEmpty())
         return at;
-    const QList<Msg> target = select("AND id = ?", QVariantList() << id, 1);
-    if (target.isEmpty())
+    if (!m_floorKnown)
         return -1;
-    // Every day from the match's to the oldest loaded one, so the loaded set stays whole days
-    // with no gap, as loadPage keeps it.
+    const QList<Msg> target = select("AND id = ?", QVariantList() << id, 1);
+    if (target.isEmpty() || target.first().rowid < m_floor)
+        return -1;
+    // Every row from the match's day to the oldest loaded one, so there is no gap.
     const Msg o = m_all.first();
     const uint midnight =
         QDateTime(QDateTime::fromTime_t(target.first().ts).date(), QTime(0, 0)).toTime_t();
-    merge(QStringList(), select("AND ts >= ? AND (ts < ? OR (ts = ? AND rowid < ?))",
-                                QVariantList() << midnight << o.ts << o.ts << o.rowid, -1), true);
+    merge(QStringList(), select("AND ts >= ? AND (ts < ? OR (ts = ? AND CAST(id AS INTEGER) < ?))"
+                                " AND CAST(id AS INTEGER) >= ?",
+                                QVariantList() << midnight << o.ts << o.ts << o.rowid << m_floor, -1), true);
     return entryOf(id);
 }
 
@@ -226,6 +337,7 @@ void MessageModel::onConnected()
     if (!m_engine || !m_engine->connected() || m_loading)
         return;
     m_asked.clear(); // a fetch the engine lost with its restart is asked again
+    m_historyId.clear(); // so is a chat.history
     if (m_all.isEmpty()) {
         loadPage();
         return;
@@ -234,7 +346,7 @@ void MessageModel::onConnected()
     QStringList asked;
     foreach (const Msg &m, m_all)
         asked << m.id; // one that isn't read again is gone
-    const QList<Msg> fresh = select("AND (ts > ? OR (ts = ? AND rowid >= ?))",
+    const QList<Msg> fresh = select("AND (ts > ? OR (ts = ? AND CAST(id AS INTEGER) >= ?))",
                                     QVariantList() << o.ts << o.ts << o.rowid, -1); // no limit
     foreach (const Msg &m, fresh)
         asked << m.id;
@@ -267,7 +379,7 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
         if (loaded.contains(m.id))
             continue;
         // A new message older than the loaded ones comes with a later page.
-        if (older || empty || m_atStart || m.ts > m_all.first().ts
+        if (older || empty || atStart() || m.ts > m_all.first().ts
             || (m.ts == m_all.first().ts && m.rowid > m_all.first().rowid)) {
             all.append(m);
             // Only loadPage passes older (the first load and older pages): anything else that is
@@ -457,7 +569,10 @@ void MessageModel::rebuild()
         const Msg &m = m_all[units[u].msg];
         m_entries.append(units[u]);
         // An album is inside one day, so its first member's date is the unit's.
-        if (u == 0 || m_all[units[u - 1].msg].day != m.day) {
+        // docs/ui-fork.md 3.6: the oldest loaded day has no header until an older day's message or the
+        // start of the history is loaded, so older rows of the same day append at the model's end and
+        // the header appends after them.
+        if (u == 0 ? atStart() : m_all[units[u - 1].msg].day != m.day) {
             Entry h;
             h.key = "day:" + QString::number(m.day);
             h.title = dayTitle(m);

@@ -426,7 +426,9 @@ void ChatController::sendOpen()
 {
     QVariantMap args;
     args["chat"] = m_jid;
-    m_engine->request("chat.open", args);
+    const QString id = m_engine->request("chat.open", args);
+    if (m_messages)
+        m_messages->expectOpen(id);
 }
 
 // An engine restart loses the presence subscription, and at a cold start the first chat.open

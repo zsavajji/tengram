@@ -149,7 +149,7 @@ QStringList ChatListModel::findMessages(const QString &jid, const QString &text)
         return ids;
     QSqlQuery q(db);
     q.prepare("SELECT id, text FROM messages WHERE chat = ? AND kind NOT IN (6, 13) AND deleted = 0 "
-              "AND text != '' ORDER BY ts DESC, rowid DESC");
+              "AND text != '' ORDER BY ts DESC, CAST(id AS INTEGER) DESC");
     q.addBindValue(jid);
     if (!q.exec()) {
         qWarning() << "find:" << q.lastError().text();

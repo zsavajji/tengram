@@ -65,7 +65,7 @@ QVariantList Pins::current(const QString &chat)
     QSqlQuery q(db);
     // kind 13 is a notice; its text is the code.
     q.prepare("SELECT ts, text, extra FROM messages WHERE chat = ? AND kind = 13 "
-              "AND text IN ('pin', 'unpin') ORDER BY ts, rowid");
+              "AND text IN ('pin', 'unpin') ORDER BY ts, CAST(id AS INTEGER)");
     q.addBindValue(chat);
     if (!q.exec()) {
         qWarning() << "pins:" << q.lastError().text();

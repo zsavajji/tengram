@@ -5,6 +5,7 @@
 #include <bb/system/LocaleHandler>
 #include <bb/utility/i18n/RelativeDateFormatter>
 #include <QDate>
+#include <QElapsedTimer>
 #include <QHash>
 #include <QList>
 #include <QLocale>
@@ -30,8 +31,12 @@ class EngineLink;
 // members' maps oldest first. An album is ONE entry, keyed "album:" and its first member's id, whose
 // map is that first member's plus album, albumCount, media "" (so MediaBubble isn't built) and the
 // last member's time and state, since the card shows when it ended.
-// The newest 50 load at once, older pages as the list nears its top; the loaded set always
-// holds whole days, so a page never lands inside a loaded day.
+// The newest 50 load at once, older pages as the list nears its top. Only rows from the verified
+// floor up are shown: chat.open and chat.history (docs/protocol.md) say the oldest id the engine
+// made exactly Telegram's, and older rows may have gaps. A page can end inside a day, so the
+// oldest loaded day has no header until an older day's message, or the start of the history, is
+// loaded (docs/ui-fork.md 3.6): older rows of that day append at the model's end and the header
+// appends after them, so a page never lands inside the loaded rows.
 class MessageModel : public bb::cascades::DataModel
 {
     Q_OBJECT
@@ -47,8 +52,9 @@ public:
     QString itemType(const QVariantList &indexPath);
     QVariant data(const QVariantList &indexPath);
 
-    // Loads the next older page when the first visible entry, an index path, is within 25
-    // entries of the visual top (in a bottom-to-top list that is the model's end).
+    // Loads the next older page when the first visible entry, an index path, is within kNearTop
+    // entries of the visual top (in a bottom-to-top list that is the model's end). Does nothing
+    // until the first chat.open reply set the floor: only the first paint from the cache shows.
     Q_INVOKABLE void nearTop(const QVariantList &firstVisible);
 
     // The entry index of the message for a jump, after loading older messages back to its day;
@@ -59,6 +65,9 @@ public:
 
     bool empty() const { return m_entries.isEmpty(); }
     bool loading() const { return m_loading; }
+
+    // The id of the chat.open request the controller just sent: its reply sets the verified floor.
+    void expectOpen(const QString &requestId);
 
     // The chat's unread count as chats.db has it now.
     int unread() const;
@@ -79,12 +88,13 @@ private slots:
     void loadFirst();
     void onMsgs(const QString &chat, const QStringList &ids);
     void onConnected();
+    void onReplied(const QString &id, const QString &cmd, const QVariant &result);
 
 private:
     struct Msg
     {
         qint64 ts;
-        qint64 rowid;
+        qint64 rowid;  // the message id as a number (messages.id is text): the tie-breaker of ts
         int day;       // ts's day in local time, a julian day: read once, when the row is
         QString id;
         int kind;      // messages.kind
@@ -106,6 +116,11 @@ private:
     QList<Msg> select(const QString &where, const QVariantList &args, int limit);
     QList<qint64> pageTimes(const QString &where, const QVariantList &args, int limit);
     void loadPage();
+    void olderWhere(QString &where, QVariantList &args) const;
+    void askOlder();
+    void takeOpen(const QVariantMap &r);
+    void takeHistory(const QVariantMap &r);
+    bool atStart() const;
     void merge(const QStringList &asked, const QList<Msg> &fresh, bool older);
     void rebuild();
     QStringList keys() const;
@@ -119,8 +134,14 @@ private:
     QString m_chat;
     bool m_group;
     bool m_channel; // a channel (kind 3): read-only for us
-    bool m_atStart; // the oldest message is loaded
+    qint64 m_floor; // the oldest verified message id: older rows are not shown
+    bool m_floorKnown; // false until the first chat.open reply
+    bool m_more; // older verified pages can still come (chat.history)
+    bool m_starved; // the last loadPage found no row
     bool m_loading;
+    QString m_openId; // the chat.open request the reply of which sets the floor
+    QString m_historyId; // the chat.history request in flight, "" for none
+    QElapsedTimer m_historyAt; // when it was sent; invalid until the first
     QList<Msg> m_all;
     QSet<QString> m_hidden;
     QSet<QString> m_revealed; // the spoilers tapped open (unspoil)
