@@ -614,3 +614,8 @@ and started again with `orbctl` (it had no containers). About three hours were l
   and stayed connected (instant). So Telegram does send our own status to a session that is
   itself offline. Still unverified: the notifier on real traffic (no notification had come by
   07:33), `link.logout`, everything under `--service`.
+- **Run 7, stopped by the user at 07:33** (default mode, plugged in, Telega running beside it
+  from some point): 1.27 s of CPU in the 60 minutes from 06:33 to 07:33, 14 MB, 24 new messages
+  in the whole run, one five-minute batched period. No notification was logged (`hub: item`
+  0 times), so the notifier is still untested on real traffic. Nothing of Tengram's is running
+  on the phone now.
