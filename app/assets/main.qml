@@ -155,6 +155,16 @@ NavigationPane {
             body: memPatch.headline
             cancelButton.label: ""
         },
+        // After a successful install: the navigator keeps the 30 MB limit until no process of the app is left,
+        // so Tengram closes once (MemoryPatch::closeAll). One button, as memDialog.
+        SystemDialog {
+            id: closeDialog
+            title: qsTr("More memory for Tengram")
+            body: memPatch.headline
+            confirmButton.label: qsTr("Close Tengram")
+            cancelButton.label: ""
+            onFinished: memPatch.closeAll()
+        },
         SystemToast {
             id: memToast
         }
@@ -198,11 +208,13 @@ NavigationPane {
     }
 
     function memFinished(ok) {
+        if (ok) {
+            closeDialog.show()
+            return
+        }
         memToast.body = memPatch.headline
         memToast.show()
-        if (!ok) {
-            memAsked = false
-        }
+        memAsked = false
     }
 
     property string failedCmd: engine.failure.cmd || ""

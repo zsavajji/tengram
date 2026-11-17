@@ -33,6 +33,8 @@ public:
 
     // Install the addon from app/native/headless-mem.zip, then end tengramd.
     Q_INVOKABLE void install();
+    // After an install: ends the engine and this UI, so the next launch gets the new limit.
+    Q_INVOKABLE void closeAll();
 
 signals:
     void changed();
@@ -44,6 +46,7 @@ private slots:
     void processError(QProcess::ProcessError error);
 
 private:
+    void runRoot(const QString &commands, const QString &zip);
     void fail(const QString &headline);
 
     QString m_helper;

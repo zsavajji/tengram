@@ -47,11 +47,35 @@ void MemoryPatch::install()
     }
     // The bar's app/native/ is the folder the app runs from.
     const QString zip = QDir::currentPath() + "/app/native/headless-mem.zip";
-    const QString patcher = QDir::currentPath() + "/app/native/tg-install-patcher";
     if (!QFile::exists(zip)) {
         fail(tr("The memory addon (headless-mem.zip) is missing from this app."));
         return;
     }
+    /* The installer launches the addon's start.sh in the background and returns before it has patched
+     * authman (its own log says so): the run ends once a new [HMEM] line is in installer.log, or after 20 s.
+     * The engine is not ended here: the navigator keeps the app's capabilities, the 30 MB limit with them,
+     * from the app's first launch until every process of the app has ended (seen on the phone, 2026-11-17),
+     * and this UI is one of them. closeAll() ends both. */
+    runRoot("L=/var/log/installer.log; n0=$(grep -c HMEM $L 2>/dev/null); "
+            "/var/rootdata/installer \"$TG_ZIP\" </dev/null; "
+            "i=0; while [ $i -lt 20 ] && [ \"$(grep -c HMEM $L 2>/dev/null)\" = \"${n0:-0}\" ]; do sleep 1; i=$((i+1)); done; "
+            "grep HMEM $L 2>/dev/null; true",
+            zip);
+}
+
+/* Ends the engine, then this UI, from commands with their own app id: once no process of the app is left,
+ * the navigator forgets the capabilities it read at the first launch, and the next launch reads the
+ * patched limit. The 1 s lets this call return before the UI goes. */
+void MemoryPatch::closeAll()
+{
+    if (m_busy || m_helper.isEmpty())
+        return;
+    runRoot("sleep 1; slay -f tengramd 2>/dev/null; slay -f tengram 2>/dev/null; true", QString());
+}
+
+void MemoryPatch::runRoot(const QString &commands, const QString &zip)
+{
+    const QString patcher = QDir::currentPath() + "/app/native/tg-install-patcher";
     if (!QFile::exists(patcher)) {
         fail(tr("The helper tg-install-patcher is missing from this app."));
         return;
@@ -65,17 +89,7 @@ void MemoryPatch::install()
     env.insert("PATH", "/proc/boot:/bin:/usr/bin:/sbin:/usr/sbin:/base/bin");
     env.insert("HOME", "/root");
     env.insert("TG_ZIP", zip);
-    /* Install first (its start.sh patches authman at once), then end the running engine: the UI's usual
-     * START brings it back, and the launcher gives it the new limit. */
-    /* The installer launches the addon's start.sh in the background and returns before it has patched authman
-     * (its own log says so): the engine is ended only once a new [HMEM] line is in installer.log, or after
-     * 20 s, so the START that follows finds the larger limit. */
-    env.insert("TG_CMD",
-               "L=/var/log/installer.log; n0=$(grep -c HMEM $L 2>/dev/null); "
-               "/var/rootdata/installer \"$TG_ZIP\" </dev/null; "
-               "i=0; while [ $i -lt 20 ] && [ \"$(grep -c HMEM $L 2>/dev/null)\" = \"${n0:-0}\" ]; do sleep 1; i=$((i+1)); done; "
-               "grep HMEM $L 2>/dev/null; "
-               "slay -f tengramd 2>/dev/null; true");
+    env.insert("TG_CMD", commands);
     /* On BB10 the system ends every process carrying an app's id when the app exits, and children
      * inherit it, so the commands are started through tg-install-patcher, which gives them a new id
      * and session. Their output goes to a file, not the pipe to this app. The root shell only waits
@@ -140,7 +154,7 @@ void MemoryPatch::processFinished(int exitCode, QProcess::ExitStatus status)
     if (text.trimmed().isEmpty())
         m_headline = tr("The root helper gave no output. Is root enabled in AutoRoot (/var/rootdata/use.root)?");
     else if (ok)
-        m_headline = tr("Done. Tengram's engine restarts with the larger memory limit.");
+        m_headline = tr("Installed. Tengram has to close once to use the new memory limit: open it again afterwards.");
     else
         m_headline = tr("The install did not finish. The output is in Documents, tengram-memory-patch.txt.");
 
