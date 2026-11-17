@@ -608,3 +608,9 @@ and started again with `orbctl` (it had no containers). About three hours were l
 - **Step 7** (text formatting, `extra.ent`): on the phone 91 of 685 stored messages carry it.
   Stored as JSON for now; the compact binary form stays a candidate until the UI's scroll test
   says whether parsing it costs anything.
+- **Auto mode's detection verified** (2026-11-17, run 7): the user opened Telegram on another
+  phone at 07:16. The engine logged `own status: online, expires in 300 s` at 07:16:25 and went
+  offline; at the sync five minutes later it got `online, expires in 199 s`, then `offline`,
+  and stayed connected (instant). So Telegram does send our own status to a session that is
+  itself offline. Still unverified: the notifier on real traffic (no notification had come by
+  07:33), `link.logout`, everything under `--service`.
