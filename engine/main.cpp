@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <map>
 #include <thread>
 
 Db db;
@@ -72,8 +73,11 @@ void flush() {
   flush_pending = false;
   db.begin();
   chats_write();
+  messages_write();
   db.commit();
   chats_events();
+  messages_events();
+  messages_replies();
 }
 
 }  // namespace
@@ -109,7 +113,30 @@ bool set_nonblock(int fd) {
   return flags >= 0 && fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0 && fcntl(fd, F_SETFD, FD_CLOEXEC) == 0;
 }
 
+// How many updates of each type came, for the log line a stop writes: what wakes the engine is what costs
+// battery. The name is worked out once per type (to_string of a whole update is not cheap).
+std::map<std::int32_t, std::pair<std::string, long>> update_counts;
+
+void log_update_counts() {
+  std::vector<std::pair<long, std::string>> top;
+  long total = 0;
+  for (const auto &entry : update_counts) {
+    top.push_back({entry.second.second, entry.second.first});
+    total += entry.second.second;
+  }
+  std::sort(top.rbegin(), top.rend());
+  std::string line;
+  for (std::size_t i = 0; i < top.size() && i < 15; ++i) {
+    line += " " + top[i].second + "=" + std::to_string(top[i].first);
+  }
+  say("updates: %ld in all;%s", total, line.c_str());
+}
+
 void handle_update(Obj update) {
+  auto &count = update_counts[update->get_id()];
+  if (count.second++ == 0) {
+    count.first = type_name(*update);
+  }
   switch (update->get_id()) {
     case td_api::updateAuthorizationState::ID:
       link_auth(*static_cast<td_api::updateAuthorizationState &>(*update).authorization_state_);
@@ -119,12 +146,13 @@ void handle_update(Obj update) {
       break;
     default:  // the parts that mirror state take what is theirs and ignore the rest
       chats_update(*update);
+      messages_update(*update);
       break;
   }
 }
 
 void handle_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
-  if (link_request(conn, id, cmd, req)) {
+  if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req)) {
     return;
   }
   server.reply_error(conn, id, "unknown_cmd", "unknown cmd " + cmd);
@@ -247,9 +275,11 @@ int main(int argc, char **argv) {
     flush();
   }
   chats_close();
+  messages_close();
   db.commit();
   db.close();
   server.stop();
+  log_update_counts();
   say("stopped");
   std::_Exit(exit_code);
 }

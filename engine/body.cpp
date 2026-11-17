@@ -70,6 +70,13 @@ std::string sender_name(const td_api::message &m) {
   return chat_title(static_cast<const td_api::messageSenderChat &>(*m.sender_id_).chat_id_);
 }
 
+bool call_missed(const td_api::message &m) {
+  const auto &call = static_cast<const td_api::messageCall &>(*m.content_);
+  const int why = call.discard_reason_ ? call.discard_reason_->get_id() : 0;
+  return !m.is_outgoing_ &&
+         (why == td_api::callDiscardReasonMissed::ID || why == td_api::callDiscardReasonDeclined::ID);
+}
+
 std::string message_body(const td_api::message &m, bool &is_service) {
   is_service = false;
   if (!m.content_) {
@@ -136,15 +143,12 @@ std::string message_body(const td_api::message &m, bool &is_service) {
       return "Poll: " + (p.poll_ ? caption(p.poll_->question_) : std::string());
     }
     case td_api::messageCall::ID: {
-      auto &call = static_cast<const td_api::messageCall &>(c);
-      const int why = call.discard_reason_ ? call.discard_reason_->get_id() : 0;
-      const bool missed = !m.is_outgoing_ && (why == td_api::callDiscardReasonMissed::ID ||
-                                              why == td_api::callDiscardReasonDeclined::ID);
+      const bool video = static_cast<const td_api::messageCall &>(c).is_video_;
       is_service = true;  // no sender in front of it, like the service messages
-      if (missed) {
-        return call.is_video_ ? "Missed video call" : "Missed call";
+      if (call_missed(m)) {
+        return video ? "Missed video call" : "Missed call";
       }
-      return call.is_video_ ? "Video call" : "Call";
+      return video ? "Video call" : "Call";
     }
     default:
       break;

@@ -135,6 +135,7 @@ void on_closed() {
     if (logging_out) {
       db.wipe();  // the logout was under way when the stop came
       chats_reset();
+      messages_reset();
     }
     done = true;
     return;
@@ -142,19 +143,11 @@ void on_closed() {
   // The end of link.logout (or TDLib closing by itself): the account's rows go and a new client starts.
   db.wipe();
   chats_reset();
+  messages_reset();
   logging_out = false;
   cur = Link{};
   changed();
   tdlib.new_client();
-}
-
-void answer(std::uint64_t conn, const std::string &id, const Obj &o) {
-  if (auto e = as_error(o)) {
-    say("td error: %d %s", e->code_, e->message_.c_str());
-    reply_td_error(conn, id, *e);
-  } else {
-    server.reply_ok(conn, id);
-  }
 }
 
 // One login step. The state reads `linking` until TDLib moves on; if TDLib refuses, it goes back.
@@ -182,6 +175,10 @@ bool need_string(std::uint64_t conn, const std::string &id, td::JsonObject &req,
 }
 
 }  // namespace
+
+bool link_ready() {
+  return cur.state == State::Ready;
+}
 
 std::string link_body() {
   return td::json_encode<std::string>(td::json_object([](auto &o) { fields(o); }));

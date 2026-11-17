@@ -27,6 +27,15 @@ void reply_td_error(std::uint64_t conn, const std::string &id, const td_api::err
   server.reply_error(conn, id, code, std::to_string(e.code_) + " " + m);
 }
 
+void answer(std::uint64_t conn, const std::string &id, const Obj &o) {
+  if (auto e = as_error(o)) {
+    say("td error: %d %s", e->code_, e->message_.c_str());
+    reply_td_error(conn, id, *e);
+  } else {
+    server.reply_ok(conn, id);
+  }
+}
+
 void Td::start(int wake_fd) {
   wake_fd_ = wake_fd;
   td::ClientManager::execute(td_api::make_object<td_api::setLogVerbosityLevel>(1));

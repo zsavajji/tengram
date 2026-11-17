@@ -121,23 +121,6 @@ Chat *find(std::int64_t id) {
   return nullptr;
 }
 
-// One line of at most 150 bytes, cut between characters.
-std::string one_line(std::string s) {
-  for (char &ch : s) {
-    if (ch == '\n' || ch == '\r' || ch == '\t') {
-      ch = ' ';
-    }
-  }
-  if (s.size() > 150) {
-    std::size_t n = 150;
-    while (n > 0 && (static_cast<unsigned char>(s[n]) & 0xC0) == 0x80) {  // s[n] would be mid-character
-      --n;
-    }
-    s.resize(n);
-  }
-  return s;
-}
-
 std::string preview_of(const Chat &c, const td_api::message &m) {
   bool service = false;
   std::string text = message_body(m, service);
@@ -236,6 +219,9 @@ void new_chat(const td_api::chat &t) {
   }
   set_positions(c, t.positions_);
   set_last(c, t.last_message_.get());
+  if (t.last_message_) {
+    messages_queue(*t.last_message_);  // so a chat never opened still paints its newest message at once
+  }
   set_photo(c, t.photo_.get());
   touch(c);
 }
@@ -407,6 +393,40 @@ void load_list(bool main_list) {
 
 }  // namespace
 
+// One line of at most 150 bytes, cut between characters.
+std::string one_line(std::string s) {
+  for (char &ch : s) {
+    if (ch == '\n' || ch == '\r' || ch == '\t') {
+      ch = ' ';
+    }
+  }
+  if (s.size() > 150) {
+    std::size_t n = 150;
+    while (n > 0 && (static_cast<unsigned char>(s[n]) & 0xC0) == 0x80) {  // s[n] would be mid-character
+      --n;
+    }
+    s.resize(n);
+  }
+  return s;
+}
+
+bool chat_brief(std::int64_t chat_id, ChatBrief &out) {
+  auto it = chats.find(chat_id);
+  if (it == chats.end()) {
+    return false;
+  }
+  out = {it->second.kind, it->second.has_last, it->second.last_id, it->second.read_outbox};
+  return true;
+}
+
+void chats_last_message(const td_api::message &m) {
+  auto it = chats.find(m.chat_id_);
+  if (it != chats.end()) {
+    set_last(it->second, &m);
+    touch(it->second);
+  }
+}
+
 const std::string &user_name(std::int64_t user_id, bool full) {
   static const std::string none;
   auto it = users.find(user_id);
@@ -449,6 +469,9 @@ void chats_update(td_api::Object &update) {
       if (Chat *c = find(u.chat_id_)) {
         set_last(*c, u.last_message_.get());
         set_positions(*c, u.positions_);
+        if (u.last_message_) {
+          messages_queue(*u.last_message_);
+        }
         touch(*c);
       }
       break;

@@ -34,7 +34,8 @@ std::string read_key(const std::string &path) {
   return n == 64 && raw.is_ok() ? raw.move_as_ok() : "";
 }
 
-// The version-1 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables.
+// The version-2 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
+// with the engine's own messages.sig.
 // Column order is theirs, in case the UI reads by position. The first line removes the table that
 // SqliteDb::change_key leaves in a database it has just encrypted.
 const char *const kSchema = R"(
@@ -63,6 +64,7 @@ CREATE TABLE messages(
   thumb BLOB, width INTEGER, height INTEGER, size INTEGER, path TEXT,
   extra TEXT,
   starred INTEGER NOT NULL DEFAULT 0,
+  sig INTEGER,
   PRIMARY KEY(chat, id));
 CREATE INDEX messages_by_time ON messages(chat, ts);
 CREATE INDEX messages_by_kind ON messages(kind, ts);
@@ -122,7 +124,7 @@ bool Db::try_open(const std::string &raw_key) {
     return false;
   }
   auto v = db_.user_version();
-  if (v.is_error() || v.ok() < 0 || v.ok() > 1) {
+  if (v.is_error() || (v.ok() != 0 && v.ok() != 2)) {
     say("chats.db: user_version %d is not ours", v.is_ok() ? v.ok() : -1);
     db_.close();
     return false;
@@ -137,7 +139,7 @@ bool Db::try_open(const std::string &raw_key) {
 bool Db::create_schema() {
   // One transaction, user_version inside it: a crash leaves either nothing or all of it.
   return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) &&
-         ok(db_.set_user_version(1), "user_version") && ok(db_.commit_transaction(), "commit");
+         ok(db_.set_user_version(2), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 void Db::close() {
