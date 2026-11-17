@@ -103,6 +103,12 @@ void fetch(const std::shared_ptr<Page> &p, std::int64_t from) {
       }
     }
     if (p->got.size() == before) {
+      // TDLib answers empty only after its own tries from the database and the server (left_tries in
+      // get_dialog_history), so this is the start of the history. meegram2 retried empty answers; if a
+      // chat ever stops paging early, this line says where.
+      if (from != 0) {
+        say("history: nothing older than %lld in %lld", static_cast<long long>(from), static_cast<long long>(p->chat));
+      }
       p->more = false;
       return finish(p);
     }

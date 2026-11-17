@@ -220,6 +220,31 @@ than the oldest verified id may have gaps and are not shown.
   when one of our own rows goes and one comes in the same event.
 - **Ids exceed 2^53.** They are strings across the socket and in QML, always (`before` in
   `chat.history` included); only SQL and C++ `qint64` treat them as numbers.
+- **What meegram2 (`../../meegram2`, the N9's TDLib client) learned about history, and where
+  Tengram stands** (read 2026-11-17: `docs/features.md`, `docs/troubleshooting.md`,
+  `docs/profiling.md`, `src/MessageModel.cpp`):
+  - *An empty or short `getChatHistory` answer is not the start of the history.* Short ones:
+    the engine already asks again from the oldest message it got. Empty ones: meegram2 retried
+    them on a 400 ms timer; TDLib's `get_dialog_history` already tries the database and the
+    server itself (`left_tries`) before it answers empty, so the engine takes empty as the start
+    and logs `history: nothing older than …`. If a chat stops paging early, that line says where.
+  - *`from_message_id` with offset 0 returns messages strictly older than it; 0 means the newest,
+    inclusive.* The engine uses exactly that. Never offset -1 anchored on the last message: it
+    reaches `CHECK(!have_a_gap)` in `OrderedMessages::get_history` and aborts TDLib after a
+    `closeChat` unloaded the chat.
+  - *`updateDeleteMessages` with `from_cache` (not permanent) is TDLib unloading, not deleting;*
+    it follows every `closeChat`, which our minimise sends. The engine already ignores it.
+  - *A sent message comes twice* (temporary id, then the server's); the engine swaps the row
+    and names both ids. The card flicker is still to check (above).
+  - *Rows inserted in the middle of a list* showed one message twice in QML1's ListView;
+    meegram2 resets the model then. Tengram inserts in the middle only when a gap is bridged
+    (`itemAdded` per row): to check on the Q10.
+  - *Ids cross into QML as strings* (QtScript turns large numbers into doubles): Tengram does.
+  - *Opening position:* meegram2, as Telegram, opens at the first unread message and reports
+    read up to the bottom-most visible one; Tengram (HyperBerry's way) opens at the newest and
+    marks the chat read once its bottom is on screen. A difference for the user to decide, not
+    a bug. If it changes, meegram2's other lesson applies: position on a bounded retry, never
+    from a height-change handler (that never converged and froze its app).
 - **`scrollToPosition` right after the model is set stops short;** the chat is a bottom-to-top
   list that starts at its newest row with no scroll call. Nothing in the paging may add one.
 
