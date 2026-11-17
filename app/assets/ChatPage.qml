@@ -83,6 +83,16 @@ Page {
                 }
             }
         },
+        // The older rows go in once the list has left its top edge (releaseUnread).
+        Timer {
+            id: release
+            interval: 100
+            singleShot: true
+            onTimeout: {
+                console.log("chat: released off the edge, atEnd " + scrollState.atEnd)
+                ctl.messages.releaseOlder()
+            }
+        },
         // A received photo, video, audio file or document (step 6.1): MediaOpener fetches the file
         // and hands it to the system; a photo opens in our viewer instead (nav.showPhoto).
         MediaOpener {
@@ -418,11 +428,25 @@ Page {
         if (aimAt != "" && aimAt != "bottom" && !page.placed) {
             settle.start()
         }
-        // The divider is at the top now: the rows above it go in (MessageModel.releaseOlder), which doesn't move it.
-        if (aimAt == "unread") {
-            ctl.messages.releaseOlder()
-        }
+        var unread = aimAt == "unread"
         aimAt = ""
+        if (unread) {
+            releaseUnread()
+        }
+    }
+    // The divider is the list's top now; the rows above it go in (MessageModel.releaseOlder). A list sitting exactly
+    // at that edge keeps it in view when rows are appended there, which pushed the divider to the bottom of the screen
+    // (Classic, 0.1.0.12). So the list is moved a few pixels off the edge first and the rows go in a moment later. An
+    // unread run shorter than the screen has no room to move: it ends as Telegram's, the newest at the bottom.
+    function releaseUnread() {
+        console.log("chat: release, atBeginning " + scrollState.atBeginning + ", atEnd " + scrollState.atEnd)
+        if (scrollState.atBeginning) {
+            ctl.messages.releaseOlder()
+            startAim("bottom", "")
+        } else {
+            list.scroll(4, ScrollAnimation.None)
+            release.start()
+        }
     }
     // A search match (step 5.10): its day is loaded if it wasn't, then it's scrolled to and tinted.
     function jump(id) {
