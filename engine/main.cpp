@@ -4,7 +4,8 @@
 //
 // This thread owns everything (the database, the sockets, all state) and sleeps in poll(). The TDLib thread
 // (td.cpp) only receives and queues; a third thread waits for signals. The engine has no timer of its own:
-// idle, it wakes only for TDLib or the UI (the one exception is the 5 s limit of a stop).
+// idle, it wakes only for TDLib or the UI. The exceptions are the 5 s limit of a stop and the flush, which
+// comes 50 ms after something changed.
 
 #include "engine.h"
 
@@ -15,9 +16,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cerrno>
-#include <climits>
 #include <chrono>
+#include <climits>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
@@ -36,6 +38,9 @@ namespace {
 
 using Clock = std::chrono::steady_clock;
 const Clock::time_point t0 = Clock::now();  // "process start": static init, before main
+
+bool flush_pending = false;  // something is dirty: flush() is due at flush_at
+Clock::time_point flush_at;
 
 void usage(std::FILE *to) {
   std::fprintf(to, "usage: tengramd <data-dir>\n"
@@ -61,7 +66,24 @@ bool drain_wake(int fd) {
   return quit;
 }
 
+// The rows that changed, written in one transaction, and only then their events: what the UI is told to
+// re-read is already in chats.db.
+void flush() {
+  flush_pending = false;
+  db.begin();
+  chats_write();
+  db.commit();
+  chats_events();
+}
+
 }  // namespace
+
+void mark_dirty() {
+  if (!flush_pending) {
+    flush_pending = true;
+    flush_at = Clock::now() + std::chrono::milliseconds(50);
+  }
+}
 
 void say(const char *fmt, ...) {
   char buf[512];
@@ -95,7 +117,8 @@ void handle_update(Obj update) {
     case td_api::updateConnectionState::ID:
       link_conn(*static_cast<td_api::updateConnectionState &>(*update).state_);
       break;
-    default:  // everything else is ignored until a step needs it
+    default:  // the parts that mirror state take what is theirs and ignore the rest
+      chats_update(*update);
       break;
   }
 }
@@ -183,14 +206,16 @@ int main(int argc, char **argv) {
     fds.clear();
     fds.push_back({wake[0], POLLIN, 0});
     server.fill(fds);
-    int timeout = -1;  // nothing pending: sleep until something happens
-    if (stop_asked) {
-      const auto left = std::chrono::duration_cast<std::chrono::milliseconds>(stop_by - Clock::now()).count();
-      if (left <= 0) {
-        say("TDLib did not close in 5 s");
-        break;
-      }
-      timeout = static_cast<int>(left);
+    // Sleep until something happens, or until the flush or the end of a stop is due, whichever is nearer.
+    int timeout = -1;
+    if (stop_asked && Clock::now() >= stop_by) {
+      say("TDLib did not close in 5 s");
+      break;
+    }
+    if (stop_asked || flush_pending) {
+      const auto due = stop_asked && flush_pending ? std::min(stop_by, flush_at) : stop_asked ? stop_by : flush_at;
+      const auto us = std::chrono::duration_cast<std::chrono::microseconds>(due - Clock::now()).count();
+      timeout = us <= 0 ? 0 : static_cast<int>((us + 999) / 1000);  // rounded up: no early wake-up to spin on
     }
     if (poll(fds.data(), fds.size(), timeout) < 0) {
       if (errno == EINTR) {
@@ -211,11 +236,17 @@ int main(int argc, char **argv) {
       tdlib.drain();
     }
     server.service(&fds[1]);
-    db.commit();
+    if (flush_pending && Clock::now() >= flush_at) {
+      flush();
+    }
   }
 
   // TDLib has flushed its databases (or the 5 s ran out). _Exit: the TDLib thread may still be in
   // receive(), and the destructors of the globals must not run beside it.
+  if (flush_pending) {
+    flush();
+  }
+  chats_close();
   db.commit();
   db.close();
   server.stop();

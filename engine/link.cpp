@@ -126,6 +126,7 @@ void on_ready() {
     }
     cur.state = State::Ready;
     changed();
+    chats_start();
   });
 }
 
@@ -133,12 +134,14 @@ void on_closed() {
   if (tdlib.stopping) {
     if (logging_out) {
       db.wipe();  // the logout was under way when the stop came
+      chats_reset();
     }
     done = true;
     return;
   }
   // The end of link.logout (or TDLib closing by itself): the account's rows go and a new client starts.
   db.wipe();
+  chats_reset();
   logging_out = false;
   cur = Link{};
   changed();

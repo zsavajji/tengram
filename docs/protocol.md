@@ -58,7 +58,8 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 (`requestQrCodeAuthentication`); `link.phone`, `link.code` and `link.password` are the phone
 number, the code Telegram sends and the two-step password. Each answers when TDLib took it;
 the new state comes as a `link` event. `bad_state` is a command the current state doesn't expect.
-`link.logout` logs out on Telegram's side, empties `chats.db` and starts a fresh TDLib client.
+`link.logout` logs out on Telegram's side, empties `chats.db` (a `chats` event names the rows
+that went) and starts a fresh TDLib client.
 
 **`ui.state`:** `fullscreen: true` sets TDLib's `online` option, `false` clears it. It also
 drives the delivery mode (below). A connection that closes counts as `fullscreen: false`.
