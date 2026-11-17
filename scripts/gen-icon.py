@@ -94,24 +94,26 @@ def placed():
     return [(fill, [place(q) for q in p]) for fill, p in PIECES]
 
 
-def glyph(px, top, foot=None, fill=0.62, gap=0.04, out=None):
-    """The plane alone, in one colour, for the Hub: an RGBA image px square, the plane `fill` of the box
-    (0.62 is 50 px of 81, as the Hub's own glyphs). `top` is its colour, fading straight down to `foot`
-    when given, as the system's glyphs do. `gap` is the cut between the pieces as a share of the plane's
-    width: wider than the app icon's, or it closes up at this size. HyperBerry's recipe
-    (../hyperberry/scripts/gen-icons.py, app_icon with mono): drawn large, scaled down, painted flat over
-    the shape and pasted with no mask, since a masked paste darkens the edges."""
+def glyph(px, top, foot=None, fill=0.7, gap=0.04, out=None):
+    """The icon in one colour, for the Hub: the app icon's disc with the plane cut out of it (the user,
+    2026-11-17: inverted, the plane a cutout of the circle), an RGBA image px square, the disc `fill` of the
+    box. `top` is its colour, fading straight down to `foot` when given, as the system's glyphs do. `gap` is
+    the cut between the pieces as a share of the plane's width: wider than the app icon's, or it closes up at
+    this size. HyperBerry's recipe (../hyperberry/scripts/gen-icons.py, app_icon with mono): drawn large,
+    scaled down, painted flat over the shape and pasted with no mask, since a masked paste darkens the edges."""
     from PIL import Image, ImageDraw
     k = 4  # 512 * 4: drawn large
+    n = SIZE * k
     polys = [p for _, p in placed()]
     xs = [x for p in polys for x, _ in p]
     cut = gap * (max(xs) - min(xs)) / 2
-    mask = Image.new("L", (SIZE * k, SIZE * k), 0)
+    mask = Image.new("L", (n, n), 0)
     d = ImageDraw.Draw(mask)
+    d.ellipse((4 * k, 4 * k, n - 4 * k - 1, n - 4 * k - 1), 255)  # the app icon's disc
     for p in polys:
         pts = [(x * k, y * k) for x, y in inset(p, cut + ROUND)]
-        d.polygon(pts, 255)
-        d.line(pts + pts[:2], 255, 2 * ROUND * k, joint="curve")  # the icon's rounded corners
+        d.polygon(pts, 0)
+        d.line(pts + pts[:2], 0, 2 * ROUND * k, joint="curve")  # the icon's rounded corners
     mask = mask.crop(mask.getbbox())
     r = fill * px / max(mask.size)
     mask = mask.resize((round(mask.width * r), round(mask.height * r)), Image.LANCZOS)
@@ -166,7 +168,7 @@ def hub_glyphs(folder):
     glyph(81, (0x9E, 0x9E, 0x9E, 255), (0x81, 0x81, 0x81, 255), out=folder / "hub_read.png")     # a read item
     glyph(81, (0xFF, 0xD9, 0x1C, 255), (0xE0, 0xB2, 0x17, 255), out=folder / "hub_unread.png")   # an unread one
     # The account's own, which the lock screen and the instant preview draw: white, larger, no fade.
-    glyph(81, (255, 255, 255, 255), fill=0.84, out=folder / "hub_account.png")
+    glyph(81, (255, 255, 255, 255), fill=0.9, out=folder / "hub_account.png")
 
 
 def main():
