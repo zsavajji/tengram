@@ -2350,9 +2350,9 @@
 <context>
     <name>StagedBar</name>
     <message>
-        <location filename="../assets/StagedBar.qml" line="80"/>
-        <source>Send as file</source>
-        <translation>Gửi dưới dạng tệp</translation>
+        <location filename="../assets/StagedBar.qml" line="92"/>
+        <source>As file</source>
+        <translation>Dạng tệp</translation>
     </message>
 </context>
 <context>

@@ -2356,9 +2356,9 @@
 <context>
     <name>StagedBar</name>
     <message>
-        <location filename="../assets/StagedBar.qml" line="80"/>
-        <source>Send as file</source>
-        <translation>Wyślij jako plik</translation>
+        <location filename="../assets/StagedBar.qml" line="92"/>
+        <source>As file</source>
+        <translation>Jako plik</translation>
     </message>
 </context>
 <context>

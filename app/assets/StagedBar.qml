@@ -4,10 +4,11 @@ import bb.cascades 1.4
 // picture or a paperclip, the name over the size, and a cross that drops it. info is
 // MediaOpener.fileInfo's; what is typed in the composer is the file's caption.
 Container {
+    id: bar
     property variant info
     // The picture is a PNG made a JPEG: the bar offers to send the PNG as a file instead.
     property bool canFile
-    property alias asFile: fileBox.checked
+    property bool asFile: false
     signal cancelled()
     visible: !!info && !!info.name
     horizontalAlignment: HorizontalAlignment.Fill
@@ -73,11 +74,27 @@ Container {
             textStyle.fontSizeValue: nav.smallSize
             textStyle.color: ui.palette.secondaryTextOnPlain
         }
-        // A PNG goes as a photo unless this is ticked (the page clears it for each file).
-        CheckBox {
-            id: fileBox
-            visible: canFile
-            text: qsTr("Send as file")
+    }
+    // A PNG goes as a photo unless this is on (the page clears it for each file). A square toggle, as the call screen's,
+    // not the stock check box under the name (the user, 2026-11-17: ugly): grey off, the accent on.
+    Container {
+        visible: canFile
+        verticalAlignment: VerticalAlignment.Center
+        leftMargin: ui.du(1)
+        leftPadding: ui.du(1.5)
+        rightPadding: ui.du(1.5)
+        topPadding: ui.du(1)
+        bottomPadding: ui.du(1)
+        background: bar.asFile ? ui.palette.primary : Color.create("#33808080")
+        gestureHandlers: TapHandler {
+            onTapped: bar.asFile = !bar.asFile
+        }
+        Label {
+            text: qsTr("As file")
+            textFormat: TextFormat.Plain
+            textStyle.fontSize: FontSize.PercentageValue
+            textStyle.fontSizeValue: nav.smallSize
+            textStyle.color: bar.asFile ? Color.White : ui.palette.textOnPlain
         }
     }
     // The cross has its own padding so the tap has a finger's size.
