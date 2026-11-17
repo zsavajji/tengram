@@ -5,4 +5,4 @@ app/assets/fonts/
 app/assets/emoji/
 app/assets/translations/
 lib/
-tools/authman/addon/init/authman-send
+tools/authman/addon/init/mempatch

@@ -108,16 +108,27 @@ set (`cmp r7, #0; bne 0x4b2c`, right after it recognises `RLM`). Authman never a
 capability loaded at run time. The addon in `tools/authman/` cannot work as designed; it stays as the record
 of the protocol. The `hmem` prefix and its `.res` stay in authman until the next reboot, harmless.
 
-## What is left: an overlay before authman starts
+## An overlay before authman starts: impossible
 
-The only moment a patched `sys.acl` counts is authman's start, early in runlevel 0. The OS mounts
-**system-data packages** before that: each has `assets/links` lines such as
-`mount:assets/data/fs1.rcfs:/base/bin:rcfs` (getroot's, which is how this phone has root) and the carrier
-package's `mount:assets/data/fs4.rcfs:/etc/authman/subsystem:rcfs`. Runlevel 0 runs `filesystem` before
-`authman`. A QNX mount at an existing path is a union: an rcfs holding only `sys.acl`, mounted on
-`/base/etc/authman`, would shadow that one file and let the rest show through.
+A system-data package can mount an rcfs before authman reads its ACL (getroot overlays `/base/bin` that way),
+but installing one is the step that needs root, and root arrives too late in the boot (the user, 2026-11-17).
 
-Unknowns, all for the user: how a system-data package gets installed (getroot's MANIFEST says RIM authored and
-carries digests, so it was installed by whatever made the root); whether the boot mounter would take a second,
-unsigned one, or an extra `links` line; how to build an rcfs image. Touching getroot's own package risks the
-root itself.
+## What works: patching authman's memory (2026-11-17)
+
+`arlm_create` keeps nothing of an `RLM` action but its text, `"rlm " RES " " VALUE` in a 0x200-byte buffer at
+`+0x3c` of a 0x23c-byte object; the number is parsed only to check it isn't too large. The launcher gets that
+text at each launch and parses it. Root reads and writes another process's memory through `/proc/<pid>/as`.
+
+`tools/authman/mempatch.c` walks the process's regions (`DCMD_PROC_MAPINFO`), finds a NUL-terminated string,
+and with `-w` replaces it only when it occurs exactly once, then reads it back. In authman (24 regions) each
+class's text occurs once, three objects 0x248 apart: `rlm RLIMIT_DATA 31457280` (xlarge) at `0x1058a2d4`,
+6291456 (medium) at `0x1058a51c`, 10485760 (large) at `0x1058a764`. Writing `rlm RLIMIT_DATA 134217728`
+over the xlarge one: authman kept running, no client noticed, and **the next Tengram engine logged
+`rlimit DATA: soft 134217728, hard 134217728`**. Every app that asks for `_sys_headless_xlarge` and launches
+afterwards gets 128 MiB; apps running before keep 30 MiB until they restart; a reboot undoes it.
+
+`tools/authman/build-addon.sh` builds `build/headless-mem.zip`, an addon for the root installer
+(`/var/rootdata/installer <zip>`), installed on the test phone: at install and at every boot, once root is up,
+its `start.sh` waits for `/dev/authman`, finds authman, and patches (or logs `already`), in
+`/var/log/installer.log` as `[HMEM]`. The size is `MB=128` in `start.sh`. Still to see: a reboot, where root
+comes about 4 minutes in, so an engine started earlier by the boot needs one restart.

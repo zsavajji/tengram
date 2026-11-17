@@ -1,4 +1,0 @@
-hmem_headless_64
-    RLM RLIMIT_DATA 67108864
-hmem_headless_128
-    RLM RLIMIT_DATA 134217728
