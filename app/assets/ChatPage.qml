@@ -54,6 +54,7 @@ Page {
         ctl.messages.loadingChanged.connect(page.loaded)
         media.ready.connect(page.mediaReady)
         media.openFailed.connect(mediaFailed.show)
+        media.pictureEdited.connect(page.stage) // the editor's file is staged as the picker's, the caption kept
     }
     attachedObjects: [
         // Attach (step 6.2): the system's picker, every file type; the engine sends by the extension.
@@ -186,6 +187,9 @@ Page {
             StagedBar {
                 info: page.stagedInfo
                 canFile: page.stagedPng != "" || page.stagedJpeg
+                canEdit: page.stagedPng != "" || /\.(jpe?g|png|gif|bmp)$/i.test(page.staged)
+                // The original PNG when the staged JPEG was made from one.
+                onEdit: media.editPicture(page.stagedPng != "" ? page.stagedPng : page.staged)
                 onCancelled: page.unstage()
             }
         },

@@ -2353,7 +2353,12 @@
 <context>
     <name>StagedBar</name>
     <message>
-        <location filename="../assets/StagedBar.qml" line="92"/>
+        <location filename="../assets/StagedBar.qml" line="95"/>
+        <source>Edit</source>
+        <translation>Editar</translation>
+    </message>
+    <message>
+        <location filename="../assets/StagedBar.qml" line="117"/>
         <source>As file</source>
         <translation>Como archivo</translation>
     </message>

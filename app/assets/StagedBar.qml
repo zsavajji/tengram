@@ -9,6 +9,9 @@ Container {
     // The picture is a PNG made a JPEG: the bar offers to send the PNG as a file instead.
     property bool canFile
     property bool asFile: false
+    // The file is a picture the system's editor can open: the bar offers Edit, and the page restages the result.
+    property bool canEdit
+    signal edit()
     signal cancelled()
     visible: !!info && !!info.name
     horizontalAlignment: HorizontalAlignment.Fill
@@ -73,6 +76,27 @@ Container {
             textStyle.fontSize: FontSize.PercentageValue
             textStyle.fontSizeValue: nav.smallSize
             textStyle.color: ui.palette.secondaryTextOnPlain
+        }
+    }
+    // A button, not a toggle: always grey, as As file's off.
+    Container {
+        visible: canEdit
+        verticalAlignment: VerticalAlignment.Center
+        leftMargin: ui.du(1)
+        leftPadding: ui.du(1.5)
+        rightPadding: ui.du(1.5)
+        topPadding: ui.du(1)
+        bottomPadding: ui.du(1)
+        background: Color.create("#33808080")
+        gestureHandlers: TapHandler {
+            onTapped: edit()
+        }
+        Label {
+            text: qsTr("Edit")
+            textFormat: TextFormat.Plain
+            textStyle.fontSize: FontSize.PercentageValue
+            textStyle.fontSizeValue: nav.smallSize
+            textStyle.color: ui.palette.textOnPlain
         }
     }
     // A PNG goes as a photo unless this is on (the page clears it for each file). A square toggle, as the call screen's,

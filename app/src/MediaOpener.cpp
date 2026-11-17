@@ -23,8 +23,11 @@ using namespace bb::system;
 MediaOpener::MediaOpener(QObject *parent)
     : QObject(parent)
     , m_progress(0)
+    , m_editing(false)
     , m_region(bb::system::LocaleType::Region)
 {
+    connect(&m_invoker, SIGNAL(childCardDone(bb::system::CardDoneMessage)), this,
+            SLOT(onCardDone(bb::system::CardDoneMessage)));
 }
 
 QObject *MediaOpener::link() const
@@ -146,6 +149,26 @@ bool MediaOpener::openFile(const QString &path)
     return true;
 }
 
+// The picture editor's manifest (read on the phone, 10.3.3) takes bb.action.EDIT for image/jpeg, png, gif and bmp
+// with file:// uris, as a card. What it returns is logged by onCardDone.
+void MediaOpener::editPicture(const QString &path)
+{
+    const QString ext = QFileInfo(path).suffix().toLower();
+    InvokeRequest request;
+    request.setTarget("sys.pictureeditor.cardeditor");
+    request.setAction("bb.action.EDIT");
+    request.setMimeType(ext == "jpg" || ext == "jpeg" ? "image/jpeg" : "image/" + ext);
+    request.setUri(QUrl::fromLocalFile(path));
+    InvokeTargetReply *reply = m_invoker.invoke(request);
+    if (!reply) {
+        qWarning() << "media: no reply from the system to EDIT" << path;
+        emit openFailed();
+        return;
+    }
+    m_editing = true;
+    connect(reply, SIGNAL(finished()), this, SLOT(onInvoked()));
+}
+
 // The Contacts app's manifest (read on the Q10) takes bb.action.OPEN with text/vcard as data in the
 // request, and answers with its import screen: the name and every number. Replies like openFile's.
 // ponytail: with several contacts it may import only the first; a list to pick one if it shows.
@@ -176,6 +199,26 @@ void MediaOpener::onInvoked()
         emit openFailed(); // no app for the type, or no access to Downloads
     }
     reply->deleteLater();
+}
+
+// What the editor returns isn't known yet, so every field is logged. Success is any reason but "cancel" or
+// "closed" (the card's own words for backing out) with data that is an existing file: a path or a file:// url.
+void MediaOpener::onCardDone(const CardDoneMessage &done)
+{
+    qDebug() << "media: card done, reason" << done.reason() << "dataType" << done.dataType() << "data" << done.data();
+    if (!m_editing)
+        return;
+    m_editing = false;
+    const QString reason = done.reason().toLower();
+    if (done.data().isEmpty() || reason == "cancel" || reason == "closed")
+        return;
+    QString path = done.data();
+    if (path.startsWith("file://"))
+        path = QUrl::fromPercentEncoding(path.mid(7).toUtf8());
+    if (QFileInfo(path).isFile())
+        emit pictureEdited(path);
+    else
+        qWarning() << "media: the editor returned no file" << done.data();
 }
 
 // A received photo lives in the sandbox (phase6.md, choice 1), where neither Pictures nor File
