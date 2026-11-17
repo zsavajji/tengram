@@ -1,7 +1,6 @@
 #include "engine.h"
 
 #include "td/db/DbKey.h"
-#include "td/utils/Random.h"
 #include "td/utils/misc.h"
 
 #include <unistd.h>
@@ -87,28 +86,43 @@ CREATE TABLE engine_state(key TEXT PRIMARY KEY, value INTEGER NOT NULL);
 
 }  // namespace
 
-bool Db::open(const std::string &dir) {
-  path_ = dir + "/chats.db";
-  const std::string key_path = dir + "/chats.key";
-  std::string raw = read_key(key_path);
-  if (raw.empty()) {
-    if (access(path_.c_str(), F_OK) == 0) {
-      say("chats.db has no usable chats.key: deleting it");
-      ok(td::SqliteDb::destroy(path_), "destroy");
-    }
-    raw.resize(32);
-    td::Random::secure_bytes(raw);
-    if (!write_file(key_path, td::hex_encode(raw))) {
-      say("cannot write %s", key_path.c_str());
-      return false;
-    }
+// The key of both databases, 32 bytes: read from <dir>/db.key (64 hex characters, this user only), or made
+// from /dev/random at the first launch. `fresh` says it was made now.
+bool load_db_key(const std::string &dir, bool &fresh) {
+  const std::string path = dir + "/db.key";
+  fresh = false;
+  db_key = read_key(path);
+  if (!db_key.empty()) {
+    return true;
   }
-  if (try_open(raw)) {
+  db_key.resize(32);
+  std::FILE *f = std::fopen("/dev/random", "r");
+  const bool got = f && std::fread(&db_key[0], 1, db_key.size(), f) == db_key.size();
+  if (f) {
+    std::fclose(f);
+  }
+  if (!got || !write_file(path, td::hex_encode(db_key))) {
+    say("cannot make the database key (%s from /dev/random, then %s)", got ? "32 bytes" : "nothing", path.c_str());
+    db_key.clear();
+    return false;
+  }
+  fresh = true;
+  say("made the database key");
+  return true;
+}
+
+bool Db::open(const std::string &dir, bool fresh_key) {
+  path_ = dir + "/chats.db";
+  if (fresh_key && access(path_.c_str(), F_OK) == 0) {
+    say("chats.db is older than the key: deleting it");
+    ok(td::SqliteDb::destroy(path_), "destroy");
+  }
+  if (try_open(db_key)) {
     return true;
   }
   say("chats.db: deleting it and starting again");
   ok(td::SqliteDb::destroy(path_), "destroy");
-  return try_open(raw);
+  return try_open(db_key);
 }
 
 bool Db::try_open(const std::string &raw_key) {

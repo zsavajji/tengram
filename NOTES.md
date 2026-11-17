@@ -633,3 +633,8 @@ and started again with `orbctl` (it had no containers). About three hours were l
 - **Packaging** comes later.
 - **Icons:** a monochrome glyph of the app icon, grey for the Hub and white for the lock screen,
   made the way HyperBerry makes its own.
+- **The key change on the phone** (2026-11-17 08:10): first on a copy of the session, then on
+  the real one. First start: `made the database key`, `chats.db` rebuilt, TDLib's database
+  opened under its default key and moved to ours; second start: opens directly, ready in
+  0.36 s; smoke test passes. The probe (`tdprobe`) passes no key, so it can no longer open this
+  session: use the engine.

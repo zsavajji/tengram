@@ -1,5 +1,5 @@
 // Reads the engine's encrypted chats.db the way the UI will: through QtSql, with Qt 4.8's SQLite driver
-// built on SQLCipher (QSQLCipherDriver). Usage: sqlciphertest <chats.db> <chats.key> "<sql>"
+// built on SQLCipher (QSQLCipherDriver). Usage: sqlciphertest <chats.db> <db.key> "<sql>"
 #include "qsql_sqlcipher.h"
 
 #include <QtCore/QCoreApplication>
@@ -17,7 +17,7 @@
 int main(int argc, char **argv) {
     QCoreApplication app(argc, argv);
     if (argc == 2 && QString(argv[1]) == "-h") {
-        std::printf("usage: sqlciphertest <chats.db> <chats.key> \"<sql>\"\n");
+        std::printf("usage: sqlciphertest <chats.db> <db.key> \"<sql>\"\n");
         return 0;
     }
     if (argc != 4)

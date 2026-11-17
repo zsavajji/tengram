@@ -32,7 +32,7 @@ ssh bb10rootx "cd /root/tengram && TG_API_ID=… TG_API_HASH=… $E data >engine
 
 ```sh
 tests/engine_client.py chat.open '{"chat":"<id>"}' --listen 10    # through an ssh tunnel; prints replies and events
-ssh bb10rootx "cd /root/tengram && ./dbq-<sha>-1 data/chats.db data/chats.key 'SELECT count(*) FROM chats'"
+ssh bb10rootx "cd /root/tengram && ./dbq-<sha>-1 data/chats.db data/db.key 'SELECT count(*) FROM chats'"
 ```
 
 On the real account, try sends, reads, edits and deletes on Saved Messages only (its chat id is

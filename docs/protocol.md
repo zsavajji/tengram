@@ -10,8 +10,8 @@ When the code changes, this file changes with it.
 | file | what |
 |---|---|
 | `db/`, `files/` | TDLib's own database and files. Only the engine touches them. |
-| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened or its `user_version` isn't the engine's. |
-| `chats.key` | The key of `chats.db`: 64 hex characters (32 random bytes), mode 0600, made by the engine when missing. Open with `PRAGMA key = "x'<the 64 characters>'"` (a raw key: no key derivation). |
+| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's, or `db.key` is new. |
+| `db.key` | The key of both databases: 64 hex characters (32 bytes read from `/dev/random` at the first launch), mode 0600. The engine hands it to TDLib as its database key; the UI opens `chats.db` with `PRAGMA key = "x'<the 64 characters>'"` (a raw key: no key derivation). There is no setting to turn encryption off and no passcode. |
 | `engine.json` | `{"port": 41234, "token": "<32 hex characters>"}`, mode 0600, written as a temporary file and renamed, new at every start, removed at a clean stop. |
 
 ## Connecting and framing

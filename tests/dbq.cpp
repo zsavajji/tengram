@@ -1,7 +1,7 @@
 // dbq: runs one SQL statement on the engine's chats.db and prints the rows, tab separated (NULL as NULL,
 // a blob as <blob N>). The way to look into the encrypted database from a shell, and a second process
 // reading it while the engine writes.
-// Usage: dbq <chats.db> <chats.key> "<sql>"      Exit 1 and the error on stderr if anything fails.
+// Usage: dbq <chats.db> <db.key> "<sql>"      Exit 1 and the error on stderr if anything fails.
 
 #include "sqlite/sqlite3.h"
 #include "td/db/DbKey.h"
@@ -13,7 +13,7 @@
 #include <string>
 
 static void usage(std::FILE *to) {
-  std::fprintf(to, "usage: dbq <chats.db> <chats.key> \"<sql>\"\n");
+  std::fprintf(to, "usage: dbq <chats.db> <db.key> \"<sql>\"\n");
 }
 
 int main(int argc, char **argv) {

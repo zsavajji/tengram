@@ -31,6 +31,7 @@ Db db;
 Td tdlib;
 Server server;
 std::string data_dir;
+std::string db_key;
 int api_id = 0;
 std::string api_hash;
 bool done = false;
@@ -226,7 +227,8 @@ int main(int argc, char **argv) {
     return 3;
   }
 
-  if (!db.open(data_dir) || !server.start(data_dir)) {
+  bool fresh_key = false;
+  if (!load_db_key(data_dir, fresh_key) || !db.open(data_dir, fresh_key) || !server.start(data_dir)) {
     return 1;
   }
   mode_init();

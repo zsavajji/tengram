@@ -8,9 +8,9 @@
 
 class Db {
  public:
-  // Opens <dir>/chats.db with the key in <dir>/chats.key, making either when missing, and deleting
-  // and recreating the database when it can't be opened or has another user_version. False if even that fails.
-  bool open(const std::string &dir);
+  // Opens <dir>/chats.db with db_key, making it when missing, and deleting and recreating it when it can't be
+  // opened, has another user_version, or the key is new. False if even that fails.
+  bool open(const std::string &dir, bool fresh_key);
   void close();
 
   bool exec(const char *sql);                    // false, after a log line, on failure

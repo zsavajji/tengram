@@ -20,6 +20,8 @@ extern Db db;
 extern Td tdlib;
 extern Server server;
 extern std::string data_dir;  // absolute
+extern std::string db_key;    // 32 bytes: the key of chats.db and of TDLib's database (db.cpp)
+bool load_db_key(const std::string &dir, bool &fresh);
 extern int api_id;
 extern std::string api_hash;
 extern bool done;     // the stop is complete: the main loop ends

@@ -86,10 +86,13 @@ const char *code_type(const td_api::AuthenticationCodeType &t, int &length) {
   }
 }
 
-void send_parameters() {
+// TDLib's database goes under our key (db_key). `default_key` is the second try, for a database made before
+// the engine had a key of its own: it opens under TDLib's default key and is moved to ours at once.
+void send_parameters(bool default_key = false) {
   auto p = td_api::make_object<td_api::setTdlibParameters>();
   p->database_directory_ = data_dir + "/db";
   p->files_directory_ = data_dir + "/files";
+  p->database_encryption_key_ = default_key ? std::string() : db_key;
   p->use_file_database_ = true;
   p->use_chat_info_database_ = true;
   p->use_message_database_ = true;
@@ -100,9 +103,23 @@ void send_parameters() {
   p->device_model_ = "BlackBerry Q10";
   p->system_version_ = "BlackBerry 10.3.3";
   p->application_version_ = "tengramd 0.1";
-  tdlib.send(std::move(p), [](Obj o) {
+  tdlib.send(std::move(p), [default_key](Obj o) {
     if (auto e = as_error(o)) {
+      if (e->code_ == 401 && !default_key) {
+        say("TDLib's database is not under our key: trying its default key");
+        return send_parameters(true);
+      }
       say("setTdlibParameters: %d %s", e->code_, e->message_.c_str());  // the state stays `linking`
+      return;
+    }
+    if (default_key) {
+      tdlib.send(td_api::make_object<td_api::setDatabaseEncryptionKey>(db_key), [](Obj o2) {
+        if (auto e2 = as_error(o2)) {
+          say("setDatabaseEncryptionKey: %d %s", e2->code_, e2->message_.c_str());
+        } else {
+          say("TDLib's database is now under our key");
+        }
+      });
     }
   });
 }
