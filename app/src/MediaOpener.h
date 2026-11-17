@@ -19,16 +19,23 @@ class MediaOpener : public QObject
     Q_PROPERTY(QObject *link READ link WRITE setLink)
     // The message being fetched, "" when none: its bubble shows a spinner.
     Q_PROPERTY(QString loadingId READ loadingId NOTIFY loadingIdChanged)
+    // How much of that message's file is here, 0 to 1: 0 until bytes arrive. And "1.2 MB / 23 MB", "" until then.
+    Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
+    Q_PROPERTY(QString progressText READ progressText NOTIFY progressChanged)
 public:
     explicit MediaOpener(QObject *parent = 0);
 
     QObject *link() const;
     void setLink(QObject *link);
     QString loadingId() const;
+    qreal progress() const;
+    QString progressText() const;
 
     // Asks the engine for the file of message id (media.get); ready() follows. A failure shows in
     // the engine's failure. A newer get replaces an older one, whose reply is dropped.
     Q_INVOKABLE void get(const QString &chat, const QString &id, const QString &kind);
+    // Stops the fetch of loadingId (media.cancel); its get() ends with a "cancelled" failure that nobody shows.
+    Q_INVOKABLE void cancel();
     // Hands the file to the system (bb.action.OPEN); false when the system gave no reply. Whether
     // an app opens it is not known.
     Q_INVOKABLE bool openFile(const QString &path);
@@ -60,6 +67,7 @@ public:
 
 signals:
     void loadingIdChanged();
+    void progressChanged();
     // The file of message id is at path; kind is what get() was given.
     void ready(const QString &id, const QString &kind, const QString &path);
     // The system found no app to open a file, or the app refused it.
@@ -68,6 +76,7 @@ signals:
 private slots:
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onFailure();
+    void onProgress(const QString &chat, const QString &id, qint64 done, qint64 size);
     void onInvoked();
 
 private:
@@ -76,6 +85,9 @@ private:
     QPointer<EngineLink> m_engine;
     bb::system::InvokeManager m_invoker;
     QString m_loadingId;
+    QString m_chat; // of m_loadingId
+    qreal m_progress;
+    QString m_progressText;
     QString m_kind;
     QString m_reqId; // the media.get request we wait for
     bb::system::LocaleHandler m_region; // for the size text, as the chat models have it

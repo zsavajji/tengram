@@ -29,7 +29,9 @@ class UIConfig;
 // "Spoiler" on it and no play mark or length: a tap takes the cover off (the model's unspoil), the
 // next opens it. The parts are all made here and shown by what the message is. Wide, in the
 // picture card, a photo or video spans the card with no air around it, and stamp() is the corner
-// at its bottom right where the card puts the time when there's no caption.
+// at its bottom right where the card puts the time when there's no caption. A fetch shows a spinner until bytes
+// arrive, then a ring that fills (ring/ring_NN.png, the list's mediaProgress) with a cross in it: a tap cancels; its
+// text ("1.2 MB / 23 MB", mediaProgressText) takes the place of a video's length and of a file's size line.
 class MediaBubble : public bb::cascades::CustomControl
 {
     Q_OBJECT
@@ -75,6 +77,7 @@ private:
     bb::cascades::Container *m_dim;
     bb::cascades::Container *m_stamp;
     bb::cascades::ActivityIndicator *m_photoSpin;
+    bb::cascades::ImageView *m_photoRing;
     bb::cascades::ImageView *m_stickerImage;
     bb::cascades::Label *m_stickerText;
     bb::cascades::Container *m_file;
@@ -82,7 +85,9 @@ private:
     bb::cascades::Label *m_emoji;
     bb::cascades::Label *m_name;
     bb::cascades::Label *m_info;
+    QString m_infoText; // what m_info says when nothing is being fetched
     bb::cascades::ActivityIndicator *m_fileSpin;
+    bb::cascades::ImageView *m_fileRing;
 };
 
 #endif

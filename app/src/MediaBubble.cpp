@@ -61,6 +61,17 @@ ActivityIndicator *spinner()
     return spin;
 }
 
+// The ring of a fetch, as big as its spinner, centred when its container is a dock.
+ImageView *ring(float size)
+{
+    ImageView *image = new ImageView();
+    image->setHorizontalAlignment(HorizontalAlignment::Center);
+    image->setVerticalAlignment(VerticalAlignment::Center);
+    image->setPreferredSize(size, size);
+    image->setVisible(false);
+    return image;
+}
+
 }
 
 MediaBubble::MediaBubble(ListView *list, bool wide)
@@ -127,6 +138,7 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_dim->setVisible(false);
     m_photoSpin = spinner();
     m_photoSpin->setPreferredSize(m_ui->du(9), m_ui->du(9));
+    m_photoRing = ring(m_ui->du(9));
 
     m_photo->add(m_thumb);
     m_photo->add(m_none);
@@ -142,6 +154,7 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_stamp->setBottomPadding(m_ui->du(1));
     m_photo->add(m_stamp);
     m_photo->add(m_photoSpin);
+    m_photo->add(m_photoRing);
 
     // The sticker's picture, fit in a square; always an Image in thumb, an empty one without a
     // picture, as for a photo, so a recycled card never keeps the previous row's.
@@ -189,10 +202,13 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_fileSpin = new ActivityIndicator();
     m_fileSpin->setVerticalAlignment(VerticalAlignment::Center);
     m_fileSpin->setLeftMargin(m_ui->du(1));
+    m_fileRing = ring(m_ui->du(6));
+    m_fileRing->setLeftMargin(m_ui->du(1));
     m_file->add(m_icon);
     m_file->add(m_emoji);
     m_file->add(words);
     m_file->add(m_fileSpin);
+    m_file->add(m_fileRing);
 
     m_root->add(m_photo);
     m_root->add(m_stickerImage);
@@ -203,6 +219,9 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     // The fetch, as the QML bound it.
     if (!connect(list, SIGNAL(mediaLoadingIdChanged()), this, SLOT(refresh())))
         qWarning("cards: the list has no mediaLoadingIdChanged");
+    if (!connect(list, SIGNAL(mediaProgressChanged()), this, SLOT(refresh()))
+        || !connect(list, SIGNAL(mediaProgressTextChanged()), this, SLOT(refresh())))
+        qWarning("cards: the list has no mediaProgressChanged");
 }
 
 // What the text size and the theme's colours decide, set again only when one of them changed.
@@ -230,6 +249,7 @@ void MediaBubble::restyle()
     Card::style(m_name, m_list, body);
     Card::style(m_info, m_list, small);
     m_info->textStyle()->setColor(quiet);
+    m_fileRing->setFilterColor(m_ui->palette()->textOnPlain()); // white would vanish on the light theme
 }
 
 void MediaBubble::show(const QVariantMap &msg)
@@ -264,8 +284,6 @@ void MediaBubble::show(const QVariantMap &msg)
         m_none->setVisible(!hasThumb);
         m_noneText->setText(video ? Card::tr(kContext, "Video") : Card::tr(kContext, "Photo"));
         m_play->setVisible(video && !spoiler);
-        m_length->setVisible(video && !str("durationText").isEmpty() && !spoiler);
-        m_length->setText(str("durationText"));
         m_cover->setVisible(spoiler);
     }
 
@@ -301,21 +319,39 @@ void MediaBubble::show(const QVariantMap &msg)
             parts << str("sizeText");
         if (!str("durationText").isEmpty())
             parts << str("durationText");
-        m_info->setText(contact ? contactInfo : parts.join(QString::fromUtf8(" \xC2\xB7 ")));
+        m_infoText = contact ? contactInfo : parts.join(QString::fromUtf8(" \xC2\xB7 "));
     }
     refresh();
 }
 
-// The fetch: the spinner of whichever part is shown.
+// The fetch: the spinner of whichever part is shown, the ring once bytes have arrived, and the text of how many.
 void MediaBubble::refresh()
 {
     if (m_msg.isEmpty())
         return;
     const bool loading = m_list->property("mediaLoadingId").toString() == str("id");
-    m_photoSpin->setRunning(loading && m_picture);
+    const qreal progress = loading ? m_list->property("mediaProgress").toReal() : 0;
+    const bool filling = progress > 0;
+    const QString words = loading ? m_list->property("mediaProgressText").toString() : QString();
+    const bool video = str("media") == "video" && !flag("spoiler");
+    const bool file = !m_picture && !m_sticker;
+    m_photoSpin->setRunning(loading && m_picture && !filling);
+    m_photoRing->setVisible(loading && m_picture && filling);
     m_dim->setVisible(loading && m_picture);
-    m_play->setVisible(str("media") == "video" && !flag("spoiler") && !loading);
-    m_fileSpin->setRunning(loading && !m_picture && !m_sticker);
+    m_play->setVisible(video && !loading);
+    // The video's length gives way to the text, as a file's size line does.
+    const QString length = words.isEmpty() ? str("durationText") : words;
+    m_length->setVisible(video && !length.isEmpty());
+    m_length->setText(length);
+    m_fileSpin->setRunning(loading && file && !filling);
+    m_fileSpin->setVisible(!(loading && file && filling));
+    m_fileRing->setVisible(loading && file && filling);
+    m_info->setText(words.isEmpty() ? m_infoText : words);
+    if (filling) {
+        const QString frame = QString("asset:///images/ring/ring_%1.png")
+                                  .arg(qRound(progress * 24), 2, 10, QLatin1Char('0'));
+        (m_picture ? m_photoRing : m_fileRing)->setImageSource(QUrl(frame));
+    }
 }
 
 void MediaBubble::onTap()

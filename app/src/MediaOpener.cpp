@@ -22,6 +22,7 @@ using namespace bb::system;
 
 MediaOpener::MediaOpener(QObject *parent)
     : QObject(parent)
+    , m_progress(0)
     , m_region(bb::system::LocaleType::Region)
 {
 }
@@ -39,6 +40,8 @@ void MediaOpener::setLink(QObject *link)
         connect(m_engine, SIGNAL(replied(QString, QString, QVariant)), this,
                 SLOT(onReplied(QString, QString, QVariant)));
         connect(m_engine, SIGNAL(failureChanged()), this, SLOT(onFailure()));
+        connect(m_engine, SIGNAL(mediaProgress(QString, QString, qint64, qint64)), this,
+                SLOT(onProgress(QString, QString, qint64, qint64)));
     }
 }
 
@@ -47,12 +50,25 @@ QString MediaOpener::loadingId() const
     return m_loadingId;
 }
 
+qreal MediaOpener::progress() const
+{
+    return m_progress;
+}
+
+QString MediaOpener::progressText() const
+{
+    return m_progressText;
+}
+
 void MediaOpener::setLoadingId(const QString &id)
 {
     if (id == m_loadingId)
         return;
     m_loadingId = id;
+    m_progress = 0;
+    m_progressText.clear();
     emit loadingIdChanged();
+    emit progressChanged();
 }
 
 void MediaOpener::get(const QString &chat, const QString &id, const QString &kind)
@@ -63,9 +79,33 @@ void MediaOpener::get(const QString &chat, const QString &id, const QString &kin
     args["chat"] = chat;
     args["id"] = id;
     m_kind = kind;
+    m_chat = chat;
     // "" when the engine is down: request() has set the failure, and nothing is loading.
     m_reqId = m_engine->request("media.get", args);
     setLoadingId(m_reqId.isEmpty() ? QString() : id);
+}
+
+// The engine's media.progress. Until the first one comes the bubble keeps its spinner.
+void MediaOpener::onProgress(const QString &chat, const QString &id, qint64 done, qint64 size)
+{
+    if (id != m_loadingId || chat != m_chat || done <= 0 || size <= 0)
+        return;
+    m_progress = qMin<qreal>(1, qreal(done) / size);
+    m_progressText = sizeText(done, m_region.locale()) + " / " + sizeText(size, m_region.locale());
+    emit progressChanged();
+}
+
+// The engine answers the get with a "cancelled" failure, which onFailure skips.
+void MediaOpener::cancel()
+{
+    if (!m_engine || m_loadingId.isEmpty())
+        return;
+    QVariantMap args;
+    args["chat"] = m_chat;
+    args["id"] = m_loadingId;
+    m_engine->requestQuiet("media.cancel", args);
+    m_reqId.clear();
+    setLoadingId(QString());
 }
 
 void MediaOpener::onReplied(const QString &id, const QString &cmd, const QVariant &result)
@@ -83,7 +123,8 @@ void MediaOpener::onReplied(const QString &id, const QString &cmd, const QVarian
 void MediaOpener::onFailure()
 {
     if (m_loadingId.isEmpty() || !m_engine
-        || m_engine->failure().value("cmd").toString() != "media.get")
+        || m_engine->failure().value("cmd").toString() != "media.get"
+        || m_engine->failure().value("code").toString() == "cancelled") // cancel()'s own: a newer get may be loading
         return;
     m_reqId.clear();
     setLoadingId(QString());

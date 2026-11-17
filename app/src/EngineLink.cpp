@@ -257,6 +257,9 @@ void EngineLink::readLines()
                               map["lastSeen"].toLongLong());
             else if (ev == "photo")
                 emit photo(map["jid"].toString(), map["photo"].toString());
+            else if (ev == "media.progress")
+                emit mediaProgress(map["chat"].toString(), map["id"].toString(), map["done"].toLongLong(),
+                                   map["size"].toLongLong());
         }
     }
 }

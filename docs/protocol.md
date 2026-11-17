@@ -56,7 +56,8 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`; all but `chat` and `path` optional | `{id}` | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
-| `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`) | `not_found`, `download_failed` |
+| `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`) | `not_found`, `download_failed`, `cancelled` |
+| `media.cancel` | `chat`, `id` (a message with a file) | — | `not_found` |
 | `voice.start` | `chat`, `path` (the `.wav` the recorder is writing, inside the data folder); optional `topic` | — | |
 | `voice.send` | `chat`, `path` (as `voice.start`), `quote` (a message id, optional), `topic` (optional) | `{id}`, the message's id | |
 | `voice.cancel` | `path` (as `voice.start`) | — | |
@@ -159,6 +160,13 @@ file: for a photo its display size (the smallest size whose shorter side is at l
 reaches that: it can be the photo's own file), for a video, GIF or round video its thumbnail when that is a JPEG.
 Anything else, or a video with no JPEG thumbnail, is `not_found`. The row then has `extra.preview` (a `msgs` event
 follows) and the answer is `{path}` of that picture. Without `preview` nothing changes.
+
+While a `media.get` without `preview` downloads, the engine sends `media.progress` events (see Events). A preview is
+never watched.
+
+**`media.cancel`:** stops the download of the message's file (`cancelDownloadFile`) and answers when TDLib has. The
+`media.get` still waiting on that file answers the error `cancelled` instead of `download_failed`. It is not an error
+when nothing is downloading.
 
 **`voice.start`, `voice.send`, `voice.cancel`:**
 - `path` is the WAV the recorder is writing (`AudioRecorder`: 48 kHz stereo 16-bit). The sizes in its header are not
@@ -275,6 +283,7 @@ not pruned). Defaults: `auto`, 300, true, true, "", 64.
 | `typing` | `chat`, `who` (first name in a group, "" in a 1:1 chat), `on`, `voice` (recording a voice note) | someone started or stopped typing; only for chats between their `chat.open` and `chat.close` |
 | `presence` | `chat`, `online`, `lastSeen` (unix seconds, 0 when hidden) | the other person's online status in a 1:1 chat, once after `chat.open` and at every change until `chat.close` |
 | `photo` | `jid` (a user id), `photo` (the absolute path of the user's small profile photo) | a photo that `group.info`, `contacts.list` or `senders.get` left out is downloaded: put it on that person's row |
+| `media.progress` | `chat`, `id` (the message), `done`, `size` (bytes, numbers; `size` is the expected size when TDLib has no exact one yet) | the file a `media.get` (not a preview) is downloading has grown; at most every 200 ms per file, so a fast download may skip some; none after the file is complete or cancelled |
 
 `chats` and `msgs` come after the engine commits, at most every 50 ms. `photo` does not wait for that: it comes when
 TDLib has downloaded the photo, which is always after the reply that left it out.

@@ -125,9 +125,11 @@ void messages_reconcile(std::int64_t chat, const std::vector<td_api::object_ptr<
 // A reply to send after the next flush has committed. Marks dirty.
 void queue_reply(std::uint64_t conn, const std::string &id, const std::string &result_json);
 
-// requests.cpp: chat.open, chat.history, chat.newer, chat.close, chat.read, chat.typing, chat.set, msg.send,
-// media.send, msg.delete, msg.edit, media.get.
+// requests.cpp: chat.open, chat.history, chat.newer, chat.pins, chat.close, chat.read, chat.typing, chat.set, msg.send,
+// media.send, msg.delete, msg.edit, media.get, media.cancel.
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+// A file TDLib updated: when a media.get is downloading it, the `media.progress` event (at most every 200 ms).
+void media_progress(const td_api::file &f);
 // The common start of a request about a chat: the account is logged in and "chat" is a string holding an int64
 // (`unlinked` or `bad_request` otherwise). False after the reply.
 bool request_chat(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t &chat);

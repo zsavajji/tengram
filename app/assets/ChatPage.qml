@@ -29,7 +29,9 @@ Page {
         } else if (failedCmd == "voice.play") {
             if (playerObj) playerObj.fail(engine.failure.code)
         } else if (failedCmd == "media.get") {
-            mediaFailed.show()
+            if (engine.failure.code != "cancelled") {
+                mediaFailed.show()
+            }
         } else if (failedCmd == "msg.edit") {
             editFailed.show()
         } else if (failedCmd == "poll.vote" || failedCmd == "poll.create") {
@@ -635,12 +637,17 @@ Page {
                     // and fetches it again when the user moved it out of Downloads. A location and a contact
                     // have no file.
                     property string mediaLoadingId: media.loadingId
+                    // How far the fetch is, 0 until bytes arrive, and its text ("1.2 MB / 23 MB"), for the ring.
+                    property real mediaProgress: media.progress
+                    property string mediaProgressText: media.progressText
                     property variant joiner: invites // for the cards, which see no context objects
                     function openMedia(msg) {
                         if (msg.media == "location") {
                             maps.choose(msg.lat, msg.lon, msg.place)
                         } else if (msg.media == "contact") {
                             media.importContact(msg.vcard)
+                        } else if (media.loadingId == msg.id) {
+                            media.cancel() // a tap on the one being fetched stops it
                         } else {
                             page.videoRatio = msg.ratio > 0 ? msg.ratio : 0.75
                             page.videoGif = !!msg.gif

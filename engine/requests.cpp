@@ -1,7 +1,7 @@
-// The requests about chats and messages: chat.open, chat.history, chat.newer, chat.close, chat.read, chat.typing,
-// chat.set, msg.send, media.send, msg.delete, msg.edit and media.get (docs/protocol.md). The rows they ask for are
-// written by messages.cpp; the replies that tell the UI to read them come after the flush that commits them
-// (queue_reply).
+// The requests about chats and messages: chat.open, chat.history, chat.newer, chat.pins, chat.close, chat.read,
+// chat.typing, chat.set, msg.send, media.send, msg.delete, msg.edit, msg.forward, media.get and media.cancel
+// (docs/protocol.md). The rows they ask for are written by messages.cpp; the replies that tell the UI to read them
+// come after the flush that commits them (queue_reply).
 
 #include "engine.h"
 
@@ -10,10 +10,13 @@
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace {
 
@@ -532,6 +535,14 @@ void msg_edit(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
 
 // ---- media.get
 
+// The files a media.get (not a preview) is downloading, for media.progress: the message each belongs to and when its
+// last event went. And the files media.cancel stopped, for the media.get still waiting on each: it answers `cancelled`.
+struct Watched {
+  std::int64_t chat, message;
+  std::chrono::steady_clock::time_point sent;
+};
+std::unordered_map<std::int32_t, Watched> watched;
+std::unordered_set<std::int32_t> cancelled;
 
 void download_failed(std::uint64_t conn, const std::string &id, const std::string &why) {
   say("media.get: %s", why.c_str());
@@ -567,13 +578,25 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
     // Synchronous: the answer is the file once the download is over. Another media.get for the same message
     // may be waiting on its own downloadFile at the same time: nothing here is shared between them.
     // A preview is asked for every picture a page shows: below a tap's priority, so the photo opened comes first.
-    tdlib.send(make_object<td_api::downloadFile>(file->id_, preview ? 8 : 16, 0, 0, true), [=](Obj o2) {
+    const std::int32_t file_id = file->id_;
+    if (!preview) {
+      cancelled.erase(file_id);
+      watched[file_id] = {chat, message, {}};
+    }
+    tdlib.send(make_object<td_api::downloadFile>(file_id, preview ? 8 : 16, 0, 0, true), [=](Obj o2) {
+      watched.erase(file_id);
+      auto failed = [=](const std::string &why) {
+        if (cancelled.erase(file_id)) {
+          return server.reply_error(conn, id, "cancelled", "the download was cancelled");
+        }
+        download_failed(conn, id, why);
+      };
       if (auto e = as_error(o2)) {
-        return download_failed(conn, id, std::to_string(e->code_) + " " + e->message_);
+        return failed(std::to_string(e->code_) + " " + e->message_);
       }
       const auto &got = static_cast<const td_api::file &>(*o2);
       if (!got.local_ || !got.local_->is_downloading_completed_) {
-        return download_failed(conn, id, "the download did not finish");
+        return failed("the download did not finish");
       }
       const std::string path = got.local_->path_;
       tdlib.send(make_object<td_api::getMessage>(chat, message), [=](Obj o3) {
@@ -586,8 +609,46 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
   });
 }
 
+void media_cancel(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t message = 0;
+  if (!message_id(conn, id, req, "id", message)) {
+    return;
+  }
+  tdlib.send(make_object<td_api::getMessage>(chat, message), [=](Obj o) {
+    if (as_error(o)) {
+      return server.reply_error(conn, id, "not_found", "no such message");
+    }
+    const td_api::file *file = message_file(static_cast<td_api::message &>(*o));
+    if (!file) {
+      return server.reply_error(conn, id, "not_found", "the message has no file");
+    }
+    if (watched.erase(file->id_)) {  // a media.get is waiting on it
+      cancelled.insert(file->id_);
+    }
+    tdlib.send(make_object<td_api::cancelDownloadFile>(file->id_, false), [conn, id](Obj o2) { answer(conn, id, o2); });
+  });
+}
+
 }  // namespace
 
+void media_progress(const td_api::file &f) {
+  auto w = watched.find(f.id_);
+  if (w == watched.end() || !f.local_ || f.local_->is_downloading_completed_) {
+    return;
+  }
+  const auto now = std::chrono::steady_clock::now();
+  if (now - w->second.sent < std::chrono::milliseconds(200)) {
+    return;
+  }
+  w->second.sent = now;
+  server.broadcast(td::json_encode<std::string>(td::json_object([&](auto &o) {
+    o("ev", "media.progress");
+    o("chat", std::to_string(w->second.chat));
+    o("id", std::to_string(w->second.message));
+    o("done", f.local_->downloaded_size_);
+    o("size", f.size_ ? f.size_ : f.expected_size_);
+  })));
+}
 
 void bad_request(std::uint64_t conn, const std::string &id, const std::string &what) {
   server.reply_error(conn, id, "bad_request", what);
@@ -716,9 +777,9 @@ bool regular_file(const std::string &path, std::int64_t &size) {
 }
 
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
-  static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.close", "chat.read",
+  static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.close", "chat.read",
                                      "chat.typing", "chat.set", "msg.send", "media.send", "msg.delete", "msg.edit",
-                                     "media.get"};
+                                     "msg.forward", "media.get", "media.cancel"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -782,6 +843,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     msg_delete(conn, id, req, chat);
   } else if (cmd == "msg.edit") {
     msg_edit(conn, id, req, chat);
+  } else if (cmd == "media.cancel") {
+    media_cancel(conn, id, req, chat);
   } else {
     media_get(conn, id, req, chat);
   }

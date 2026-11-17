@@ -670,6 +670,7 @@ void chats_update(td_api::Object &update) {
       break;
     case td_api::updateFile::ID: {
       auto &f = *static_cast<td_api::updateFile &>(update).file_;
+      media_progress(f);
       if (!f.local_ || !f.local_->is_downloading_completed_) {
         break;
       }
