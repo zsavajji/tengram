@@ -249,9 +249,7 @@ void link_auth(const td_api::AuthorizationState &s) {
 
 void link_conn(const td_api::ConnectionState &s) {
   say("conn: %s", type_name(s).c_str());
-  if (s.get_id() == td_api::connectionStateReady::ID) {
-    mode_connected();
-  }
+  mode_connection(s.get_id() == td_api::connectionStateReady::ID);
   const char *state = "connecting";
   if (s.get_id() == td_api::connectionStateWaitingForNetwork::ID) {
     state = "offline";

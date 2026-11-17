@@ -198,6 +198,12 @@ void notifier_init() {
   }
   usable = true;
   load();
+  if (hub_new()) {  // the Hub holds nothing of ours, whatever hub.json says
+    say("hub: new to the Hub, hub.json is forgotten");
+    account = false;
+    chats.clear();
+    save();
+  }
 }
 
 bool notifier_active() {

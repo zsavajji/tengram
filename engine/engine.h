@@ -22,7 +22,8 @@ extern Server server;
 extern std::string data_dir;  // absolute
 extern int api_id;
 extern std::string api_hash;
-extern bool done;  // the stop is complete: the main loop ends
+extern bool done;     // the stop is complete: the main loop ends
+extern bool service;  // --service: the packaged app's headless service (the Hub, the navigator, the network status)
 
 bool write_file(const std::string &path, const std::string &data);  // mode 0600
 bool set_nonblock(int fd);
@@ -115,9 +116,11 @@ void mode_conn_changed();                   // the UI may have come to the front
 void mode_ready();                          // the link became ready
 void mode_evaluate();                       // the link left ready, or anything else that changes what is wanted
 void mode_reset();                          // a new client after a logout: the network is on, no sync
-void mode_note_update();                    // an update of any kind came
-void mode_connected();                      // connectionStateReady came
+void mode_note_update();
+void mode_note_request();  // a client's request came: the network is needed now                    // an update of any kind came
+void mode_connection(bool ready);           // TDLib's connection state changed: ready, or not
 void mode_update(td_api::Object &update);   // updateUserStatus of our own account
+void mode_network(bool available, bool wifi);  // the system's network status: none, or Wi-Fi, or mobile data
 bool mode_notify_preview();                 // the preference notifyPreview
 bool mode_ui_shows(std::int64_t chat);      // a UI that is in front has this chat open
 bool mode_deadline(std::chrono::steady_clock::time_point &due);  // the next sync, or the end of the running one
@@ -129,3 +132,7 @@ bool notifier_active();                                // the Hub opened: TDLib 
 void notifier_update(td_api::Object &update);          // the notification updates; anything else is ignored
 void notifier_reset();                                 // a logout: the account goes, everything is forgotten
 void notifier_action(const std::string &action, std::int64_t chat);  // "read", "unread" or "delete", from a Hub item
+
+// bb10.cpp (--service only): the navigator's and the network status's events, from a thread of its own.
+void bb10_start(int wake_fd);  // the thread writes to wake_fd when it has something: main calls bb10_drain()
+void bb10_drain();

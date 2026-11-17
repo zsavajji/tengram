@@ -33,6 +33,10 @@ class Td {
   // Main thread only. The callback gets the response, on the main thread.
   void send(td_api::object_ptr<td_api::Function> f, Callback cb = nullptr);
   void set_bool_option(const char *name, bool value);
+  // How many requests with a callback TDLib has not answered yet (a download, a history page).
+  std::size_t pending() const {
+    return callbacks_.size();
+  }
   void set_int_option(const char *name, std::int64_t value);
 
   // Main thread only: runs the callbacks and handle_update() for everything queued so far.

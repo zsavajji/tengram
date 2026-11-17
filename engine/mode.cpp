@@ -49,7 +49,8 @@ bool front_seen = false;         // whether the UI was in front at the last look
 bool online_elsewhere = false;  // our own account is online on another device
 bool network_on = true;         // what we last told TDLib: it starts with the network on
 bool syncing = false;
-bool sync_ready = false;  // connectionStateReady has come since the sync started
+bool conn_ready = false;  // TDLib's connection is ready now
+bool sync_ready = false;  // it was ready since the sync started
 std::size_t sync_updates = 0;
 Clock::time_point next_sync, sync_start, last_update;
 
@@ -62,11 +63,27 @@ bool front() {
   return false;
 }
 
-bool wants_batched() {
+// The engine is doing something a client asked for: a request came in the last 10 s, or TDLib still owes an
+// answer (a download, a history page). The network stays on meanwhile, whoever asked (a UI that is not in
+// front, a Hub action), and our own account showing as online is our own doing (sending marks it online).
+constexpr auto kBusy = std::chrono::seconds(10);
+bool requested = false;
+Clock::time_point last_request;
+
+bool busy() {
+  return tdlib.pending() > 0 || (requested && Clock::now() - last_request < kBusy);
+}
+
+// What the mode asks for, leaving aside whether the engine is busy.
+bool mode_batched() {
   if (!link_ready() || front() || prefs.mode == "instant") {
     return false;
   }
   return prefs.mode == "batched" || online_elsewhere;
+}
+
+bool wants_batched() {
+  return mode_batched() && !busy();
 }
 
 // Why the network is on (or goes on).
@@ -80,15 +97,38 @@ const char *why_online() {
   return prefs.mode == "instant" ? "instant" : "not online elsewhere";
 }
 
-void set_network(bool on) {
-  network_on = on;
+// What TDLib is told about the network: none when the mode wants it off or the system has none, else the type.
+enum class Net { None, WiFi, Mobile };
+Net sent = Net::WiFi;  // what TDLib was last told. A new client starts with the network on: as good as Wi-Fi
+bool net_available = true, net_wifi = true;  // the system's word (--service); a plain run keeps these forever
+
+Net effective() {
+  if (!network_on || !net_available) {
+    return Net::None;
+  }
+  return net_wifi ? Net::WiFi : Net::Mobile;
+}
+
+void apply_network() {
+  const Net now = effective();
+  if (now == sent) {
+    return;
+  }
+  sent = now;
   td_api::object_ptr<td_api::NetworkType> type;
-  if (on) {
+  if (now == Net::None) {
+    type = td_api::make_object<td_api::networkTypeNone>();
+  } else if (now == Net::WiFi) {
     type = td_api::make_object<td_api::networkTypeWiFi>();  // the probe's choice
   } else {
-    type = td_api::make_object<td_api::networkTypeNone>();
+    type = td_api::make_object<td_api::networkTypeMobile>();
   }
   tdlib.send(td_api::make_object<td_api::setNetworkType>(std::move(type)));
+}
+
+void set_network(bool on) {
+  network_on = on;
+  apply_network();
 }
 
 long long ms_since(Clock::time_point t) {
@@ -120,6 +160,7 @@ void begin_sync() {
   set_network(true);
   syncing = true;
   sync_ready = false;
+  sync_ready = conn_ready;  // a sync that starts on a connection that is already up has no Ready coming
   sync_updates = 0;
   sync_start = last_update = Clock::now();
   say("mode: sync");
@@ -284,7 +325,20 @@ void mode_conn_changed() {
   evaluate();
 }
 
+void mode_network(bool available, bool wifi) {
+  if (available == net_available && wifi == net_wifi) {
+    return;
+  }
+  net_available = available;
+  net_wifi = wifi;
+  say("network: %s", !available ? "none" : wifi ? "wifi" : "mobile");
+  if (link_ready()) {  // before that, mode_ready() tells TDLib
+    apply_network();   // sends nothing while the mode keeps the network off: TDLib was told none then
+  }
+}
+
 void mode_ready() {
+  apply_network();  // the system's word may have come before TDLib was ready for it
   tdlib.set_bool_option("online", front());  // what the UI says, from the start
   if (wants_batched() && network_on && !syncing) {
     // The engine has just started: what came in while it was away, and the chat list, are fetched now, not
@@ -301,6 +355,8 @@ void mode_evaluate() {
 
 void mode_reset() {
   network_on = true;  // a new client starts with it on
+  sent = Net::WiFi;
+  conn_ready = false;
   syncing = false;
   online_elsewhere = false;
 }
@@ -312,8 +368,9 @@ void mode_note_update() {
   }
 }
 
-void mode_connected() {
-  if (syncing) {
+void mode_connection(bool ready) {
+  conn_ready = ready;
+  if (ready && syncing) {
     sync_ready = true;
   }
 }
@@ -337,8 +394,9 @@ void mode_update(td_api::Object &update) {
   if (u.status_->get_id() == td_api::userStatusOnline::ID) {
     std::snprintf(what, sizeof what, "online, expires in %ld s", expires_in);
   }
-  say("own status: %s%s", what, front() ? " (ignored: the UI is in front)" : "");
-  if (!front() && online != online_elsewhere) {
+  const bool ours = front() || busy();
+  say("own status: %s%s", what, front() ? " (ignored: the UI is in front)" : ours ? " (ignored: our own doing)" : "");
+  if (!ours && online != online_elsewhere) {
     online_elsewhere = online;
     evaluate();
   }
@@ -353,7 +411,20 @@ bool mode_deadline(std::chrono::steady_clock::time_point &due) {
     due = next_sync;
     return true;
   }
+  if (mode_batched() && busy()) {  // batched is only waiting for the engine to be done: look again then
+    const auto now = Clock::now();
+    due = requested && now - last_request < kBusy ? last_request + kBusy : now + kBusy;
+    return true;
+  }
   return false;
+}
+
+void mode_note_request() {
+  requested = true;
+  last_request = Clock::now();
+  if (!network_on || syncing) {
+    evaluate();  // a request needs the network now, not at the next sync
+  }
 }
 
 void mode_tick() {
@@ -364,5 +435,7 @@ void mode_tick() {
     }
   } else if (!network_on && Clock::now() >= next_sync) {
     begin_sync();
+  } else if (network_on) {
+    evaluate();  // the busy time is over, or not yet: mode_deadline says when to look again
   }
 }

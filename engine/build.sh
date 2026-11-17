@@ -13,7 +13,7 @@ LIBS="-Wl,--gc-sections -Wl,--start-group $L/libtdclient.a $L/libtdcore.a $L/lib
 $L/libtdnet.a $L/libtddb.a $L/libtdsqlite.a $L/libtdactor.a $L/libtde2e.a $L/libtdutils.a \
 $L/libssl.a $L/libcrypto.a -Wl,--end-group /opt/bb10-sdk/target/qnx6/armle-v7/usr/lib/libz.so -lsocket -lm"
 STRIP=/opt/bb10-toolchain/bin/arm-unknown-nto-qnx6.5.0eabi-strip
-bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $INC engine/*.cpp -o build/tengramd.unstripped $LIBS &&
+bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $INC engine/*.cpp -o build/tengramd.unstripped $LIBS -lbps &&
 $STRIP -o build/tengramd build/tengramd.unstripped &&
 bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $INC tests/dbq.cpp -o build/dbq $LIBS &&
 $STRIP build/dbq &&

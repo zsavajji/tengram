@@ -34,6 +34,7 @@ std::string data_dir;
 int api_id = 0;
 std::string api_hash;
 bool done = false;
+bool service = false;
 
 namespace {
 
@@ -44,8 +45,9 @@ bool flush_pending = false;  // something is dirty: flush() is due at flush_at
 Clock::time_point flush_at;
 
 void usage(std::FILE *to) {
-  std::fprintf(to, "usage: tengramd <data-dir>\n"
-                   "  TG_API_ID and TG_API_HASH (from my.telegram.org) must be in the environment\n");
+  std::fprintf(to, "usage: tengramd <data-dir> [--service]\n"
+                   "  TG_API_ID and TG_API_HASH (from my.telegram.org) must be in the environment\n"
+                   "  --service: the packaged app's headless service (BlackBerry Hub, navigator, network status)\n");
 }
 
 // mkdir -p. Whether it worked is for the caller to see.
@@ -155,6 +157,7 @@ void handle_update(Obj update) {
 }
 
 void handle_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
+  mode_note_request();
   if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req) ||
       mode_request(conn, id, cmd, req)) {
     return;
@@ -167,7 +170,18 @@ int main(int argc, char **argv) {
     usage(stdout);
     return 0;
   }
-  if (argc != 2 || argv[1][0] == '-' || !argv[1][0]) {
+  const char *dir = nullptr;
+  for (int i = 1; i < argc; ++i) {
+    if (std::strcmp(argv[i], "--service") == 0) {
+      service = true;
+    } else if (argv[i][0] && argv[i][0] != '-' && !dir) {
+      dir = argv[i];
+    } else {
+      usage(stderr);
+      return 2;
+    }
+  }
+  if (!dir) {
     usage(stderr);
     return 2;
   }
@@ -192,7 +206,7 @@ int main(int argc, char **argv) {
   sigdelset(&set, SIGPIPE);
 
   umask(077);  // chats.db and everything else the engine makes: this user only
-  make_dirs(data_dir = argv[1]);
+  make_dirs(data_dir = dir);
   char real[PATH_MAX];
   if (!realpath(data_dir.c_str(), real)) {
     std::fprintf(stderr, "cannot make the data directory %s: %s\n", data_dir.c_str(), std::strerror(errno));
@@ -225,6 +239,9 @@ int main(int argc, char **argv) {
     return 1;
   }
   tdlib.start(wake[1]);
+  if (service) {
+    bb10_start(wake[1]);
+  }
   std::thread([set, fd = wake[1]] {
     for (int sig; sigwait(&set, &sig) == 0;) {
       ssize_t n = write(fd, "q", 1);
@@ -278,6 +295,9 @@ int main(int argc, char **argv) {
         tdlib.send(td_api::make_object<td_api::close>());
       }
       tdlib.drain();
+      if (service) {
+        bb10_drain();
+      }
     }
     server.service(&fds[1]);
     Clock::time_point mode_now_due;
