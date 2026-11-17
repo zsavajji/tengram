@@ -235,6 +235,21 @@ and every chat has a title, so the placeholder is only "Unknown".
 - **`readOnly` (no reply, reaction, delete, vote)** was "is a newsletter". In Telegram it is
   "a channel where we cannot post", which the engine must tell; until it does, `kind = 3`.
 
+### 3.7b Channels in the main list (user, 2026-11-17)
+
+**What:** HyperBerry keeps channels on their own page, as WhatsApp does: `ChatListModel` has a
+`Channels` mode (`kind = 3`) and filters them out of the other two (`kind != 3`), `main.cpp`
+makes a third model `channelChats`, `ChatsPage` has a "Channels" action that opens
+`ChannelsPage.qml`, which sends `channels.sync`. Telegram shows everything in one list: the
+filters, the mode, the third model and the page go. `ChannelInfoPage`, `channel.info` and
+`channel.unfollow` stay.
+
+**Traps:**
+- **The Active Frame's unread query also excludes `kind = 3`** (`ChatListModel.cpp`, the query
+  on `muted_until <= ? AND unread != 0`): drop that too, or unmuted channels never show there.
+- **More rows in the main list:** this account has 133 channels among 468 chats, which makes
+  §3.8 matter more.
+
 ### 3.8 The chat list's cost under Telegram's traffic
 
 **What:** `ChatListModel` re-reads every chat on each `chats` event (`reloadSoon` then
@@ -280,7 +295,7 @@ What HyperBerry's UI sends and listens for, where tengramd stands, and what to m
 | New chat | `contacts.list`, `contacts.book` | no | `contacts.book` hands the phone's address book to the engine. For Telegram that means uploading it to Telegram's servers: a setting the user turns on, never a default. |
 | Invites | `invite.info`, `invite.accept`, `group.join` | no | |
 | Profile | `profile.get`, `profile.set` | no | |
-| Channels page | `channel.info`, `channel.unfollow`, `channels.sync` | no | `channels.sync` has nothing to do in Telegram; answer ok. |
+| Channel info | `channel.info`, `channel.unfollow` | no | The separate Channels page and `channels.sync` are gone (§3.7b). |
 | Starred messages | `msg.star`; `starred` | Telegram has none | The page and the card's Star action go. |
 | Pins, forwards, albums, spoilers | notice rows with `extra.msg`/`until`, `extra.forwarded`, album grouping, `extra.spoiler` | not written yet | `Albums.h` has the grouping rule the rows must satisfy. |
 | Mentions, links, formatting | `extra.mentions` | `extra.ent` (UTF-16 offsets) | The cards read `mentions` today (`MessageKinds`, `Markup.h`); they learn `ent`, which also carries bold, links and code. |
@@ -324,7 +339,7 @@ What HyperBerry's UI sends and listens for, where tengramd stands, and what to m
 
 ## 7. Order of work
 
-1. **The fork that builds:** §3.1 to §3.4, §3.7, §3.9. Calls and Stories sources are not
+1. **The fork that builds:** §3.1 to §3.4, §3.7, §3.7b, §3.9. Calls and Stories sources are not
    copied; they stay in HyperBerry for the day Calls returns.
 2. **Login and history:** §3.5, §3.6, then §3.8.
 3. **Engine, what the chat page shows live:** `syncing`, the three `prefs.set` fields, `typing`
@@ -338,8 +353,6 @@ What HyperBerry's UI sends and listens for, where tengramd stands, and what to m
 
 ## 8. Open points
 
-- **Channels:** HyperBerry keeps them on their own page (`kind = 3` out of the main list), as
-  WhatsApp does; Telegram shows them among the chats. Kept as HyperBerry has it for now.
 - **The address book** (§4, New chat).
 - **Reactions and poll votes:** bend the tables or change the bubbles' queries (§4).
 - **The QML lint script** is to be found (§6).
