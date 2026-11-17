@@ -142,6 +142,19 @@ sticker sets; with the patched 128 MiB it ran through.
 
 **Ask the user before each item that installs, reboots or touches the account.**
 
+0. **The in-app memory patch, to finish testing** (2026-11-17, `facdf11`, `efe1a3d`, `08dd382`, dialog text from
+   the user): with `memMB` under 128 and no `/var/addons/headless-mem`, a one-button dialog installs
+   `../rlimit-patch`'s addon through AutoRoot's `__root` and `tg-install-patcher` (VoLTE Manager's NEWAPP design),
+   then a second one-button dialog closes Tengram (`MemoryPatch::closeAll`): **the navigator keeps an app's
+   capabilities, its memory limit with them, from the app's first launch until every process of the app has
+   ended** (seen on the phone), so an engine restarted under the open UI keeps 30 MB. The login page asks
+   Telegram for nothing while `memMB` < 128. Seen on the phone with 0.1.0.5: no Cancel button, the install and
+   the patch work, the engine kept 30 MB until both processes were ended by hand, then 128 MB and it got
+   through the first sync. **Built as the next package, not installed:** to test, delete
+   `/var/addons/headless-mem`, the user restarts the phone, install, open Tengram, Install, Close Tengram,
+   reopen, and check `rlimit DATA: soft 134217728` in `logs/tengramd.log`. The phone now has the addon and a
+   patched authman (since 13:04); Tengram 0.1.0.5 is installed and logged in.
+
 1. **The memory patch in the app (done 2026-11-17, never run):** `MemoryPatch` (`app/src/`), the dialog in
    `main.qml`, `app/helper/tg-install-patcher.c`, the bar bundling `headless-mem.zip`, the engine's `memMB` in
    the link body. A phone with no addon and an engine at 30 MB gets one "Install" dialog; Install runs the addon's

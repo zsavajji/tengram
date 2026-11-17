@@ -134,7 +134,7 @@ NavigationPane {
         SystemDialog {
             id: memDialog
             title: qsTr("More memory for Tengram")
-            body: qsTr("BlackBerry 10 gives background apps 30 MB, and Tengram's engine needs more. Tengram will install a small root addon that raises the limit to 128 MB, for Tengram and every other app that asks for the largest class (BBTelega, HyperBerry). It is undone by deleting /var/addons/headless-mem and restarting the phone.")
+            body: qsTr("Tengram needs to install a root patch that runs at every boot and lets every app use more memory in the background. Only the patch runs as root, and it changes just one value, the same for every app. Install it, and Tengram closes once: open it again. Without it, Tengram can't be used.")
             confirmButton.label: qsTr("Install")
             cancelButton.label: ""
             onFinished: {
