@@ -36,7 +36,7 @@ static const char *const kColumns = "CAST(id AS INTEGER), id, ts, out, state, se
                                     QUOTED("out") ", " QUOTED("sender") ", " QUOTED("sender_name") ", duration, waveform, media_state, played, "
                                     "thumb, width, height, size, path, "
                                     "(SELECT group_concat(emoji, ' ') FROM reactions r WHERE r.chat = messages.chat AND r.msg = messages.id), "
-                                    "(SELECT emoji FROM reactions r WHERE r.chat = messages.chat AND r.msg = messages.id AND r.sender = ''), extra, starred";
+                                    "(SELECT emoji FROM reactions r WHERE r.chat = messages.chat AND r.msg = messages.id AND r.sender = ''), extra, starred, quote_id";
 #undef QUOTED
 
 MessageModel::Msg MessageModel::read(QSqlQuery &q)
@@ -142,6 +142,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     // The same text with its mentions linked, "" for none (MessageKinds::html).
     m.data["html"] = MessageKinds::html(shown, extra);
     m.data["quote"] = q.value(9).toString();
+    m.data["quoteId"] = q.value(28).toString(); // a tap on the quote jumps to it
     m.data["sender"] = sender;
     // Who sent it, by id: the runs of one person's messages are made of it, and so is the tile beside them. Only an
     // incoming message in a group has one; a service line or a notice (kinds 6, 13) is no one's, so it breaks a run.

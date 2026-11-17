@@ -149,6 +149,18 @@ Page {
                 }
             }
         },
+        // The tint of a quote's jump goes after a moment, unless a search took it over meanwhile.
+        Timer {
+            id: quoteFlash
+            property string target
+            interval: 1500
+            singleShot: true
+            onTimeout: {
+                if (list.foundId == target) {
+                    list.foundId = ""
+                }
+            }
+        },
         ComponentDefinition {
             id: searchDef
             SearchBar {
@@ -610,6 +622,12 @@ Page {
                         composer.text = msg.text
                         composer.requestFocus()
                         composer.editor.cursorPosition = msg.text.length
+                    }
+                    // A tap on a quote: the quoted message, tinted as a search match for a moment.
+                    function openQuote(msg) {
+                        page.jump(msg.quoteId)
+                        quoteFlash.target = msg.quoteId
+                        quoteFlash.start()
                     }
                     // A mention's link in a card: the person's page.
                     function openPerson(jid, name) {

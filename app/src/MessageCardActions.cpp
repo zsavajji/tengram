@@ -114,11 +114,11 @@ void MessageCard::makeActions()
 
 void MessageCard::onReply() { Card::call(m_list, "reply", m_msg); }
 
-// A tap on a quote that is a story (a reply to one, or a like on one of ours): the page plays it.
+// A tap on a quote: the page goes to the message it quotes (the user's ask, 2026-11-17).
 void MessageCard::onQuote()
 {
-    if (flag("quoteStory"))
-        Card::call(m_list, "openStory", m_msg);
+    if (!str("quoteId").isEmpty())
+        Card::call(m_list, "openQuote", m_msg);
 }
 
 // Swipe left to reply (the user, 2026-11-08): the card follows the finger up to 56 px left; let go
