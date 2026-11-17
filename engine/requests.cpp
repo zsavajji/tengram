@@ -43,7 +43,26 @@ struct Page {
   bool more = true;
   int calls = 0;
   bool newer = false;  // chat.newer: upper is the newest message's id + 1, and `more` asks about newer messages
+  std::int32_t topic = -1;  // a forum topic's page (its history, its rows reconciled), or -1 for the chat's
+  std::int64_t last = 0;    // chat.newer of a topic: the topic's newest message id when the request began
 };
+
+// The newest message the engine knows of in the page's chat, or topic; 0 when there is none.
+std::int64_t newest_known(const Page &p) {
+  ChatBrief brief = {};
+  if (p.topic > 0) {
+    return p.last;
+  }
+  return chat_brief(p.chat, brief) && brief.has_last ? brief.last_id : 0;
+}
+
+// The history call of the page. A topic's comes from Telegram every time: TDLib keeps no local list of it.
+td_api::object_ptr<td_api::Function> history_call(const Page &p, std::int64_t from, int offset, int limit) {
+  if (p.topic > 0) {
+    return make_object<td_api::getForumTopicHistory>(p.chat, p.topic, from, offset, limit);
+  }
+  return make_object<td_api::getChatHistory>(p.chat, from, offset, limit, false);
+}
 
 void finish(const std::shared_ptr<Page> &p) {
   if (p->got.empty()) {  // nothing to compare with, nothing written, so nothing to wait for
@@ -54,11 +73,10 @@ void finish(const std::shared_ptr<Page> &p) {
   const std::int64_t newest = p->got.front()->id_;
   std::int64_t upper = p->upper;
   if (p->newer) {  // the newest message itself is part of the page
-    ChatBrief brief = {};
-    p->more = chat_brief(p->chat, brief) && brief.has_last && newest < brief.last_id;
+    p->more = newest < newest_known(*p);
     upper = newest + 1;
   }
-  messages_reconcile(p->chat, p->got, oldest, upper);
+  messages_reconcile(p->chat, p->topic, p->got, oldest, upper);
   queue_reply(p->conn, p->id, page_json(std::to_string(oldest), std::to_string(newest), p->got.size(), p->more));
 }
 
@@ -67,7 +85,7 @@ void finish(const std::shared_ptr<Page> &p) {
 // below costs nothing if a TDLib ever sends it.
 void fetch(const std::shared_ptr<Page> &p, std::int64_t from) {
   const int limit = static_cast<int>(std::min<std::size_t>(100, p->want - p->got.size()));
-  tdlib.send(make_object<td_api::getChatHistory>(p->chat, from, 0, limit, false), [p, from](Obj o) {
+  tdlib.send(history_call(*p, from, 0, limit), [p, from](Obj o) {
     if (auto e = as_error(o)) {
       say("td error: %d %s", e->code_, e->message_.c_str());
       reply_td_error(p->conn, p->id, *e);
@@ -104,16 +122,23 @@ void fetch(const std::shared_ptr<Page> &p, std::int64_t from) {
 // with `from` >= the chat's last message id as the engine knows it. The engine learns that id from TDLib's own
 // updates, so it is not ahead of TDLib's; it is read again right before every call, and when `from` has reached
 // it the page ends here without asking.
+//
+// A topic's page (getForumTopicHistory) has no such abort: it never reads TDLib's loaded messages, only Telegram's
+// answer (a search for the topic's messages), so no CHECK(!have_a_gap) is on its path. The bound is still used, as the
+// end of the page: for a topic it is the topic's newest message (Page::last), fetched when the request began.
 void fetch_newer(const std::shared_ptr<Page> &p, std::int64_t from) {
-  ChatBrief brief = {};
-  if (!chat_brief(p->chat, brief) || !brief.has_last || from >= brief.last_id) {
+  if (from >= newest_known(*p)) {
     return finish(p);
   }
   // offset -k with limit k: TDLib raises limit to k + 1, starts k newer than `from` and drops `from` itself, so
   // the answer is the k messages right above it, newest first (fewer near the newest; then `from` and older ones
   // can come back, which the filter drops).
-  const int k = static_cast<int>(std::min<std::size_t>(99, p->want - p->got.size()));
-  tdlib.send(make_object<td_api::getChatHistory>(p->chat, from, -k, k, false), [p, from](Obj o) {
+  // A topic's history cuts its slice differently: with offset -k and limit k it answers `from` and the k - 1 messages
+  // above it (and for k = 1 nothing but `from`). So a topic is asked for offset -(k + 1) and limit k + 1, which gives
+  // `from` and k above it: -offset must stay under 100, so its k is at most 98.
+  const int extra = p->topic > 0 ? 1 : 0;
+  const int k = static_cast<int>(std::min<std::size_t>(99 - extra, p->want - p->got.size()));
+  tdlib.send(history_call(*p, from, -k - extra, k + extra), [p, from](Obj o) {
     if (auto e = as_error(o)) {
       say("td error: %d %s", e->code_, e->message_.c_str());
       reply_td_error(p->conn, p->id, *e);
@@ -157,7 +182,7 @@ bool parse_limit(std::uint64_t conn, const std::string &id, td::JsonObject &req,
   return true;
 }
 
-void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat, std::size_t want) {
+void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat, std::size_t want, std::int32_t topic) {
   tdlib.send(make_object<td_api::getChat>(chat), [=](Obj o) {
     if (as_error(o)) {
       return server.reply_error(conn, id, "bad_chat", "no such chat");
@@ -168,7 +193,12 @@ void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat, std
         return reply_td_error(conn, id, *e);
       }
       live_open(conn, chat);  // typing and presence now flow for it
-      fetch(std::make_shared<Page>(Page{conn, id, chat, want, INT64_MAX, {}}), 0);
+      auto page = std::make_shared<Page>(Page{conn, id, chat, want, INT64_MAX, {}});
+      page->topic = topic;
+      if (topic > 0) {
+        topics_watch(chat);
+      }
+      fetch(page, 0);
     });
   });
 }
@@ -180,16 +210,21 @@ void chat_history(std::uint64_t conn, const std::string &id, td::JsonObject &req
     return bad_request(conn, id, "need the field before, a string with a message id");
   }
   long limit = 0;
-  if (!parse_limit(conn, id, req, 100, limit)) {
+  std::int32_t topic = -1;
+  if (!parse_limit(conn, id, req, 100, limit) || !topic_field(conn, id, req, topic)) {
     return;
   }
-  fetch(std::make_shared<Page>(Page{conn, id, chat, static_cast<std::size_t>(limit), before, {}}), before);
+  auto page = std::make_shared<Page>(Page{conn, id, chat, static_cast<std::size_t>(limit), before, {}});
+  page->topic = topic;
+  fetch(page, before);
 }
 
 void chat_newer(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   std::int64_t after = 0;
   long limit = 0;
-  if (!message_id(conn, id, req, "after", after) || !parse_limit(conn, id, req, 100, limit)) {
+  std::int32_t topic = -1;
+  if (!message_id(conn, id, req, "after", after) || !parse_limit(conn, id, req, 100, limit) ||
+      !topic_field(conn, id, req, topic)) {
     return;
   }
   ChatBrief brief = {};
@@ -198,7 +233,20 @@ void chat_newer(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   }
   auto page = std::make_shared<Page>(Page{conn, id, chat, static_cast<std::size_t>(limit), 0, {}});
   page->newer = true;
-  fetch_newer(page, after);  // replies at once with the empty page when `after` is the chat's last message or newer
+  page->topic = topic;
+  if (topic < 0) {
+    // Replies at once with the empty page when `after` is the chat's last message or newer.
+    return fetch_newer(page, after);
+  }
+  // The topic's newest message is Telegram's to say: the UI may never have asked for the chat's topics.
+  topics_fetch(chat, topic, [page, after](const td_api::error *e, std::int64_t last) {
+    if (e) {
+      say("td error: %d %s", e->code_, e->message_.c_str());
+      return reply_td_error(page->conn, page->id, *e);
+    }
+    page->last = last;
+    fetch_newer(page, after);
+  });
 }
 
 // ---- chat.set: several calls, one reply
@@ -830,8 +878,9 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
 
   if (cmd == "chat.open") {
     long limit = 0;
-    if (parse_limit(conn, id, req, 200, limit)) {
-      chat_open(conn, id, chat, static_cast<std::size_t>(limit));
+    std::int32_t topic = -1;
+    if (parse_limit(conn, id, req, 200, limit) && topic_field(conn, id, req, topic)) {
+      chat_open(conn, id, chat, static_cast<std::size_t>(limit), topic);
     }
   } else if (cmd == "chat.history") {
     chat_history(conn, id, req, chat);
@@ -848,14 +897,19 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
       bad_request(conn, id, "upto is a string with a message id");
       return true;
     }
-    const bool known = chats_read(chat, [conn, id](const td_api::error *e) {
+    std::int32_t topic = -1;
+    if (!topic_field(conn, id, req, topic)) {
+      return true;
+    }
+    auto done = [conn, id](const td_api::error *e) {
       if (e) {
         say("td error: %d %s", e->code_, e->message_.c_str());
         reply_td_error(conn, id, *e);
       } else {
         server.reply_ok(conn, id);
       }
-    }, upto);
+    };
+    const bool known = topic > 0 ? topics_read(chat, topic, done, upto) : chats_read(chat, done, upto);
     if (!known) {
       server.reply_error(conn, id, "bad_chat", "no such chat");
     }
@@ -865,13 +919,17 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
       bad_request(conn, id, "need the field on, true or false");
       return true;
     }
+    std::int32_t topic = -1;
+    if (!topic_field(conn, id, req, topic)) {
+      return true;
+    }
     td_api::object_ptr<td_api::ChatAction> action;
     if (on.get_boolean()) {
       action = make_object<td_api::chatActionTyping>();
     } else {
       action = make_object<td_api::chatActionCancel>();
     }
-    tdlib.send(make_object<td_api::sendChatAction>(chat, nullptr, "", std::move(action)),
+    tdlib.send(make_object<td_api::sendChatAction>(chat, topic_object(topic), "", std::move(action)),
                [conn, id](Obj o) { answer(conn, id, o); });
   } else if (cmd == "chat.set") {
     chat_set(conn, id, req, chat);

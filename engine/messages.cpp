@@ -31,7 +31,7 @@ using Val = std::variant<std::monostate, std::int64_t, std::string, Blob>;
 // The columns that are written, in table order (`deleted`, `media` and `starred` keep their defaults, `sig` is last).
 enum Col {
   kChat, kId, kTs, kOut, kState, kSender, kSenderName, kKind, kText, kQuoteId, kQuotePreview, kEdited, kDuration,
-  kWaveform, kMediaState, kPlayed, kThumb, kWidth, kHeight, kSize, kPath, kExtra, kCols
+  kWaveform, kMediaState, kPlayed, kThumb, kWidth, kHeight, kSize, kPath, kExtra, kTopic, kCols
 };
 
 struct Row {
@@ -510,6 +510,16 @@ void content(Row &r, const td_api::message &m) {
   add_entities(r, shown_text(c));
 }
 
+// The forum topic a message belongs to: messageTopicForum's id; General (1) for a message of a forum chat that has no
+// topic; 0 anywhere else.
+std::int32_t topic_of(const td_api::message &m) {
+  if (m.topic_id_ && m.topic_id_->get_id() == td_api::messageTopicForum::ID) {
+    return static_cast<const td_api::messageTopicForum &>(*m.topic_id_).forum_topic_id_;
+  }
+  ChatBrief chat = {};
+  return chat_brief(m.chat_id_, chat) && chat.forum ? 1 : 0;
+}
+
 Row row_of(const td_api::message &m) {
   Row r;
   r.chat = m.chat_id_;
@@ -522,6 +532,7 @@ Row row_of(const td_api::message &m) {
   r.v[kTs] = m.date_;
   r.v[kOut] = m.is_outgoing_ ? 1 : 0;
   r.v[kEdited] = m.edit_date_ > 0 ? 1 : 0;
+  r.v[kTopic] = std::int64_t{topic_of(m)};
   r.v[kMediaState] = 0;
   r.v[kPlayed] = 0;
 
@@ -563,19 +574,23 @@ Row row_of(const td_api::message &m) {
 // ---- the table
 
 enum Stmt {
-  kInsert, kSelSig, kSelText, kSelKind, kSelPlayed, kDelete, kIdsInRange, kIdsRead, kSetRead, kSetPlayed, kStmts
+  kInsert, kSelSig, kSelText, kSelKind, kSelPlayed, kSelTopic, kDelete, kIdsInRange, kIdsRead, kSetRead, kSetPlayed,
+  kStmts
 };
 
 const char *const kSql[kStmts] = {
     "INSERT OR REPLACE INTO messages(chat, id, ts, out, state, sender, sender_name, kind, text, quote_id, "
-    "quote_preview, edited, duration, waveform, media_state, played, thumb, width, height, size, path, extra, sig) "
-    "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23)",
+    "quote_preview, edited, duration, waveform, media_state, played, thumb, width, height, size, path, extra, topic, "
+    "sig) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, "
+    "?23, ?24)",
     "SELECT sig FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT text FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT kind FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT played FROM messages WHERE chat = ?1 AND id = ?2",
+    "SELECT topic FROM messages WHERE chat = ?1 AND id = ?2",
     "DELETE FROM messages WHERE chat = ?1 AND id = ?2",
-    "SELECT id FROM messages WHERE chat = ?1 AND CAST(id AS INTEGER) >= ?2 AND CAST(id AS INTEGER) < ?3",
+    "SELECT id FROM messages WHERE chat = ?1 AND CAST(id AS INTEGER) >= ?2 AND CAST(id AS INTEGER) < ?3 AND "
+    "(?4 < 0 OR topic = ?4)",
     "SELECT id FROM messages WHERE chat = ?1 AND out = 1 AND state = 1 AND CAST(id AS INTEGER) <= ?2",
     "UPDATE messages SET state = 3, sig = NULL WHERE chat = ?1 AND out = 1 AND state = 1 AND CAST(id AS INTEGER) <= ?2",
     "UPDATE messages SET played = 1, sig = NULL WHERE chat = ?1 AND id = ?2",
@@ -726,15 +741,17 @@ void put(Row r) {
   }
 }
 
-// Deletes the row. The id is named in the event when there was one, or when `always`.
+// Deletes the row. The id is named in the event when there was one, or when `always`. The row's topic is fetched again.
 void erase(std::int64_t chat, std::int64_t id, bool always) {
   const Key key(chat, id);
   bool existed = false, unused = false;
-  check(step_once(kSelSig, key, existed), "exists");
-  stmts[kSelSig].reset();
+  check(step_once(kSelTopic, key, existed), "exists");
+  const std::int32_t topic = existed ? stmts[kSelTopic].view_int32(0) : 0;
+  stmts[kSelTopic].reset();
   if (existed) {
     check(step_once(kDelete, key, unused), "delete");
     stmts[kDelete].reset();
+    topics_note(chat, topic);
   }
   if (existed || always) {
     note(chat, id);
@@ -764,21 +781,24 @@ std::vector<std::int64_t> ids_of(Stmt which, std::int64_t chat, F &&bind, const 
   return ids;
 }
 
-// The ids of the chat's rows from `oldest` up to, not including, `upper`.
-std::vector<std::int64_t> ids_in_range(std::int64_t chat, std::int64_t oldest, std::int64_t upper) {
+// The ids of the chat's rows from `oldest` up to, not including, `upper`; only those of `topic` unless it is -1.
+std::vector<std::int64_t> ids_in_range(std::int64_t chat, std::int32_t topic, std::int64_t oldest,
+                                       std::int64_t upper) {
   return ids_of(kIdsInRange, chat, [&](td::SqliteStatement &s) {
     TRY_STATUS(s.bind_int64(2, oldest));
-    return s.bind_int64(3, upper);
+    TRY_STATUS(s.bind_int64(3, upper));
+    return s.bind_int32(4, topic);
   }, "range");
 }
 
-void reconcile(std::int64_t chat, const std::vector<Row> &rows, std::int64_t oldest, std::int64_t upper) {
+void reconcile(std::int64_t chat, std::int32_t topic, const std::vector<Row> &rows, std::int64_t oldest,
+               std::int64_t upper) {
   std::set<std::int64_t> fetched;
   for (const Row &r : rows) {
     fetched.insert(r.id);
     put(r);
   }
-  for (std::int64_t id : ids_in_range(chat, oldest, upper)) {
+  for (std::int64_t id : ids_in_range(chat, topic, oldest, upper)) {
     if (!fetched.count(id)) {
       erase(chat, id, false);
     }
@@ -918,13 +938,14 @@ void messages_queue(const td_api::message &m) {
   mark_dirty();
 }
 
-void messages_reconcile(std::int64_t chat, const std::vector<td_api::object_ptr<td_api::message>> &page,
-                        std::int64_t oldest, std::int64_t upper) {
+void messages_reconcile(std::int64_t chat, std::int32_t topic,
+                        const std::vector<td_api::object_ptr<td_api::message>> &page, std::int64_t oldest,
+                        std::int64_t upper) {
   auto rows = std::make_shared<std::vector<Row>>();
   for (const auto &m : page) {
     rows->push_back(row_of(*m));
   }
-  ops.push_back([=] { reconcile(chat, *rows, oldest, upper); });
+  ops.push_back([=] { reconcile(chat, topic, *rows, oldest, upper); });
   mark_dirty();
 }
 
@@ -939,6 +960,9 @@ void messages_update(td_api::Object &update) {
       auto &u = static_cast<td_api::updateNewMessage &>(update);
       if (u.message_) {
         messages_queue(*u.message_);
+        if (!u.message_->sending_state_) {  // ours, still sending: the topic is fetched when it is sent
+          topics_note(u.message_->chat_id_, topic_of(*u.message_));
+        }
       }
       break;
     }
@@ -1035,6 +1059,7 @@ void messages_write() {
           chats_last_message(m);
         }
         messages_queue(m);
+        topics_note(m.chat_id_, topic_of(m));
       });
     }
   }

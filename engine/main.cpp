@@ -82,9 +82,11 @@ void flush() {
   db.begin();
   chats_write();
   messages_write();
+  topics_write();
   db.commit();
   chats_events();
   messages_events();
+  topics_events();
   messages_replies();
 }
 
@@ -156,6 +158,7 @@ void handle_update(Obj update) {
     default:  // the parts that mirror state take what is theirs and ignore the rest
       chats_update(*update);
       messages_update(*update);
+      topics_update(*update);
       mode_update(*update);
       notifier_update(*update);
       live_update(*update);
@@ -409,6 +412,7 @@ int main(int argc, char **argv) {
   }
   chats_close();
   messages_close();
+  topics_close();
   db.commit();
   db.close();
   server.stop();

@@ -67,12 +67,16 @@ void send_typing(const td_api::updateChatAction &u) {
       u.sender_id_->get_id() == td_api::messageSenderUser::ID) {
     who = user_name(static_cast<const td_api::messageSenderUser &>(*u.sender_id_).user_id_, false);
   }
+  const bool in_topic = u.topic_id_ && u.topic_id_->get_id() == td_api::messageTopicForum::ID;
+  const std::int32_t topic =
+      in_topic ? static_cast<const td_api::messageTopicForum &>(*u.topic_id_).forum_topic_id_ : 0;
   server.broadcast(td::json_encode<std::string>(td::json_object([&](auto &o) {
     o("ev", "typing");
     o("chat", std::to_string(u.chat_id_));
     o("who", who);
     o("on", td::JsonBool(on));
     o("voice", td::JsonBool(voice));
+    o("topic", topic);
   })));
 }
 

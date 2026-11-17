@@ -10,7 +10,7 @@ When the code changes, this file changes with it.
 | file | what |
 |---|---|
 | `db/`, `files/` | TDLib's own database and files. Only the engine touches them. |
-| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (version 2 is migrated in place to 3), or `db.key` is new. |
+| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2 and 3 are migrated in place to 4; the step to 4 empties `messages`, `reactions` and `poll_votes`, see *chats.db*), or `db.key` is new. |
 | `db.key` | The key of both databases: 64 hex characters (32 bytes read from `/dev/random` at the first launch), mode 0600. The engine hands it to TDLib as its database key; the UI opens `chats.db` with `PRAGMA key = "x'<the 64 characters>'"` (a raw key: no key derivation). There is no setting to turn encryption off and no passcode. |
 | `engine.json` | `{"port": 41234, "token": "<32 hex characters>"}`, mode 0600, written as a temporary file and renamed, new at every start, removed at a clean stop. |
 
@@ -45,12 +45,13 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `link.password` | `password` | — (then `ready`) | `bad_state`, `bad_password` |
 | `link.logout` | — | — | — |
 | `ui.state` | `fullscreen` (bool), `openChat` (key or "") | — | — |
-| `chat.open` | `chat`, `limit` (1 to 200, default 50) | `{oldest, newest, count, more}` | |
-| `chat.history` | `chat`, `before` (a message id), `limit` (1 to 100, default 50) | `{oldest, newest, count, more}` | |
-| `chat.newer` | `chat`, `after` (a message id), `limit` (1 to 100, default 50) | `{oldest, newest, count, more}` | |
+| `chat.open` | `chat`, `limit` (1 to 200, default 50); optional `topic` (a forum topic's id) | `{oldest, newest, count, more}` | |
+| `chat.history` | `chat`, `before` (a message id), `limit` (1 to 100, default 50); optional `topic` | `{oldest, newest, count, more}` | |
+| `chat.newer` | `chat`, `after` (a message id), `limit` (1 to 100, default 50); optional `topic` | `{oldest, newest, count, more}` | |
 | `chat.close` | `chat` | — | |
-| `chat.read` | `chat`; optional `upto` (a message id) | — | |
-| `chat.typing` | `chat`, `on` (bool) | — | |
+| `topics.list` | `chat` (a forum: `chats.forum` is 1) | `{count}` | `bad_chat` |
+| `chat.read` | `chat`; optional `upto` (a message id), `topic` | — | |
+| `chat.typing` | `chat`, `on` (bool); optional `topic` | — | |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool); at least one | — | |
 | `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` (optional) | `{id}` | |
 | `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`; all but `chat` and `path` optional | `{id}` | |
@@ -117,6 +118,12 @@ aborts the whole process when its `from` is the chat's last message or beyond an
 not loaded in memory (a `closeChat` unloads it). So TDLib is asked only while `after` (then the
 newest message collected) is below the chat's last message id, and `after` at or past it is
 answered at once with the empty page. The chat's newest page is `chat.open`'s.
+
+With `topic` the same holds for the topic's messages, and the bound is the topic's newest message instead of the chat's: the
+engine asks Telegram for the topic first (`getForumTopic`, which also writes its `topics` row), so `more` is whether `newest` is
+below the topic's newest message at that moment. A topic's history (`getForumTopicHistory`) has no abort to avoid: TDLib
+answers it from Telegram only, never from its loaded messages (no `CHECK(!have_a_gap)` is on that path). A topic's page of
+newer messages is cut one message shorter by TDLib than a chat's, which the engine allows for.
 
 **`chat.read`:** marks the chat read up to its newest message, or with `upto` up to that message
 (an id above the chat's newest counts as the newest; anything but a message id is `bad_request`).
@@ -271,6 +278,41 @@ list is TDLib's. The reply comes when the last call is done.
 
 **`channel.unfollow`:** leaves a channel (`leaveChat`). Any other chat is `bad_chat`.
 
+**Forum topics.** A supergroup can be a forum, its messages sorted into topics (`chats.forum` is 1). A topic is a number, the
+`topic` field of the requests and the `topic` column of the tables. **General is topic 1** (TDLib's `ForumTopicId::general()`;
+Telegram puts a message that is in no other topic into it, and so does the engine for one TDLib gives with no topic in a
+forum). Any other topic's id is the id of the service message that created it. Every `topic` field below is optional and is
+a JSON number, a whole number from 1; anything else is `bad_request`. Without it the request is the chat's, as before.
+- **`topics.list`:** `chat` must be a forum, else `bad_chat`. The engine asks Telegram for all the chat's topics
+  (`getForumTopics`, 100 a call, going on until the approximate total is reached or a call brings nothing, at most 20 calls) and
+  makes the chat's rows of `topics` exactly that list: rows are added or changed, the topics Telegram did not list are deleted,
+  each change with a `topics` event. The reply `{count}`, the number of topics listed, comes after that commit. From then on
+  the chat's rows are kept current (below).
+- **History:** `chat.open`, `chat.history` and `chat.newer` with `topic` page through the topic (`getForumTopicHistory`) instead
+  of the chat. The paging rules and the reply are the same, and when a page is made exactly Telegram's only the rows of that
+  topic in its id range are compared: the other topics' rows in the same range stay. `chat.open` also opens the chat in TDLib
+  (`chat.close` closes it). A topic's pages always come from Telegram: TDLib keeps no local list of a topic's messages.
+- **`chat.read`** with `topic` marks the topic read up to its newest message, or up to `upto` (an id above the topic's newest
+  counts as the newest): the engine asks Telegram for the topic first (to learn its newest message), then reads it
+  (`viewMessages` with the forum topic as source), then fetches the topic again; its `unread` and `read_inbox` change with a
+  `topics` event. In a forum, `chat.read` without `topic` is still the chat's.
+- **Sending:** `msg.send`, `media.send`, `voice.send` with `topic` send into that topic (`sendMessage` with
+  `messageTopicForum`); `msg.forward` with `topic` forwards into that topic of `to`. Without it Telegram places a message in a
+  forum itself (in General, or in the topic of the message it replies to). A closed topic, or any rule Telegram has, is the `td` error.
+- **Typing:** `chat.typing` and `voice.start` with `topic` show their action in that topic. The `typing` event of a chat
+  gets `topic` (below), so the UI can show it on the right page.
+- **Keeping the rows current:** a topic's row is fetched again (`getForumTopic`: one Telegram request) when TDLib says the topic
+  changed (`updateForumTopicInfo`, `updateForumTopic`: a rename, close, pin, mute, a read on another device, a new topic), when a
+  message is added to, edited in or deleted from the topic, and after a `chat.read` with `topic`; a `topics` event names it
+  when its row changed. A topic that Telegram says does not exist (`Not Found`: it was deleted) loses its row. This is done
+  only for the chats the UI has asked for: `topics.list`, or `chat.open`, `chat.newer` or `chat.read` with `topic`, or one that
+  already had rows when the engine started; the messages of any other forum cost no request. One topic is fetched at most
+  once at a time: a fetch asked for meanwhile runs after the one in flight. TDLib sends the updates above for every topic
+  it answers a request of ours with: those are ignored while our own request for the topic, or for the chat's list, is
+  out, so a change that comes only as such an update in that short time is seen with the next message of the topic.
+- **Sorting the list:** `ORDER BY pinned DESC, CAST(ord AS INTEGER) DESC` (`ord` is TDLib's `order` for the topic, a decimal
+  int64 as text: more than a QML number holds, so let SQLite sort it, never compare it in QML).
+
 **`prefs.set`:** the fields given are merged into the stored ones, kept in `prefs.json` in the
 data folder. `mode` and `batchSecs` are the delivery mode's settings (below), `notifyPreview`
 whether a notification shows the message's text. `mediaOnMobile`, `language` and `cacheMB` are
@@ -286,12 +328,13 @@ not pruned). Defaults: `auto`, 300, true, true, "", 64.
 | `conn` | `state`: `offline`, `connecting`, `ready` | the connection to Telegram changed |
 | `chats` | `jids`: [chat keys] | these rows of `chats` changed or disappeared: re-read them |
 | `msgs` | `chat`, `ids`: [message ids] | these rows of `messages` changed or disappeared: re-read them |
-| `typing` | `chat`, `who` (first name in a group, "" in a 1:1 chat), `on`, `voice` (recording a voice note) | someone started or stopped typing; only for chats between their `chat.open` and `chat.close` |
+| `topics` | `chat`, `topics`: [topic ids, numbers] | these rows of `topics` of that chat changed or disappeared: re-read them |
+| `typing` | `chat`, `who` (first name in a group, "" in a 1:1 chat), `on`, `voice` (recording a voice note), `topic` (the forum topic it happens in, 0 when it is not in a topic) | someone started or stopped typing; only for chats between their `chat.open` and `chat.close` |
 | `presence` | `chat`, `online`, `lastSeen` (unix seconds, 0 when hidden) | the other person's online status in a 1:1 chat, once after `chat.open` and at every change until `chat.close` |
 | `photo` | `jid` (a user id), `photo` (the absolute path of the user's small profile photo) | a photo that `group.info`, `contacts.list` or `senders.get` left out is downloaded: put it on that person's row |
 | `media.progress` | `chat`, `id` (the message), `done`, `size` (bytes, numbers; `size` is the expected size when TDLib has no exact one yet) | the file a `media.get` (not a preview) is downloading has grown; at most every 200 ms per file, so a fast download may skip some; none after the file is complete or cancelled |
 
-`chats` and `msgs` come after the engine commits, at most every 50 ms. `photo` does not wait for that: it comes when
+`chats`, `msgs` and `topics` come after the engine commits, at most every 50 ms. `photo` does not wait for that: it comes when
 TDLib has downloaded the photo, which is always after the reply that left it out.
 
 **The link body** (the `hello` result and every `link` event): `state`, `conn` and `memMB`, plus:
@@ -343,7 +386,10 @@ read on another device, and the delay while another device is in use are all Tel
 ## chats.db, as the UI reads it
 
 HyperBerry's tables and columns (`../hyperberry/docs/protocol.md`, *chats.db, as the UI reads
-it*), with these meanings for Telegram. `user_version` is 3.
+it*), with these meanings for Telegram. `user_version` is 4. A file at version 2 or 3 is migrated in place when the engine starts;
+the step from 3 to 4 adds `chats.forum`, `messages.topic` and `topics`, and **empties `messages`, `reactions` and `poll_votes`**:
+the old rows have no topic, and the table is a cache that TDLib refills (the engine writes each chat's newest message again
+when it starts, and a page of history when the UI opens a chat). `chats` and its rows stay.
 
 **`chats`:** one row per chat in Telegram's main or archived chat list, and no others.
 
@@ -359,6 +405,7 @@ it*), with these meanings for Telegram. `user_version` is 3.
 | `pinned` | 1 when pinned in the main list |
 | `archived` | 1 when in the archive |
 | `read_inbox` | the id of the newest message read here or on another device; 0 when unknown (a database that was at `user_version` 2 has 0 until the engine next writes the chat's row) |
+| `forum` | 1 for a supergroup with topics (see *Forum topics*); 0 for any other chat, and until the engine next writes the row of a chat in a database that was at `user_version` 3. A group can become a forum or stop being one: a `chats` event names the row. Messages already in `messages` keep the `topic` they had (0 for a group that was not a forum): the UI uses `messages.topic` only while `forum` is 1, and a chat that has just become a forum gets its topics' messages from `chat.open` with `topic` |
 
 **`messages`**, primary key `(chat, id)`. Order by `ts`, then `CAST(id AS INTEGER)` (not
 `rowid`: older pages are inserted later).
@@ -382,6 +429,7 @@ it*), with these meanings for Telegram. `user_version` is 3.
 | `path` | the downloaded file's absolute path with `media_state` 2 |
 | `played` | voice notes and round videos: 1 once listened to |
 | `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
+| `topic` | the forum topic the message belongs to: its id (General is 1); 0 in every chat that is not a forum. Index `messages_by_topic` on `(chat, topic, ts)`: a topic's page is `WHERE chat = ? AND topic = ? ORDER BY ts, CAST(id AS INTEGER)` |
 | `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs` |
 
 Any kind's `extra` can also carry `forwarded: true` (the message is a forward) and, on a photo or
@@ -400,6 +448,25 @@ preformatted (argument: the language, when given), `q` block quote, `a` a link (
 URL; absent when the text itself is the URL), `m` a mention (argument: the user id, when the
 mention is by name), `h` hashtag, `cmd` bot command, `e` e-mail address, `t` phone number.
 Other entity types are left out.
+
+**`topics`**, primary key `(chat, topic)`: the topics of the forums the UI has asked for (`topics.list`, see *Forum topics*), kept
+current by the engine. Only chats with `chats.forum` 1 have rows.
+
+| column | meaning |
+|---|---|
+| `chat`, `topic` | the forum chat's id (text, as `messages.chat`) and the topic's id (a number; General is 1) |
+| `name` | the topic's name |
+| `color` | the icon's colour as a number `0xRRGGBB` (one of 0x6FB9F0, 0xFFD67E, 0xCB86DB, 0x8EEE98, 0xFF93B2, 0xFB6F5F); 0 when TDLib gives none |
+| `general` | 1 for the General topic |
+| `pinned` | 1 when pinned in the topic list |
+| `closed` | 1 when closed: only an administrator or the topic's creator may write in it |
+| `hidden` | 1 when the General topic is hidden (and closed) |
+| `ord` | TDLib's order, a decimal int64 as text: the date of the topic's newest message shifted left 32 bits plus that message's number; 0 for a topic with no message. Sort `pinned DESC`, then `CAST(ord AS INTEGER) DESC` |
+| `unread` | the unread count of the topic |
+| `mentions` | the unread messages with a mention of us or a reply to us |
+| `read_inbox` | the id of the newest incoming message read in the topic; 0 when none |
+| `last_id`, `last_ts`, `last_preview`, `last_out` | the newest message: its id (text; NULL with `last_preview` when the topic has none), unix seconds (0 when none), the one-line preview as a group's chat list shows it ("Anna: Photo", "You: hi"), ours or not |
+| `muted_until` | the topic's own mute, as `chats.muted_until` (unix seconds; 0 not muted; 2^40 forever). A topic that follows the chat's setting has 0, and so does one unmuted on purpose in a muted chat: a topic is muted when this is in the future or, when it is 0, when `chats.muted_until` is |
 
 A notice's `text` is `call`, `video_call`, `missed_call` or `missed_video_call`.
 `deleted`, `media` and `starred` are unused (0 or NULL). `reactions` and `poll_votes` exist and

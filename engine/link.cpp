@@ -196,6 +196,7 @@ void on_closed() {
       db.wipe();  // the logout was under way when the stop came
       chats_reset();
       messages_reset();
+      topics_reset();
       notifier_reset();
       live_reset();
     }
@@ -206,6 +207,7 @@ void on_closed() {
   db.wipe();
   chats_reset();
   messages_reset();
+  topics_reset();
   notifier_reset();
   live_reset();
   mode_reset();

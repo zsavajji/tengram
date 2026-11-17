@@ -33,10 +33,11 @@ std::string read_key(const std::string &path) {
   return n == 64 && raw.is_ok() ? raw.move_as_ok() : "";
 }
 
-// The version-3 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
-// with the engine's own messages.sig and chats.read_inbox.
-// Column order is theirs, in case the UI reads by position. The first line removes the table that
-// SqliteDb::change_key leaves in a database it has just encrypted.
+// The version-4 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
+// with the engine's own messages.sig, chats.read_inbox, chats.forum and messages.topic.
+// Column order is theirs, in case the UI reads by position; the engine's own come last, where ALTER TABLE
+// puts them in a migrated file. The first line removes the table that SqliteDb::change_key leaves in a
+// database it has just encrypted.
 const char *const kSchema = R"(
 DROP TABLE IF EXISTS encryption_dummy_table;
 CREATE TABLE chats(
@@ -49,7 +50,8 @@ CREATE TABLE chats(
   muted_until INTEGER NOT NULL DEFAULT 0,
   pinned INTEGER NOT NULL DEFAULT 0,
   archived INTEGER NOT NULL DEFAULT 0,
-  read_inbox INTEGER NOT NULL DEFAULT 0);
+  read_inbox INTEGER NOT NULL DEFAULT 0,
+  forum INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE messages(
   chat TEXT NOT NULL, id TEXT NOT NULL,
   ts INTEGER NOT NULL,
@@ -65,6 +67,7 @@ CREATE TABLE messages(
   extra TEXT,
   starred INTEGER NOT NULL DEFAULT 0,
   sig INTEGER,
+  topic INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY(chat, id));
 CREATE INDEX messages_by_time ON messages(chat, ts);
 CREATE INDEX messages_by_kind ON messages(kind, ts);
@@ -83,6 +86,21 @@ CREATE TABLE poll_votes(
   ts INTEGER NOT NULL,
   PRIMARY KEY(chat, msg, sender));
 CREATE TABLE engine_state(key TEXT PRIMARY KEY, value INTEGER NOT NULL);
+)";
+
+// What version 4 added besides the two columns: the forum topics and the index on messages.topic.
+const char *const kTopics = R"(
+CREATE TABLE topics(
+  chat TEXT NOT NULL, topic INTEGER NOT NULL,
+  name TEXT,
+  color INTEGER,
+  general INTEGER, pinned INTEGER, closed INTEGER, hidden INTEGER,
+  ord TEXT,
+  unread INTEGER, mentions INTEGER, read_inbox INTEGER,
+  last_id TEXT, last_ts INTEGER, last_preview TEXT, last_out INTEGER,
+  muted_until INTEGER,
+  PRIMARY KEY(chat, topic));
+CREATE INDEX messages_by_topic ON messages(chat, topic, ts);
 )";
 
 }  // namespace
@@ -139,12 +157,13 @@ bool Db::try_open(const std::string &raw_key) {
     return false;
   }
   auto v = db_.user_version();
-  if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3)) {
+  if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3 && v.ok() != 4)) {
     say("chats.db: user_version %d is not ours", v.is_ok() ? v.ok() : -1);
     db_.close();
     return false;
   }
-  if ((v.ok() == 0 && !create_schema()) || (v.ok() == 2 && !migrate_2_to_3())) {
+  if ((v.ok() == 0 && !create_schema()) || (v.ok() == 2 && !migrate_2_to_3()) ||
+      ((v.ok() == 2 || v.ok() == 3) && !migrate_3_to_4())) {
     db_.close();
     return false;
   }
@@ -153,8 +172,8 @@ bool Db::try_open(const std::string &raw_key) {
 
 bool Db::create_schema() {
   // One transaction, user_version inside it: a crash leaves either nothing or all of it.
-  return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) &&
-         ok(db_.set_user_version(3), "user_version") && ok(db_.commit_transaction(), "commit");
+  return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) && exec(kTopics) &&
+         ok(db_.set_user_version(4), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 // Version 2 had no chats.read_inbox. One transaction with user_version inside it, as create_schema: a crash
@@ -164,6 +183,17 @@ bool Db::migrate_2_to_3() {
   return ok(db_.begin_write_transaction(), "begin") &&
          exec("ALTER TABLE chats ADD COLUMN read_inbox INTEGER NOT NULL DEFAULT 0") &&
          ok(db_.set_user_version(3), "user_version") && ok(db_.commit_transaction(), "commit");
+}
+
+// Version 3 had no chats.forum, messages.topic or topics. Same shape as migrate_2_to_3. The messages go: their rows
+// have no topic, and a forum's topic pages would never find them. They are a cache that TDLib refills when a chat
+// opens (the UI's chat.open writes the newest page again).
+bool Db::migrate_3_to_4() {
+  return ok(db_.begin_write_transaction(), "begin") &&
+         exec("ALTER TABLE chats ADD COLUMN forum INTEGER NOT NULL DEFAULT 0") &&
+         exec("ALTER TABLE messages ADD COLUMN topic INTEGER NOT NULL DEFAULT 0") && exec(kTopics) &&
+         exec("DELETE FROM messages; DELETE FROM reactions; DELETE FROM poll_votes") &&
+         ok(db_.set_user_version(4), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 void Db::close() {
@@ -200,6 +230,6 @@ void Db::commit() {
 void Db::wipe() {
   begin();
   exec("DELETE FROM chats; DELETE FROM messages; DELETE FROM reactions; DELETE FROM poll_votes; "
-       "DELETE FROM engine_state");
+       "DELETE FROM topics; DELETE FROM engine_state");
   commit();
 }

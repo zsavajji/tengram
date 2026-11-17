@@ -29,6 +29,7 @@ struct Row {
   int last_out = 0, last_state = 0, unread = 0, pinned = 0, archived = 0;
   std::int64_t muted_until = 0;
   std::int64_t read_inbox = 0;
+  int forum = 0;
 };
 
 // muted_until is the time the mute was learned plus what was left of it, so the same mute learned again a
@@ -39,13 +40,15 @@ bool same(const Row &a, const Row &b) {
   return a.kind == b.kind && a.name == b.name && a.photo == b.photo && a.last_ts == b.last_ts &&
          a.has_last == b.has_last && a.preview == b.preview && a.last_out == b.last_out &&
          a.last_state == b.last_state && a.unread == b.unread && a.pinned == b.pinned && a.archived == b.archived &&
-         a.read_inbox == b.read_inbox &&
+         a.read_inbox == b.read_inbox && a.forum == b.forum &&
          (timed ? gap <= 2 : a.muted_until == b.muted_until);
 }
 
 struct Chat {
   std::int64_t id = 0;
   int kind = 0;  // chats.kind: 0 a person, 1 a group, 3 a channel
+  std::int64_t supergroup = 0;  // the supergroup's id in a supergroup chat, else 0
+  bool forum = false;           // a supergroup with topics (updateSupergroup)
   std::int64_t peer = 0;  // the other person's user id in a private chat (chatTypePrivate), else 0
   std::string title;
   int photo_file = 0;  // the small photo's file id, 0 for none
@@ -79,6 +82,7 @@ struct UserNames {
 
 std::unordered_map<std::int64_t, Chat> chats;
 std::unordered_map<std::int64_t, UserNames> users;
+std::unordered_map<std::int64_t, bool> forums;    // supergroup id -> is_forum, from updateSupergroup
 std::unordered_map<int, std::int64_t> downloads;  // photo file id -> chat id, for each download asked for
 std::unordered_map<int, std::int64_t> user_downloads;  // the same for the users' small profile photos
 std::unordered_map<int, int> accent_colors;       // a server accent colour's id -> the built-in one (0 to 6) to use for it
@@ -214,6 +218,10 @@ void new_chat(const td_api::chat &t) {
   Chat &c = chats[t.id_];
   c.id = t.id_;
   c.kind = t.type_ ? kind_of(*t.type_) : 0;
+  c.supergroup = t.type_ && t.type_->get_id() == td_api::chatTypeSupergroup::ID
+                     ? static_cast<const td_api::chatTypeSupergroup &>(*t.type_).supergroup_id_
+                     : 0;
+  c.forum = forums.count(c.supergroup) && forums[c.supergroup];
   c.peer = t.type_ && t.type_->get_id() == td_api::chatTypePrivate::ID
                ? static_cast<const td_api::chatTypePrivate &>(*t.type_).user_id_
                : 0;
@@ -327,6 +335,7 @@ Row row_of(const Chat &c) {
   r.pinned = c.pinned;
   r.archived = c.in_archive && !c.in_main;
   r.read_inbox = c.read_inbox;
+  r.forum = c.forum;
   return r;
 }
 
@@ -334,7 +343,8 @@ bool prepare() {
   if (insert_row.empty()) {
     insert_row = db.prepare(
         "INSERT OR REPLACE INTO chats(jid, kind, name, photo, last_ts, last_preview, last_out, last_state, unread, "
-        "muted_until, pinned, archived, read_inbox) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)");
+        "muted_until, pinned, archived, read_inbox, forum) "
+        "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)");
   }
   if (delete_row.empty()) {
     delete_row = db.prepare("DELETE FROM chats WHERE jid = ?1");
@@ -342,7 +352,7 @@ bool prepare() {
   if (select_row.empty()) {
     select_row = db.prepare(
         "SELECT kind, name, photo, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, "
-        "archived, read_inbox FROM chats WHERE jid = ?1");
+        "archived, read_inbox, forum FROM chats WHERE jid = ?1");
   }
   return !insert_row.empty() && !delete_row.empty() && !select_row.empty();
 }
@@ -371,6 +381,7 @@ td::Status load_row(Chat &c) {
     r.pinned = s.view_int32(9);
     r.archived = s.view_int32(10);
     r.read_inbox = s.view_int64(11);
+    r.forum = s.view_int32(12);
     c.stored = Chat::Stored::Present;
   }
   select_row.reset();
@@ -394,6 +405,7 @@ td::Status write_row(const Chat &c, const Row &r) {
   TRY_STATUS(s.bind_int32(11, r.pinned));
   TRY_STATUS(s.bind_int32(12, r.archived));
   TRY_STATUS(s.bind_int64(13, r.read_inbox));
+  TRY_STATUS(s.bind_int32(14, r.forum));
   auto status = s.step();
   s.reset();
   return status;
@@ -458,6 +470,13 @@ std::string one_line(std::string s) {
   return s;
 }
 
+std::int64_t topic_muted_until(const td_api::chatNotificationSettings &n) {
+  if (n.use_default_mute_for_ || n.mute_for_ <= 0) {
+    return 0;
+  }
+  return n.mute_for_ >= kForeverFrom ? kForever : now() + n.mute_for_;
+}
+
 std::string message_preview(const td_api::message &m) {
   auto it = chats.find(m.chat_id_);
   return it != chats.end() ? preview_of(it->second, m) : preview_of(Chat(), m);  // an unknown chat is a person's
@@ -483,7 +502,8 @@ bool chat_brief(std::int64_t chat_id, ChatBrief &out) {
   if (it == chats.end()) {
     return false;
   }
-  out = {it->second.kind, it->second.has_last, it->second.last_id, it->second.read_outbox, it->second.peer};
+  out = {it->second.kind,  it->second.has_last, it->second.last_id,
+         it->second.read_outbox, it->second.peer,   it->second.forum};
   return true;
 }
 
@@ -665,6 +685,19 @@ void chats_update(td_api::Object &update) {
       }
       break;
     }
+    case td_api::updateSupergroup::ID: {  // a group can become a forum, or stop being one
+      const auto &g = static_cast<td_api::updateSupergroup &>(update).supergroup_;
+      if (g && forums[g->id_] != g->is_forum_) {
+        forums[g->id_] = g->is_forum_;
+        for (auto &entry : chats) {
+          if (entry.second.supergroup == g->id_) {
+            entry.second.forum = g->is_forum_;
+            touch(entry.second);
+          }
+        }
+      }
+      break;
+    }
     case td_api::updateAccentColors::ID:
       set_accent_colors(static_cast<td_api::updateAccentColors &>(update));
       break;
@@ -811,6 +844,7 @@ void chats_reset() {
   }
   chats.clear();
   users.clear();
+  forums.clear();
   downloads.clear();
   user_downloads.clear();
   unknown_chats.clear();

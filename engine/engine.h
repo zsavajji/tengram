@@ -76,10 +76,13 @@ struct ChatBrief {
   std::int64_t last_id;
   std::int64_t read_outbox;  // last_read_outbox_message_id_
   std::int64_t peer;         // the other person's user id in a private chat, else 0
+  bool forum;                // a supergroup with topics (chats.forum)
 };
 bool chat_brief(std::int64_t chat_id, ChatBrief &out);  // false when the chat is not mirrored
 void chats_last_message(const td_api::message &m);      // m is the chat's newest message now: refresh its preview
 std::string message_preview(const td_api::message &m);  // the chat list's one line for a message, sender prefix and all
+// muted_until of a topic's own notification settings: 0 when they follow the chat's (or there is no mute).
+std::int64_t topic_muted_until(const td_api::chatNotificationSettings &n);
 // Marks the chat read up to its newest message, or up to `upto` (a message id; 0 is the newest, and one past the
 // newest is the newest), as chat.read does. False when the chat is not mirrored. With nothing to read done gets
 // nullptr at once; else TDLib's answer: its error, or nullptr.
@@ -120,8 +123,10 @@ const td_api::file *message_preview_file(const td_api::message &m);
 void messages_queue(const td_api::message &m);
 // A page of history, newest first, that must become the table's content for the chat from `oldest` up to but
 // not including `upper`: rows are added or changed, and rows in that range that are not in the page are deleted.
-void messages_reconcile(std::int64_t chat, const std::vector<td_api::object_ptr<td_api::message>> &page,
-                        std::int64_t oldest, std::int64_t upper);
+// `topic` is the forum topic the page is of: only that topic's rows are compared. -1 is the whole chat.
+void messages_reconcile(std::int64_t chat, std::int32_t topic,
+                        const std::vector<td_api::object_ptr<td_api::message>> &page, std::int64_t oldest,
+                        std::int64_t upper);
 // A reply to send after the next flush has committed. Marks dirty.
 void queue_reply(std::uint64_t conn, const std::string &id, const std::string &result_json);
 
@@ -161,6 +166,26 @@ std::string path_json(const std::string &path);  // {"path": ...}, the result of
 bool voice_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 bool voice_deadline(std::chrono::steady_clock::time_point &due);  // while recording: when "recording" goes out again
 void voice_tick();                                                // that time has come
+
+// topics.cpp: the `topics` table, topics.list, and what keeps the rows current. Only a chat the UI has asked for
+// (topics.list, or a chat.open, chat.newer or chat.read with a topic) is kept: no fetch for the forums it never saw.
+bool topics_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+void topics_update(td_api::Object &update);  // updateForumTopicInfo and updateForumTopic; anything else is ignored
+void topics_write();                         // flush(): the queued rows (inside its transaction)
+void topics_events();                        // flush(): the `topics` events, after the commit
+void topics_reset();                         // a new client after a logout: drop what is queued
+void topics_close();                         // before db.close(): finalizes the prepared statements
+// A message was added to, deleted from or edited in the topic (0 or less: not in one): its row is fetched again.
+void topics_note(std::int64_t chat, std::int32_t topic);
+void topics_watch(std::int64_t chat);  // the chat's topics are kept from now on
+// Fetches the topic from Telegram, writes its row, and gives `done` the id of the topic's newest message (0 when it has
+// none) or the error. At most one fetch of a topic runs at a time; one asked for meanwhile follows it.
+void topics_fetch(std::int64_t chat, std::int32_t topic,
+                  std::function<void(const td_api::error *, std::int64_t)> done);
+// chats_read for a topic: marks it read up to its newest message, or up to `upto` (0 is the newest), then fetches its
+// row again. False when the chat is not a mirrored forum. `done` as chats_read's.
+bool topics_read(std::int64_t chat, std::int32_t topic, std::function<void(const td_api::error *)> done,
+                 std::int64_t upto = 0);
 
 // profile.cpp: profile.get and profile.set, our own account's name, about, phone and picture. They have no chat.
 bool profile_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
