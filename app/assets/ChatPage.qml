@@ -539,7 +539,13 @@ Page {
         status: ctl.status
         members: ctl.groupInfo.participants ? ctl.groupInfo.participants.length : 0
         onTapped: infoAction.showInfo()
-        onBack: nav.pop()
+        // Only while this page is on top: a second tap during the slide out popped the chat list too, the last page,
+        // and left the app black (Classic, 0.1.0.13).
+        onBack: {
+            if (nav.top == page) {
+                nav.pop()
+            }
+        }
     }
     // At the ear, a voice note playing: the screen goes black and takes no touch, as the call screen does (the
     // user's ask, 2026-11-16); the title bar hides, so the black covers it all. The action bar is hidden already.

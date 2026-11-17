@@ -169,7 +169,11 @@ NavigationPane {
             id: memToast
         }
     ]
-    onPopTransitionEnded: page.destroy()
+    onPopTransitionEnded: {
+        if (page) {
+            page.destroy()
+        }
+    }
     onLinkedChanged: show()
     onCreationCompleted: {
         // Not a Connections: Cascades' QML has none.
