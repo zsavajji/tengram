@@ -37,6 +37,8 @@ class Td {
   std::size_t pending() const {
     return callbacks_.size();
   }
+  // The TDLib type ids of those requests (td_api.h says which is which), for a log line.
+  std::string pending_types() const;
   void set_int_option(const char *name, std::int64_t value);
 
   // Main thread only: runs the callbacks and handle_update() for everything queued so far.
@@ -55,6 +57,7 @@ class Td {
   td::ClientManager::ClientId cid_ = 0;
   td::ClientManager::RequestId next_id_ = 0;
   std::map<td::ClientManager::RequestId, Callback> callbacks_;  // main thread only
+  std::map<td::ClientManager::RequestId, std::int32_t> waiting_;  // the same requests' TDLib type ids, for the log
   int wake_fd_ = -1;
 
   std::mutex mu_;

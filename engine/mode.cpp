@@ -396,6 +396,9 @@ void mode_update(td_api::Object &update) {
   }
   const bool ours = front() || busy();
   say("own status: %s%s", what, front() ? " (ignored: the UI is in front)" : ours ? " (ignored: our own doing)" : "");
+  if (!front() && ours && tdlib.pending() > 0) {
+    say("mode: busy with %zu TDLib requests of types %s", tdlib.pending(), tdlib.pending_types().c_str());
+  }
   if (!ours && online != online_elsewhere) {
     online_elsewhere = online;
     evaluate();
@@ -411,9 +414,13 @@ bool mode_deadline(std::chrono::steady_clock::time_point &due) {
     due = next_sync;
     return true;
   }
-  if (mode_batched() && busy()) {  // batched is only waiting for the engine to be done: look again then
+  if (mode_batched()) {  // the network is on only because the engine is busy: look again when it may be done
     const auto now = Clock::now();
-    due = requested && now - last_request < kBusy ? last_request + kBusy : now + kBusy;
+    if (!busy()) {
+      due = now;  // done: mode_tick takes the network off
+    } else {
+      due = requested && now - last_request < kBusy ? last_request + kBusy : now + kBusy;
+    }
     return true;
   }
   return false;

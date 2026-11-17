@@ -46,6 +46,7 @@ void Td::start(int wake_fd) {
 
 void Td::new_client() {
   callbacks_.clear();  // the old client answered everything it was going to before it closed
+  waiting_.clear();
   cid_ = mgr_->create_client_id();
   send(td_api::make_object<td_api::getOption>("version"));  // activates the client
 }
@@ -54,6 +55,7 @@ void Td::send(td_api::object_ptr<td_api::Function> f, Callback cb) {
   ++next_id_;
   if (cb) {
     callbacks_[next_id_] = std::move(cb);
+    waiting_[next_id_] = f->get_id();
   }
   mgr_->send(cid_, next_id_, std::move(f));
 }
@@ -116,6 +118,15 @@ void Td::drain() {
     }
     Callback cb = std::move(found->second);
     callbacks_.erase(found);
+    waiting_.erase(it.request_id);
     cb(std::move(it.object));
   }
+}
+
+std::string Td::pending_types() const {
+  std::string out;
+  for (const auto &entry : waiting_) {
+    out += (out.empty() ? "" : ",") + std::to_string(entry.second);
+  }
+  return out;
 }
