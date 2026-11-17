@@ -66,6 +66,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_bridgePages(0)
     , m_bridgeNewest(0)
     , m_bridgeBefore(0)
+    , m_holdOlder(false)
     , m_window(false)
     , m_awaitOpen(false)
     , m_newerMore(false)
@@ -105,13 +106,16 @@ void MessageModel::loadFirst()
     }
     QElapsedTimer took;
     took.start();
+    m_holdOlder = !m_unreadId.isEmpty(); // rebuild stops at the divider until the page releases the rest
     loadPage();
     // A chat that opens at its first unread message needs the rows back to it before the list shows: up to
     // four more pages, stopping when one adds nothing.
     for (int more = 0; more < 4 && !m_unreadId.isEmpty() && entryOf(m_unreadId) < 0 && !m_starved; ++more)
         loadPage();
-    if (!m_unreadId.isEmpty() && entryOf(m_unreadId) < 0)
+    if (!m_unreadId.isEmpty() && entryOf(m_unreadId) < 0) {
         m_unreadId.clear(); // not reached: the chat opens at the newest, as before
+        m_holdOlder = false;
+    }
     m_loading = false;
     emit loadingChanged();
     askOlder(); // loadPage's own call came while loading; a chat.open reply may already be in
@@ -567,6 +571,7 @@ void MessageModel::takeWindow(const QVariantMap &r)
         }
     }
     m_windowGiveUp.stop();
+    m_holdOlder = !m_unreadId.isEmpty();
     merge(QStringList(), rows, true);
     m_loading = false;
     emit loadingChanged();
@@ -644,6 +649,7 @@ void MessageModel::leaveWindow(bool awaitOpen)
     m_newerId.clear();
     m_newerMore = false;
     m_unreadId.clear();
+    m_holdOlder = false;
     m_floorKnown = false;
     m_floor = 0;
     m_top = 0;
@@ -668,6 +674,16 @@ void MessageModel::leaveWindow(bool awaitOpen)
         emit loadingChanged();
     }
     emit wantOpen();
+}
+
+void MessageModel::releaseOlder()
+{
+    if (!m_holdOlder)
+        return;
+    const QStringList old = keys();
+    m_holdOlder = false;
+    refresh(old, QSet<QString>()); // appended at the model's end, above the divider: the rows on screen stay
+    qDebug() << "chat: older rows released," << old.size() << "->" << m_entries.size() << "entries";
 }
 
 void MessageModel::toLiveEnd()
@@ -730,6 +746,7 @@ QString MessageModel::shownUpTo(int first) const
 // the match if that is slow.
 int MessageModel::reveal(const QString &id)
 {
+    releaseOlder(); // a jump may be to a message the divider holds back
     const int at = entryOf(id);
     if (at >= 0)
         return at;
@@ -959,6 +976,7 @@ void MessageModel::refresh(const QStringList &old, const QSet<QString> &updated)
         // ponytail: if a sent message's new server time reorders rows and the list jumps, emit
         // itemMoved.
         Moves *moves = new Moves;
+        qDebug() << "chat: rows reordered, the list is told AddRemove";
         moves->oldGroups = old;
         for (int i = 0; i < now.size(); ++i)
             moves->groups.insert(now[i], i);
@@ -1085,6 +1103,8 @@ void MessageModel::rebuild()
                 h.title = tr("Unread messages");
                 h.msg = -1;
                 m_entries.append(h);
+                if (m_holdOlder)
+                    break; // nothing older than the divider yet (m_holdOlder)
             }
         }
         // An album is inside one day, so its first member's date is the unit's.

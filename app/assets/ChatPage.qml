@@ -406,6 +406,7 @@ Page {
             list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
         } else {
             var i = aimAt == "unread" ? ctl.messages.unreadEntry() : ctl.messages.reveal(aimId)
+            console.log("chat: aim " + aimAt + " at entry " + i + " of " + ctl.messages.childCount([]))
             if (i >= 0) {
                 list.scrollToItem([i], ScrollAnimation.None)
             }
@@ -416,6 +417,10 @@ Page {
         reaim.stop()
         if (aimAt != "" && aimAt != "bottom" && !page.placed) {
             settle.start()
+        }
+        // The divider is at the top now: the rows above it go in (MessageModel.releaseOlder), which doesn't move it.
+        if (aimAt == "unread") {
+            ctl.messages.releaseOlder()
         }
         aimAt = ""
     }

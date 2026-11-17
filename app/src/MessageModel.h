@@ -87,6 +87,9 @@ public:
     // Leaves window mode for the newest message (sending from far back, as Telegram jumps to the newest
     // too): drops the loaded rows, shows the newest page and has chat.open sent again. No-op otherwise.
     Q_INVOKABLE void toLiveEnd();
+    // The rows older than the unread divider, held back while the page puts the divider at the top of the screen
+    // (m_holdOlder), go in above it: the page calls this once its scroll has settled.
+    Q_INVOKABLE void releaseOlder();
 
     // The entry index of the message for a jump, after loading older messages back to its day;
     // -1 when it isn't shown (hidden by a pending delete, say).
@@ -227,6 +230,10 @@ private:
     int m_bridgePages; // the bridge's requests so far
     qint64 m_bridgeNewest; // the newest id of the chat.open page that started the bridge
     qint64 m_bridgeBefore; // the before of the bridge's last request
+    // A chat opening at its first unread message shows nothing older than the divider until the page has scrolled
+    // (releaseOlder): the divider is then the top of the list, which the list can only show at the top of the screen.
+    // Where scrollToItem leaves an item in this bottom-to-top list it did not say (Classic, 0.1.0.8 to 0.1.0.11).
+    bool m_holdOlder;
     bool m_window; // window mode (the class comment): the rows from m_floor to the newest loaded, not the newest end
     bool m_awaitOpen; // left the window for a jump: loading until chat.open sets the floor (leaveWindow)
     bool m_newerMore; // newer messages exist beyond m_top (chat.newer's more)
