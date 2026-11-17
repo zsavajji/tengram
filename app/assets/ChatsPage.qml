@@ -86,8 +86,25 @@ Page {
             imageSource: "file:///usr/share/icons/bb_action_archive.png"
             ActionBar.placement: ActionBarPlacement.InOverflow
             onTriggered: nav.push(archivedDef.createObject())
+        },
+        // Telegram's chat with ourselves: its id is our user id (link.me); the engine names its row Saved Messages.
+        // The row may not be in chats.db yet (a chat never used), so the page gets a bare chat then.
+        ActionItem {
+            title: qsTr("Saved Messages")
+            imageSource: "file:///usr/share/icons/bb_action_markassaved.png"
+            ActionBar.placement: ActionBarPlacement.InOverflow
+            enabled: engine.linked && !!engine.link.me
+            onTriggered: page.openSaved()
         }
     ]
+    function openSaved() {
+        var me = String(engine.link.me)
+        var chat = chats.chat(me)
+        if (!chat.jid) {
+            chat = {"jid": me, "kind": 0, "name": qsTr("Saved Messages")}
+        }
+        openChat(chat)
+    }
     function openChat(chat) {
         var chatPage = chatDef.createObject()
         chatPage.chat = chat

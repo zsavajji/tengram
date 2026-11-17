@@ -276,7 +276,9 @@ std::int64_t muted_until(const Chat &c) {
 Row row_of(const Chat &c) {
   Row r;
   r.kind = c.kind;
-  r.name = c.title;
+  // The chat with ourselves is titled with our own name by TDLib; Telegram's apps call it Saved Messages. English, as
+  // the previews are.
+  r.name = c.id != 0 && c.id == link_me_id() ? "Saved Messages" : c.title;
   r.photo = c.photo_path;
   r.has_last = c.has_last;
   if (c.has_last) {
