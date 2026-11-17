@@ -47,7 +47,8 @@ Clock::time_point flush_at;
 
 void usage(std::FILE *to) {
   std::fprintf(to, "usage: tengramd <data-dir> [--service]\n"
-                   "  TG_API_ID and TG_API_HASH (from my.telegram.org) must be in the environment\n"
+                   "  tengramd (no arguments): the packaged service, its data folder HOME\n"
+                   "  TG_API_ID and TG_API_HASH (from my.telegram.org) in the environment, unless compiled in\n"
                    "  --service: the packaged app's headless service (BlackBerry Hub, navigator, network status)\n");
 }
 
@@ -183,17 +184,32 @@ int main(int argc, char **argv) {
       return 2;
     }
   }
-  if (!dir) {
+  // The packaged service is started by the navigator with no arguments we choose (docs/ui-fork.md §5): its data
+  // folder is the sandbox's, HOME, which is where the UI looks for engine.json (QDir::homePath()).
+  if (argc == 1) {
+    dir = std::getenv("HOME");
+    service = true;
+  }
+  if (!dir || !*dir) {
     usage(stderr);
     return 2;
   }
+  // The API id and hash are compiled in from the build's environment (scripts/build-app.sh), never kept in a
+  // file of the repository; TG_API_ID and TG_API_HASH in the environment override them (test runs under /root).
+#ifdef TENGRAM_API_ID
+  api_id = TENGRAM_API_ID;
+  api_hash = TENGRAM_API_HASH;
+#endif
   const char *id_env = std::getenv("TG_API_ID");
   const char *hash_env = std::getenv("TG_API_HASH");
-  if (!id_env || !hash_env || (api_id = std::atoi(id_env)) <= 0 || !*hash_env) {
+  if (id_env && hash_env && std::atoi(id_env) > 0 && *hash_env) {
+    api_id = std::atoi(id_env);
+    api_hash = hash_env;
+  }
+  if (api_id <= 0 || api_hash.empty()) {
     std::fprintf(stderr, "set TG_API_ID (a number) and TG_API_HASH (from my.telegram.org)\n");
     return 2;
   }
-  api_hash = hash_env;
 
   // Signals are blocked in every thread (TDLib's inherit the mask) and TERM, INT and HUP are taken by one
   // sigwait thread, because QNX has no usable sigaltstack or SA_RESTART. SIGPIPE is ignored and blocked.

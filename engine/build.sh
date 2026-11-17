@@ -1,10 +1,11 @@
 #!/bin/sh
 # Builds build/tengramd (stripped), build/tengramd.unstripped and build/dbq for BB10 inside the tengram-build
-# image. Run from the Mac after scripts/build-deps.sh. Same link line as probe/build.sh. TD_LTO= (empty) if the
+# image. Run from the Mac after scripts/build-deps.sh. With TG_API_ID and TG_API_HASH in the environment they are
+# compiled in (the packaged service gets no environment of ours); they are never written to a file. Same link line as probe/build.sh. TD_LTO= (empty) if the
 # libraries were built with TD_LTO=OFF.
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-docker run --rm -e TD_LTO="${TD_LTO-1}" -v "$ROOT:/src" -w /src tengram-build sh -c '
+docker run --rm -e TD_LTO="${TD_LTO-1}" -e TG_API_ID="${TG_API_ID-}" -e TG_API_HASH="${TG_API_HASH-}" -v "$ROOT:/src" -w /src tengram-build sh -c '
 L=build/prefix/lib
 # The engine uses TDLib'"'"'s internal headers (SqliteDb, JsonBuilder): -isystem keeps their warnings out of the output.
 INC="-isystem build/prefix/include -isystem third_party/td/tddb -isystem third_party/td/tdutils \
@@ -12,8 +13,10 @@ INC="-isystem build/prefix/include -isystem third_party/td/tddb -isystem third_p
 LIBS="-Wl,--gc-sections -Wl,--start-group $L/libtdclient.a $L/libtdcore.a $L/libtdapi.a $L/libtdmtproto.a \
 $L/libtdnet.a $L/libtddb.a $L/libtdsqlite.a $L/libtdactor.a $L/libtde2e.a $L/libtdutils.a \
 $L/libssl.a $L/libcrypto.a -Wl,--end-group /opt/bb10-sdk/target/qnx6/armle-v7/usr/lib/libz.so -lsocket -lm"
+KEYS=
+if [ -n "$TG_API_ID" ] && [ -n "$TG_API_HASH" ]; then KEYS="-DTENGRAM_API_ID=$TG_API_ID -DTENGRAM_API_HASH=\"$TG_API_HASH\""; fi
 STRIP=/opt/bb10-toolchain/bin/arm-unknown-nto-qnx6.5.0eabi-strip
-bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $INC engine/*.cpp -o build/tengramd.unstripped $LIBS -lbps &&
+bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $KEYS $INC engine/*.cpp -o build/tengramd.unstripped $LIBS -lbps &&
 $STRIP -o build/tengramd build/tengramd.unstripped &&
 bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $INC tests/dbq.cpp -o build/dbq $LIBS &&
 $STRIP build/dbq &&

@@ -2,6 +2,11 @@
 
 #include "engine.h"
 
+#ifdef __QNX__
+#include <bps/bps.h>
+#include <bps/deviceinfo.h>
+#endif
+
 namespace {
 
 enum class State { Linking, Unlinked, Qr, Code, Password, Ready };
@@ -90,6 +95,33 @@ const char *code_type(const td_api::AuthenticationCodeType &t, int &length) {
   }
 }
 
+// What Telegram shows in the account's Devices list, read from the phone (the user has a Q10 and a Classic):
+// "BlackBerry Classic" and "BlackBerry 10.3.3.3216" on the Classic, where deviceinfo says model "Classic",
+// os_version "10.3.3.3216" (and device_name "RIM BlackBerry Device", which says nothing). bps_initialize is
+// counted per thread, so this pair leaves the service's BPS thread alone.
+void device_strings(std::string &model, std::string &system) {
+  model = "BlackBerry 10";
+  system = "BlackBerry 10";
+#ifdef __QNX__
+  if (bps_initialize() != BPS_SUCCESS) {
+    return;
+  }
+  deviceinfo_details_t *d = nullptr;
+  if (deviceinfo_get_details(&d) == BPS_SUCCESS && d) {
+    const char *name = deviceinfo_details_get_model_name(d);
+    const char *version = deviceinfo_details_get_device_os_version(d);
+    if (name && *name) {
+      model = std::strncmp(name, "BlackBerry", 10) == 0 ? name : std::string("BlackBerry ") + name;
+    }
+    if (version && *version) {
+      system = std::string("BlackBerry ") + version;
+    }
+    deviceinfo_free_details(&d);
+  }
+  bps_shutdown();
+#endif
+}
+
 // TDLib's database goes under our key (db_key). `default_key` is the second try, for a database made before
 // the engine had a key of its own: it opens under TDLib's default key and is moved to ours at once.
 void send_parameters(bool default_key = false) {
@@ -104,8 +136,7 @@ void send_parameters(bool default_key = false) {
   p->api_id_ = api_id;
   p->api_hash_ = api_hash;
   p->system_language_code_ = "en";
-  p->device_model_ = "BlackBerry Q10";
-  p->system_version_ = "BlackBerry 10.3.3";
+  device_strings(p->device_model_, p->system_version_);
   p->application_version_ = "tengramd 0.1";
   tdlib.send(std::move(p), [default_key](Obj o) {
     if (auto e = as_error(o)) {
