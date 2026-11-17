@@ -108,6 +108,17 @@ Page {
         SystemToast {
             id: unreadableToast
             body: qsTr("Couldn't read that picture.")
+        },
+        SystemDialog {
+            id: logoutDialog
+            title: qsTr("Log out?")
+            body: qsTr("Tengram logs out of Telegram on this phone and deletes its chats here. Your chats stay on Telegram.")
+            confirmButton.label: qsTr("Log out")
+            cancelButton.label: qsTr("Cancel")
+            onFinished: {
+                if (value == SystemUiResult.ConfirmButtonSelection)
+                    engine.request("link.logout", {})
+            }
         }
     ]
     ScrollView {
@@ -242,6 +253,21 @@ Page {
                 }
                 onTouch: aboutBox.pressed = event.isDown() || event.isMove()
                 onTouchExit: aboutBox.pressed = false
+            }
+            // Last: the one action that ends the link. In a padded container, since margins never
+            // space from the edge of the page's own container.
+            Container {
+                horizontalAlignment: HorizontalAlignment.Fill
+                topMargin: ui.du(4)
+                leftPadding: ui.du(2)
+                rightPadding: ui.du(2)
+                bottomPadding: ui.du(2)
+                Button {
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    text: qsTr("Log out")
+                    enabled: engine.linked
+                    onClicked: logoutDialog.show()
+                }
             }
         }
     }
