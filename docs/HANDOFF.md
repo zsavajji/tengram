@@ -165,7 +165,7 @@ The user tests in rounds: **batch several features into one package**, then one 
 show pictures; a double tap on a chat's back arrow stays on the chat list; a group sender's picture moves down to their new
 message; Clear chat and Delete chat (on a throwaway chat).
 
-## 6c. Late evening (2026-11-17): media, topics, pins, HyperBerry's ports (0.1.0.15, installed on the phone, not yet tested)
+## 6c. Late evening (2026-11-17): media, topics, pins, HyperBerry's ports (0.1.0.15 to 0.1.0.17: tested, all ok)
 
 Found on the phone first: `voice.play`/`voice.start` answered `unknown_cmd`; no video ever reached mm-renderer (the
 23 MB download finished after the user had left the chat, with only a spinner to show); every missed swipe to reply was
@@ -181,7 +181,14 @@ a touch **cancel** 270–720 px out (the list takes the touch once a long swipe 
 | **Forum topics:** schema v4 (`messages.topic`, `chats.forum`, `topics` table; the migration empties `messages`, a cache TDLib refills), `topics.list`, `topics` event, `topic` on history/read/typing/send/voice; TopicsPage (chat-list rows, square tiles, Compact-aware, Mark all read), a topic opens ChatPage filtered to it | `engine/topics.cpp`, `TopicModel`, `TopicsPage.qml` | builds; no TDLib call exercised |
 | **Pins:** `chat.pins` (TDLib's pinned filter, newest message first, no expiry); the menu asks it. The WhatsApp notice logic is gone (it never found anything in Tengram) | `requests.cpp`, `Pins`, `PinnedAction.qml` | builds |
 
-**Test with 0.1.0.15 (first launch migrates chats.db to v4: chats open empty for a moment and refill):** a voice note
+**The user's round (2026-11-17, late):** voice, downloads (ring, cancel), gestures, forum topics, pins, the Hub's
+inverted glyphs: all ok. Fixed after it: a video stretched to the screen (the viewer now takes the player's
+`videoDimensions`, 0.1.0.16, ok); search in Send to / Forward to (0.1.0.16); Hub items said "Telegram / New message"
+after an engine restart (the read-at-start pass ran before the chat names were in memory: now from chats.db), and
+hub.json's `glyph` re-adds the account once for a new glyph (0.1.0.16); a channel's composer row has only the menu
+(0.1.0.17, not yet seen).
+
+**Tested with 0.1.0.15 (first launch migrates chats.db to v4: chats open empty for a moment and refill):** a voice note
 plays, records, sends (the other side sees "recording…" throughout), a received one turns played; a big video and a
 document show the ring and the size, a tap cancels, a finished video plays in the viewer; swipe to reply on long swipes;
 the newest button; Normal/Compact; Forward; a forum: the topics list, order, marks, a topic's history and first unread,
@@ -199,11 +206,8 @@ ChatRow, MediaBubble) obsolete and lrelease drops them. They were restored by ha
 
 ## 7. Where to resume, in order
 
-**First, 0.1.0.15's test round** (installed 2026-11-17 22:3x at the user's go-ahead): the user walks §6c's list; read
-`data/logs/ui.log` and `tengramd.log` on the phone after (paths in §5) for `failed`, `td error`, `voice.`, `media.`,
-`topics`, `chat.pins`, and fix what they show, batched into 0.1.0.16. Watch especially: the v4 migration on the user's
-real chats.db, `voice.send` reaching the other side as a real voice note, a topic's history paging (getForumTopicHistory's
-negative offsets were read from TDLib's source, never run), and the ring on a big video.
+**First:** see the channel composer (0.1.0.17) and the Hub account's re-add (`hub: the account has glyph` in
+tengramd.log); then step 4.
 
 **Then the evening's step 4 (agreed with the user):**
 - **Reactions:** one chip per emoji with its count under the message (Telegram's look, several chips, wrapping), ours
