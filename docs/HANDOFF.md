@@ -62,7 +62,8 @@ Host `bb10rootx` in `~/.ssh/config`, **USB only** (169.254.0.1), a root shell.
 - **The phone's shell lacks `head`, `tr`, `uniq`, `diff`, `printf`, `rmdir`, `sqlite3`, `grep -A/-B`:** filter on
   the Mac (`ssh … 'cat f' > local`).
 - **The Telegram API id and hash are in no file.** Ask the user; pass them on the command line only
-  (`TG_API_ID=… TG_API_HASH=… scripts/build-app.sh`). Never write them into the repo, notes or memory.
+  (`TG_API_ID=… TG_API_HASH=… scripts/build-app.sh`), or from `.tg-keys` at the repo's root (gitignored, written at the
+  user's ask, 2026-11-17), which `build-app.sh` reads. Never put them in a tracked file, notes or memory.
 
 **On the phone now:**
 - **Tengram is installed** (`com.zsavajji.tengram.testRel_jji_tengram30796029`), logged in by QR to the
@@ -164,9 +165,47 @@ The user tests in rounds: **batch several features into one package**, then one 
 show pictures; a double tap on a chat's back arrow stays on the chat list; a group sender's picture moves down to their new
 message; Clear chat and Delete chat (on a throwaway chat).
 
+## 6c. Late evening (2026-11-17): media, topics, pins, HyperBerry's ports (0.1.0.15, installed on the phone, not yet tested)
+
+Found on the phone first: `voice.play`/`voice.start` answered `unknown_cmd`; no video ever reached mm-renderer (the
+23 MB download finished after the user had left the chat, with only a spinner to show); every missed swipe to reply was
+a touch **cancel** 270–720 px out (the list takes the touch once a long swipe drifts), not a short release.
+
+| What | Where | State |
+|---|---|---|
+| Swipe to reply: a cancel past the 36 px mark replies too (also HyperBerry `fa4b190`) | `MessageCardActions.cpp` | builds |
+| **Voice notes:** libopus 1.6.1 in `build-deps.sh`; `voice.play` (OGG → `data/cache/voice/*.wav`, marks theirs played), `voice.start` ("recording" every 4 s until send/cancel, 30 min cap), `voice.send` (WAV → OGG Opus, 20 kbps, waveform; encoded at send on the engine thread), `voice.cancel` | `engine/voice.cpp`, `opus_ogg.*` | `tests/voice_check` ok on the phone; never sent to a real chat |
+| **Download progress** as meegram2's: spinner, then a ring (25 frames, `scripts/gen-ring.py`) with an × ; "1.2 MB / 23 MB"; a tap while downloading cancels (`media.progress` event ≤ 5/s, `media.cancel`, error `cancelled` without toast) | `requests.cpp`, `MediaOpener`, `MediaBubble` | builds |
+| **To the newest:** a square opaque button, bottom right, when > 12 entries above the newest or in a history window | `ChatPage.qml` | builds |
+| **HyperBerry ports:** Interface Normal/Compact (Appearance page), bar order Search/New chat/New group, emoji picker closes on send, menu letters R A V C E X D F, **Forward** (engine `msg.forward`), a quote's tap jumps to it, quieter strip and match tint, translations | many | builds |
+| **Forum topics:** schema v4 (`messages.topic`, `chats.forum`, `topics` table; the migration empties `messages`, a cache TDLib refills), `topics.list`, `topics` event, `topic` on history/read/typing/send/voice; TopicsPage (chat-list rows, square tiles, Compact-aware, Mark all read), a topic opens ChatPage filtered to it | `engine/topics.cpp`, `TopicModel`, `TopicsPage.qml` | builds; no TDLib call exercised |
+| **Pins:** `chat.pins` (TDLib's pinned filter, newest message first, no expiry); the menu asks it. The WhatsApp notice logic is gone (it never found anything in Tengram) | `requests.cpp`, `Pins`, `PinnedAction.qml` | builds |
+
+**Test with 0.1.0.15 (first launch migrates chats.db to v4: chats open empty for a moment and refill):** a voice note
+plays, records, sends (the other side sees "recording…" throughout), a received one turns played; a big video and a
+document show the ring and the size, a tap cancels, a finished video plays in the viewer; swipe to reply on long swipes;
+the newest button; Normal/Compact; Forward; a forum: the topics list, order, marks, a topic's history and first unread,
+send/voice/photo into a topic, another topic's message not shown, Mark all read; Pinned message in a chat and a topic.
+
+Also in it: forwarding to a forum opens its topics and forwards into the one tapped; every string translated in the
+ten languages (the split settings pages' strings moved to their own contexts, translations kept); the Hub glyphs
+inverted, the plane cut out of a disc (the user; `scripts/gen-icon.py`).
+
+**Loose ends:** Group info isn't in the TopicsPage's menu (it is inside a topic); the voice encode blocks the engine
+about a second a minute of audio (unmeasured). **lupdate trap:** the C++ cards translate through
+`Card::tr(kContext, …)`, which lupdate can't see: a plain `lupdate -pro` marks their 35 entries (MessageItem,
+ChatRow, MediaBubble) obsolete and lrelease drops them. They were restored by hand; mark the strings with
+`QT_TRANSLATE_NOOP` before the next lupdate.
+
 ## 7. Where to resume, in order
 
-**First, the evening's step 4 (agreed with the user):**
+**First, 0.1.0.15's test round** (installed 2026-11-17 22:3x at the user's go-ahead): the user walks §6c's list; read
+`data/logs/ui.log` and `tengramd.log` on the phone after (paths in §5) for `failed`, `td error`, `voice.`, `media.`,
+`topics`, `chat.pins`, and fix what they show, batched into 0.1.0.16. Watch especially: the v4 migration on the user's
+real chats.db, `voice.send` reaching the other side as a real voice note, a topic's history paging (getForumTopicHistory's
+negative offsets were read from TDLib's source, never run), and the ring on a big video.
+
+**Then the evening's step 4 (agreed with the user):**
 - **Reactions:** one chip per emoji with its count under the message (Telegram's look, several chips, wrapping), ours
   highlighted, a tap on a chip adds or removes that reaction; the long-press React stays for a new emoji. Stored in the
   message row's `extra` as `"reactions": [{"e": "👍", "n": 5, "me": true}, …]` (the user's idea): the `reactions` table
@@ -174,6 +213,11 @@ message; Clear chat and Delete chat (on a throwaway chat).
 - **Polls:** counts per option in the poll row's `extra`, next to `options`; `poll_votes` goes.
 - **Sending and managing:** `contact.block`, `group.participants`, `group.create`, `poll.create`, `poll.vote`,
   `msg.react`, `invite.info`/`invite.accept`, `chat.export` (the UI sends all of them; the engine answers `unknown_cmd`).
+  `poll.create` in a topic takes `topic` like the other sends (the topics UI leaves it out today). `msg.forward` is done.
+- **Topics, next:** Group info in the TopicsPage's menu (GroupInfoPage needs a ChatController today); creating,
+  renaming, closing topics (not asked yet); custom-emoji topic icons (Premium stickers; coloured squares for now).
+- **Voice:** encode as the WAV grows (HyperBerry did) if long notes make the engine stall at send.
+- **Translations:** mark `Card::tr(kContext, …)` strings with `QT_TRANSLATE_NOOP` before any `lupdate -pro` (§6c).
 - Loose ends: a sent video has duration 0 (the UI sends none); Clear chat leaves the list's old preview; the Saved
   Messages row keeps our name until that chat's row is next written.
 
@@ -216,7 +260,7 @@ message; Clear chat and Delete chat (on a throwaway chat).
    paged, `photo`, `profile.get`, `contacts.list`, `channel.info`, `chat.clear`, `chat.delete`,
    `channel.unfollow`); **reactions and poll votes** (proposed, **not yet answered**: a row per emoji with a
    count); **sending and managing** (`media.send`, `poll.create`, groups, invites, `contact.block`,
-   `profile.set`, `chat.export`); **voice notes**, then **Calls**; measurements owed (a daytime hour on
+   `profile.set`, `chat.export`); voice notes (done, 0.1.0.15), then **Calls**; measurements owed (a daytime hour on
    battery, the notifier against what really notified, warm SQLCipher query times).
 
 **Known loose ends:** UI to the front while offline connects after 50 ms or 1.8 s (not understood); once an
