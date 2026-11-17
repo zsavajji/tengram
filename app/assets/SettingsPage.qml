@@ -120,7 +120,7 @@ Page {
                         bottomMargin: 0
                     }
                     Label {
-                        text: qsTr("Brings HyperBerry back within 6 minutes of a reboot, or if it stops, with the app closed.")
+                        text: qsTr("Brings Tengram back within 6 minutes of a reboot, or if it stops, with the app closed.")
                         multiline: true
                         topMargin: 0
                         textStyle.base: SystemDefaults.TextStyles.SubtitleText

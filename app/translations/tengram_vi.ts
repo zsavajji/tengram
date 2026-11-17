@@ -1,28 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="fr_FR">
+<TS version="2.0" language="vi_VN">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutPage</name>
     <message>
         <source>About</source>
-        <translation>À propos</translation>
-    </message>
-    <message>
-        <source>A client for WhatsApp based on hypermeow and meowcaller, for BlackBerry 10.</source>
-        <translation>Un client WhatsApp basé sur hypermeow et meowcaller, pour BlackBerry 10.</translation>
+        <translation>Giới thiệu</translation>
     </message>
     <message>
         <source>Thanks</source>
-        <translation>Remerciements</translation>
-    </message>
-    <message>
-        <source>vbbot, for whatsapp-light's patches to meowcaller</source>
-        <translation>vbbot, pour les correctifs de whatsapp-light apportés à meowcaller</translation>
+        <translation>Lời cảm ơn</translation>
     </message>
     <message>
         <source>Developer</source>
-        <translation>Développeur</translation>
+        <translation>Nhà phát triển</translation>
     </message>
 </context>
 <context>
@@ -38,12 +30,12 @@
     <message>
         <location filename="../assets/ArchivedPage.qml" line="14" />
         <source>Archived</source>
-        <translation>Archivées</translation>
+        <translation>Đã lưu trữ</translation>
     </message>
     <message>
         <location filename="../assets/ArchivedPage.qml" line="40" />
         <source>No archived chats</source>
-        <translation>Aucune discussion archivée</translation>
+        <translation>Không có đoạn chat đã lưu trữ</translation>
     </message>
 </context>
 <context>
@@ -51,7 +43,7 @@
     <message>
         <location filename="../assets/SharePage.qml" line="11" />
         <source>Send to</source>
-        <translation>Envoyer à</translation>
+        <translation>Gửi tới</translation>
     </message>
 </context>
 <context>
@@ -59,46 +51,45 @@
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="19" />
         <source>Channel info</source>
-        <translation>Infos de la chaîne</translation>
+        <translation>Thông tin kênh</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="23" />
         <location filename="../assets/ChannelInfoPage.qml" line="39" />
         <source>Unfollow</source>
-        <translation>Ne plus suivre</translation>
+        <translation>Bỏ theo dõi</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="37" />
         <source>Unfollow this channel?</source>
-        <translation>Ne plus suivre cette chaîne ?</translation>
+        <translation>Bỏ theo dõi kênh này?</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="40" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message numerus="yes">
         <location filename="../assets/ChannelInfoPage.qml" line="106" />
         <source>%Ln followers</source>
         <translation>
-            <numerusform>%Ln abonné</numerusform>
-            <numerusform>%Ln abonnés</numerusform>
+            <numerusform>%Ln người theo dõi</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="116" />
         <source>Loading…</source>
-        <translation>Chargement…</translation>
+        <translation>Đang tải…</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="125" />
         <source>Couldn't load the channel's info. Check the connection and try again.</source>
-        <translation>Impossible de charger les infos de la chaîne. Vérifiez la connexion et réessayez.</translation>
+        <translation>Không tải được thông tin kênh. Hãy kiểm tra kết nối và thử lại.</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="129" />
         <source>Description</source>
-        <translation>Description</translation>
+        <translation>Mô tả</translation>
     </message>
 </context>
 <context>
@@ -106,42 +97,42 @@
     <message>
         <location filename="../assets/ChannelsPage.qml" line="12" />
         <source>Channels</source>
-        <translation>Chaînes</translation>
+        <translation>Kênh</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="40" />
         <source>Follow</source>
-        <translation>Suivre</translation>
+        <translation>Theo dõi</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="13" />
         <source>Follow a channel</source>
-        <translation>Suivre une chaîne</translation>
+        <translation>Theo dõi một kênh</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="14" />
         <source>Paste the channel's link</source>
-        <translation>Collez le lien de la chaîne</translation>
+        <translation>Dán liên kết của kênh</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="16" />
         <source>Next</source>
-        <translation>Suivant</translation>
+        <translation>Tiếp</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="17" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="15" />
         <source>That isn't a channel link</source>
-        <translation>Ce n'est pas un lien de chaîne</translation>
+        <translation>Đây không phải liên kết kênh</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="70" />
         <source>No channels. Follow one by its link, or on your phone.</source>
-        <translation>Aucune chaîne. Suivez-en une avec son lien, ou sur votre téléphone.</translation>
+        <translation>Không có kênh nào. Hãy theo dõi kênh bằng liên kết của kênh, hoặc trên điện thoại.</translation>
     </message>
 </context>
 <context>
@@ -149,57 +140,57 @@
     <message>
         <location filename="../src/ChatControllerGroup.cpp" line="23" />
         <source>1 participant</source>
-        <translation>1 participant</translation>
+        <translation>1 người tham gia</translation>
     </message>
     <message>
         <location filename="../src/ChatControllerGroup.cpp" line="23" />
         <source>%1 participants</source>
-        <translation>%1 participants</translation>
+        <translation>%1 người tham gia</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="270" />
         <source>You</source>
-        <translation>Vous</translation>
+        <translation>Bạn</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="424" />
         <source>%1 is recording audio…</source>
-        <translation>%1 enregistre un audio…</translation>
+        <translation>%1 đang ghi âm…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="424" />
         <source>%1 is typing…</source>
-        <translation>%1 écrit…</translation>
+        <translation>%1 đang soạn tin…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="426" />
         <source>recording audio…</source>
-        <translation>enregistre un audio…</translation>
+        <translation>đang ghi âm…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="426" />
         <source>typing…</source>
-        <translation>écrit…</translation>
+        <translation>đang soạn tin…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="441" />
         <source>online</source>
-        <translation>en ligne</translation>
+        <translation>trực tuyến</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="448" />
         <source>last seen today at %1</source>
-        <translation>vu aujourd'hui à %1</translation>
+        <translation>truy cập lần cuối hôm nay lúc %1</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="450" />
         <source>last seen yesterday at %1</source>
-        <translation>vu hier à %1</translation>
+        <translation>truy cập lần cuối hôm qua lúc %1</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="452" />
         <source>last seen %1 at %2</source>
-        <translation>vu le %1 à %2</translation>
+        <translation>truy cập lần cuối %1 lúc %2</translation>
     </message>
 </context>
 <context>
@@ -207,42 +198,42 @@
     <message>
         <location filename="../assets/ChatList.qml" line="41" />
         <source>Mute for…</source>
-        <translation>Sourdine pendant…</translation>
+        <translation>Tắt tiếng trong…</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="42" />
         <source>Mute</source>
-        <translation>Sourdine</translation>
+        <translation>Tắt tiếng</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="43" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="45" />
         <source>8 hours</source>
-        <translation>8 heures</translation>
+        <translation>8 giờ</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="46" />
         <source>1 week</source>
-        <translation>1 semaine</translation>
+        <translation>1 tuần</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="47" />
         <source>Always</source>
-        <translation>Toujours</translation>
+        <translation>Luôn luôn</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="58" />
         <source>Unfollow this channel?</source>
-        <translation>Ne plus suivre cette chaîne ?</translation>
+        <translation>Bỏ theo dõi kênh này?</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="60" />
         <source>Unfollow</source>
-        <translation>Ne plus suivre</translation>
+        <translation>Bỏ theo dõi</translation>
     </message>
 </context>
 <context>
@@ -250,37 +241,37 @@
     <message>
         <location filename="../src/ChatListModel.cpp" line="31" />
         <source>Unnamed group</source>
-        <translation>Groupe sans nom</translation>
+        <translation>Nhóm không tên</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="33" />
         <source>Broadcast list</source>
-        <translation>Liste de diffusion</translation>
+        <translation>Danh sách phát tin</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="35" />
         <source>Channel</source>
-        <translation>Chaîne</translation>
+        <translation>Kênh</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="39" />
         <source>Unknown</source>
-        <translation>Inconnu</translation>
+        <translation>Không xác định</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="190" />
         <source>You</source>
-        <translation>Vous</translation>
+        <translation>Bạn</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="278" />
         <source>Pinned</source>
-        <translation>Épinglées</translation>
+        <translation>Đã ghim</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="278" />
         <source>No messages</source>
-        <translation>Aucun message</translation>
+        <translation>Không có tin nhắn</translation>
     </message>
 </context>
 <context>
@@ -288,82 +279,82 @@
     <message>
         <location filename="../assets/ChatPage.qml" line="45" />
         <source>Attach</source>
-        <translation>Joindre</translation>
+        <translation>Đính kèm</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="73" />
         <source>Contact info</source>
-        <translation>Infos du contact</translation>
+        <translation>Thông tin liên hệ</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="73" />
         <source>Channel info</source>
-        <translation>Infos de la chaîne</translation>
+        <translation>Thông tin kênh</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="73" />
         <source>Group info</source>
-        <translation>Infos du groupe</translation>
+        <translation>Thông tin nhóm</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="79" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non envoyé : HyperBerry se reconnecte. Réessayez dans un instant.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Chưa gửi: Tengram đang kết nối lại. Hãy thử lại sau giây lát.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="93" />
         <source>Couldn't open this file</source>
-        <translation>Impossible d'ouvrir ce fichier</translation>
+        <translation>Không mở được tệp này</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="97" />
         <source>Couldn't play this voice note</source>
-        <translation>Impossible de lire ce message vocal</translation>
+        <translation>Không phát được tin nhắn thoại này</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="101" />
-        <source>Not deleted: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non supprimé : HyperBerry se reconnecte. Réessayez dans un instant.</translation>
+        <source>Not deleted: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Chưa xóa: Tengram đang kết nối lại. Hãy thử lại sau giây lát.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="108" />
         <source>Message deleted</source>
-        <translation>Message supprimé</translation>
+        <translation>Đã xóa tin nhắn</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="109" />
         <source>Undo</source>
-        <translation>Annuler</translation>
+        <translation>Hoàn tác</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="122" />
         <source>Delete for everyone?</source>
-        <translation>Supprimer pour tout le monde ?</translation>
+        <translation>Xóa với mọi người?</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="123" />
         <source>It will be deleted for everyone in this chat.</source>
-        <translation>Il sera supprimé pour tout le monde dans cette discussion.</translation>
+        <translation>Tin nhắn sẽ bị xóa với mọi người trong đoạn chat này.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="124" />
         <source>Delete</source>
-        <translation>Supprimer</translation>
+        <translation>Xóa</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="125" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="173" />
         <source>Search</source>
-        <translation>Rechercher</translation>
+        <translation>Tìm kiếm</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="108"/>
         <source>Couldn&apos;t edit this message</source>
-        <translation>Impossible de modifier ce message</translation>
+        <translation>Không thể chỉnh sửa tin nhắn này</translation>
     </message>
 </context>
 <context>
@@ -371,52 +362,52 @@
     <message>
         <location filename="../assets/ChatRow.qml" line="20" />
         <source>Mark as read</source>
-        <translation>Marquer comme lue</translation>
+        <translation>Đánh dấu đã đọc</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="20" />
         <source>Mark as unread</source>
-        <translation>Marquer comme non lue</translation>
+        <translation>Đánh dấu chưa đọc</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="25" />
         <source>Unpin</source>
-        <translation>Désépingler</translation>
+        <translation>Bỏ ghim</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="25" />
         <source>Pin</source>
-        <translation>Épingler</translation>
+        <translation>Ghim</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="30" />
         <source>Unmute</source>
-        <translation>Réactiver le son</translation>
+        <translation>Bật tiếng</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="30" />
         <source>Mute…</source>
-        <translation>Sourdine…</translation>
+        <translation>Tắt tiếng…</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="35" />
         <source>Unarchive</source>
-        <translation>Désarchiver</translation>
+        <translation>Bỏ lưu trữ</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="35" />
         <source>Archive</source>
-        <translation>Archiver</translation>
+        <translation>Lưu trữ</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="38" />
         <source>Unfollow</source>
-        <translation>Ne plus suivre</translation>
+        <translation>Bỏ theo dõi</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="1" />
         <source>Call</source>
-        <translation>Appeler</translation>
+        <translation>Gọi</translation>
     </message>
 </context>
 <context>
@@ -424,22 +415,22 @@
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Call</source>
-        <translation>Appeler</translation>
+        <translation>Gọi</translation>
     </message>
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Audio only</source>
-        <translation>Audio seul</translation>
+        <translation>Chỉ âm thanh</translation>
     </message>
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Video</source>
-        <translation>Vidéo</translation>
+        <translation>Video</translation>
     </message>
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
 </context>
 <context>
@@ -447,69 +438,68 @@
     <message>
         <location filename="../assets/ChatsPage.qml" line="28" />
         <source>New chat</source>
-        <translation>Nouvelle discussion</translation>
+        <translation>Đoạn chat mới</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="50" />
         <source>New group</source>
-        <translation>Nouveau groupe</translation>
+        <translation>Nhóm mới</translation>
     </message>
     <message numerus="yes">
         <location filename="../assets/ChatsPage.qml" line="150" />
         <source>%n couldn't be added: their privacy settings don't allow it. Invite them with the group's link from your main phone.</source>
         <translation>
-            <numerusform>%n personne n'a pas pu être ajoutée : ses paramètres de confidentialité ne le permettent pas. Invitez-la avec le lien du groupe depuis votre téléphone principal.</numerusform>
-            <numerusform>%n personnes n'ont pas pu être ajoutées : leurs paramètres de confidentialité ne le permettent pas. Invitez-les avec le lien du groupe depuis votre téléphone principal.</numerusform>
+            <numerusform>Không thể thêm %n người: cài đặt quyền riêng tư của họ không cho phép. Hãy mời họ bằng liên kết nhóm từ điện thoại chính của bạn.</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="39" />
         <source>Top</source>
-        <translation>En haut</translation>
+        <translation>Trên cùng</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="48" />
         <source>Bottom</source>
-        <translation>En bas</translation>
+        <translation>Dưới cùng</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="57" />
         <source>Search</source>
-        <translation>Rechercher</translation>
+        <translation>Tìm kiếm</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="67" />
         <source>Archived</source>
-        <translation>Archivées</translation>
+        <translation>Đã lưu trữ</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="112" />
         <source>Chats</source>
-        <translation>Discussions</translation>
+        <translation>Đoạn chat</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="112" />
         <source>Connecting…</source>
-        <translation>Connexion…</translation>
+        <translation>Đang kết nối…</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="124" />
         <source>Search chats</source>
-        <translation>Rechercher des discussions</translation>
+        <translation>Tìm đoạn chat</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="156" />
         <source>No chat matches.</source>
-        <translation>Aucune discussion ne correspond.</translation>
+        <translation>Không có đoạn chat nào khớp.</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="80" />
         <source>Channels</source>
-        <translation>Chaînes</translation>
+        <translation>Kênh</translation>
     </message>
     <message>
         <source>Starred messages</source>
-        <translation>Messages favoris</translation>
+        <translation>Tin nhắn có gắn dấu sao</translation>
     </message>
 </context>
 <context>
@@ -517,7 +507,7 @@
     <message>
         <location filename="../assets/Composer.qml" line="73" />
         <source>Message</source>
-        <translation>Message</translation>
+        <translation>Tin nhắn</translation>
     </message>
 </context>
 <context>
@@ -525,7 +515,7 @@
     <message>
         <location filename="../src/ContactInfo.cpp" line="77" />
         <source>Unnamed group</source>
-        <translation>Groupe sans nom</translation>
+        <translation>Nhóm không tên</translation>
     </message>
 </context>
 <context>
@@ -533,131 +523,131 @@
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="39" />
         <source>Contact info</source>
-        <translation>Infos du contact</translation>
+        <translation>Thông tin liên hệ</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="44" />
         <source>Message</source>
-        <translation>Message</translation>
+        <translation>Nhắn tin</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="50" />
         <source>Export chat</source>
-        <translation>Exporter la discussion</translation>
+        <translation>Xuất đoạn chat</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="58" />
         <source>Clear chat</source>
-        <translation>Effacer la discussion</translation>
+        <translation>Xóa nội dung chat</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="67" />
         <source>Unblock</source>
-        <translation>Débloquer</translation>
+        <translation>Bỏ chặn</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="67" />
         <location filename="../assets/ContactInfoPage.qml" line="163" />
         <source>Block</source>
-        <translation>Bloquer</translation>
+        <translation>Chặn</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="79" />
         <source>Delete chat</source>
-        <translation>Supprimer la discussion</translation>
+        <translation>Xóa đoạn chat</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="149" />
         <source>Clear this chat?</source>
-        <translation>Effacer cette discussion ?</translation>
+        <translation>Xóa nội dung đoạn chat này?</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="150" />
         <location filename="../assets/ContactInfoPage.qml" line="174" />
         <source>Its messages will be deleted from this phone.</source>
-        <translation>Ses messages seront supprimés de ce téléphone.</translation>
+        <translation>Các tin nhắn của đoạn chat sẽ bị xóa khỏi điện thoại này.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="151" />
         <source>Clear</source>
-        <translation>Effacer</translation>
+        <translation>Xóa nội dung</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="152" />
         <location filename="../assets/ContactInfoPage.qml" line="164" />
         <location filename="../assets/ContactInfoPage.qml" line="176" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="161" />
         <source>Block %1?</source>
-        <translation>Bloquer %1 ?</translation>
+        <translation>Chặn %1?</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="162" />
         <source>Blocked contacts can't call you or send you messages.</source>
-        <translation>Les contacts bloqués ne peuvent ni vous appeler ni vous envoyer de messages.</translation>
+        <translation>Người liên hệ bị chặn không thể gọi hoặc nhắn tin cho bạn.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="173" />
         <source>Delete this chat?</source>
-        <translation>Supprimer cette discussion ?</translation>
+        <translation>Xóa đoạn chat này?</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="175" />
         <source>Delete</source>
-        <translation>Supprimer</translation>
+        <translation>Xóa</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="190" />
         <source>Couldn't do that. Check the connection and try again.</source>
-        <translation>Action impossible. Vérifiez la connexion et réessayez.</translation>
+        <translation>Không thực hiện được. Hãy kiểm tra kết nối và thử lại.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="203" />
         <source>Saved to Downloads: %1</source>
-        <translation>Enregistré dans Téléchargements : %1</translation>
+        <translation>Đã lưu vào Tải xuống: %1</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="271" />
         <source>Loading…</source>
-        <translation>Chargement…</translation>
+        <translation>Đang tải…</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="280" />
         <source>Couldn't load the contact's info. Check the connection and try again.</source>
-        <translation>Impossible de charger les infos du contact. Vérifiez la connexion et réessayez.</translation>
+        <translation>Không tải được thông tin liên hệ. Hãy kiểm tra kết nối và thử lại.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="284" />
         <source>About</source>
-        <translation>Info</translation>
+        <translation>Giới thiệu</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="319" />
         <source>Mute notifications</source>
-        <translation>Notifications en sourdine</translation>
+        <translation>Tắt thông báo</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="329" />
         <source>1 group in common</source>
-        <translation>1 groupe en commun</translation>
+        <translation>1 nhóm chung</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="329" />
         <source>%1 groups in common</source>
-        <translation>%1 groupes en commun</translation>
+        <translation>%1 nhóm chung</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="1" />
         <source>Voice call</source>
-        <translation>Appel vocal</translation>
+        <translation>Cuộc gọi thoại</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="1" />
         <source>Video call</source>
-        <translation>Appel vidéo</translation>
+        <translation>Cuộc gọi video</translation>
     </message>
 </context>
 <context>
@@ -665,12 +655,12 @@
     <message>
         <location filename="../assets/CountryPage.qml" line="13" />
         <source>Country</source>
-        <translation>Pays</translation>
+        <translation>Quốc gia</translation>
     </message>
     <message>
         <location filename="../assets/CountryPage.qml" line="38" />
         <source>Search by name or code</source>
-        <translation>Rechercher par nom ou indicatif</translation>
+        <translation>Tìm theo tên hoặc mã</translation>
     </message>
 </context>
 <context>
@@ -678,7 +668,7 @@
     <message>
         <location filename="../src/EmojiModel.cpp" line="28" />
         <source>Recent</source>
-        <translation>Récents</translation>
+        <translation>Gần đây</translation>
     </message>
 </context>
 <context>
@@ -686,7 +676,7 @@
     <message>
         <location filename="../assets/EmptyNote.qml" line="8" />
         <source>No messages here</source>
-        <translation>Aucun message ici</translation>
+        <translation>Chưa có tin nhắn nào ở đây</translation>
     </message>
 </context>
 <context>
@@ -695,7 +685,7 @@
         <location filename="../src/EngineLink.cpp" line="260" />
         <location filename="../src/EngineLink.cpp" line="284" />
         <source>The engine isn't running.</source>
-        <translation>Le moteur n'est pas en cours d'exécution.</translation>
+        <translation>Engine không chạy.</translation>
     </message>
 </context>
 <context>
@@ -703,97 +693,97 @@
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="15" />
         <source>Group info</source>
-        <translation>Infos du groupe</translation>
+        <translation>Thông tin nhóm</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="98" />
         <source>1 participant</source>
-        <translation>1 participant</translation>
+        <translation>1 người tham gia</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="98" />
         <source>%1 participants</source>
-        <translation>%1 participants</translation>
+        <translation>%1 người tham gia</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="142" />
         <source>You</source>
-        <translation>Vous</translation>
+        <translation>Bạn</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="142" />
         <source>Unknown</source>
-        <translation>Inconnu</translation>
+        <translation>Không xác định</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="152" />
         <source>Admin</source>
-        <translation>Admin</translation>
+        <translation>Quản trị viên</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="170" />
         <source>Loading…</source>
-        <translation>Chargement…</translation>
+        <translation>Đang tải…</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="179" />
         <source>Couldn't load the group's info. Check the connection and try again.</source>
-        <translation>Impossible de charger les infos du groupe. Vérifiez la connexion et réessayez.</translation>
+        <translation>Không tải được thông tin nhóm. Hãy kiểm tra kết nối và thử lại.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="56" />
         <source>Add participant</source>
-        <translation>Ajouter un participant</translation>
+        <translation>Thêm người tham gia</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="62" />
         <source>Remove %1 from the group?</source>
-        <translation>Retirer %1 du groupe ?</translation>
+        <translation>Xóa %1 khỏi nhóm?</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="63" />
         <source>Remove</source>
-        <translation>Retirer</translation>
+        <translation>Xóa</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="64" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="79" />
         <source>Their privacy settings don't let you add them. Invite them with the group's link from your main phone.</source>
-        <translation>Ses paramètres de confidentialité ne vous permettent pas de l'ajouter. Invitez-le avec le lien du groupe depuis votre téléphone principal.</translation>
+        <translation>Cài đặt quyền riêng tư của họ không cho phép bạn thêm họ. Hãy mời họ bằng liên kết nhóm từ điện thoại chính của bạn.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="82" />
         <source>They're already in the group.</source>
-        <translation>Cette personne est déjà dans le groupe.</translation>
+        <translation>Họ đã ở trong nhóm.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="85" />
-        <source>WhatsApp refused that (%1).</source>
-        <translation>WhatsApp a refusé (%1).</translation>
+        <source>Telegram refused that (%1).</source>
+        <translation>Telegram đã từ chối (%1).</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="87" />
         <source>Couldn't do that. Check the connection and try again.</source>
-        <translation>Action impossible. Vérifiez la connexion et réessayez.</translation>
+        <translation>Không thực hiện được. Hãy kiểm tra kết nối và thử lại.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="251" />
         <source>Dismiss as admin</source>
-        <translation>Retirer comme admin</translation>
+        <translation>Gỡ quyền quản trị viên</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="251" />
         <source>Make group admin</source>
-        <translation>Nommer admin du groupe</translation>
+        <translation>Đặt làm quản trị viên nhóm</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="256" />
         <source>Remove from group</source>
-        <translation>Retirer du groupe</translation>
+        <translation>Xóa khỏi nhóm</translation>
     </message>
 </context>
 <context>
@@ -801,85 +791,85 @@
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="20" />
         <source>Link with phone number</source>
-        <translation>Connecter avec un numéro de téléphone</translation>
+        <translation>Liên kết bằng số điện thoại</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="24" />
         <source>Get code</source>
-        <translation>Obtenir le code</translation>
+        <translation>Nhận mã</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="85" />
-        <source>Type the number of the phone that has WhatsApp.</source>
-        <translation>Saisissez le numéro du téléphone sur lequel vous avez WhatsApp.</translation>
+        <source>Type the number of the phone that has Telegram.</source>
+        <translation>Nhập số điện thoại có Telegram.</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="116" />
         <source>Country</source>
-        <translation>Pays</translation>
+        <translation>Quốc gia</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="127" />
         <source>Phone number</source>
-        <translation>Numéro de téléphone</translation>
+        <translation>Số điện thoại</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="152" />
-        <source>Asking WhatsApp for a code…</source>
-        <translation>Demande du code à WhatsApp…</translation>
+        <source>Asking Telegram for a code…</source>
+        <translation>Đang yêu cầu mã từ Telegram…</translation>
     </message>
 </context>
 <context>
     <name>LinkPage</name>
     <message>
         <location filename="../assets/LinkPage.qml" line="15" />
-        <source>Link to WhatsApp</source>
-        <translation>Connecter à WhatsApp</translation>
+        <source>Link to Telegram</source>
+        <translation>Liên kết với Telegram</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="19" />
         <source>Link with phone number</source>
-        <translation>Connecter avec un numéro de téléphone</translation>
+        <translation>Liên kết bằng số điện thoại</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="69" />
-        <source>On your phone, open WhatsApp, go to Linked devices, tap Link a device, and scan this code.</source>
-        <translation>Sur votre téléphone, ouvrez WhatsApp, allez dans Appareils connectés, appuyez sur Connecter un appareil, puis scannez ce code.</translation>
+        <source>On your phone, open Telegram, go to Linked devices, tap Link a device, and scan this code.</source>
+        <translation>Trên điện thoại của bạn, hãy mở Telegram, vào Thiết bị đã liên kết, nhấn vào Liên kết thiết bị rồi quét mã này.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="83" />
-        <source>On your phone, open WhatsApp, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:</source>
-        <translation>Sur votre téléphone, ouvrez WhatsApp, allez dans Appareils connectés, appuyez sur Connecter un appareil, puis sur Connecter avec un numéro de téléphone à la place, et saisissez ce code :</translation>
+        <source>On your phone, open Telegram, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:</source>
+        <translation>Trên điện thoại của bạn, hãy mở Telegram, vào Thiết bị đã liên kết, nhấn vào Liên kết thiết bị, sau đó nhấn vào Liên kết bằng số điện thoại và nhập mã này:</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="97" />
         <source>The code expired.</source>
-        <translation>Le code a expiré.</translation>
+        <translation>Mã đã hết hạn.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="101" />
         <source>Show a new code</source>
-        <translation>Afficher un nouveau code</translation>
+        <translation>Hiển thị mã mới</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="101" />
         <source>Show the code</source>
-        <translation>Afficher le code</translation>
+        <translation>Hiển thị mã</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="114" />
         <source>Starting…</source>
-        <translation>Démarrage…</translation>
+        <translation>Đang bắt đầu…</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="114" />
-        <source>Linking… Keep WhatsApp open on your phone.</source>
-        <translation>Connexion en cours… Gardez WhatsApp ouvert sur votre téléphone.</translation>
+        <source>Linking… Keep Telegram open on your phone.</source>
+        <translation>Đang liên kết… Hãy giữ Telegram mở trên điện thoại của bạn.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="117" />
         <source>Getting your chats from your phone… This can take a few minutes.</source>
-        <translation>Récupération de vos discussions depuis votre téléphone… Cela peut prendre quelques minutes.</translation>
+        <translation>Đang lấy các đoạn chat từ điện thoại của bạn… Việc này có thể mất vài phút.</translation>
     </message>
 </context>
 <context>
@@ -887,12 +877,12 @@
     <message>
         <location filename="../src/MapChooser.cpp" line="79" />
         <source>Open with</source>
-        <translation>Ouvrir avec</translation>
+        <translation>Mở bằng</translation>
     </message>
     <message>
         <location filename="../src/MapChooser.cpp" line="81" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
 </context>
 <context>
@@ -900,32 +890,32 @@
     <message>
         <location filename="../assets/MediaBubble.qml" line="46" />
         <source>Video</source>
-        <translation>Vidéo</translation>
+        <translation>Video</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="46" />
         <source>Photo</source>
-        <translation>Photo</translation>
+        <translation>Ảnh</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="106" />
         <source>Sticker</source>
-        <translation>Sticker</translation>
+        <translation>Nhãn dán</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="106" />
         <source>Audio file</source>
-        <translation>Fichier audio</translation>
+        <translation>Tệp âm thanh</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="106" />
         <source>Document</source>
-        <translation>Document</translation>
+        <translation>Tài liệu</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="152" />
         <source>Show on map</source>
-        <translation>Afficher sur la carte</translation>
+        <translation>Hiện trên bản đồ</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="75" />
@@ -938,136 +928,136 @@
     <message>
         <location filename="../src/MediaData.cpp" line="49" />
         <source>Photo</source>
-        <translation>Photo</translation>
+        <translation>Ảnh</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="50" />
         <source>Video</source>
-        <translation>Vidéo</translation>
+        <translation>Video</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="50" />
         <source>Document</source>
-        <translation>Document</translation>
+        <translation>Tài liệu</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="91" />
         <source>Sticker</source>
-        <translation>Sticker</translation>
+        <translation>Nhãn dán</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="51" />
         <source>Audio file</source>
-        <translation>Fichier audio</translation>
+        <translation>Tệp âm thanh</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="103" />
         <source>Location</source>
-        <translation>Position</translation>
+        <translation>Vị trí</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="105" />
         <source>Contact</source>
-        <translation>Contact</translation>
+        <translation>Liên hệ</translation>
     </message>
 </context>
 <context>
     <name>MessageItem</name>
     <message>
         <source>Forwarded</source>
-        <translation>Transféré</translation>
+        <translation>Đã chuyển tiếp</translation>
     </message>
     <message>
         <source>Forwarded many times</source>
-        <translation>Transféré de nombreuses fois</translation>
+        <translation>Đã chuyển tiếp nhiều lần</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="30" />
         <source>Reply</source>
-        <translation>Répondre</translation>
+        <translation>Trả lời</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="45" />
         <source>View votes</source>
-        <translation>Voir les votes</translation>
+        <translation>Xem lượt bình chọn</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="37" />
         <source>React</source>
-        <translation>Réagir</translation>
+        <translation>Bày tỏ cảm xúc</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="44" />
         <source>Copy</source>
-        <translation>Copier</translation>
+        <translation>Sao chép</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="50" />
         <source>Delete for everyone</source>
-        <translation>Supprimer pour tout le monde</translation>
+        <translation>Xóa với mọi người</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="56" />
         <source>Delete for me</source>
-        <translation>Supprimer pour moi</translation>
+        <translation>Xóa với tôi</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="194" />
         <source>edited</source>
-        <translation>modifié</translation>
+        <translation>đã chỉnh sửa</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="1" />
         <source>Join group</source>
-        <translation>Rejoindre le groupe</translation>
+        <translation>Tham gia nhóm</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Sending</source>
-        <translation>Envoi en cours</translation>
+        <translation>Đang gửi</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Sent</source>
-        <translation>Envoyé</translation>
+        <translation>Đã gửi</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Delivered</source>
-        <translation>Distribué</translation>
+        <translation>Đã nhận</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Read</source>
-        <translation>Lu</translation>
+        <translation>Đã đọc</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Not sent</source>
-        <translation>Non envoyé</translation>
+        <translation>Chưa gửi</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Edited</source>
-        <translation>Modifié</translation>
+        <translation>Đã chỉnh sửa</translation>
     </message>
     <message>
         <location filename="../src/MessageCard.cpp" line="1" />
         <source>Story</source>
-        <translation>Statut</translation>
+        <translation>Trạng thái</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="44"/>
         <source>Edit</source>
-        <translation>Modifier</translation>
+        <translation>Chỉnh sửa</translation>
     </message>
     <message>
         <source>Star</source>
-        <translation>Mettre en favori</translation>
+        <translation>Gắn dấu sao</translation>
     </message>
     <message>
         <source>Unstar</source>
-        <translation>Retirer des favoris</translation>
+        <translation>Bỏ dấu sao</translation>
     </message>
 </context>
 <context>
@@ -1075,120 +1065,119 @@
     <message>
         <location filename="../src/MessageKinds.cpp" line="23" />
         <source>Voice call, %1</source>
-        <translation>Appel vocal, %1</translation>
+        <translation>Cuộc gọi thoại, %1</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="24" />
         <source>Voice call</source>
-        <translation>Appel vocal</translation>
+        <translation>Cuộc gọi thoại</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="26" />
         <source>Video call, %1</source>
-        <translation>Appel vidéo, %1</translation>
+        <translation>Cuộc gọi video, %1</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="27" />
         <source>Video call</source>
-        <translation>Appel vidéo</translation>
+        <translation>Cuộc gọi video</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="29" />
         <source>Missed voice call</source>
-        <translation>Appel vocal manqué</translation>
+        <translation>Cuộc gọi thoại nhỡ</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="31" />
         <source>Missed video call</source>
-        <translation>Appel vidéo manqué</translation>
+        <translation>Cuộc gọi video nhỡ</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="36" />
         <source>You pinned a message</source>
-        <translation>Vous avez épinglé un message</translation>
+        <translation>Bạn đã ghim một tin nhắn</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="37" />
         <source>%1 pinned a message</source>
-        <translation>%1 a épinglé un message</translation>
+        <translation>%1 đã ghim một tin nhắn</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="38" />
         <source>A message was pinned</source>
-        <translation>Un message a été épinglé</translation>
+        <translation>Một tin nhắn đã được ghim</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="41" />
         <source>You unpinned a message</source>
-        <translation>Vous avez désépinglé un message</translation>
+        <translation>Bạn đã bỏ ghim một tin nhắn</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="42" />
         <source>%1 unpinned a message</source>
-        <translation>%1 a désépinglé un message</translation>
+        <translation>%1 đã bỏ ghim một tin nhắn</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="43" />
         <source>A message was unpinned</source>
-        <translation>Un message a été désépinglé</translation>
+        <translation>Một tin nhắn đã được bỏ ghim</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="46" />
         <source>View once message. Open it on your phone.</source>
-        <translation>Message à vue unique. Ouvrez-le sur votre téléphone.</translation>
+        <translation>Tin nhắn xem một lần. Hãy mở trên điện thoại của bạn.</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="48" />
         <source>This message can only be seen on your phone.</source>
-        <translation>Ce message n'est visible que sur votre téléphone.</translation>
+        <translation>Tin nhắn này chỉ xem được trên điện thoại của bạn.</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="49" />
         <source>Message</source>
-        <translation>Message</translation>
+        <translation>Tin nhắn</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="78" />
         <source>Live location</source>
-        <translation>Position en direct</translation>
+        <translation>Vị trí trực tiếp</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="79" />
         <source>Location</source>
-        <translation>Position</translation>
+        <translation>Vị trí</translation>
     </message>
     <message numerus="yes">
         <location filename="../src/MessageKinds.cpp" line="99" />
         <source>%n contacts</source>
         <translation>
-            <numerusform>%n contact</numerusform>
-            <numerusform>%n contacts</numerusform>
+            <numerusform>%n liên hệ</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="110" />
         <source>Poll</source>
-        <translation>Sondage</translation>
+        <translation>Bình chọn</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="111" />
         <source>Poll, choose several</source>
-        <translation>Sondage, choix multiples</translation>
+        <translation>Bình chọn, chọn nhiều đáp án</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="103" />
         <source>Event canceled</source>
-        <translation>Événement annulé</translation>
+        <translation>Sự kiện đã bị hủy</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="104" />
         <source>Event</source>
-        <translation>Événement</translation>
+        <translation>Sự kiện</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="122" />
         <source>Group invite</source>
-        <translation>Invitation au groupe</translation>
+        <translation>Lời mời vào nhóm</translation>
     </message>
 </context>
 <context>
@@ -1196,12 +1185,12 @@
     <message>
         <location filename="../src/MessageModel.cpp" line="117" />
         <source>This message was deleted</source>
-        <translation>Ce message a été supprimé</translation>
+        <translation>Tin nhắn này đã bị xóa</translation>
     </message>
     <message>
         <location filename="../src/MessageModel.cpp" line="173" />
         <source>You</source>
-        <translation>Vous</translation>
+        <translation>Bạn</translation>
     </message>
 </context>
 <context>
@@ -1209,27 +1198,27 @@
     <message>
         <location filename="../assets/NewChatPage.qml" line="11" />
         <source>New chat</source>
-        <translation>Nouvelle discussion</translation>
+        <translation>Đoạn chat mới</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="38" />
         <source>Search contacts</source>
-        <translation>Rechercher des contacts</translation>
+        <translation>Tìm liên hệ</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="109" />
         <source>Loading…</source>
-        <translation>Chargement…</translation>
+        <translation>Đang tải…</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="118" />
         <source>No contacts yet. Your phone sends them shortly after linking.</source>
-        <translation>Aucun contact pour l'instant. Votre téléphone les envoie peu après la connexion.</translation>
+        <translation>Chưa có liên hệ nào. Điện thoại của bạn sẽ gửi chúng ngay sau khi liên kết.</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="118" />
         <source>No contact matches.</source>
-        <translation>Aucun contact ne correspond.</translation>
+        <translation>Không có liên hệ nào khớp.</translation>
     </message>
 </context>
 <context>
@@ -1237,67 +1226,67 @@
     <message>
         <location filename="../assets/NewGroupPage.qml" line="8" />
         <source>New group</source>
-        <translation>Nouveau groupe</translation>
+        <translation>Nhóm mới</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="16" />
         <source>Create</source>
-        <translation>Créer</translation>
+        <translation>Tạo</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="38" />
         <source>A group needs a name and someone in it</source>
-        <translation>Un groupe doit avoir un nom et au moins un participant</translation>
+        <translation>Nhóm cần có tên và ít nhất một người tham gia</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="42" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non envoyé : HyperBerry se reconnecte. Réessayez dans un instant.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Chưa gửi: Tengram đang kết nối lại. Hãy thử lại sau giây lát.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="14" />
-        <source>WhatsApp won't take a name that long</source>
-        <translation>WhatsApp n'accepte pas un nom aussi long</translation>
+        <source>Telegram won't take a name that long</source>
+        <translation>Telegram không chấp nhận tên dài như vậy</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="14" />
         <source>Couldn't create the group. Check the connection and try again.</source>
-        <translation>Impossible de créer le groupe. Vérifiez la connexion et réessayez.</translation>
+        <translation>Không tạo được nhóm. Hãy kiểm tra kết nối và thử lại.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="76" />
         <source>Group name</source>
-        <translation>Nom du groupe</translation>
+        <translation>Tên nhóm</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="80" />
         <source>Search contacts</source>
-        <translation>Rechercher des contacts</translation>
+        <translation>Tìm liên hệ</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="85" />
         <source>%1 chosen</source>
-        <translation>%1 sélectionnés</translation>
+        <translation>Đã chọn %1</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="111" />
         <source>Loading…</source>
-        <translation>Chargement…</translation>
+        <translation>Đang tải…</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="115" />
         <source>Creating the group…</source>
-        <translation>Création du groupe…</translation>
+        <translation>Đang tạo nhóm…</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="118" />
         <source>No contacts yet. Your phone sends them shortly after linking.</source>
-        <translation>Aucun contact pour l'instant. Votre téléphone les envoie peu après la connexion.</translation>
+        <translation>Chưa có liên hệ nào. Điện thoại của bạn sẽ gửi chúng ngay sau khi liên kết.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="118" />
         <source>No contact matches.</source>
-        <translation>Aucun contact ne correspond.</translation>
+        <translation>Không có liên hệ nào khớp.</translation>
     </message>
 </context>
 <context>
@@ -1305,22 +1294,22 @@
     <message>
         <location filename="../assets/PhotoViewer.qml" line="21" />
         <source>Save</source>
-        <translation>Enregistrer</translation>
+        <translation>Lưu</translation>
     </message>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="24" />
         <source>Saved to Pictures</source>
-        <translation>Enregistrée dans Images</translation>
+        <translation>Đã lưu vào Hình ảnh</translation>
     </message>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="25" />
         <source>Couldn't save the photo</source>
-        <translation>Impossible d'enregistrer la photo</translation>
+        <translation>Không lưu được ảnh</translation>
     </message>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="13" />
         <source>Share</source>
-        <translation>Partager</translation>
+        <translation>Chia sẻ</translation>
     </message>
 </context>
 <context>
@@ -1328,27 +1317,27 @@
     <message>
         <location filename="../assets/PinnedAction.qml" line="14" />
         <source>Pinned message</source>
-        <translation>Message épinglé</translation>
+        <translation>Tin nhắn đã ghim</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="45" />
         <source>No pinned messages</source>
-        <translation>Aucun message épinglé</translation>
+        <translation>Không có tin nhắn đã ghim</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="49" />
         <source>This pinned message isn't on this phone</source>
-        <translation>Ce message épinglé n'est pas sur ce téléphone</translation>
+        <translation>Tin nhắn đã ghim này không có trên điện thoại này</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="55" />
         <source>Pinned messages</source>
-        <translation>Messages épinglés</translation>
+        <translation>Tin nhắn đã ghim</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="57" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
 </context>
 <context>
@@ -1356,7 +1345,7 @@
     <message>
         <location filename="../src/Pins.cpp" line="42" />
         <source>Voice message</source>
-        <translation>Message vocal</translation>
+        <translation>Tin nhắn thoại</translation>
     </message>
 </context>
 <context>
@@ -1364,7 +1353,7 @@
     <message>
         <location filename="../assets/PollBubble.qml" line="79" />
         <source>Nobody yet</source>
-        <translation>Personne pour l'instant</translation>
+        <translation>Chưa có ai</translation>
     </message>
 </context>
 <context>
@@ -1372,7 +1361,7 @@
     <message>
         <location filename="../assets/PollAction.qml" line="6" />
         <source>Create poll</source>
-        <translation>Créer un sondage</translation>
+        <translation>Tạo bình chọn</translation>
     </message>
 </context>
 <context>
@@ -1380,52 +1369,52 @@
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Create poll</source>
-        <translation>Créer un sondage</translation>
+        <translation>Tạo bình chọn</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Question</source>
-        <translation>Question</translation>
+        <translation>Câu hỏi</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Ask something</source>
-        <translation>Posez une question</translation>
+        <translation>Đặt câu hỏi</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Options</source>
-        <translation>Options</translation>
+        <translation>Lựa chọn</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Add option</source>
-        <translation>Ajouter une option</translation>
+        <translation>Thêm lựa chọn</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Allow several answers</source>
-        <translation>Autoriser plusieurs réponses</translation>
+        <translation>Cho phép nhiều đáp án</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Send</source>
-        <translation>Envoyer</translation>
+        <translation>Gửi</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>A poll needs a question and two options</source>
-        <translation>Un sondage doit avoir une question et deux options</translation>
+        <translation>Bình chọn cần có một câu hỏi và hai lựa chọn</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non envoyé : HyperBerry se reconnecte. Réessayez dans un instant.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Chưa gửi: Tengram đang kết nối lại. Hãy thử lại sau giây lát.</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Option %1</source>
-        <translation>Option %1</translation>
+        <translation>Lựa chọn %1</translation>
     </message>
 </context>
 <context>
@@ -1433,7 +1422,7 @@
     <message>
         <location filename="../src/Polls.cpp" line="40" />
         <source>You</source>
-        <translation>Vous</translation>
+        <translation>Bạn</translation>
     </message>
 </context>
 <context>
@@ -1441,62 +1430,62 @@
     <message>
         <location filename="../assets/ProfilePage.qml" line="20" />
         <source>Profile</source>
-        <translation>Profil</translation>
+        <translation>Hồ sơ</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="35" />
         <source>Change photo</source>
-        <translation>Changer la photo</translation>
+        <translation>Đổi ảnh</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="37" />
         <source>Remove photo</source>
-        <translation>Supprimer la photo</translation>
+        <translation>Xóa ảnh</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="69" />
         <source>Profile photo</source>
-        <translation>Photo de profil</translation>
+        <translation>Ảnh hồ sơ</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="70" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="84" />
         <source>Your name</source>
-        <translation>Votre nom</translation>
+        <translation>Tên của bạn</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="95" />
         <source>About</source>
-        <translation>Info</translation>
+        <translation>Giới thiệu</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="106" />
         <source>Couldn't update your profile. Check the connection and try again.</source>
-        <translation>Impossible de mettre à jour votre profil. Vérifiez la connexion et réessayez.</translation>
+        <translation>Không cập nhật được hồ sơ của bạn. Hãy kiểm tra kết nối và thử lại.</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="110" />
         <source>Couldn't read that picture.</source>
-        <translation>Impossible de lire cette image.</translation>
+        <translation>Không đọc được ảnh đó.</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="169" />
         <source>Tap to edit</source>
-        <translation>Appuyez pour modifier</translation>
+        <translation>Nhấn để chỉnh sửa</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="192" />
         <source>Loading…</source>
-        <translation>Chargement…</translation>
+        <translation>Đang tải…</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="201" />
         <source>Couldn't load your profile. Check the connection and try again.</source>
-        <translation>Impossible de charger votre profil. Vérifiez la connexion et réessayez.</translation>
+        <translation>Không tải được hồ sơ của bạn. Hãy kiểm tra kết nối và thử lại.</translation>
     </message>
 </context>
 <context>
@@ -1504,17 +1493,17 @@
     <message>
         <location filename="../assets/ReactBar.qml" line="58" />
         <source>Vote not sent</source>
-        <translation>Vote non envoyé</translation>
+        <translation>Chưa gửi lượt bình chọn</translation>
     </message>
     <message>
         <location filename="../assets/ReactBar.qml" line="60" />
         <source>Poll not sent</source>
-        <translation>Sondage non envoyé</translation>
+        <translation>Chưa gửi cuộc bình chọn</translation>
     </message>
     <message>
         <location filename="../assets/ReactBar.qml" line="123" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non envoyé : HyperBerry se reconnecte. Réessayez dans un instant.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Chưa gửi: Tengram đang kết nối lại. Hãy thử lại sau giây lát.</translation>
     </message>
 </context>
 <context>
@@ -1522,7 +1511,7 @@
     <message>
         <location filename="../assets/RecordingBar.qml" line="23" />
         <source>Recording %1</source>
-        <translation>Enregistrement %1</translation>
+        <translation>Đang ghi âm %1</translation>
     </message>
 </context>
 <context>
@@ -1530,12 +1519,12 @@
     <message>
         <location filename="../assets/ReplyBar.qml" line="35" />
         <source>Replying to %1</source>
-        <translation>Réponse à %1</translation>
+        <translation>Đang trả lời %1</translation>
     </message>
     <message>
         <location filename="../assets/ReplyBar.qml" line="36"/>
         <source>Edit message</source>
-        <translation>Modifier le message</translation>
+        <translation>Chỉnh sửa tin nhắn</translation>
     </message>
 </context>
 <context>
@@ -1543,153 +1532,153 @@
     <message>
         <location filename="../assets/SearchBar.qml" line="65" />
         <source>Search in chat</source>
-        <translation>Rechercher dans la discussion</translation>
+        <translation>Tìm trong đoạn chat</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
         <source>Proximity sensor</source>
-        <translation>Capteur de proximité</translation>
+        <translation>Cảm biến tiệm cận</translation>
     </message>
     <message>
         <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
-        <translation>Si désactivé, les messages vocaux restent sur le haut-parleur et l'écran reste allumé pendant les appels. Pour un capteur défectueux.</translation>
+        <translation>Khi tắt, tin nhắn thoại vẫn phát qua loa và màn hình vẫn sáng khi gọi. Dành cho cảm biến bị hỏng.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="9" />
         <source>Settings</source>
-        <translation>Paramètres</translation>
+        <translation>Cài đặt</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="16" />
         <source>Unlink this device?</source>
-        <translation>Déconnecter cet appareil ?</translation>
+        <translation>Hủy liên kết thiết bị này?</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="17" />
         <source>This device is removed from your linked devices and its chats are deleted here.</source>
-        <translation>Cet appareil est retiré de vos appareils connectés et ses discussions sont supprimées ici.</translation>
+        <translation>Thiết bị này sẽ bị xóa khỏi các thiết bị đã liên kết của bạn và các đoạn chat của nó sẽ bị xóa tại đây.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="18" />
         <source>Unlink</source>
-        <translation>Déconnecter</translation>
+        <translation>Hủy liên kết</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="19" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="36" />
         <source>Theme</source>
-        <translation>Thème</translation>
+        <translation>Giao diện</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38" />
         <source>Dark</source>
-        <translation>Sombre</translation>
+        <translation>Tối</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="39" />
         <source>Bright</source>
-        <translation>Clair</translation>
+        <translation>Sáng</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="44" />
         <source>Text size</source>
-        <translation>Taille du texte</translation>
+        <translation>Cỡ chữ</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="46" />
         <source>Small</source>
-        <translation>Petite</translation>
+        <translation>Nhỏ</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="47" />
         <source>Normal</source>
-        <translation>Normale</translation>
+        <translation>Bình thường</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="48" />
         <source>Large</source>
-        <translation>Grande</translation>
+        <translation>Lớn</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="63" />
         <source>Enter sends</source>
-        <translation>Entrée pour envoyer</translation>
+        <translation>Enter để gửi</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="67" />
         <source>Off, Enter starts a new line; the Send action still sends.</source>
-        <translation>Si désactivé, Entrée passe à la ligne ; l'action Envoyer envoie quand même.</translation>
+        <translation>Khi tắt, Enter xuống dòng mới; hành động Gửi vẫn gửi tin nhắn.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="91" />
         <source>Notification preview</source>
-        <translation>Aperçu des notifications</translation>
+        <translation>Xem trước thông báo</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="95" />
         <source>Off, a notification says "New message" instead of the text.</source>
-        <translation>Si désactivé, une notification affiche « Nouveau message » au lieu du texte.</translation>
+        <translation>Khi tắt, thông báo hiện "Tin nhắn mới" thay vì nội dung.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="116" />
         <source>Start at boot</source>
-        <translation>Lancer au démarrage</translation>
+        <translation>Khởi động cùng máy</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="120" />
-        <source>Brings HyperBerry back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
-        <translation>Relance HyperBerry dans les 6 minutes suivant un redémarrage, ou s'il s'arrête, application fermée.</translation>
+        <source>Brings Tengram back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
+        <translation>Đưa Tengram hoạt động trở lại trong vòng 6 phút sau khi khởi động lại máy, hoặc nếu nó dừng, kể cả khi ứng dụng đã đóng.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="110" />
         <source>Storage</source>
-        <translation>Stockage</translation>
+        <translation>Bộ nhớ</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="119" />
         <source>Download on mobile data</source>
-        <translation>Télécharger via données mobiles</translation>
+        <translation>Tải xuống bằng dữ liệu di động</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="170" />
         <source>Cache limit</source>
-        <translation>Limite du cache</translation>
+        <translation>Giới hạn bộ nhớ đệm</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="123" />
         <source>Off, photos and voice notes wait for a tap unless you're on Wi-Fi.</source>
-        <translation>Si désactivé, les photos et messages vocaux attendent un appui, sauf en Wi-Fi.</translation>
+        <translation>Khi tắt, ảnh và tin nhắn thoại chờ nhấn để tải, trừ khi bạn dùng Wi-Fi.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="122" />
         <source>Cache: %1</source>
-        <translation>Cache : %1</translation>
+        <translation>Bộ nhớ đệm: %1</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="126" />
         <source>Clear cache</source>
-        <translation>Vider le cache</translation>
+        <translation>Xóa bộ nhớ đệm</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="131" />
         <source>Cache cleared: %1 freed</source>
-        <translation>Cache vidé : %1 libérés</translation>
+        <translation>Đã xóa bộ nhớ đệm: giải phóng %1</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="139" />
         <source>Voice notes' decoded audio and photo previews; they're made again when needed.</source>
-        <translation>L'audio décodé des messages vocaux et les aperçus de photos ; ils sont recréés au besoin.</translation>
+        <translation>Âm thanh đã giải mã của tin nhắn thoại và bản xem trước ảnh; chúng được tạo lại khi cần.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="147" />
         <source>Unlink this device</source>
-        <translation>Déconnecter cet appareil</translation>
+        <translation>Hủy liên kết thiết bị này</translation>
     </message>
 </context>
 <context>
@@ -1697,32 +1686,32 @@
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Unknown</source>
-        <translation>Inconnu</translation>
+        <translation>Không xác định</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Missed voice call</source>
-        <translation>Appel vocal manqué</translation>
+        <translation>Cuộc gọi thoại nhỡ</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Outgoing, %1</source>
-        <translation>Sortant, %1</translation>
+        <translation>Cuộc gọi đi, %1</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Incoming, %1</source>
-        <translation>Entrant, %1</translation>
+        <translation>Cuộc gọi đến, %1</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Outgoing</source>
-        <translation>Sortant</translation>
+        <translation>Cuộc gọi đi</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Incoming</source>
-        <translation>Entrant</translation>
+        <translation>Cuộc gọi đến</translation>
     </message>
 </context>
 <context>
@@ -1730,17 +1719,17 @@
     <message>
         <location filename="../assets/CallsPage.qml" line="1" />
         <source>Calls</source>
-        <translation>Appels</translation>
+        <translation>Cuộc gọi</translation>
     </message>
     <message>
         <location filename="../assets/CallsPage.qml" line="1" />
         <source>No calls yet</source>
-        <translation>Aucun appel pour l'instant</translation>
+        <translation>Chưa có cuộc gọi nào</translation>
     </message>
     <message>
         <location filename="../assets/CallsPage.qml" line="1" />
         <source>New call</source>
-        <translation>Nouvel appel</translation>
+        <translation>Cuộc gọi mới</translation>
     </message>
 </context>
 <context>
@@ -1748,12 +1737,12 @@
     <message>
         <location filename="../assets/CallRow.qml" line="1" />
         <source>Call</source>
-        <translation>Appeler</translation>
+        <translation>Gọi</translation>
     </message>
     <message>
         <location filename="../assets/CallRow.qml" line="1" />
         <source>Open chat</source>
-        <translation>Ouvrir la discussion</translation>
+        <translation>Mở đoạn chat</translation>
     </message>
 </context>
 <context>
@@ -1761,97 +1750,97 @@
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Calling…</source>
-        <translation>Appel…</translation>
+        <translation>Đang gọi…</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming voice call</source>
-        <translation>Appel vocal entrant</translation>
+        <translation>Cuộc gọi thoại đến</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming video call</source>
-        <translation>Appel vidéo entrant</translation>
+        <translation>Cuộc gọi video đến</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group voice call</source>
-        <translation>Appel vocal de groupe entrant</translation>
+        <translation>Cuộc gọi thoại nhóm đến</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group voice call · %1</source>
-        <translation>Appel vocal de groupe entrant · %1</translation>
+        <translation>Cuộc gọi thoại nhóm đến · %1</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Connecting…</source>
-        <translation>Connexion…</translation>
+        <translation>Đang kết nối…</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Reconnecting…</source>
-        <translation>Reconnexion…</translation>
+        <translation>Đang kết nối lại…</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Call ended</source>
-        <translation>Appel terminé</translation>
+        <translation>Cuộc gọi đã kết thúc</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Declined</source>
-        <translation>Refusé</translation>
+        <translation>Đã từ chối</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Busy</source>
-        <translation>Occupé</translation>
+        <translation>Máy bận</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>No answer</source>
-        <translation>Pas de réponse</translation>
+        <translation>Không trả lời</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Call failed</source>
-        <translation>Échec de l'appel</translation>
+        <translation>Cuộc gọi thất bại</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Offline</source>
-        <translation>Hors ligne</translation>
+        <translation>Ngoại tuyến</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
-        <source>WhatsApp: voice call</source>
-        <translation>WhatsApp : appel vocal</translation>
+        <source>Telegram: voice call</source>
+        <translation>Telegram: cuộc gọi thoại</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
-        <source>WhatsApp: video call</source>
-        <translation>WhatsApp : appel vidéo</translation>
+        <source>Telegram: video call</source>
+        <translation>Telegram: cuộc gọi video</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>%1 and %2</source>
-        <translation>%1 et %2</translation>
+        <translation>%1 và %2</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>%1, %2 and %3 more</source>
-        <translation>%1, %2 et %3 autres</translation>
+        <translation>%1, %2 và %3 người khác</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group video call</source>
-        <translation>Appel vidéo de groupe entrant</translation>
+        <translation>Cuộc gọi video nhóm đến</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group video call · %1</source>
-        <translation>Appel vidéo de groupe entrant · %1</translation>
+        <translation>Cuộc gọi video nhóm đến · %1</translation>
     </message>
 </context>
 <context>
@@ -1859,7 +1848,7 @@
     <message>
         <location filename="../assets/CallDrawer.qml" line="1" />
         <source>Swipe from the left edge to see who is in the call</source>
-        <translation>Balayez depuis le bord gauche pour voir qui est dans l'appel</translation>
+        <translation>Vuốt từ cạnh trái để xem ai đang trong cuộc gọi</translation>
     </message>
 </context>
 <context>
@@ -1867,47 +1856,47 @@
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Speaker</source>
-        <translation>Haut-parleur</translation>
+        <translation>Loa</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Mute</source>
-        <translation>Couper le micro</translation>
+        <translation>Tắt tiếng</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>End call</source>
-        <translation>Raccrocher</translation>
+        <translation>Kết thúc cuộc gọi</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Unmute</source>
-        <translation>Activer le micro</translation>
+        <translation>Bật tiếng</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Stop video</source>
-        <translation>Arrêter la vidéo</translation>
+        <translation>Tắt video</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Start video</source>
-        <translation>Démarrer la vidéo</translation>
+        <translation>Bật video</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Switch camera</source>
-        <translation>Changer de caméra</translation>
+        <translation>Đổi camera</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Hide preview</source>
-        <translation>Masquer l'aperçu</translation>
+        <translation>Ẩn bản xem trước</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Show preview</source>
-        <translation>Afficher l'aperçu</translation>
+        <translation>Hiện bản xem trước</translation>
     </message>
 </context>
 <context>
@@ -1915,52 +1904,52 @@
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Call</source>
-        <translation>Appeler</translation>
+        <translation>Gọi</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>At most 31 people in a call</source>
-        <translation>31 personnes maximum dans un appel</translation>
+        <translation>Tối đa 31 người trong một cuộc gọi</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non envoyé : HyperBerry se reconnecte. Réessayez dans un instant.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Chưa gửi: Tengram đang kết nối lại. Hãy thử lại sau giây lát.</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Call %1 people?</source>
-        <translation>Appeler %1 personnes ?</translation>
+        <translation>Gọi %1 người?</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Search members</source>
-        <translation>Rechercher des membres</translation>
+        <translation>Tìm thành viên</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>%1 chosen</source>
-        <translation>%1 sélectionnés</translation>
+        <translation>Đã chọn %1</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Loading…</source>
-        <translation>Chargement…</translation>
+        <translation>Đang tải…</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Voice call</source>
-        <translation>Appel vocal</translation>
+        <translation>Cuộc gọi thoại</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Video call</source>
-        <translation>Appel vidéo</translation>
+        <translation>Cuộc gọi video</translation>
     </message>
 </context>
 <context>
@@ -1968,7 +1957,7 @@
     <message>
         <location filename="../assets/CallVideoView.qml" line="1" />
         <source>Wants to turn on video</source>
-        <translation>Souhaite activer la vidéo</translation>
+        <translation>Muốn bật video</translation>
     </message>
 </context>
 <context>
@@ -1976,17 +1965,17 @@
     <message>
         <location filename="../assets/cover.qml" line="25" />
         <source>unread</source>
-        <translation>non lus</translation>
+        <translation>chưa đọc</translation>
     </message>
     <message>
         <location filename="../assets/cover.qml" line="25" />
         <source>Nothing new to see</source>
-        <translation>Rien de nouveau</translation>
+        <translation>Không có gì mới</translation>
     </message>
     <message>
         <location filename="../assets/cover.qml" line="83" />
         <source>Not logged in</source>
-        <translation>Non connecté</translation>
+        <translation>Chưa đăng nhập</translation>
     </message>
 </context>
 <context>
@@ -1994,57 +1983,57 @@
     <message>
         <location filename="../assets/errors.js" line="5" />
         <source>That doesn't look like a phone number. Type it with the country code, as in +39 333 123 4567.</source>
-        <translation>Ce numéro de téléphone ne semble pas valide. Saisissez-le avec l'indicatif du pays, par exemple +33 6 12 34 56 78.</translation>
+        <translation>Số này không giống số điện thoại. Hãy nhập kèm mã quốc gia, ví dụ +39 333 123 4567.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="7" />
-        <source>You're offline. Connect to use HyperBerry.</source>
-        <translation>Vous êtes hors ligne. Connectez-vous pour utiliser HyperBerry.</translation>
+        <source>You're offline. Connect to use Tengram.</source>
+        <translation>Bạn đang ngoại tuyến. Hãy kết nối để dùng Tengram.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="9" />
-        <source>HyperBerry's engine isn't running yet. Try again in a moment.</source>
-        <translation>Le moteur d'HyperBerry n'est pas encore en cours d'exécution. Réessayez dans un instant.</translation>
+        <source>Tengram's engine isn't running yet. Try again in a moment.</source>
+        <translation>Engine của Tengram chưa chạy. Hãy thử lại sau giây lát.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="11" />
         <source>This BlackBerry is already linked.</source>
-        <translation>Ce BlackBerry est déjà connecté.</translation>
+        <translation>BlackBerry này đã được liên kết.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="13" />
         <source>That didn't work: %1</source>
-        <translation>Échec de l'opération : %1</translation>
+        <translation>Không thành công: %1</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>You're already on a call.</source>
-        <translation>Vous êtes déjà en appel.</translation>
+        <translation>Bạn đang trong một cuộc gọi.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>You're offline. Connect to call.</source>
-        <translation>Vous êtes hors ligne. Connectez-vous pour appeler.</translation>
+        <translation>Bạn đang ngoại tuyến. Hãy kết nối để gọi.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
-        <source>Link this BlackBerry to WhatsApp to call.</source>
-        <translation>Connectez ce BlackBerry à WhatsApp pour appeler.</translation>
+        <source>Link this BlackBerry to Telegram to call.</source>
+        <translation>Hãy liên kết BlackBerry này với Telegram để gọi.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>The simulator can't place calls.</source>
-        <translation>Le simulateur ne peut pas passer d'appels.</translation>
+        <translation>Trình giả lập không thể gọi.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>You can only call a person, not a group.</source>
-        <translation>Vous ne pouvez appeler qu'une personne, pas un groupe.</translation>
+        <translation>Bạn chỉ có thể gọi một người, không gọi được cả nhóm.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>Couldn't place the call: %1</source>
-        <translation>Impossible de passer l'appel : %1</translation>
+        <translation>Không thể gọi: %1</translation>
     </message>
 </context>
 <context>
@@ -2052,77 +2041,77 @@
     <message>
         <location filename="../assets/main.qml" line="29" />
         <source>Profile</source>
-        <translation>Profil</translation>
+        <translation>Hồ sơ</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="34" />
         <source>About</source>
-        <translation>À propos</translation>
+        <translation>Giới thiệu</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>This invite doesn't work any more</source>
-        <translation>Cette invitation n'est plus valide</translation>
+        <translation>Lời mời này không còn hiệu lực</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Couldn't open this invite. Try again in a moment.</source>
-        <translation>Impossible d'ouvrir cette invitation. Réessayez dans un instant.</translation>
+        <translation>Không mở được lời mời này. Hãy thử lại sau giây lát.</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Follow this channel?</source>
-        <translation>Suivre cette chaîne ?</translation>
+        <translation>Theo dõi kênh này?</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Join this group?</source>
-        <translation>Rejoindre ce groupe ?</translation>
+        <translation>Tham gia nhóm này?</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>%1 followers</source>
-        <translation>%1 abonnés</translation>
+        <translation>%1 người theo dõi</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>%1 members</source>
-        <translation>%1 membres</translation>
+        <translation>%1 thành viên</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Follow</source>
-        <translation>Suivre</translation>
+        <translation>Theo dõi</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Join</source>
-        <translation>Rejoindre</translation>
+        <translation>Tham gia</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="110" />
-        <source>WhatsApp won't let this number join by link. If an admin removed it, an admin has to add it back.</source>
-        <translation>WhatsApp ne permet pas à ce numéro de rejoindre via un lien. Si un admin l'a retiré, un admin doit le rajouter.</translation>
+        <source>Telegram won't let this number join by link. If an admin removed it, an admin has to add it back.</source>
+        <translation>Telegram không cho số này tham gia bằng liên kết. Nếu quản trị viên đã xóa số này, quản trị viên phải thêm lại.</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Chats</source>
-        <translation>Discussions</translation>
+        <translation>Đoạn chat</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Calls</source>
-        <translation>Appels</translation>
+        <translation>Cuộc gọi</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Stories</source>
-        <translation>Statuts</translation>
+        <translation>Trạng thái</translation>
     </message>
 </context>
 <context>
@@ -2130,32 +2119,32 @@
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Reply</source>
-        <translation>Répondre</translation>
+        <translation>Trả lời</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>React</source>
-        <translation>Réagir</translation>
+        <translation>Bày tỏ cảm xúc</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Copy</source>
-        <translation>Copier</translation>
+        <translation>Sao chép</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Delete for everyone</source>
-        <translation>Supprimer pour tout le monde</translation>
+        <translation>Xóa với mọi người</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Delete for me</source>
-        <translation>Supprimer pour moi</translation>
+        <translation>Xóa với tôi</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>edited</source>
-        <translation>modifié</translation>
+        <translation>đã chỉnh sửa</translation>
     </message>
 </context>
 <context>
@@ -2163,22 +2152,22 @@
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>Delete for everyone?</source>
-        <translation>Supprimer pour tout le monde ?</translation>
+        <translation>Xóa với mọi người?</translation>
     </message>
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>It will be deleted for everyone in this chat.</source>
-        <translation>Il sera supprimé pour tout le monde dans cette discussion.</translation>
+        <translation>Tin nhắn sẽ bị xóa với mọi người trong đoạn chat này.</translation>
     </message>
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>Delete</source>
-        <translation>Supprimer</translation>
+        <translation>Xóa</translation>
     </message>
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
 </context>
 <context>
@@ -2186,7 +2175,7 @@
     <message>
         <location filename="../assets/StagedBar.qml" line="78"/>
         <source>Send as file</source>
-        <translation>Envoyer comme fichier</translation>
+        <translation>Gửi dưới dạng tệp</translation>
     </message>
 </context>
 <context>
@@ -2194,12 +2183,12 @@
     <message>
         <location filename="../src/StoriesModel.cpp" line="1" />
         <source>Unknown</source>
-        <translation>Inconnu</translation>
+        <translation>Không xác định</translation>
     </message>
     <message>
         <location filename="../src/StoriesModel.cpp" line="1" />
         <source>My story</source>
-        <translation>Mon statut</translation>
+        <translation>Trạng thái của tôi</translation>
     </message>
 </context>
 <context>
@@ -2207,42 +2196,42 @@
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Stories</source>
-        <translation>Statuts</translation>
+        <translation>Trạng thái</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>No stories yet</source>
-        <translation>Aucun statut pour l'instant</translation>
+        <translation>Chưa có trạng thái nào</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>New story</source>
-        <translation>Nouveau statut</translation>
+        <translation>Trạng thái mới</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Text story</source>
-        <translation>Statut texte</translation>
+        <translation>Trạng thái văn bản</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Couldn't post the story</source>
-        <translation>Impossible de publier le statut</translation>
+        <translation>Không đăng được trạng thái</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Couldn't delete the story</source>
-        <translation>Impossible de supprimer le statut</translation>
+        <translation>Không xóa được trạng thái</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Pick a JPEG photo or an MP4 video</source>
-        <translation>Choisissez une photo JPEG ou une vidéo MP4</translation>
+        <translation>Chọn ảnh JPEG hoặc video MP4</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>This story is no longer available</source>
-        <translation>Ce statut n'est plus disponible</translation>
+        <translation>Trạng thái này không còn khả dụng</translation>
     </message>
 </context>
 <context>
@@ -2250,42 +2239,42 @@
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Couldn't load the story</source>
-        <translation>Impossible de charger le statut</translation>
+        <translation>Không tải được trạng thái</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Couldn't send the reply</source>
-        <translation>Impossible d'envoyer la réponse</translation>
+        <translation>Không gửi được câu trả lời</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Couldn't send the heart</source>
-        <translation>Impossible d'envoyer le cœur</translation>
+        <translation>Không gửi được trái tim</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Reply</source>
-        <translation>Répondre</translation>
+        <translation>Trả lời</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Delete this story?</source>
-        <translation>Supprimer ce statut ?</translation>
+        <translation>Xóa trạng thái này?</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>It is taken back from everyone who saw it.</source>
-        <translation>Il sera retiré pour toutes les personnes qui l'ont vu.</translation>
+        <translation>Trạng thái sẽ được thu hồi với tất cả những ai đã xem.</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Delete</source>
-        <translation>Supprimer</translation>
+        <translation>Xóa</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
 </context>
 <context>
@@ -2293,12 +2282,12 @@
     <message>
         <location filename="../assets/StoryViewersPage.qml" line="1" />
         <source>Viewed by</source>
-        <translation>Vu par</translation>
+        <translation>Người đã xem</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewersPage.qml" line="1" />
         <source>No views yet</source>
-        <translation>Aucune vue pour l&apos;instant</translation>
+        <translation>Chưa có ai xem</translation>
     </message>
 </context>
 <context>
@@ -2306,47 +2295,47 @@
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Couldn't post the story</source>
-        <translation>Impossible de publier le statut</translation>
+        <translation>Không đăng được trạng thái</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>New story</source>
-        <translation>Nouveau statut</translation>
+        <translation>Trạng thái mới</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Post</source>
-        <translation>Publier</translation>
+        <translation>Đăng</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Write something</source>
-        <translation>Écrivez quelque chose</translation>
+        <translation>Viết gì đó</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Add a caption</source>
-        <translation>Ajoutez une légende</translation>
+        <translation>Thêm chú thích</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Share with</source>
-        <translation>Partager avec</translation>
+        <translation>Chia sẻ với</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Everyone</source>
-        <translation>Tout le monde</translation>
+        <translation>Mọi người</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>%1 chosen</source>
-        <translation>%1 sélectionnés</translation>
+        <translation>Đã chọn %1</translation>
     </message>
 </context>
 <context>
@@ -2354,48 +2343,48 @@
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Share with</source>
-        <translation>Partager avec</translation>
+        <translation>Chia sẻ với</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Hủy</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Done</source>
-        <translation>Terminé</translation>
+        <translation>Xong</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Search contacts</source>
-        <translation>Rechercher des contacts</translation>
+        <translation>Tìm liên hệ</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>%1 chosen</source>
-        <translation>%1 sélectionnés</translation>
+        <translation>Đã chọn %1</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Everyone</source>
-        <translation>Tout le monde</translation>
+        <translation>Mọi người</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Loading…</source>
-        <translation>Chargement…</translation>
+        <translation>Đang tải…</translation>
     </message>
 </context>
 <context>
     <name>StarredPage</name>
     <message>
         <source>Starred messages</source>
-        <translation>Messages favoris</translation>
+        <translation>Tin nhắn có gắn dấu sao</translation>
     </message>
     <message>
         <source>No starred messages</source>
-        <translation>Aucun message favori</translation>
+        <translation>Không có tin nhắn gắn dấu sao</translation>
     </message>
 </context>
 </TS>

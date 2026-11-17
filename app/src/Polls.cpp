@@ -1,5 +1,7 @@
 #include "Polls.h"
 
+#include "ChatsDb.h"
+
 #include <QCoreApplication>
 #include <QDebug>
 #include <QList>
@@ -8,7 +10,7 @@
 #include <QSqlQuery>
 #include <QStringList>
 
-// MessageModel's read-only connection, opened by the select that is reading the row.
+// MessageModel's read-only connection (ChatsDb opens it, if the select that is reading the row has not).
 static const char *const kDb = "chats";
 
 void Polls::fill(const QString &chat, const QString &id, const QVariantList &names, int max,
@@ -24,7 +26,7 @@ void Polls::fill(const QString &chat, const QString &id, const QVariantList &nam
     QVariantList mine;
     int voted = 0;
 
-    QSqlDatabase db = QSqlDatabase::database(kDb, false);
+    QSqlDatabase db = ChatsDb::open(kDb);
     if (db.isOpen()) {
         QSqlQuery q(db);
         q.prepare("SELECT sender, sender_name, options FROM poll_votes WHERE chat = ? AND msg = ? "

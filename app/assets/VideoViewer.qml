@@ -1,6 +1,6 @@
 import bb.cascades 1.4
 import bb.multimedia 1.4
-import hyperberry 1.0
+import tengram 1.0
 
 // A received video in the app, full screen on black, through MediaPlayer into a ForeignWindowControl as the story
 // viewer does. The stock action bar (Back) is overlaid on the picture (ChromeVisibility.Overlay), and above it a bar

@@ -13,16 +13,8 @@ TitleBar {
     property bool hasPhoto: photo != ""
     // How many are in the group, us included (ChatPage reads it from the group info); 0 until known.
     property int members: 0
-    // A call button (step 7.4) for a person's chat, not our own, and (step 7d.G4) for a group of 3
-    // or more (a group of two has no call); channels and broadcasts are other kinds. The user part
-    // of our JID (before ':' and '@') against the chat's.
-    property bool canCall: !!bar.chat && engine.linked
-        && ((bar.chat.kind == 0 && String(engine.link.me || "").split("@")[0].split(":")[0] != bar.chat.jid.split("@")[0])
-            || (bar.chat.kind == 1 && bar.members >= 3))
     signal tapped
     signal back
-    // The call button on a group: the page picks who to ring.
-    signal groupCall
     kind: TitleBarKind.FreeForm
     // The status line must stay; the default let the bar scroll away with the list (Q10).
     scrollBehavior: TitleBarScrollBehavior.Sticky
@@ -87,50 +79,6 @@ TitleBar {
                     textStyle.fontSize: FontSize.PercentageValue
                     textStyle.fontSizeValue: 75
                     textStyle.color: ui.palette.secondaryTextOnPlain
-                }
-            }
-            // The call button, outside the two parts that open the info page: on a person it asks audio
-            // or video in a dialog of buttons (the user's ask, 2026-11-11); on a group it emits
-            // groupCall (audio only). call.start's failure is worded by main.qml's toast.
-            Container {
-                visible: bar.canCall
-                verticalAlignment: VerticalAlignment.Center
-                leftPadding: ui.du(1.5)
-                rightPadding: ui.du(1.5)
-                minHeight: ui.px(81)
-                layout: DockLayout {}
-                gestureHandlers: TapHandler {
-                    onTapped: {
-                        if (bar.chat.kind == 1) {
-                            bar.groupCall()
-                        } else {
-                            callKind.show()
-                        }
-                    }
-                }
-                attachedObjects: SystemDialog {
-                    id: callKind
-                    title: qsTr("Call")
-                    confirmButton.label: qsTr("Audio only")
-                    customButton.label: qsTr("Video")
-                    cancelButton.label: qsTr("Cancel")
-                    onFinished: {
-                        if (value == SystemUiResult.ConfirmButtonSelection) {
-                            engine.request("call.start", {"chat": bar.chat.jid})
-                        } else if (value == SystemUiResult.CustomButtonSelection) {
-                            engine.request("call.start", {"chat": bar.chat.jid, "video": true})
-                        }
-                    }
-                }
-                // The stock white handset, tinted with the primary colour as the bar's other live
-                // marks are; 45 px in an 81 px bar.
-                ImageView {
-                    verticalAlignment: VerticalAlignment.Center
-                    imageSource: "file:///usr/share/icons/ic_phone.png"
-                    filterColor: ui.palette.primary
-                    preferredWidth: ui.du(5)
-                    preferredHeight: ui.du(5)
-                    scalingMethod: ScalingMethod.AspectFit
                 }
             }
             // The chat's picture (chat.photo, the engine's preview file) where the stock app has

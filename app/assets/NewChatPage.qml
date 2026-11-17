@@ -1,5 +1,5 @@
 import bb.cascades 1.4
-import hyperberry 1.0
+import tengram 1.0
 
 // New chat (PLAN.md §7, step 3.6): the address book with type-to-filter. A tap, or Enter in the
 // search field, picks the first contact shown; ChatsPage opens that chat, or an empty one the

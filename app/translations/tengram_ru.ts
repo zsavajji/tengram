@@ -1,28 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="id_ID">
+<TS version="2.0" language="ru_RU">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutPage</name>
     <message>
         <source>About</source>
-        <translation>Tentang</translation>
-    </message>
-    <message>
-        <source>A client for WhatsApp based on hypermeow and meowcaller, for BlackBerry 10.</source>
-        <translation>Klien WhatsApp berbasis hypermeow dan meowcaller untuk BlackBerry 10.</translation>
+        <translation>О приложении</translation>
     </message>
     <message>
         <source>Thanks</source>
-        <translation>Terima kasih</translation>
-    </message>
-    <message>
-        <source>vbbot, for whatsapp-light's patches to meowcaller</source>
-        <translation>vbbot, atas patch whatsapp-light untuk meowcaller</translation>
+        <translation>Благодарности</translation>
     </message>
     <message>
         <source>Developer</source>
-        <translation>Pengembang</translation>
+        <translation>Разработчик</translation>
     </message>
 </context>
 <context>
@@ -30,7 +22,7 @@
     <message>
         <location filename="../assets/AlbumPage.qml" line="21" />
         <source>Album</source>
-        <translation>Album</translation>
+        <translation>Альбом</translation>
     </message>
 </context>
 <context>
@@ -38,12 +30,12 @@
     <message>
         <location filename="../assets/ArchivedPage.qml" line="14" />
         <source>Archived</source>
-        <translation>Diarsipkan</translation>
+        <translation>Архив</translation>
     </message>
     <message>
         <location filename="../assets/ArchivedPage.qml" line="40" />
         <source>No archived chats</source>
-        <translation>Tidak ada chat yang diarsipkan</translation>
+        <translation>Нет архивных чатов</translation>
     </message>
 </context>
 <context>
@@ -51,7 +43,7 @@
     <message>
         <location filename="../assets/SharePage.qml" line="11" />
         <source>Send to</source>
-        <translation>Kirim ke</translation>
+        <translation>Отправить кому</translation>
     </message>
 </context>
 <context>
@@ -59,45 +51,47 @@
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="19" />
         <source>Channel info</source>
-        <translation>Info saluran</translation>
+        <translation>Данные канала</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="23" />
         <location filename="../assets/ChannelInfoPage.qml" line="39" />
         <source>Unfollow</source>
-        <translation>Berhenti mengikuti</translation>
+        <translation>Отписаться</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="37" />
         <source>Unfollow this channel?</source>
-        <translation>Berhenti mengikuti saluran ini?</translation>
+        <translation>Отписаться от этого канала?</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="40" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message numerus="yes">
         <location filename="../assets/ChannelInfoPage.qml" line="106" />
         <source>%Ln followers</source>
         <translation>
-            <numerusform>%Ln pengikut</numerusform>
+            <numerusform>%Ln подписчик</numerusform>
+            <numerusform>%Ln подписчика</numerusform>
+            <numerusform>%Ln подписчиков</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="116" />
         <source>Loading…</source>
-        <translation>Memuat…</translation>
+        <translation>Загрузка…</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="125" />
         <source>Couldn't load the channel's info. Check the connection and try again.</source>
-        <translation>Tidak dapat memuat info saluran. Periksa koneksi dan coba lagi.</translation>
+        <translation>Не удалось загрузить данные канала. Проверьте подключение и повторите попытку.</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="129" />
         <source>Description</source>
-        <translation>Deskripsi</translation>
+        <translation>Описание</translation>
     </message>
 </context>
 <context>
@@ -105,42 +99,42 @@
     <message>
         <location filename="../assets/ChannelsPage.qml" line="12" />
         <source>Channels</source>
-        <translation>Saluran</translation>
+        <translation>Каналы</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="40" />
         <source>Follow</source>
-        <translation>Ikuti</translation>
+        <translation>Подписаться</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="13" />
         <source>Follow a channel</source>
-        <translation>Ikuti saluran</translation>
+        <translation>Подписаться на канал</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="14" />
         <source>Paste the channel's link</source>
-        <translation>Tempel tautan saluran</translation>
+        <translation>Вставьте ссылку на канал</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="16" />
         <source>Next</source>
-        <translation>Berikutnya</translation>
+        <translation>Далее</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="17" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="15" />
         <source>That isn't a channel link</source>
-        <translation>Itu bukan tautan saluran</translation>
+        <translation>Это не ссылка на канал</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="70" />
         <source>No channels. Follow one by its link, or on your phone.</source>
-        <translation>Tidak ada saluran. Ikuti saluran lewat tautannya, atau di ponsel Anda.</translation>
+        <translation>Нет каналов. Подпишитесь по ссылке или на телефоне.</translation>
     </message>
 </context>
 <context>
@@ -148,57 +142,57 @@
     <message>
         <location filename="../src/ChatControllerGroup.cpp" line="23" />
         <source>1 participant</source>
-        <translation>1 peserta</translation>
+        <translation>1 участник</translation>
     </message>
     <message>
         <location filename="../src/ChatControllerGroup.cpp" line="23" />
         <source>%1 participants</source>
-        <translation>%1 peserta</translation>
+        <translation>Участников: %1</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="270" />
         <source>You</source>
-        <translation>Anda</translation>
+        <translation>Вы</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="424" />
         <source>%1 is recording audio…</source>
-        <translation>%1 sedang merekam audio…</translation>
+        <translation>%1 записывает аудио…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="424" />
         <source>%1 is typing…</source>
-        <translation>%1 sedang mengetik…</translation>
+        <translation>%1 печатает…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="426" />
         <source>recording audio…</source>
-        <translation>sedang merekam audio…</translation>
+        <translation>записывает аудио…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="426" />
         <source>typing…</source>
-        <translation>sedang mengetik…</translation>
+        <translation>печатает…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="441" />
         <source>online</source>
-        <translation>online</translation>
+        <translation>в сети</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="448" />
         <source>last seen today at %1</source>
-        <translation>terakhir dilihat hari ini pukul %1</translation>
+        <translation>был(а) сегодня в %1</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="450" />
         <source>last seen yesterday at %1</source>
-        <translation>terakhir dilihat kemarin pukul %1</translation>
+        <translation>был(а) вчера в %1</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="452" />
         <source>last seen %1 at %2</source>
-        <translation>terakhir dilihat %1 pukul %2</translation>
+        <translation>был(а) %1 в %2</translation>
     </message>
 </context>
 <context>
@@ -206,42 +200,42 @@
     <message>
         <location filename="../assets/ChatList.qml" line="41" />
         <source>Mute for…</source>
-        <translation>Bisukan selama…</translation>
+        <translation>Отключить звук на…</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="42" />
         <source>Mute</source>
-        <translation>Bisukan</translation>
+        <translation>Отключить звук</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="43" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="45" />
         <source>8 hours</source>
-        <translation>8 jam</translation>
+        <translation>8 часов</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="46" />
         <source>1 week</source>
-        <translation>1 minggu</translation>
+        <translation>1 неделя</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="47" />
         <source>Always</source>
-        <translation>Selalu</translation>
+        <translation>Всегда</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="58" />
         <source>Unfollow this channel?</source>
-        <translation>Berhenti mengikuti saluran ini?</translation>
+        <translation>Отписаться от этого канала?</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="60" />
         <source>Unfollow</source>
-        <translation>Berhenti mengikuti</translation>
+        <translation>Отписаться</translation>
     </message>
 </context>
 <context>
@@ -249,37 +243,37 @@
     <message>
         <location filename="../src/ChatListModel.cpp" line="31" />
         <source>Unnamed group</source>
-        <translation>Grup tanpa nama</translation>
+        <translation>Группа без названия</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="33" />
         <source>Broadcast list</source>
-        <translation>Daftar siaran</translation>
+        <translation>Список рассылки</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="35" />
         <source>Channel</source>
-        <translation>Saluran</translation>
+        <translation>Канал</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="39" />
         <source>Unknown</source>
-        <translation>Tidak dikenal</translation>
+        <translation>Неизвестный</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="190" />
         <source>You</source>
-        <translation>Anda</translation>
+        <translation>Вы</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="278" />
         <source>Pinned</source>
-        <translation>Disematkan</translation>
+        <translation>Закреплённые</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="278" />
         <source>No messages</source>
-        <translation>Tidak ada pesan</translation>
+        <translation>Нет сообщений</translation>
     </message>
 </context>
 <context>
@@ -287,82 +281,82 @@
     <message>
         <location filename="../assets/ChatPage.qml" line="45" />
         <source>Attach</source>
-        <translation>Lampirkan</translation>
+        <translation>Прикрепить</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="73" />
         <source>Contact info</source>
-        <translation>Info kontak</translation>
+        <translation>Данные контакта</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="73" />
         <source>Channel info</source>
-        <translation>Info saluran</translation>
+        <translation>Данные канала</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="73" />
         <source>Group info</source>
-        <translation>Info grup</translation>
+        <translation>Данные группы</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="79" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Tidak terkirim: HyperBerry sedang menyambung ulang. Coba lagi sebentar lagi.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Не отправлено: Tengram переподключается. Повторите попытку чуть позже.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="93" />
         <source>Couldn't open this file</source>
-        <translation>Tidak dapat membuka file ini</translation>
+        <translation>Не удалось открыть этот файл</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="97" />
         <source>Couldn't play this voice note</source>
-        <translation>Tidak dapat memutar pesan suara ini</translation>
+        <translation>Не удалось воспроизвести это голосовое сообщение</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="101" />
-        <source>Not deleted: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Tidak terhapus: HyperBerry sedang menyambung ulang. Coba lagi sebentar lagi.</translation>
+        <source>Not deleted: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Не удалено: Tengram переподключается. Повторите попытку чуть позже.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="108" />
         <source>Message deleted</source>
-        <translation>Pesan dihapus</translation>
+        <translation>Сообщение удалено</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="109" />
         <source>Undo</source>
-        <translation>Urungkan</translation>
+        <translation>Отменить</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="122" />
         <source>Delete for everyone?</source>
-        <translation>Hapus untuk semua orang?</translation>
+        <translation>Удалить у всех?</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="123" />
         <source>It will be deleted for everyone in this chat.</source>
-        <translation>Pesan akan dihapus untuk semua orang di chat ini.</translation>
+        <translation>Сообщение будет удалено у всех в этом чате.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="124" />
         <source>Delete</source>
-        <translation>Hapus</translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="125" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="173" />
         <source>Search</source>
-        <translation>Cari</translation>
+        <translation>Поиск</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="108"/>
         <source>Couldn&apos;t edit this message</source>
-        <translation>Tidak dapat mengedit pesan ini</translation>
+        <translation>Не удалось изменить сообщение</translation>
     </message>
 </context>
 <context>
@@ -370,52 +364,52 @@
     <message>
         <location filename="../assets/ChatRow.qml" line="20" />
         <source>Mark as read</source>
-        <translation>Tandai sudah dibaca</translation>
+        <translation>Отметить как прочитанное</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="20" />
         <source>Mark as unread</source>
-        <translation>Tandai belum dibaca</translation>
+        <translation>Отметить как непрочитанное</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="25" />
         <source>Unpin</source>
-        <translation>Lepas sematan</translation>
+        <translation>Открепить</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="25" />
         <source>Pin</source>
-        <translation>Sematkan</translation>
+        <translation>Закрепить</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="30" />
         <source>Unmute</source>
-        <translation>Suarakan</translation>
+        <translation>Включить звук</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="30" />
         <source>Mute…</source>
-        <translation>Bisukan…</translation>
+        <translation>Отключить звук…</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="35" />
         <source>Unarchive</source>
-        <translation>Batal arsipkan</translation>
+        <translation>Вернуть из архива</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="35" />
         <source>Archive</source>
-        <translation>Arsipkan</translation>
+        <translation>Архивировать</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="38" />
         <source>Unfollow</source>
-        <translation>Berhenti mengikuti</translation>
+        <translation>Отписаться</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="1" />
         <source>Call</source>
-        <translation>Telepon</translation>
+        <translation>Позвонить</translation>
     </message>
 </context>
 <context>
@@ -423,22 +417,22 @@
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Call</source>
-        <translation>Telepon</translation>
+        <translation>Позвонить</translation>
     </message>
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Audio only</source>
-        <translation>Audio saja</translation>
+        <translation>Только аудио</translation>
     </message>
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Video</source>
-        <translation>Video</translation>
+        <translation>Видео</translation>
     </message>
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
@@ -446,68 +440,70 @@
     <message>
         <location filename="../assets/ChatsPage.qml" line="28" />
         <source>New chat</source>
-        <translation>Chat baru</translation>
+        <translation>Новый чат</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="50" />
         <source>New group</source>
-        <translation>Grup baru</translation>
+        <translation>Новая группа</translation>
     </message>
     <message numerus="yes">
         <location filename="../assets/ChatsPage.qml" line="150" />
         <source>%n couldn't be added: their privacy settings don't allow it. Invite them with the group's link from your main phone.</source>
         <translation>
-            <numerusform>%n orang tidak dapat ditambahkan: pengaturan privasi mereka tidak mengizinkannya. Undang mereka dengan tautan grup dari ponsel utama Anda.</numerusform>
+            <numerusform>Не удалось добавить %n участника: настройки конфиденциальности этого не позволяют. Пригласите по ссылке на группу с основного телефона.</numerusform>
+            <numerusform>Не удалось добавить %n участников: настройки конфиденциальности этого не позволяют. Пригласите по ссылке на группу с основного телефона.</numerusform>
+            <numerusform>Не удалось добавить %n участников: настройки конфиденциальности этого не позволяют. Пригласите по ссылке на группу с основного телефона.</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="39" />
         <source>Top</source>
-        <translation>Atas</translation>
+        <translation>Вверх</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="48" />
         <source>Bottom</source>
-        <translation>Bawah</translation>
+        <translation>Вниз</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="57" />
         <source>Search</source>
-        <translation>Cari</translation>
+        <translation>Поиск</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="67" />
         <source>Archived</source>
-        <translation>Diarsipkan</translation>
+        <translation>Архив</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="112" />
         <source>Chats</source>
-        <translation>Chat</translation>
+        <translation>Чаты</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="112" />
         <source>Connecting…</source>
-        <translation>Menyambungkan…</translation>
+        <translation>Подключение…</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="124" />
         <source>Search chats</source>
-        <translation>Cari chat</translation>
+        <translation>Поиск чатов</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="156" />
         <source>No chat matches.</source>
-        <translation>Tidak ada chat yang cocok.</translation>
+        <translation>Нет подходящих чатов.</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="80" />
         <source>Channels</source>
-        <translation>Saluran</translation>
+        <translation>Каналы</translation>
     </message>
     <message>
         <source>Starred messages</source>
-        <translation>Pesan berbintang</translation>
+        <translation>Избранные сообщения</translation>
     </message>
 </context>
 <context>
@@ -515,7 +511,7 @@
     <message>
         <location filename="../assets/Composer.qml" line="73" />
         <source>Message</source>
-        <translation>Pesan</translation>
+        <translation>Сообщение</translation>
     </message>
 </context>
 <context>
@@ -523,7 +519,7 @@
     <message>
         <location filename="../src/ContactInfo.cpp" line="77" />
         <source>Unnamed group</source>
-        <translation>Grup tanpa nama</translation>
+        <translation>Группа без названия</translation>
     </message>
 </context>
 <context>
@@ -531,131 +527,131 @@
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="39" />
         <source>Contact info</source>
-        <translation>Info kontak</translation>
+        <translation>Данные контакта</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="44" />
         <source>Message</source>
-        <translation>Pesan</translation>
+        <translation>Сообщение</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="50" />
         <source>Export chat</source>
-        <translation>Ekspor chat</translation>
+        <translation>Экспорт чата</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="58" />
         <source>Clear chat</source>
-        <translation>Kosongkan chat</translation>
+        <translation>Очистить чат</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="67" />
         <source>Unblock</source>
-        <translation>Buka blokir</translation>
+        <translation>Разблокировать</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="67" />
         <location filename="../assets/ContactInfoPage.qml" line="163" />
         <source>Block</source>
-        <translation>Blokir</translation>
+        <translation>Заблокировать</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="79" />
         <source>Delete chat</source>
-        <translation>Hapus chat</translation>
+        <translation>Удалить чат</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="149" />
         <source>Clear this chat?</source>
-        <translation>Kosongkan chat ini?</translation>
+        <translation>Очистить этот чат?</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="150" />
         <location filename="../assets/ContactInfoPage.qml" line="174" />
         <source>Its messages will be deleted from this phone.</source>
-        <translation>Pesannya akan dihapus dari ponsel ini.</translation>
+        <translation>Сообщения будут удалены с этого телефона.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="151" />
         <source>Clear</source>
-        <translation>Kosongkan</translation>
+        <translation>Очистить</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="152" />
         <location filename="../assets/ContactInfoPage.qml" line="164" />
         <location filename="../assets/ContactInfoPage.qml" line="176" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="161" />
         <source>Block %1?</source>
-        <translation>Blokir %1?</translation>
+        <translation>Заблокировать %1?</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="162" />
         <source>Blocked contacts can't call you or send you messages.</source>
-        <translation>Kontak yang diblokir tidak dapat menelepon atau mengirim pesan kepada Anda.</translation>
+        <translation>Заблокированные контакты не смогут вам звонить и отправлять сообщения.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="173" />
         <source>Delete this chat?</source>
-        <translation>Hapus chat ini?</translation>
+        <translation>Удалить этот чат?</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="175" />
         <source>Delete</source>
-        <translation>Hapus</translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="190" />
         <source>Couldn't do that. Check the connection and try again.</source>
-        <translation>Tidak dapat melakukannya. Periksa koneksi dan coba lagi.</translation>
+        <translation>Не получилось. Проверьте подключение и повторите попытку.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="203" />
         <source>Saved to Downloads: %1</source>
-        <translation>Disimpan ke Unduhan: %1</translation>
+        <translation>Сохранено в «Загрузки»: %1</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="271" />
         <source>Loading…</source>
-        <translation>Memuat…</translation>
+        <translation>Загрузка…</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="280" />
         <source>Couldn't load the contact's info. Check the connection and try again.</source>
-        <translation>Tidak dapat memuat info kontak. Periksa koneksi dan coba lagi.</translation>
+        <translation>Не удалось загрузить данные контакта. Проверьте подключение и повторите попытку.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="284" />
         <source>About</source>
-        <translation>Info</translation>
+        <translation>Сведения</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="319" />
         <source>Mute notifications</source>
-        <translation>Bisukan notifikasi</translation>
+        <translation>Отключить уведомления</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="329" />
         <source>1 group in common</source>
-        <translation>1 grup yang sama</translation>
+        <translation>1 общая группа</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="329" />
         <source>%1 groups in common</source>
-        <translation>%1 grup yang sama</translation>
+        <translation>Общих групп: %1</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="1" />
         <source>Voice call</source>
-        <translation>Panggilan suara</translation>
+        <translation>Аудиозвонок</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="1" />
         <source>Video call</source>
-        <translation>Panggilan video</translation>
+        <translation>Видеозвонок</translation>
     </message>
 </context>
 <context>
@@ -663,12 +659,12 @@
     <message>
         <location filename="../assets/CountryPage.qml" line="13" />
         <source>Country</source>
-        <translation>Negara</translation>
+        <translation>Страна</translation>
     </message>
     <message>
         <location filename="../assets/CountryPage.qml" line="38" />
         <source>Search by name or code</source>
-        <translation>Cari berdasarkan nama atau kode</translation>
+        <translation>Поиск по названию или коду</translation>
     </message>
 </context>
 <context>
@@ -676,7 +672,7 @@
     <message>
         <location filename="../src/EmojiModel.cpp" line="28" />
         <source>Recent</source>
-        <translation>Terbaru</translation>
+        <translation>Недавние</translation>
     </message>
 </context>
 <context>
@@ -684,7 +680,7 @@
     <message>
         <location filename="../assets/EmptyNote.qml" line="8" />
         <source>No messages here</source>
-        <translation>Tidak ada pesan di sini</translation>
+        <translation>Здесь нет сообщений</translation>
     </message>
 </context>
 <context>
@@ -693,7 +689,7 @@
         <location filename="../src/EngineLink.cpp" line="260" />
         <location filename="../src/EngineLink.cpp" line="284" />
         <source>The engine isn't running.</source>
-        <translation>Mesin tidak berjalan.</translation>
+        <translation>Движок не запущен.</translation>
     </message>
 </context>
 <context>
@@ -701,97 +697,97 @@
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="15" />
         <source>Group info</source>
-        <translation>Info grup</translation>
+        <translation>Данные группы</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="98" />
         <source>1 participant</source>
-        <translation>1 peserta</translation>
+        <translation>1 участник</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="98" />
         <source>%1 participants</source>
-        <translation>%1 peserta</translation>
+        <translation>Участников: %1</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="142" />
         <source>You</source>
-        <translation>Anda</translation>
+        <translation>Вы</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="142" />
         <source>Unknown</source>
-        <translation>Tidak dikenal</translation>
+        <translation>Неизвестный</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="152" />
         <source>Admin</source>
-        <translation>Admin</translation>
+        <translation>Админ</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="170" />
         <source>Loading…</source>
-        <translation>Memuat…</translation>
+        <translation>Загрузка…</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="179" />
         <source>Couldn't load the group's info. Check the connection and try again.</source>
-        <translation>Tidak dapat memuat info grup. Periksa koneksi dan coba lagi.</translation>
+        <translation>Не удалось загрузить данные группы. Проверьте подключение и повторите попытку.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="56" />
         <source>Add participant</source>
-        <translation>Tambahkan peserta</translation>
+        <translation>Добавить участника</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="62" />
         <source>Remove %1 from the group?</source>
-        <translation>Keluarkan %1 dari grup?</translation>
+        <translation>Удалить %1 из группы?</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="63" />
         <source>Remove</source>
-        <translation>Keluarkan</translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="64" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="79" />
         <source>Their privacy settings don't let you add them. Invite them with the group's link from your main phone.</source>
-        <translation>Pengaturan privasi mereka tidak mengizinkan Anda menambahkannya. Undang mereka dengan tautan grup dari ponsel utama Anda.</translation>
+        <translation>Настройки конфиденциальности не позволяют добавить этого человека. Пригласите по ссылке на группу с основного телефона.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="82" />
         <source>They're already in the group.</source>
-        <translation>Mereka sudah ada di grup.</translation>
+        <translation>Этот человек уже в группе.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="85" />
-        <source>WhatsApp refused that (%1).</source>
-        <translation>WhatsApp menolaknya (%1).</translation>
+        <source>Telegram refused that (%1).</source>
+        <translation>Telegram отклонил запрос (%1).</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="87" />
         <source>Couldn't do that. Check the connection and try again.</source>
-        <translation>Tidak dapat melakukannya. Periksa koneksi dan coba lagi.</translation>
+        <translation>Не получилось. Проверьте подключение и повторите попытку.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="251" />
         <source>Dismiss as admin</source>
-        <translation>Berhentikan sebagai admin</translation>
+        <translation>Снять права админа</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="251" />
         <source>Make group admin</source>
-        <translation>Jadikan admin grup</translation>
+        <translation>Назначить админом</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="256" />
         <source>Remove from group</source>
-        <translation>Keluarkan dari grup</translation>
+        <translation>Удалить из группы</translation>
     </message>
 </context>
 <context>
@@ -799,85 +795,85 @@
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="20" />
         <source>Link with phone number</source>
-        <translation>Tautkan dengan nomor telepon</translation>
+        <translation>Привязать по номеру телефона</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="24" />
         <source>Get code</source>
-        <translation>Dapatkan kode</translation>
+        <translation>Получить код</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="85" />
-        <source>Type the number of the phone that has WhatsApp.</source>
-        <translation>Ketik nomor ponsel yang memiliki WhatsApp.</translation>
+        <source>Type the number of the phone that has Telegram.</source>
+        <translation>Введите номер телефона, на котором установлен Telegram.</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="116" />
         <source>Country</source>
-        <translation>Negara</translation>
+        <translation>Страна</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="127" />
         <source>Phone number</source>
-        <translation>Nomor telepon</translation>
+        <translation>Номер телефона</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="152" />
-        <source>Asking WhatsApp for a code…</source>
-        <translation>Meminta kode ke WhatsApp…</translation>
+        <source>Asking Telegram for a code…</source>
+        <translation>Запрос кода у Telegram…</translation>
     </message>
 </context>
 <context>
     <name>LinkPage</name>
     <message>
         <location filename="../assets/LinkPage.qml" line="15" />
-        <source>Link to WhatsApp</source>
-        <translation>Tautkan ke WhatsApp</translation>
+        <source>Link to Telegram</source>
+        <translation>Привязать к Telegram</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="19" />
         <source>Link with phone number</source>
-        <translation>Tautkan dengan nomor telepon</translation>
+        <translation>Привязать по номеру телефона</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="69" />
-        <source>On your phone, open WhatsApp, go to Linked devices, tap Link a device, and scan this code.</source>
-        <translation>Di ponsel Anda, buka WhatsApp, buka Perangkat tertaut, ketuk Tautkan perangkat, lalu pindai kode ini.</translation>
+        <source>On your phone, open Telegram, go to Linked devices, tap Link a device, and scan this code.</source>
+        <translation>На телефоне откройте Telegram, перейдите в «Связанные устройства», нажмите «Привязать устройство» и отсканируйте этот код.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="83" />
-        <source>On your phone, open WhatsApp, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:</source>
-        <translation>Di ponsel Anda, buka WhatsApp, buka Perangkat tertaut, ketuk Tautkan perangkat, lalu ketuk Tautkan dengan nomor telepon, dan ketik kode ini:</translation>
+        <source>On your phone, open Telegram, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:</source>
+        <translation>На телефоне откройте Telegram, перейдите в «Связанные устройства», нажмите «Привязать устройство», затем «Привязать по номеру телефона» и введите этот код:</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="97" />
         <source>The code expired.</source>
-        <translation>Kode telah kedaluwarsa.</translation>
+        <translation>Срок действия кода истёк.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="101" />
         <source>Show a new code</source>
-        <translation>Tampilkan kode baru</translation>
+        <translation>Показать новый код</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="101" />
         <source>Show the code</source>
-        <translation>Tampilkan kode</translation>
+        <translation>Показать код</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="114" />
         <source>Starting…</source>
-        <translation>Memulai…</translation>
+        <translation>Запуск…</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="114" />
-        <source>Linking… Keep WhatsApp open on your phone.</source>
-        <translation>Menautkan… Biarkan WhatsApp tetap terbuka di ponsel Anda.</translation>
+        <source>Linking… Keep Telegram open on your phone.</source>
+        <translation>Привязка… Не закрывайте Telegram на телефоне.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="117" />
         <source>Getting your chats from your phone… This can take a few minutes.</source>
-        <translation>Mengambil chat dari ponsel Anda… Ini bisa memakan waktu beberapa menit.</translation>
+        <translation>Загрузка чатов с телефона… Это может занять несколько минут.</translation>
     </message>
 </context>
 <context>
@@ -885,12 +881,12 @@
     <message>
         <location filename="../src/MapChooser.cpp" line="79" />
         <source>Open with</source>
-        <translation>Buka dengan</translation>
+        <translation>Открыть с помощью</translation>
     </message>
     <message>
         <location filename="../src/MapChooser.cpp" line="81" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
@@ -898,37 +894,37 @@
     <message>
         <location filename="../assets/MediaBubble.qml" line="46" />
         <source>Video</source>
-        <translation>Video</translation>
+        <translation>Видео</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="46" />
         <source>Photo</source>
-        <translation>Foto</translation>
+        <translation>Фото</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="106" />
         <source>Sticker</source>
-        <translation>Stiker</translation>
+        <translation>Стикер</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="106" />
         <source>Audio file</source>
-        <translation>File audio</translation>
+        <translation>Аудиофайл</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="106" />
         <source>Document</source>
-        <translation>Dokumen</translation>
+        <translation>Документ</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="152" />
         <source>Show on map</source>
-        <translation>Tampilkan di peta</translation>
+        <translation>Показать на карте</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="75" />
         <source>Spoiler</source>
-        <translation>Spoiler</translation>
+        <translation>Спойлер</translation>
     </message>
 </context>
 <context>
@@ -936,136 +932,136 @@
     <message>
         <location filename="../src/MediaData.cpp" line="49" />
         <source>Photo</source>
-        <translation>Foto</translation>
+        <translation>Фото</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="50" />
         <source>Video</source>
-        <translation>Video</translation>
+        <translation>Видео</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="50" />
         <source>Document</source>
-        <translation>Dokumen</translation>
+        <translation>Документ</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="91" />
         <source>Sticker</source>
-        <translation>Stiker</translation>
+        <translation>Стикер</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="51" />
         <source>Audio file</source>
-        <translation>File audio</translation>
+        <translation>Аудиофайл</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="103" />
         <source>Location</source>
-        <translation>Lokasi</translation>
+        <translation>Геопозиция</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="105" />
         <source>Contact</source>
-        <translation>Kontak</translation>
+        <translation>Контакт</translation>
     </message>
 </context>
 <context>
     <name>MessageItem</name>
     <message>
         <source>Forwarded</source>
-        <translation>Diteruskan</translation>
+        <translation>Пересланное</translation>
     </message>
     <message>
         <source>Forwarded many times</source>
-        <translation>Sering diteruskan</translation>
+        <translation>Пересылалось много раз</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="30" />
         <source>Reply</source>
-        <translation>Balas</translation>
+        <translation>Ответить</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="45" />
         <source>View votes</source>
-        <translation>Lihat suara</translation>
+        <translation>Посмотреть голоса</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="37" />
         <source>React</source>
-        <translation>Beri reaksi</translation>
+        <translation>Отреагировать</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="44" />
         <source>Copy</source>
-        <translation>Salin</translation>
+        <translation>Копировать</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="50" />
         <source>Delete for everyone</source>
-        <translation>Hapus untuk semua orang</translation>
+        <translation>Удалить у всех</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="56" />
         <source>Delete for me</source>
-        <translation>Hapus untuk saya</translation>
+        <translation>Удалить у меня</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="194" />
         <source>edited</source>
-        <translation>diedit</translation>
+        <translation>изменено</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="1" />
         <source>Join group</source>
-        <translation>Gabung ke grup</translation>
+        <translation>Вступить в группу</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Sending</source>
-        <translation>Mengirim</translation>
+        <translation>Отправка</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Sent</source>
-        <translation>Terkirim</translation>
+        <translation>Отправлено</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Delivered</source>
-        <translation>Diterima</translation>
+        <translation>Доставлено</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Read</source>
-        <translation>Dibaca</translation>
+        <translation>Прочитано</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Not sent</source>
-        <translation>Tidak terkirim</translation>
+        <translation>Не отправлено</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Edited</source>
-        <translation>Diedit</translation>
+        <translation>Изменено</translation>
     </message>
     <message>
         <location filename="../src/MessageCard.cpp" line="1" />
         <source>Story</source>
-        <translation>Status</translation>
+        <translation>Статус</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="44"/>
         <source>Edit</source>
-        <translation>Edit</translation>
+        <translation>Изменить</translation>
     </message>
     <message>
         <source>Star</source>
-        <translation>Beri bintang</translation>
+        <translation>В избранное</translation>
     </message>
     <message>
         <source>Unstar</source>
-        <translation>Hapus bintang</translation>
+        <translation>Убрать из избранного</translation>
     </message>
 </context>
 <context>
@@ -1073,119 +1069,121 @@
     <message>
         <location filename="../src/MessageKinds.cpp" line="23" />
         <source>Voice call, %1</source>
-        <translation>Panggilan suara, %1</translation>
+        <translation>Аудиозвонок, %1</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="24" />
         <source>Voice call</source>
-        <translation>Panggilan suara</translation>
+        <translation>Аудиозвонок</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="26" />
         <source>Video call, %1</source>
-        <translation>Panggilan video, %1</translation>
+        <translation>Видеозвонок, %1</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="27" />
         <source>Video call</source>
-        <translation>Panggilan video</translation>
+        <translation>Видеозвонок</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="29" />
         <source>Missed voice call</source>
-        <translation>Panggilan suara tak terjawab</translation>
+        <translation>Пропущенный аудиозвонок</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="31" />
         <source>Missed video call</source>
-        <translation>Panggilan video tak terjawab</translation>
+        <translation>Пропущенный видеозвонок</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="36" />
         <source>You pinned a message</source>
-        <translation>Anda menyematkan pesan</translation>
+        <translation>Вы закрепили сообщение</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="37" />
         <source>%1 pinned a message</source>
-        <translation>%1 menyematkan pesan</translation>
+        <translation>%1 закрепил(а) сообщение</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="38" />
         <source>A message was pinned</source>
-        <translation>Sebuah pesan disematkan</translation>
+        <translation>Сообщение закреплено</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="41" />
         <source>You unpinned a message</source>
-        <translation>Anda melepas sematan pesan</translation>
+        <translation>Вы открепили сообщение</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="42" />
         <source>%1 unpinned a message</source>
-        <translation>%1 melepas sematan pesan</translation>
+        <translation>%1 открепил(а) сообщение</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="43" />
         <source>A message was unpinned</source>
-        <translation>Sematan pesan dilepas</translation>
+        <translation>Сообщение откреплено</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="46" />
         <source>View once message. Open it on your phone.</source>
-        <translation>Pesan sekali lihat. Buka di ponsel Anda.</translation>
+        <translation>Сообщение для однократного просмотра. Откройте его на телефоне.</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="48" />
         <source>This message can only be seen on your phone.</source>
-        <translation>Pesan ini hanya dapat dilihat di ponsel Anda.</translation>
+        <translation>Это сообщение можно увидеть только на телефоне.</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="49" />
         <source>Message</source>
-        <translation>Pesan</translation>
+        <translation>Сообщение</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="78" />
         <source>Live location</source>
-        <translation>Lokasi real-time</translation>
+        <translation>Геопозиция в реальном времени</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="79" />
         <source>Location</source>
-        <translation>Lokasi</translation>
+        <translation>Геопозиция</translation>
     </message>
     <message numerus="yes">
         <location filename="../src/MessageKinds.cpp" line="99" />
         <source>%n contacts</source>
         <translation>
-            <numerusform>%n kontak</numerusform>
+            <numerusform>%n контакт</numerusform>
+            <numerusform>%n контакта</numerusform>
+            <numerusform>%n контактов</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="110" />
         <source>Poll</source>
-        <translation>Polling</translation>
+        <translation>Опрос</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="111" />
         <source>Poll, choose several</source>
-        <translation>Polling, pilih beberapa</translation>
+        <translation>Опрос, несколько вариантов</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="103" />
         <source>Event canceled</source>
-        <translation>Acara dibatalkan</translation>
+        <translation>Мероприятие отменено</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="104" />
         <source>Event</source>
-        <translation>Acara</translation>
+        <translation>Мероприятие</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="122" />
         <source>Group invite</source>
-        <translation>Undangan grup</translation>
+        <translation>Приглашение в группу</translation>
     </message>
 </context>
 <context>
@@ -1193,12 +1191,12 @@
     <message>
         <location filename="../src/MessageModel.cpp" line="117" />
         <source>This message was deleted</source>
-        <translation>Pesan ini telah dihapus</translation>
+        <translation>Это сообщение удалено</translation>
     </message>
     <message>
         <location filename="../src/MessageModel.cpp" line="173" />
         <source>You</source>
-        <translation>Anda</translation>
+        <translation>Вы</translation>
     </message>
 </context>
 <context>
@@ -1206,27 +1204,27 @@
     <message>
         <location filename="../assets/NewChatPage.qml" line="11" />
         <source>New chat</source>
-        <translation>Chat baru</translation>
+        <translation>Новый чат</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="38" />
         <source>Search contacts</source>
-        <translation>Cari kontak</translation>
+        <translation>Поиск контактов</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="109" />
         <source>Loading…</source>
-        <translation>Memuat…</translation>
+        <translation>Загрузка…</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="118" />
         <source>No contacts yet. Your phone sends them shortly after linking.</source>
-        <translation>Belum ada kontak. Ponsel Anda mengirimkannya sesaat setelah penautan.</translation>
+        <translation>Пока нет контактов. Телефон присылает их вскоре после привязки.</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="118" />
         <source>No contact matches.</source>
-        <translation>Tidak ada kontak yang cocok.</translation>
+        <translation>Нет подходящих контактов.</translation>
     </message>
 </context>
 <context>
@@ -1234,67 +1232,67 @@
     <message>
         <location filename="../assets/NewGroupPage.qml" line="8" />
         <source>New group</source>
-        <translation>Grup baru</translation>
+        <translation>Новая группа</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="16" />
         <source>Create</source>
-        <translation>Buat</translation>
+        <translation>Создать</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="38" />
         <source>A group needs a name and someone in it</source>
-        <translation>Grup memerlukan nama dan setidaknya satu peserta</translation>
+        <translation>Для группы нужны название и хотя бы один участник</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="42" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Tidak terkirim: HyperBerry sedang menyambung ulang. Coba lagi sebentar lagi.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Не отправлено: Tengram переподключается. Повторите попытку чуть позже.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="14" />
-        <source>WhatsApp won't take a name that long</source>
-        <translation>WhatsApp tidak menerima nama sepanjang itu</translation>
+        <source>Telegram won't take a name that long</source>
+        <translation>Telegram не принимает такое длинное название</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="14" />
         <source>Couldn't create the group. Check the connection and try again.</source>
-        <translation>Tidak dapat membuat grup. Periksa koneksi dan coba lagi.</translation>
+        <translation>Не удалось создать группу. Проверьте подключение и повторите попытку.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="76" />
         <source>Group name</source>
-        <translation>Nama grup</translation>
+        <translation>Название группы</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="80" />
         <source>Search contacts</source>
-        <translation>Cari kontak</translation>
+        <translation>Поиск контактов</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="85" />
         <source>%1 chosen</source>
-        <translation>%1 dipilih</translation>
+        <translation>Выбрано: %1</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="111" />
         <source>Loading…</source>
-        <translation>Memuat…</translation>
+        <translation>Загрузка…</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="115" />
         <source>Creating the group…</source>
-        <translation>Membuat grup…</translation>
+        <translation>Создание группы…</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="118" />
         <source>No contacts yet. Your phone sends them shortly after linking.</source>
-        <translation>Belum ada kontak. Ponsel Anda mengirimkannya sesaat setelah penautan.</translation>
+        <translation>Пока нет контактов. Телефон присылает их вскоре после привязки.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="118" />
         <source>No contact matches.</source>
-        <translation>Tidak ada kontak yang cocok.</translation>
+        <translation>Нет подходящих контактов.</translation>
     </message>
 </context>
 <context>
@@ -1302,22 +1300,22 @@
     <message>
         <location filename="../assets/PhotoViewer.qml" line="21" />
         <source>Save</source>
-        <translation>Simpan</translation>
+        <translation>Сохранить</translation>
     </message>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="24" />
         <source>Saved to Pictures</source>
-        <translation>Disimpan ke Gambar</translation>
+        <translation>Сохранено в «Изображения»</translation>
     </message>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="25" />
         <source>Couldn't save the photo</source>
-        <translation>Tidak dapat menyimpan foto</translation>
+        <translation>Не удалось сохранить фото</translation>
     </message>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="13" />
         <source>Share</source>
-        <translation>Bagikan</translation>
+        <translation>Поделиться</translation>
     </message>
 </context>
 <context>
@@ -1325,27 +1323,27 @@
     <message>
         <location filename="../assets/PinnedAction.qml" line="14" />
         <source>Pinned message</source>
-        <translation>Pesan yang disematkan</translation>
+        <translation>Закреплённое сообщение</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="45" />
         <source>No pinned messages</source>
-        <translation>Tidak ada pesan yang disematkan</translation>
+        <translation>Нет закреплённых сообщений</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="49" />
         <source>This pinned message isn't on this phone</source>
-        <translation>Pesan yang disematkan ini tidak ada di ponsel ini</translation>
+        <translation>Этого закреплённого сообщения нет на этом телефоне</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="55" />
         <source>Pinned messages</source>
-        <translation>Pesan yang disematkan</translation>
+        <translation>Закреплённые сообщения</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="57" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
@@ -1353,7 +1351,7 @@
     <message>
         <location filename="../src/Pins.cpp" line="42" />
         <source>Voice message</source>
-        <translation>Pesan suara</translation>
+        <translation>Голосовое сообщение</translation>
     </message>
 </context>
 <context>
@@ -1361,7 +1359,7 @@
     <message>
         <location filename="../assets/PollBubble.qml" line="79" />
         <source>Nobody yet</source>
-        <translation>Belum ada</translation>
+        <translation>Пока никого</translation>
     </message>
 </context>
 <context>
@@ -1369,7 +1367,7 @@
     <message>
         <location filename="../assets/PollAction.qml" line="6" />
         <source>Create poll</source>
-        <translation>Buat polling</translation>
+        <translation>Создать опрос</translation>
     </message>
 </context>
 <context>
@@ -1377,52 +1375,52 @@
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Create poll</source>
-        <translation>Buat polling</translation>
+        <translation>Создать опрос</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Question</source>
-        <translation>Pertanyaan</translation>
+        <translation>Вопрос</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Ask something</source>
-        <translation>Ajukan pertanyaan</translation>
+        <translation>Задайте вопрос</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Options</source>
-        <translation>Opsi</translation>
+        <translation>Варианты</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Add option</source>
-        <translation>Tambahkan opsi</translation>
+        <translation>Добавить вариант</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Allow several answers</source>
-        <translation>Izinkan beberapa jawaban</translation>
+        <translation>Разрешить несколько ответов</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Send</source>
-        <translation>Kirim</translation>
+        <translation>Отправить</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>A poll needs a question and two options</source>
-        <translation>Polling memerlukan pertanyaan dan dua opsi</translation>
+        <translation>Для опроса нужны вопрос и два варианта</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Tidak terkirim: HyperBerry sedang menyambung ulang. Coba lagi sebentar lagi.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Не отправлено: Tengram переподключается. Повторите попытку чуть позже.</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Option %1</source>
-        <translation>Opsi %1</translation>
+        <translation>Вариант %1</translation>
     </message>
 </context>
 <context>
@@ -1430,7 +1428,7 @@
     <message>
         <location filename="../src/Polls.cpp" line="40" />
         <source>You</source>
-        <translation>Anda</translation>
+        <translation>Вы</translation>
     </message>
 </context>
 <context>
@@ -1438,62 +1436,62 @@
     <message>
         <location filename="../assets/ProfilePage.qml" line="20" />
         <source>Profile</source>
-        <translation>Profil</translation>
+        <translation>Профиль</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="35" />
         <source>Change photo</source>
-        <translation>Ubah foto</translation>
+        <translation>Изменить фото</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="37" />
         <source>Remove photo</source>
-        <translation>Hapus foto</translation>
+        <translation>Удалить фото</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="69" />
         <source>Profile photo</source>
-        <translation>Foto profil</translation>
+        <translation>Фото профиля</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="70" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="84" />
         <source>Your name</source>
-        <translation>Nama Anda</translation>
+        <translation>Ваше имя</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="95" />
         <source>About</source>
-        <translation>Info</translation>
+        <translation>Сведения</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="106" />
         <source>Couldn't update your profile. Check the connection and try again.</source>
-        <translation>Tidak dapat memperbarui profil Anda. Periksa koneksi dan coba lagi.</translation>
+        <translation>Не удалось обновить профиль. Проверьте подключение и повторите попытку.</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="110" />
         <source>Couldn't read that picture.</source>
-        <translation>Tidak dapat membaca gambar itu.</translation>
+        <translation>Не удалось прочитать это изображение.</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="169" />
         <source>Tap to edit</source>
-        <translation>Ketuk untuk mengedit</translation>
+        <translation>Нажмите, чтобы изменить</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="192" />
         <source>Loading…</source>
-        <translation>Memuat…</translation>
+        <translation>Загрузка…</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="201" />
         <source>Couldn't load your profile. Check the connection and try again.</source>
-        <translation>Tidak dapat memuat profil Anda. Periksa koneksi dan coba lagi.</translation>
+        <translation>Не удалось загрузить профиль. Проверьте подключение и повторите попытку.</translation>
     </message>
 </context>
 <context>
@@ -1501,17 +1499,17 @@
     <message>
         <location filename="../assets/ReactBar.qml" line="58" />
         <source>Vote not sent</source>
-        <translation>Suara tidak terkirim</translation>
+        <translation>Голос не отправлен</translation>
     </message>
     <message>
         <location filename="../assets/ReactBar.qml" line="60" />
         <source>Poll not sent</source>
-        <translation>Polling tidak terkirim</translation>
+        <translation>Опрос не отправлен</translation>
     </message>
     <message>
         <location filename="../assets/ReactBar.qml" line="123" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Tidak terkirim: HyperBerry sedang menyambung ulang. Coba lagi sebentar lagi.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Не отправлено: Tengram переподключается. Повторите попытку чуть позже.</translation>
     </message>
 </context>
 <context>
@@ -1519,7 +1517,7 @@
     <message>
         <location filename="../assets/RecordingBar.qml" line="23" />
         <source>Recording %1</source>
-        <translation>Merekam %1</translation>
+        <translation>Запись %1</translation>
     </message>
 </context>
 <context>
@@ -1527,12 +1525,12 @@
     <message>
         <location filename="../assets/ReplyBar.qml" line="35" />
         <source>Replying to %1</source>
-        <translation>Membalas %1</translation>
+        <translation>Ответ для %1</translation>
     </message>
     <message>
         <location filename="../assets/ReplyBar.qml" line="36"/>
         <source>Edit message</source>
-        <translation>Edit pesan</translation>
+        <translation>Изменить сообщение</translation>
     </message>
 </context>
 <context>
@@ -1540,153 +1538,153 @@
     <message>
         <location filename="../assets/SearchBar.qml" line="65" />
         <source>Search in chat</source>
-        <translation>Cari di chat</translation>
+        <translation>Поиск в чате</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
         <source>Proximity sensor</source>
-        <translation>Sensor jarak</translation>
+        <translation>Датчик приближения</translation>
     </message>
     <message>
         <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
-        <translation>Jika nonaktif, pesan suara tetap di speaker dan layar tetap menyala saat panggilan. Untuk sensor yang rusak.</translation>
+        <translation>Если выключено, голосовые сообщения играют через динамик, а экран не гаснет во время звонков. Для неисправного датчика.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="9" />
         <source>Settings</source>
-        <translation>Pengaturan</translation>
+        <translation>Настройки</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="16" />
         <source>Unlink this device?</source>
-        <translation>Putuskan tautan perangkat ini?</translation>
+        <translation>Отвязать это устройство?</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="17" />
         <source>This device is removed from your linked devices and its chats are deleted here.</source>
-        <translation>Perangkat ini akan dihapus dari perangkat tertaut Anda dan chat-nya dihapus di sini.</translation>
+        <translation>Устройство будет удалено из связанных устройств, а его чаты здесь удалятся.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="18" />
         <source>Unlink</source>
-        <translation>Putuskan tautan</translation>
+        <translation>Отвязать</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="19" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="36" />
         <source>Theme</source>
-        <translation>Tema</translation>
+        <translation>Тема</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38" />
         <source>Dark</source>
-        <translation>Gelap</translation>
+        <translation>Тёмная</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="39" />
         <source>Bright</source>
-        <translation>Terang</translation>
+        <translation>Светлая</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="44" />
         <source>Text size</source>
-        <translation>Ukuran teks</translation>
+        <translation>Размер текста</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="46" />
         <source>Small</source>
-        <translation>Kecil</translation>
+        <translation>Мелкий</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="47" />
         <source>Normal</source>
-        <translation>Normal</translation>
+        <translation>Обычный</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="48" />
         <source>Large</source>
-        <translation>Besar</translation>
+        <translation>Крупный</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="63" />
         <source>Enter sends</source>
-        <translation>Enter untuk mengirim</translation>
+        <translation>Enter отправляет</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="67" />
         <source>Off, Enter starts a new line; the Send action still sends.</source>
-        <translation>Jika nonaktif, Enter membuat baris baru; tindakan Kirim tetap mengirim.</translation>
+        <translation>Если выключено, Enter переносит строку; действие «Отправить» по-прежнему отправляет.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="91" />
         <source>Notification preview</source>
-        <translation>Pratinjau notifikasi</translation>
+        <translation>Предпросмотр уведомлений</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="95" />
         <source>Off, a notification says "New message" instead of the text.</source>
-        <translation>Jika nonaktif, notifikasi menampilkan "Pesan baru", bukan teksnya.</translation>
+        <translation>Если выключено, в уведомлении вместо текста будет «Новое сообщение».</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="116" />
         <source>Start at boot</source>
-        <translation>Mulai saat boot</translation>
+        <translation>Запуск при включении</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="120" />
-        <source>Brings HyperBerry back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
-        <translation>Menjalankan kembali HyperBerry dalam 6 menit setelah ponsel di-reboot, atau jika berhenti, saat aplikasi ditutup.</translation>
+        <source>Brings Tengram back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
+        <translation>Возвращает Tengram в работу в течение 6 минут после перезагрузки или остановки, даже если приложение закрыто.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="110" />
         <source>Storage</source>
-        <translation>Penyimpanan</translation>
+        <translation>Хранилище</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="119" />
         <source>Download on mobile data</source>
-        <translation>Unduh lewat data seluler</translation>
+        <translation>Загрузка по мобильной сети</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="170" />
         <source>Cache limit</source>
-        <translation>Batas cache</translation>
+        <translation>Лимит кеша</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="123" />
         <source>Off, photos and voice notes wait for a tap unless you're on Wi-Fi.</source>
-        <translation>Jika nonaktif, foto dan pesan suara menunggu ketukan kecuali Anda memakai Wi-Fi.</translation>
+        <translation>Если выключено, фото и голосовые сообщения загружаются по нажатию, если нет Wi-Fi.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="122" />
         <source>Cache: %1</source>
-        <translation>Cache: %1</translation>
+        <translation>Кеш: %1</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="126" />
         <source>Clear cache</source>
-        <translation>Hapus cache</translation>
+        <translation>Очистить кеш</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="131" />
         <source>Cache cleared: %1 freed</source>
-        <translation>Cache dihapus: %1 dibebaskan</translation>
+        <translation>Кеш очищен: освобождено %1</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="139" />
         <source>Voice notes' decoded audio and photo previews; they're made again when needed.</source>
-        <translation>Audio pesan suara yang sudah didekode dan pratinjau foto; keduanya dibuat lagi saat diperlukan.</translation>
+        <translation>Декодированное аудио голосовых сообщений и миниатюры фото; при необходимости создаются заново.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="147" />
         <source>Unlink this device</source>
-        <translation>Putuskan tautan perangkat ini</translation>
+        <translation>Отвязать это устройство</translation>
     </message>
 </context>
 <context>
@@ -1694,32 +1692,32 @@
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Unknown</source>
-        <translation>Tidak dikenal</translation>
+        <translation>Неизвестный</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Missed voice call</source>
-        <translation>Panggilan suara tak terjawab</translation>
+        <translation>Пропущенный аудиозвонок</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Outgoing, %1</source>
-        <translation>Panggilan keluar, %1</translation>
+        <translation>Исходящий, %1</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Incoming, %1</source>
-        <translation>Panggilan masuk, %1</translation>
+        <translation>Входящий, %1</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Outgoing</source>
-        <translation>Panggilan keluar</translation>
+        <translation>Исходящий</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Incoming</source>
-        <translation>Panggilan masuk</translation>
+        <translation>Входящий</translation>
     </message>
 </context>
 <context>
@@ -1727,17 +1725,17 @@
     <message>
         <location filename="../assets/CallsPage.qml" line="1" />
         <source>Calls</source>
-        <translation>Panggilan</translation>
+        <translation>Звонки</translation>
     </message>
     <message>
         <location filename="../assets/CallsPage.qml" line="1" />
         <source>No calls yet</source>
-        <translation>Belum ada panggilan</translation>
+        <translation>Пока нет звонков</translation>
     </message>
     <message>
         <location filename="../assets/CallsPage.qml" line="1" />
         <source>New call</source>
-        <translation>Panggilan baru</translation>
+        <translation>Новый звонок</translation>
     </message>
 </context>
 <context>
@@ -1745,12 +1743,12 @@
     <message>
         <location filename="../assets/CallRow.qml" line="1" />
         <source>Call</source>
-        <translation>Telepon</translation>
+        <translation>Позвонить</translation>
     </message>
     <message>
         <location filename="../assets/CallRow.qml" line="1" />
         <source>Open chat</source>
-        <translation>Buka chat</translation>
+        <translation>Открыть чат</translation>
     </message>
 </context>
 <context>
@@ -1758,97 +1756,97 @@
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Calling…</source>
-        <translation>Memanggil…</translation>
+        <translation>Вызов…</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming voice call</source>
-        <translation>Panggilan suara masuk</translation>
+        <translation>Входящий аудиозвонок</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming video call</source>
-        <translation>Panggilan video masuk</translation>
+        <translation>Входящий видеозвонок</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group voice call</source>
-        <translation>Panggilan suara grup masuk</translation>
+        <translation>Входящий групповой аудиозвонок</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group voice call · %1</source>
-        <translation>Panggilan suara grup masuk · %1</translation>
+        <translation>Входящий групповой аудиозвонок · %1</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Connecting…</source>
-        <translation>Menyambungkan…</translation>
+        <translation>Подключение…</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Reconnecting…</source>
-        <translation>Menyambungkan ulang…</translation>
+        <translation>Повторное подключение…</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Call ended</source>
-        <translation>Panggilan berakhir</translation>
+        <translation>Звонок завершён</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Declined</source>
-        <translation>Ditolak</translation>
+        <translation>Отклонено</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Busy</source>
-        <translation>Sibuk</translation>
+        <translation>Занято</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>No answer</source>
-        <translation>Tidak dijawab</translation>
+        <translation>Нет ответа</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Call failed</source>
-        <translation>Panggilan gagal</translation>
+        <translation>Звонок не удался</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Offline</source>
-        <translation>Offline</translation>
+        <translation>Не в сети</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
-        <source>WhatsApp: voice call</source>
-        <translation>WhatsApp: panggilan suara</translation>
+        <source>Telegram: voice call</source>
+        <translation>Telegram: аудиозвонок</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
-        <source>WhatsApp: video call</source>
-        <translation>WhatsApp: panggilan video</translation>
+        <source>Telegram: video call</source>
+        <translation>Telegram: видеозвонок</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>%1 and %2</source>
-        <translation>%1 dan %2</translation>
+        <translation>%1 и %2</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>%1, %2 and %3 more</source>
-        <translation>%1, %2 dan %3 lainnya</translation>
+        <translation>%1, %2 и ещё %3</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group video call</source>
-        <translation>Panggilan video grup masuk</translation>
+        <translation>Входящий групповой видеозвонок</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group video call · %1</source>
-        <translation>Panggilan video grup masuk · %1</translation>
+        <translation>Входящий групповой видеозвонок · %1</translation>
     </message>
 </context>
 <context>
@@ -1856,7 +1854,7 @@
     <message>
         <location filename="../assets/CallDrawer.qml" line="1" />
         <source>Swipe from the left edge to see who is in the call</source>
-        <translation>Geser dari tepi kiri untuk melihat siapa saja yang ada di panggilan</translation>
+        <translation>Проведите от левого края, чтобы увидеть, кто в звонке</translation>
     </message>
 </context>
 <context>
@@ -1864,47 +1862,47 @@
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Speaker</source>
-        <translation>Speaker</translation>
+        <translation>Динамик</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Mute</source>
-        <translation>Bisukan</translation>
+        <translation>Выкл. микрофон</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>End call</source>
-        <translation>Akhiri panggilan</translation>
+        <translation>Завершить звонок</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Unmute</source>
-        <translation>Suarakan</translation>
+        <translation>Вкл. микрофон</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Stop video</source>
-        <translation>Hentikan video</translation>
+        <translation>Выкл. видео</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Start video</source>
-        <translation>Mulai video</translation>
+        <translation>Вкл. видео</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Switch camera</source>
-        <translation>Ganti kamera</translation>
+        <translation>Сменить камеру</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Hide preview</source>
-        <translation>Sembunyikan pratinjau</translation>
+        <translation>Скрыть предпросмотр</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Show preview</source>
-        <translation>Tampilkan pratinjau</translation>
+        <translation>Показать предпросмотр</translation>
     </message>
 </context>
 <context>
@@ -1912,52 +1910,52 @@
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Call</source>
-        <translation>Telepon</translation>
+        <translation>Позвонить</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>At most 31 people in a call</source>
-        <translation>Maksimal 31 orang dalam satu panggilan</translation>
+        <translation>Не более 31 человека в звонке</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Tidak terkirim: HyperBerry sedang menyambung ulang. Coba lagi sebentar lagi.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Не отправлено: Tengram переподключается. Повторите попытку чуть позже.</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Call %1 people?</source>
-        <translation>Telepon %1 orang?</translation>
+        <translation>Позвонить %1 чел.?</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Search members</source>
-        <translation>Cari anggota</translation>
+        <translation>Поиск участников</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>%1 chosen</source>
-        <translation>%1 dipilih</translation>
+        <translation>Выбрано: %1</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Loading…</source>
-        <translation>Memuat…</translation>
+        <translation>Загрузка…</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Voice call</source>
-        <translation>Panggilan suara</translation>
+        <translation>Аудиозвонок</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Video call</source>
-        <translation>Panggilan video</translation>
+        <translation>Видеозвонок</translation>
     </message>
 </context>
 <context>
@@ -1965,7 +1963,7 @@
     <message>
         <location filename="../assets/CallVideoView.qml" line="1" />
         <source>Wants to turn on video</source>
-        <translation>Ingin mengaktifkan video</translation>
+        <translation>Хочет включить видео</translation>
     </message>
 </context>
 <context>
@@ -1973,17 +1971,17 @@
     <message>
         <location filename="../assets/cover.qml" line="25" />
         <source>unread</source>
-        <translation>belum dibaca</translation>
+        <translation>непрочитано</translation>
     </message>
     <message>
         <location filename="../assets/cover.qml" line="25" />
         <source>Nothing new to see</source>
-        <translation>Tidak ada yang baru</translation>
+        <translation>Нет ничего нового</translation>
     </message>
     <message>
         <location filename="../assets/cover.qml" line="83" />
         <source>Not logged in</source>
-        <translation>Belum masuk</translation>
+        <translation>Вход не выполнен</translation>
     </message>
 </context>
 <context>
@@ -1991,57 +1989,57 @@
     <message>
         <location filename="../assets/errors.js" line="5" />
         <source>That doesn't look like a phone number. Type it with the country code, as in +39 333 123 4567.</source>
-        <translation>Itu tidak terlihat seperti nomor telepon. Ketik dengan kode negara, seperti +39 333 123 4567.</translation>
+        <translation>Это не похоже на номер телефона. Введите его с кодом страны, например +39 333 123 4567.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="7" />
-        <source>You're offline. Connect to use HyperBerry.</source>
-        <translation>Anda sedang offline. Sambungkan untuk menggunakan HyperBerry.</translation>
+        <source>You're offline. Connect to use Tengram.</source>
+        <translation>Вы не в сети. Подключитесь, чтобы пользоваться Tengram.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="9" />
-        <source>HyperBerry's engine isn't running yet. Try again in a moment.</source>
-        <translation>Mesin HyperBerry belum berjalan. Coba lagi sebentar lagi.</translation>
+        <source>Tengram's engine isn't running yet. Try again in a moment.</source>
+        <translation>Движок Tengram ещё не запущен. Повторите попытку чуть позже.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="11" />
         <source>This BlackBerry is already linked.</source>
-        <translation>BlackBerry ini sudah tertaut.</translation>
+        <translation>Этот BlackBerry уже привязан.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="13" />
         <source>That didn't work: %1</source>
-        <translation>Gagal: %1</translation>
+        <translation>Не получилось: %1</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>You're already on a call.</source>
-        <translation>Anda sudah dalam panggilan.</translation>
+        <translation>Вы уже разговариваете.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>You're offline. Connect to call.</source>
-        <translation>Anda sedang offline. Sambungkan untuk menelepon.</translation>
+        <translation>Вы не в сети. Подключитесь, чтобы позвонить.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
-        <source>Link this BlackBerry to WhatsApp to call.</source>
-        <translation>Tautkan BlackBerry ini ke WhatsApp untuk menelepon.</translation>
+        <source>Link this BlackBerry to Telegram to call.</source>
+        <translation>Привяжите этот BlackBerry к Telegram, чтобы звонить.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>The simulator can't place calls.</source>
-        <translation>Simulator tidak dapat melakukan panggilan.</translation>
+        <translation>Симулятор не может совершать звонки.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>You can only call a person, not a group.</source>
-        <translation>Anda hanya dapat menelepon satu orang, bukan grup.</translation>
+        <translation>Можно позвонить только человеку, но не группе.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>Couldn't place the call: %1</source>
-        <translation>Tidak dapat melakukan panggilan: %1</translation>
+        <translation>Не удалось совершить звонок: %1</translation>
     </message>
 </context>
 <context>
@@ -2049,77 +2047,77 @@
     <message>
         <location filename="../assets/main.qml" line="29" />
         <source>Profile</source>
-        <translation>Profil</translation>
+        <translation>Профиль</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="34" />
         <source>About</source>
-        <translation>Tentang</translation>
+        <translation>О приложении</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>This invite doesn't work any more</source>
-        <translation>Undangan ini tidak berlaku lagi</translation>
+        <translation>Это приглашение больше не действует</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Couldn't open this invite. Try again in a moment.</source>
-        <translation>Tidak dapat membuka undangan ini. Coba lagi sebentar lagi.</translation>
+        <translation>Не удалось открыть это приглашение. Повторите попытку чуть позже.</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Follow this channel?</source>
-        <translation>Ikuti saluran ini?</translation>
+        <translation>Подписаться на этот канал?</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Join this group?</source>
-        <translation>Gabung ke grup ini?</translation>
+        <translation>Вступить в эту группу?</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>%1 followers</source>
-        <translation>%1 pengikut</translation>
+        <translation>Подписчиков: %1</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>%1 members</source>
-        <translation>%1 anggota</translation>
+        <translation>Участников: %1</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Follow</source>
-        <translation>Ikuti</translation>
+        <translation>Подписаться</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Join</source>
-        <translation>Gabung</translation>
+        <translation>Вступить</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="110" />
-        <source>WhatsApp won't let this number join by link. If an admin removed it, an admin has to add it back.</source>
-        <translation>WhatsApp tidak mengizinkan nomor ini bergabung lewat tautan. Jika admin mengeluarkannya, admin harus menambahkannya kembali.</translation>
+        <source>Telegram won't let this number join by link. If an admin removed it, an admin has to add it back.</source>
+        <translation>Telegram не разрешает этому номеру вступать по ссылке. Если номер удалил админ, вернуть его должен админ.</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Chats</source>
-        <translation>Chat</translation>
+        <translation>Чаты</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Calls</source>
-        <translation>Panggilan</translation>
+        <translation>Звонки</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Stories</source>
-        <translation>Status</translation>
+        <translation>Статусы</translation>
     </message>
 </context>
 <context>
@@ -2127,32 +2125,32 @@
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Reply</source>
-        <translation>Balas</translation>
+        <translation>Ответить</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>React</source>
-        <translation>Beri reaksi</translation>
+        <translation>Отреагировать</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Copy</source>
-        <translation>Salin</translation>
+        <translation>Копировать</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Delete for everyone</source>
-        <translation>Hapus untuk semua orang</translation>
+        <translation>Удалить у всех</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Delete for me</source>
-        <translation>Hapus untuk saya</translation>
+        <translation>Удалить у меня</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>edited</source>
-        <translation>diedit</translation>
+        <translation>изменено</translation>
     </message>
 </context>
 <context>
@@ -2160,22 +2158,22 @@
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>Delete for everyone?</source>
-        <translation>Hapus untuk semua orang?</translation>
+        <translation>Удалить у всех?</translation>
     </message>
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>It will be deleted for everyone in this chat.</source>
-        <translation>Pesan akan dihapus untuk semua orang di chat ini.</translation>
+        <translation>Сообщение будет удалено у всех в этом чате.</translation>
     </message>
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>Delete</source>
-        <translation>Hapus</translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
@@ -2183,7 +2181,7 @@
     <message>
         <location filename="../assets/StagedBar.qml" line="78"/>
         <source>Send as file</source>
-        <translation>Kirim sebagai file</translation>
+        <translation>Отправить как файл</translation>
     </message>
 </context>
 <context>
@@ -2191,12 +2189,12 @@
     <message>
         <location filename="../src/StoriesModel.cpp" line="1" />
         <source>Unknown</source>
-        <translation>Tidak dikenal</translation>
+        <translation>Неизвестный</translation>
     </message>
     <message>
         <location filename="../src/StoriesModel.cpp" line="1" />
         <source>My story</source>
-        <translation>Status saya</translation>
+        <translation>Мой статус</translation>
     </message>
 </context>
 <context>
@@ -2204,42 +2202,42 @@
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Stories</source>
-        <translation>Status</translation>
+        <translation>Статусы</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>No stories yet</source>
-        <translation>Belum ada status</translation>
+        <translation>Пока нет статусов</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>New story</source>
-        <translation>Status baru</translation>
+        <translation>Новый статус</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Text story</source>
-        <translation>Status teks</translation>
+        <translation>Текстовый статус</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Couldn't post the story</source>
-        <translation>Tidak dapat memposting status</translation>
+        <translation>Не удалось опубликовать статус</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Couldn't delete the story</source>
-        <translation>Tidak dapat menghapus status</translation>
+        <translation>Не удалось удалить статус</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Pick a JPEG photo or an MP4 video</source>
-        <translation>Pilih foto JPEG atau video MP4</translation>
+        <translation>Выберите фото JPEG или видео MP4</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>This story is no longer available</source>
-        <translation>Status ini sudah tidak tersedia</translation>
+        <translation>Этот статус больше недоступен</translation>
     </message>
 </context>
 <context>
@@ -2247,42 +2245,42 @@
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Couldn't load the story</source>
-        <translation>Tidak dapat memuat status</translation>
+        <translation>Не удалось загрузить статус</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Couldn't send the reply</source>
-        <translation>Tidak dapat mengirim balasan</translation>
+        <translation>Не удалось отправить ответ</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Couldn't send the heart</source>
-        <translation>Tidak dapat mengirim hati</translation>
+        <translation>Не удалось отправить сердечко</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Reply</source>
-        <translation>Balas</translation>
+        <translation>Ответить</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Delete this story?</source>
-        <translation>Hapus status ini?</translation>
+        <translation>Удалить этот статус?</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>It is taken back from everyone who saw it.</source>
-        <translation>Status akan ditarik kembali dari semua orang yang telah melihatnya.</translation>
+        <translation>Он будет отозван у всех, кто его видел.</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Delete</source>
-        <translation>Hapus</translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
@@ -2290,12 +2288,12 @@
     <message>
         <location filename="../assets/StoryViewersPage.qml" line="1" />
         <source>Viewed by</source>
-        <translation>Dilihat oleh</translation>
+        <translation>Просмотрели</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewersPage.qml" line="1" />
         <source>No views yet</source>
-        <translation>Belum ada yang melihat</translation>
+        <translation>Пока нет просмотров</translation>
     </message>
 </context>
 <context>
@@ -2303,47 +2301,47 @@
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Couldn't post the story</source>
-        <translation>Tidak dapat memposting status</translation>
+        <translation>Не удалось опубликовать статус</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>New story</source>
-        <translation>Status baru</translation>
+        <translation>Новый статус</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Post</source>
-        <translation>Posting</translation>
+        <translation>Опубликовать</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Write something</source>
-        <translation>Tulis sesuatu</translation>
+        <translation>Напишите что-нибудь</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Add a caption</source>
-        <translation>Tambahkan keterangan</translation>
+        <translation>Добавьте подпись</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Share with</source>
-        <translation>Bagikan ke</translation>
+        <translation>Поделиться с</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Everyone</source>
-        <translation>Semua orang</translation>
+        <translation>Все</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>%1 chosen</source>
-        <translation>%1 dipilih</translation>
+        <translation>Выбрано: %1</translation>
     </message>
 </context>
 <context>
@@ -2351,48 +2349,48 @@
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Share with</source>
-        <translation>Bagikan ke</translation>
+        <translation>Поделиться с</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Cancel</source>
-        <translation>Batal</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Done</source>
-        <translation>Selesai</translation>
+        <translation>Готово</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Search contacts</source>
-        <translation>Cari kontak</translation>
+        <translation>Поиск контактов</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>%1 chosen</source>
-        <translation>%1 dipilih</translation>
+        <translation>Выбрано: %1</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Everyone</source>
-        <translation>Semua orang</translation>
+        <translation>Все</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Loading…</source>
-        <translation>Memuat…</translation>
+        <translation>Загрузка…</translation>
     </message>
 </context>
 <context>
     <name>StarredPage</name>
     <message>
         <source>Starred messages</source>
-        <translation>Pesan berbintang</translation>
+        <translation>Избранные сообщения</translation>
     </message>
     <message>
         <source>No starred messages</source>
-        <translation>Tidak ada pesan berbintang</translation>
+        <translation>Нет избранных сообщений</translation>
     </message>
 </context>
 </TS>

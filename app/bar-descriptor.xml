@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <qnx xmlns="http://www.qnx.com/schemas/application/1.0">
     <!-- Fixed for good: a new id is a different app beside this one, and uninstalling deletes
-         data/ (session.db holds the link, chats.db the only copy of the history). -->
-    <id>com.zsavajji.hyperberry</id>
-    <name>HyperBerry</name>
-    <versionNumber>0.1.6</versionNumber>
-    <!-- Overwritten at packaging by -buildIdFile (scripts/build-app.sh): the installer keeps
+         data/ (db/ holds the Telegram session, which would have to be linked again). -->
+    <id>com.zsavajji.tengram</id>
+    <name>Tengram</name>
+    <versionNumber>0.1.0</versionNumber>
+    <!-- Overwritten at packaging by -buildIdFile (scripts/build-ui.sh): the installer keeps
          the old app when Package-Version (versionNumber.buildId) didn't change. -->
     <buildId>1</buildId>
-    <description>WhatsApp for BlackBerry 10.</description>
+    <description>Telegram for BlackBerry 10.</description>
     <author>zsavajji</author>
 
     <initialWindow>
@@ -19,18 +19,18 @@
 
     <configuration name="Device-Release">
         <platformArchitecture>armle-v7</platformArchitecture>
-        <asset entryPointId="HyperBerry" path="../build/ui/app/hyperberry" entry="true" type="Qnx/Elf">hyperberry</asset>
-        <asset entryPointId="HyperBerryService" path="../build/hyperberryd" type="Qnx/Elf">hyperberryd</asset>
+        <asset entryPointId="Tengram" path="../build/ui/app/tengram" entry="true" type="Qnx/Elf">tengram</asset>
+        <asset entryPointId="TengramService" path="../build/tengramd" type="Qnx/Elf">tengramd</asset>
     </configuration>
 
-    <entryPoint id="HyperBerry">
-        <name>HyperBerry</name>
+    <entryPoint id="Tengram">
+        <name>Tengram</name>
     </entryPoint>
     <!-- The engine (PLAN.md §3): headless, started by the UI and kept running. Not at boot
          (user, 2026-10-29): an unsigned app can't run until root is up, and the boot event
          also fires on every install. -->
-    <entryPoint id="HyperBerryService">
-        <name>HyperBerry Service</name>
+    <entryPoint id="TengramService">
+        <name>Tengram Service</name>
         <entryPointType>Qnx/Elf</entryPointType>
         <permission system="true">_sys_run_headless</permission>
         <permission system="true">_sys_headless_nostop</permission>
@@ -40,11 +40,11 @@
         <permission system="true">_sys_headless_xlarge</permission>
     </entryPoint>
 
-    <invoke-target id="com.zsavajji.hyperberry.service">
+    <invoke-target id="com.zsavajji.tengram.service">
         <invoke-target-type>application.headless</invoke-target-type>
-        <entry-point-id>HyperBerryService</entry-point-id>
+        <entry-point-id>TengramService</entry-point-id>
         <filter>
-            <action>com.zsavajji.hyperberry.START</action>
+            <action>com.zsavajji.tengram.START</action>
             <mime-type>*</mime-type>
             <property var="uris" value="data://local"/>
         </filter>
@@ -56,22 +56,22 @@
         </filter>
         <!-- The Hub items' Mark as read, Mark as unread and Delete. -->
         <filter>
-            <action>com.zsavajji.hyperberry.MARKREAD</action>
-            <action>com.zsavajji.hyperberry.MARKUNREAD</action>
-            <action>com.zsavajji.hyperberry.DELETE</action>
-            <mime-type>application/vnd.zsavajji.hyperberry.chat</mime-type>
+            <action>com.zsavajji.tengram.MARKREAD</action>
+            <action>com.zsavajji.tengram.MARKUNREAD</action>
+            <action>com.zsavajji.tengram.DELETE</action>
+            <mime-type>application/vnd.zsavajji.tengram.chat</mime-type>
             <property var="uris" value="data://,pim:"/>
         </filter>
     </invoke-target>
     <!-- The UI, opened by a tap on a chat's item in the Hub (engine/hub_qnx.go). Without the pim:
          uri a tap matches nothing. -->
-    <invoke-target id="com.zsavajji.hyperberry">
+    <invoke-target id="com.zsavajji.tengram">
         <invoke-target-type>application</invoke-target-type>
-        <entry-point-id>HyperBerry</entry-point-id>
+        <entry-point-id>Tengram</entry-point-id>
         <filter>
             <action>bb.action.OPEN</action>
             <action>bb.action.VIEW</action>
-            <mime-type>application/vnd.zsavajji.hyperberry.chat</mime-type>
+            <mime-type>application/vnd.zsavajji.tengram.chat</mime-type>
             <property var="uris" value="pim:"/>
         </filter>
         <!-- The phone's Share menu: a file of any type, or a text. src/OpenRequests.cpp takes it,
@@ -89,7 +89,7 @@
     </invoke-target>
 
     <asset path="assets">assets</asset>
-    <!-- The app's icon (the user's design, 2026-11-06), made by scripts/gen-icons.py: every size the home
+    <!-- The app's icon, made by scripts/gen-icon.py: every size the home
          screens pick from. The Q10 takes 90. -->
     <asset path="assets/images/icon-86.png">icon-86.png</asset>
     <asset path="assets/images/icon-90.png">icon-90.png</asset>
@@ -104,7 +104,7 @@
         <image>icon-144.png</image>
     </icon>
     <!-- The launch screen, which the phone shows from the tap until the app's first frame (the user's
-         ask, 2026-11-06: it stayed black). Made by scripts/gen-icons.py, one per screen the app can
+         ask, 2026-11-06: it stayed black). Made by scripts/gen-icon.py, one per screen the app can
          meet in portrait, which it stays in: Q10 and Classic, Z30, Z10, Passport. -->
     <asset path="assets/images/splash-720x720.png">splash-720x720.png</asset>
     <asset path="assets/images/splash-720x1280.png">splash-720x1280.png</asset>
@@ -118,7 +118,6 @@
     </splashScreens>
     <!-- The Hub is another process: it reads these from /apps/<pkg>/public/ (engine/hub_qnx.go
          hands it that folder). -->
-    <asset path="assets/images/hub.png" public="true">hub.png</asset>
     <asset path="assets/images/hub_unread.png" public="true">hub_unread.png</asset>
     <asset path="assets/images/hub_read.png" public="true">hub_read.png</asset>
     <asset path="assets/images/hub_account.png" public="true">hub_account.png</asset>
@@ -142,5 +141,5 @@
          working Hub account on the Q10. -->
     <permission system="true">_sys_access_pim_unified</permission>
     <env var="LD_LIBRARY_PATH" value="app/native/lib:/usr/lib/qt4/lib"/>
-    <env var="CASCADES_THEME" value="dark?primaryColor=0x1BD862&amp;primaryBase=0x14A249"/>
+    <env var="CASCADES_THEME" value="dark?primaryColor=0x24A1DE&amp;primaryBase=0x1B79A7"/>
 </qnx>

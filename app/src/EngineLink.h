@@ -22,7 +22,7 @@ class EngineLink : public QObject
     Q_PROPERTY(bool connected READ connected NOTIFY connectedChanged)
     // The link body of docs/protocol.md (state, conn, qr, code, me, name), as last received.
     Q_PROPERTY(QVariantMap link READ link NOTIFY linkChanged)
-    // The connection to WhatsApp: offline, connecting or ready.
+    // The connection to Telegram: offline, connecting or ready.
     Q_PROPERTY(QString conn READ conn NOTIFY connChanged)
     // True when the last link state was ready. Kept in settings.ini, so a cold start shows the
     // chat list at once, before the engine answers (PLAN.md §12).

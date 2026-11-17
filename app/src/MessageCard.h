@@ -68,7 +68,6 @@ private slots:
     void onEdit();
     void onRevoke();
     void onDeleteMe();
-    void onStar();
     void onWho();
     void onJoin();
     void onQuote();
@@ -177,7 +176,6 @@ private:
     bb::cascades::ActionItem *m_react;
     bb::cascades::ActionItem *m_votes;
     bb::cascades::ActionItem *m_copy;
-    bb::cascades::ActionItem *m_star;
     bb::cascades::ActionItem *m_edit;
     bb::cascades::ActionItem *m_revoke;
     bb::cascades::DeleteActionItem *m_deleteMe;

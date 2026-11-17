@@ -17,9 +17,8 @@ class EngineLink;
 // attachedObjects so it dies with the page. It asks contacts.list, draws each contact as a
 // chat-list row (the tile the chat will have) and filters them as the user types. The new
 // group page also ticks contacts here (m_chosen, so a filter keeps the ticks) and creates the group.
-// The group-call page (step 7d.G4) uses it in a group-members mode: loadGroup() fills it with the
-// group's members instead (us left out), toggle() stops at 31, and startGroupCall() rings the ticked,
-// as a voice or a video call.
+// A group-members mode: loadGroup() fills it with the group's members instead (us left out) and
+// toggle() stops at 31.
 class ContactPicker : public QObject
 {
     Q_OBJECT
@@ -61,10 +60,6 @@ public:
     // Asks group.create for a group of the ticked contacts; the request's id, "" when the
     // engine isn't connected. The reply comes as groupCreated.
     Q_INVOKABLE QString createGroup(const QString &name);
-    // Asks call.start for a call of the group loadGroup() was given, with the ticked members, a
-    // video call when video; the request's id, "" when the engine isn't connected. The call screen
-    // opens on the call event, and a failure is worded by main.qml.
-    Q_INVOKABLE QString startGroupCall(bool video);
 
 signals:
     void loadedChanged();

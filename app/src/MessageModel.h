@@ -40,7 +40,7 @@ class MessageModel : public bb::cascades::DataModel
     // True from opening the chat until its first page is in: the page shows a spinner meanwhile.
     Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
 public:
-    MessageModel(EngineLink *engine, const QString &chat, bool group, QObject *parent = 0);
+    MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, QObject *parent = 0);
 
     int childCount(const QVariantList &indexPath);
     bool hasChildren(const QVariantList &indexPath);
@@ -118,6 +118,7 @@ private:
     QPointer<EngineLink> m_engine;
     QString m_chat;
     bool m_group;
+    bool m_channel; // a channel (kind 3): read-only for us
     bool m_atStart; // the oldest message is loaded
     bool m_loading;
     QList<Msg> m_all;

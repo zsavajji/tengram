@@ -1,6 +1,6 @@
 import bb.cascades 1.4
 import bb.system 1.2
-import hyperberry 1.0
+import tengram 1.0
 
 // The rows of a chat list, for ChatsPage and ArchivedPage: the model is set by the page, which
 // takes chatTapped. The rows are C++ (ChatRows.cpp): they reach the work through the list's
@@ -15,19 +15,14 @@ ListView {
     property string pressColor: nav.pressColor
     // True on the Archived page, where "Archive" reads "Unarchive".
     property bool archivedList: false
-    // True on the Channels page: the row's menu has Unfollow for Archive, and no pin or mute.
+    // True on a list of channels only: the row's menu has Unfollow for Archive, and no pin or mute. No page sets it
+    // since the channels moved into the main list.
     property bool channelList: false
-    // The rows' Call reads it here: a list item can't see the engine context property (0.0.1.191).
-    property bool linked: engine.linked
     signal chatTapped(variant chat)
 
     function set(jid, args) {
         args.chat = jid
         engine.request("chat.set", args)
-    }
-    // A failed call.start is worded by main.qml's toast, whoever sent it.
-    function call(chat) {
-        engine.request("call.start", {"chat": chat.jid})
     }
     function toggleUnread(chat) {
         set(chat.jid, {"unread": chat.unread == 0})

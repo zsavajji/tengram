@@ -145,7 +145,7 @@ void ChatController::open(const QVariantMap &chat)
     m_jid = chat["jid"].toString();
     m_name = chat["name"].toString();
     m_group = chat["kind"].toInt() == 1;
-    m_messages = new MessageModel(m_engine, m_jid, m_group, this);
+    m_messages = new MessageModel(m_engine, m_jid, m_group, chat["kind"].toInt() == 3, this);
     emit messagesChanged();
     connect(m_engine, SIGNAL(typing(QString, QString, bool, bool)), this,
             SLOT(onTyping(QString, QString, bool, bool)));

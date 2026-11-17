@@ -35,7 +35,7 @@ public:
     // Opens the Contacts app's import screen on a shared contact's vCard text (step 6.5d). A failure
     // is logged, and shows as openFailed().
     Q_INVOKABLE void importContact(const QString &vcard);
-    // Copies a photo into Pictures (shared/photos/HyperBerry/); the copy's path, "" on failure.
+    // Copies a photo into Pictures (shared/photos/Tengram/); the copy's path, "" on failure.
     Q_INVOKABLE QString saveToPictures(const QString &path);
     // What media.send is given with a photo (step 6.3), since the engine decodes no picture: for a
     // .jpg or .jpeg Qt can read, {thumb: base64 of a JPEG of at most 96 px and 16 KB, width,

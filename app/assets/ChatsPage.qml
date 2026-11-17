@@ -31,14 +31,6 @@ Page {
         ComponentDefinition {
             id: archivedDef
             source: "ArchivedPage.qml"
-        },
-        ComponentDefinition {
-            id: starredDef
-            source: "StarredPage.qml"
-        },
-        ComponentDefinition {
-            id: channelsDef
-            source: "ChannelsPage.qml"
         }
     ]
     actions: [
@@ -94,18 +86,6 @@ Page {
             imageSource: "file:///usr/share/icons/bb_action_archive.png"
             ActionBar.placement: ActionBarPlacement.InOverflow
             onTriggered: nav.push(archivedDef.createObject())
-        },
-        ActionItem {
-            title: qsTr("Starred messages")
-            imageSource: "asset:///images/star_action.png"
-            ActionBar.placement: ActionBarPlacement.InOverflow
-            onTriggered: nav.push(starredDef.createObject())
-        },
-        ActionItem {
-            title: qsTr("Channels")
-            imageSource: "asset:///images/megaphone_action.png"
-            ActionBar.placement: ActionBarPlacement.InOverflow
-            onTriggered: nav.push(channelsDef.createObject())
         }
     ]
     function openChat(chat) {

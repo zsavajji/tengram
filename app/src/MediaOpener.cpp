@@ -141,7 +141,7 @@ void MediaOpener::onInvoked()
 // Manager looks: Save puts a copy where both do. A copy already there is the answer.
 QString MediaOpener::saveToPictures(const QString &path)
 {
-    const QString dir = "/accounts/1000/shared/photos/HyperBerry";
+    const QString dir = "/accounts/1000/shared/photos/Tengram";
     if (!QDir().mkpath(dir))
         return QString();
     const QString target = dir + "/" + QFileInfo(path).fileName();

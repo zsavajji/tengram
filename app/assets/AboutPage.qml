@@ -1,8 +1,8 @@
 import bb.cascades 1.4
 
 // About, from the swipe-down menu beside Settings, laid out as My profile (ProfilePage.qml): the
-// logo for the picture, the app's name, its version where the number goes, then what it is, the
-// author's GitHub and the thanks to whatsapp-light's author, each opening in the browser.
+// logo for the picture, the app's name, its version where the number goes, then what it is and the
+// author's GitHub, opening in the browser.
 Page {
     id: page
     titleBar: TitleBar {
@@ -27,7 +27,7 @@ Page {
                 Label {
                     horizontalAlignment: HorizontalAlignment.Center
                     bottomMargin: 0
-                    text: "HyperBerry"
+                    text: "Tengram"
                     textFormat: TextFormat.Plain
                     textStyle.fontSize: FontSize.PercentageValue
                     textStyle.fontSizeValue: nav.bodySize * 1.3
@@ -55,7 +55,7 @@ Page {
                 Label {
                     horizontalAlignment: HorizontalAlignment.Fill
                     multiline: true
-                    text: qsTr("A client for WhatsApp based on hypermeow and meowcaller, for BlackBerry 10.")
+                    text: qsTr("Telegram for BlackBerry 10.")
                     textFormat: TextFormat.Plain
                     textStyle.fontSize: FontSize.PercentageValue
                     textStyle.fontSizeValue: nav.bodySize
@@ -67,13 +67,6 @@ Page {
             LinkRow {
                 text: "github.com/zsavajji"
                 url: "https://github.com/zsavajji"
-            }
-            Header {
-                title: qsTr("Thanks")
-            }
-            LinkRow {
-                text: qsTr("vbbot, for whatsapp-light's patches to meowcaller")
-                url: "https://github.com/vbbot/whatsapp-light"
             }
         }
     }

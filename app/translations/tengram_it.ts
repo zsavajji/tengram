@@ -9,16 +9,8 @@
         <translation>Informazioni</translation>
     </message>
     <message>
-        <source>A client for WhatsApp based on hypermeow and meowcaller, for BlackBerry 10.</source>
-        <translation>Un client per WhatsApp basato su hypermeow e meowcaller, per BlackBerry 10.</translation>
-    </message>
-    <message>
         <source>Thanks</source>
         <translation>Ringraziamenti</translation>
-    </message>
-    <message>
-        <source>vbbot, for whatsapp-light&apos;s patches to meowcaller</source>
-        <translation>vbbot, per le patch di whatsapp-light a meowcaller</translation>
     </message>
     <message>
         <source>Developer</source>
@@ -307,8 +299,8 @@
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="79"/>
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non inviato: HyperBerry si sta riconnettendo. Riprova tra un attimo.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="93"/>
@@ -322,8 +314,8 @@
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="101"/>
-        <source>Not deleted: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non eliminato: HyperBerry si sta riconnettendo. Riprova tra un attimo.</translation>
+        <source>Not deleted: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Non eliminato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="108"/>
@@ -772,8 +764,8 @@
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="85"/>
-        <source>WhatsApp refused that (%1).</source>
-        <translation>WhatsApp ha rifiutato (%1).</translation>
+        <source>Telegram refused that (%1).</source>
+        <translation>Telegram ha rifiutato (%1).</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="87"/>
@@ -810,8 +802,8 @@
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="85"/>
-        <source>Type the number of the phone that has WhatsApp.</source>
-        <translation>Digita il numero del telefono su cui hai WhatsApp.</translation>
+        <source>Type the number of the phone that has Telegram.</source>
+        <translation>Digita il numero del telefono su cui hai Telegram.</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="116"/>
@@ -825,16 +817,16 @@
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="152"/>
-        <source>Asking WhatsApp for a code…</source>
-        <translation>Richiesta del codice a WhatsApp…</translation>
+        <source>Asking Telegram for a code…</source>
+        <translation>Richiesta del codice a Telegram…</translation>
     </message>
 </context>
 <context>
     <name>LinkPage</name>
     <message>
         <location filename="../assets/LinkPage.qml" line="15"/>
-        <source>Link to WhatsApp</source>
-        <translation>Collega a WhatsApp</translation>
+        <source>Link to Telegram</source>
+        <translation>Collega a Telegram</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="19"/>
@@ -843,13 +835,13 @@
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="69"/>
-        <source>On your phone, open WhatsApp, go to Linked devices, tap Link a device, and scan this code.</source>
-        <translation>Sul telefono apri WhatsApp, vai su Dispositivi collegati, tocca Collega un dispositivo e inquadra questo codice.</translation>
+        <source>On your phone, open Telegram, go to Linked devices, tap Link a device, and scan this code.</source>
+        <translation>Sul telefono apri Telegram, vai su Dispositivi collegati, tocca Collega un dispositivo e inquadra questo codice.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="83"/>
-        <source>On your phone, open WhatsApp, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:</source>
-        <translation>Sul telefono apri WhatsApp, vai su Dispositivi collegati, tocca Collega un dispositivo, poi Collega con numero di telefono e digita questo codice:</translation>
+        <source>On your phone, open Telegram, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:</source>
+        <translation>Sul telefono apri Telegram, vai su Dispositivi collegati, tocca Collega un dispositivo, poi Collega con numero di telefono e digita questo codice:</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="97"/>
@@ -873,8 +865,8 @@
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="114"/>
-        <source>Linking… Keep WhatsApp open on your phone.</source>
-        <translation>Collegamento in corso… Tieni WhatsApp aperto sul telefono.</translation>
+        <source>Linking… Keep Telegram open on your phone.</source>
+        <translation>Collegamento in corso… Tieni Telegram aperto sul telefono.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="117"/>
@@ -1251,13 +1243,13 @@
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="42"/>
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non inviato: HyperBerry si sta riconnettendo. Riprova tra un attimo.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="14"/>
-        <source>WhatsApp won't take a name that long</source>
-        <translation>WhatsApp non accetta un nome così lungo.</translation>
+        <source>Telegram won't take a name that long</source>
+        <translation>Telegram non accetta un nome così lungo.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="14"/>
@@ -1419,8 +1411,8 @@
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10"/>
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non inviato: HyperBerry si sta riconnettendo. Riprova tra un attimo.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10"/>
@@ -1513,8 +1505,8 @@
     </message>
     <message>
         <location filename="../assets/ReactBar.qml" line="123"/>
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non inviato: HyperBerry si sta riconnettendo. Riprova tra un attimo.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
 </context>
 <context>
@@ -1643,8 +1635,8 @@
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="120"/>
-        <source>Brings HyperBerry back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
-        <translation>Riporta HyperBerry in funzione entro 6 minuti da un riavvio o da un arresto, ad app chiusa.</translation>
+        <source>Brings Tengram back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
+        <translation>Riporta Tengram in funzione entro 6 minuti da un riavvio o da un arresto, ad app chiusa.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="110"/>
@@ -1825,13 +1817,13 @@
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>WhatsApp: voice call</source>
-        <translation>WhatsApp: chiamata vocale</translation>
+        <source>Telegram: voice call</source>
+        <translation>Telegram: chiamata vocale</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>WhatsApp: video call</source>
-        <translation>WhatsApp: videochiamata</translation>
+        <source>Telegram: video call</source>
+        <translation>Telegram: videochiamata</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1"/>
@@ -1924,8 +1916,8 @@
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Non inviato: HyperBerry si sta riconnettendo. Riprova tra un attimo.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1"/>
@@ -1998,13 +1990,13 @@
     </message>
     <message>
         <location filename="../assets/errors.js" line="7"/>
-        <source>You&apos;re offline. Connect to use HyperBerry.</source>
-        <translation>Sei offline. Connettiti per usare HyperBerry.</translation>
+        <source>You&apos;re offline. Connect to use Tengram.</source>
+        <translation>Sei offline. Connettiti per usare Tengram.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="9"/>
-        <source>HyperBerry&apos;s engine isn&apos;t running yet. Try again in a moment.</source>
-        <translation>Il motore di HyperBerry non è ancora in esecuzione. Riprova tra un attimo.</translation>
+        <source>Tengram&apos;s engine isn&apos;t running yet. Try again in a moment.</source>
+        <translation>Il motore di Tengram non è ancora in esecuzione. Riprova tra un attimo.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="11"/>
@@ -2028,8 +2020,8 @@
     </message>
     <message>
         <location filename="../assets/errors.js" line="1"/>
-        <source>Link this BlackBerry to WhatsApp to call.</source>
-        <translation>Collega questo BlackBerry a WhatsApp per chiamare.</translation>
+        <source>Link this BlackBerry to Telegram to call.</source>
+        <translation>Collega questo BlackBerry a Telegram per chiamare.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1"/>
@@ -2106,8 +2098,8 @@
     </message>
     <message>
         <location filename="../assets/main.qml" line="110"/>
-        <source>WhatsApp won't let this number join by link. If an admin removed it, an admin has to add it back.</source>
-        <translation>WhatsApp non consente a questo numero di unirsi tramite link. Se un amministratore lo ha rimosso, deve essere un amministratore ad aggiungerlo di nuovo.</translation>
+        <source>Telegram won't let this number join by link. If an admin removed it, an admin has to add it back.</source>
+        <translation>Telegram non consente a questo numero di unirsi tramite link. Se un amministratore lo ha rimosso, deve essere un amministratore ad aggiungerlo di nuovo.</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1"/>

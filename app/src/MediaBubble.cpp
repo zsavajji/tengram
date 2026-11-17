@@ -29,7 +29,7 @@ using namespace bb::cascades;
 
 namespace {
 
-// The QML file's name: the translations of MediaBubble.qml's strings (hyperberry_it.ts) apply.
+// The QML file's name: the translations of MediaBubble.qml's strings (tengram_it.ts) apply.
 const char *const kContext = "MediaBubble";
 
 // A plain label placed in its container's dock.

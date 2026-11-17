@@ -32,11 +32,12 @@ bool MessageModel::lessThan(const Msg &a, const Msg &b)
     return a.ts < b.ts || (a.ts == b.ts && a.rowid < b.rowid);
 }
 
-MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, QObject *parent)
+MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, QObject *parent)
     : DataModel(parent)
     , m_engine(engine)
     , m_chat(chat)
     , m_group(group)
+    , m_channel(channel)
     , m_atStart(false)
     , m_loading(true)
     , m_region(bb::system::LocaleType::Region)

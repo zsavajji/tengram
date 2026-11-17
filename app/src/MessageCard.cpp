@@ -35,7 +35,7 @@
 using namespace bb::cascades;
 
 namespace {
-// The QML file's name: the translations of MessageItem.qml's strings (hyperberry_it.ts) apply.
+// The QML file's name: the translations of MessageItem.qml's strings (tengram_it.ts) apply.
 const char *const kContext = "MessageItem";
 }
 
@@ -80,7 +80,6 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_react(0)
     , m_votes(0)
     , m_copy(0)
-    , m_star(0)
     , m_edit(0)
     , m_revoke(0)
     , m_deleteMe(0)
@@ -291,7 +290,7 @@ void MessageCard::paintBackground()
     const QString found = Card::foundId(m_list);
     const bool match = !found.isEmpty() && found == str("id");
     const Color c = m_pressed ? Card::color(Card::pressColor(m_list))
-                  : match ? Card::color("#401bd862") : m_ui->palette()->plain();
+                  : match ? Card::color("#4024a1de") : m_ui->palette()->plain();
     m_bg->setVisible(m_pressed || match || str("media") != "sticker");
     m_bg->setFilterColor(c);
     m_tailL->setFilterColor(c);

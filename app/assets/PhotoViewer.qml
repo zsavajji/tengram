@@ -1,6 +1,6 @@
 import bb.cascades 1.4
 import bb.system 1.2
-import hyperberry 1.0
+import tengram 1.0
 
 // A received photo, full screen on black (step 6.1); pinch zooms from 1 to 4 times and a
 // dragged finger pans. path is the file's absolute path, set right after createObject().

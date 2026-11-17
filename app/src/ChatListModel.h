@@ -13,7 +13,7 @@
 
 class EngineLink;
 
-// The chat list (PLAN.md §7, step 2.4): chats.db's chats that aren't archived or channels (or, for the Archived and Channels pages, only those), pinned first,
+// The chat list (PLAN.md §7, step 2.4): chats.db's chats that aren't archived (or, for the Archived page, only those), pinned first,
 // then newest first. Headers ("Pinned", "Today", "Yesterday", "Monday", "Jan 20") are the top
 // level ([g]), and the chats are their children ([g, i]): a map of jid, kind, name, initials,
 // color, preview, time, out, state, unread, muted, pinned and photo (a file path, or "").
@@ -29,8 +29,8 @@ class ChatListModel : public bb::cascades::DataModel
     // Bumped after each reload, so a QML binding that calls chat() is evaluated again.
     Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
 public:
-    // Which chats a list shows: the chat list, the Archived page or the Channels page (step 6.6g). Only the chat list does frame work.
-    enum Mode { Chats, Archived, Channels };
+    // Which chats a list shows: the chat list or the Archived page. Only the chat list does frame work.
+    enum Mode { Chats, Archived };
     explicit ChatListModel(EngineLink *engine, Mode mode = Chats, QObject *parent = 0);
 
     int childCount(const QVariantList &indexPath);
@@ -45,9 +45,6 @@ public:
     Q_INVOKABLE QVariantMap chat(const QString &jid);
     // The ids of the chat's messages whose text has text in it, any case, newest first (step 5.10).
     Q_INVOKABLE QStringList findMessages(const QString &jid, const QString &text);
-    // The starred messages, newest first, each a map of chat (its jid), id, chatName, sender (the sender's name, "You"
-    // for ours, in a group; "" elsewhere), text (Pins::summary's line) and time (as a chat's row has it); deleted ones are left out.
-    Q_INVOKABLE QVariantList starred();
     // Who reacted to a message and how, oldest first, one per line (step 5.11).
     Q_INVOKABLE QString reactionsText(const QString &jid, const QString &id);
     // Shows only the chats whose name has a word starting with text; "" shows all.

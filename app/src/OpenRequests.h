@@ -7,7 +7,7 @@
 #include <QString>
 
 // A tap on a chat's item in the Hub (engine/hub_qnx.go) starts or resumes the app with
-// bb.action.OPEN or VIEW. The item's id, "chat_" and the chat key in hex, rides in the URI or
+// bb.action.OPEN or VIEW. The item's id, "chat_" and the chat key (decimal, n for a minus sign), rides in the URI or
 // the data; the first match of either is the chat. The signal reaches QML as it comes; main.qml
 // holds it until the chat list is up.
 class OpenRequests : public QObject

@@ -122,7 +122,7 @@ Container {
         },
         SystemToast {
             id: notSent
-            body: qsTr("Not sent: HyperBerry is reconnecting. Try again in a moment.")
+            body: qsTr("Not sent: Tengram is reconnecting. Try again in a moment.")
         },
         // Who reacted, one per line (ChatListModel.reactionsText); say() puts other text in it.
         SystemToast {

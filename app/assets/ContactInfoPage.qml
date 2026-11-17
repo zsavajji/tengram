@@ -1,6 +1,6 @@
 import bb.cascades 1.4
 import bb.system 1.2
-import hyperberry 1.0
+import tengram 1.0
 
 // A person's info (step 5.8), read-only but for the mute toggle and, in the action menu, the
 // account actions (step 5.8b). chat is a chat list row, set right after createObject(), or a row
@@ -47,21 +47,6 @@ Page {
             imageSource: "file:///usr/share/icons/bb_action_sendtextmessage.png"
             ActionBar.placement: ActionBarPlacement.OnBar
             onTriggered: nav.openRow(page.chat)
-        },
-        // call.start's failure is worded by main.qml's toast. Not for ourselves (the engine says bad_chat).
-        ActionItem {
-            title: qsTr("Voice call")
-            imageSource: "file:///usr/share/icons/ic_phone.png"
-            enabled: engine.linked
-            ActionBar.placement: ActionBarPlacement.OnBar
-            onTriggered: engine.request("call.start", {"chat": page.chat.jid})
-        },
-        ActionItem {
-            title: qsTr("Video call")
-            imageSource: "file:///usr/share/icons/ic_chat_video.png"
-            enabled: engine.linked
-            ActionBar.placement: ActionBarPlacement.OnBar
-            onTriggered: engine.request("call.start", {"chat": page.chat.jid, "video": true})
         },
         ActionItem {
             title: qsTr("Export chat")

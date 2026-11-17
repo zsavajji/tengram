@@ -1,8 +1,8 @@
 import bb.cascades 1.4
 import bb.system 1.2
-import hyperberry 1.0
+import tengram 1.0
 
-// New group (step 6.6): name it, tick the contacts, Create. created fires once WhatsApp made the
+// New group (step 6.6): name it, tick the contacts, Create. created fires once Telegram made the
 // group and the engine has its chat in chats.db; ChatsPage opens it.
 Page {
     id: page
@@ -12,7 +12,7 @@ Page {
     onFailedCmdChanged: {
         if (failedCmd == "group.create") {
             creating = false
-            failed.body = engine.failure.code == "name_too_long" ? qsTr("WhatsApp won't take a name that long") : qsTr("Couldn't create the group. Check the connection and try again.")
+            failed.body = engine.failure.code == "name_too_long" ? qsTr("Telegram won't take a name that long") : qsTr("Couldn't create the group. Check the connection and try again.")
             failed.show()
         }
     }
@@ -38,7 +38,7 @@ Page {
         },
         SystemToast {
             id: notSent
-            body: qsTr("Not sent: HyperBerry is reconnecting. Try again in a moment.")
+            body: qsTr("Not sent: Tengram is reconnecting. Try again in a moment.")
         },
         SystemToast {
             id: failed

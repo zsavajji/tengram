@@ -1,6 +1,5 @@
 #include "OpenRequests.h"
 
-#include <QByteArray>
 #include <QDebug>
 #include <QRegExp>
 
@@ -31,9 +30,13 @@ void OpenRequests::invoked(const InvokeRequest &request)
     // Logged whole: where the Hub puts the item id is for the Q10 to show.
     qDebug() << "invoked:" << request.action() << request.mimeType() << request.uri()
              << request.data();
-    // A chat's item, or a ringing call's (call_, step 7.2): both open the chat, where the call's
-    // sheet shows the call if it still rings.
-    QRegExp item("(?:chat|call)_([0-9a-f]+)");
-    if (item.indexIn(request.uri().toString() + " " + QString::fromUtf8(request.data())) >= 0)
-        emit openChat(QString::fromUtf8(QByteArray::fromHex(item.cap(1).toLatin1())));
+    // A chat's item: the engine writes chat_ and the chat's key, TDLib's number in decimal, with n for the
+    // minus sign (a Hub item id takes only letters, digits and _): chat_n1001234567890 is "-1001234567890".
+    QRegExp item("chat_(n?[0-9]+)");
+    if (item.indexIn(request.uri().toString() + " " + QString::fromUtf8(request.data())) >= 0) {
+        QString chat = item.cap(1);
+        if (chat.startsWith(QLatin1Char('n')))
+            chat[0] = QLatin1Char('-');
+        emit openChat(chat);
+    }
 }

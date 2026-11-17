@@ -14,7 +14,7 @@ Invites::Invites(EngineLink *engine, QObject *parent)
 bool Invites::openLink(const QString &url)
 {
     if (!m_engine
-        || (!url.contains("chat.whatsapp.com/") && !url.contains("whatsapp.com/channel/")))
+        || (!url.contains("t.me/+") && !url.contains("t.me/joinchat/")))
         return false;
     QVariantMap args;
     args["url"] = url;

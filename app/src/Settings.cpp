@@ -66,8 +66,8 @@ void Settings::applyTheme()
 {
     using namespace bb::cascades;
     Application::instance()->themeSupport()->setVisualStyleAndPrimaryColor(
-        theme() == 1 ? VisualStyle::Bright : VisualStyle::Dark, Color::fromARGB(0xff1bd862),
-        Color::fromARGB(0xff14a249));
+        theme() == 1 ? VisualStyle::Bright : VisualStyle::Dark, Color::fromARGB(0xff24a1de),
+        Color::fromARGB(0xff1b79a7));
 }
 
 void Settings::setTheme(int value)
@@ -124,7 +124,7 @@ void Settings::setStartAtBoot(bool on)
 // (navigator_invoke.h): the fires before root is up fail, the first after starts the engine, and one
 // that finds it running does nothing, so a killed engine comes back too. Every 6 minutes is the
 // shortest the service takes (InvokeRecurrenceRule.hpp).
-static const char *const kBootTimer = "hyperberry-boot";
+static const char *const kBootTimer = "tengram-boot";
 
 void Settings::applyBootTimer(bool on)
 {
@@ -138,7 +138,7 @@ void Settings::applyBootTimer(bool on)
             qWarning() << "boot timer: the rule is not valid";
             return;
         }
-        reply = invoker->registerTimer(bb::system::InvokeTimerRequest(kBootTimer, rule, "com.zsavajji.hyperberry.service"));
+        reply = invoker->registerTimer(bb::system::InvokeTimerRequest(kBootTimer, rule, "com.zsavajji.tengram.service"));
     } else {
         reply = invoker->deregisterTimer(kBootTimer);
     }

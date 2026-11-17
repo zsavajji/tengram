@@ -17,7 +17,7 @@ static const int PageSize = 200;
 // ponytail: the engine's reader takes one line of at most 1 MiB (engine/server.go), and past it the
 // connection drops (and the UI would send the book again on the reconnect). JsonDataAccess keeps
 // its indentation, so an entry is about 110 bytes, 200 with a long non-ASCII name: 4000 fit, and
-// numbers past them keep WhatsApp's name. Chunk the book if one is ever that large.
+// numbers past them keep Telegram's name. Chunk the book if one is ever that large.
 static const int MaxEntries = 4000;
 
 BookReader::BookReader()

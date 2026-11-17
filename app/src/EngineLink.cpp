@@ -154,8 +154,8 @@ void EngineLink::startEngine()
     if (m_invokedAt.isValid() && m_invokedAt.elapsed() < 1000)
         return;
     InvokeRequest request;
-    request.setTarget("com.zsavajji.hyperberry.service");
-    request.setAction("com.zsavajji.hyperberry.START");
+    request.setTarget("com.zsavajji.tengram.service");
+    request.setAction("com.zsavajji.tengram.START");
     InvokeTargetReply *reply = m_invoker->invoke(request);
     m_invokedAt.start();
     qDebug() << "engine: START sent";

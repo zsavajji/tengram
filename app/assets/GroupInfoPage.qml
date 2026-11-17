@@ -84,7 +84,7 @@ Page {
             return qsTr("They're already in the group.")
         }
         if (f.code == "refused") {
-            return qsTr("WhatsApp refused that (%1).").arg(f.message)
+            return qsTr("Telegram refused that (%1).").arg(f.message)
         }
         return qsTr("Couldn't do that. Check the connection and try again.")
     }

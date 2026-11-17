@@ -47,9 +47,6 @@ private:
 // sizes as measured on the Q10. 100 % draws capitals 20 px tall, the tile's TitleText 24 px (118 %).
 // The name 115 % and the preview 90 %: the cards' 105 and 85, capitals 2 and 1 px taller (the user,
 // 2026-11-08). Both grow with the text size setting.
-// The Calls tab's rows are the same row (the user, 2026-11-08: they look like chat rows), on a list
-// with callRows set: a CallsModel row, what the call was in the preview's place, red when missed,
-// and a menu of Call and Open chat (CallRow.qml's, gone since).
 class ChatRow : public bb::cascades::CustomControl, public bb::cascades::ListItemListener
 {
     Q_OBJECT
@@ -66,12 +63,10 @@ public:
 
 private slots:
     void onPopulating();
-    void onCall();
     void onRead();
     void onPin();
     void onMute();
     void onArchive();
-    void onOpenChat();
 
 private:
     QString str(const char *key) const { return m_chat.value(key).toString(); }
@@ -83,7 +78,6 @@ private:
 
     bb::cascades::ListView *m_list;
     bb::cascades::UIConfig *m_ui;
-    bool m_calls; // a row of the Calls tab
     QVariantMap m_chat;
     bool m_pressed;
     QString m_photoPath; // the picture last given to m_photo
@@ -108,12 +102,10 @@ private:
     bb::cascades::Container *m_sep;
 
     bb::cascades::ActionSet *m_menu;
-    bb::cascades::ActionItem *m_callItem;
     bb::cascades::ActionItem *m_readItem;
     bb::cascades::ActionItem *m_pinItem;
     bb::cascades::ActionItem *m_muteItem;
     bb::cascades::ActionItem *m_archiveItem;
-    bb::cascades::ActionItem *m_openItem;
 };
 
 #endif

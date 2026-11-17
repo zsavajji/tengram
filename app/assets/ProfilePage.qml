@@ -1,7 +1,7 @@
 import bb.cascades 1.4
 import bb.cascades.pickers 1.0
 import bb.system 1.2
-import hyperberry 1.0
+import tengram 1.0
 
 // My profile (step 5.9), from the swipe-down menu's Profile, laid out as ContactInfoPage: the
 // picture, name and number, then the about. A tap on the picture, the name or the about edits it.

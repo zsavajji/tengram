@@ -1,6 +1,6 @@
 import bb.cascades 1.4
 import bb.system 1.2
-import hyperberry 1.0
+import tengram 1.0
 
 // A channel's info (step 6.6h): picture, name, followers, description, and Unfollow. chat is a chat
 // list row, set right after createObject(). The page asks the engine itself (channel.info) through
@@ -42,7 +42,7 @@ Page {
                 if (value == SystemUiResult.ConfirmButtonSelection) {
                     engine.request("channel.unfollow", {"chat": page.chat.jid})
                     // This page and the chat page under it go: the chat is gone. The user lands on
-                    // whatever is below (the Channels page, or the chat list), as backToList in main.qml.
+                    // whatever is below (the chat list), as backToList in main.qml.
                     for (var i = 0; i < 2 && nav.count() > 1; i++) {
                         var old = nav.at(nav.count() - 1)
                         nav.remove(old)

@@ -13,7 +13,7 @@ Page {
     property bool shown: false
 
     titleBar: TitleBar {
-        title: qsTr("Link to WhatsApp")
+        title: qsTr("Link to Telegram")
     }
     actions: [
         // Off once the phone accepted the link, through "Getting your chats…", so no stray press
@@ -70,7 +70,7 @@ Page {
                     horizontalAlignment: HorizontalAlignment.Fill
                     Label {
                         multiline: true
-                        text: qsTr("On your phone, open WhatsApp, go to Linked devices, tap Link a device, and scan this code.")
+                        text: qsTr("On your phone, open Telegram, go to Settings, then Devices, tap Link Desktop Device, and scan this code.")
                     }
                     ImageView {
                         horizontalAlignment: HorizontalAlignment.Center
@@ -84,7 +84,7 @@ Page {
                     horizontalAlignment: HorizontalAlignment.Fill
                     Label {
                         multiline: true
-                        text: qsTr("On your phone, open WhatsApp, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:")
+                        text: qsTr("On your phone, open Telegram, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:")
                     }
                     Label {
                         horizontalAlignment: HorizontalAlignment.Center
@@ -117,7 +117,7 @@ Page {
             running: !page.up || page.linkState == "linking" || page.syncing
             text: !page.up ? qsTr("Starting…")
                 : page.linkState == "ready" ? qsTr("Getting your chats from your phone… This can take a few minutes.")
-                : qsTr("Linking… Keep WhatsApp open on your phone.")
+                : qsTr("Linking… Keep Telegram open on your phone.")
         }
     }
 }

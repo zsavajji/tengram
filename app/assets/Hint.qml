@@ -1,5 +1,5 @@
 import bb.cascades 1.4
-import hyperberry 1.0
+import tengram 1.0
 
 // A first-time hint in the look of the BB10 lock screen's yellow tutorial hints (read off the Q10;
 // the system's own are not readable by apps, so this is redrawn): a square-cornered box nearly the

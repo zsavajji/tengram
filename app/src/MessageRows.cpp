@@ -2,6 +2,7 @@
 
 #include <bb/cascades/Image>
 
+#include "ChatsDb.h"
 #include "EngineLink.h"
 #include "MediaData.h"
 #include "MessageKinds.h"
@@ -23,7 +24,7 @@ using namespace bb::utility::i18n;
 // The chats.db side of MessageModel, out of MessageModel.cpp to keep that file short: the
 // connection, the query and the reading of one row into a Msg.
 
-// The connection ChatListModel opens, read-only: only the engine writes chats.db.
+// The connection ChatListModel opens, read-only (ChatsDb): only the engine writes chats.db.
 static const char *const kDb = "chats";
 
 // The three QUOTED are the quoted message's out, sender and sender_name, by its primary key. The
@@ -50,7 +51,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     const int kind = q.value(7).toInt();
     m.kind = kind;
     m.who = q.value(5).isNull() ? q.value(6).toString() : q.value(5).toString();
-    m.data["readOnly"] = m_chat.endsWith("@newsletter"); // a channel: no reply, reaction, delete or vote (step 6.6g)
+    m.data["readOnly"] = m_channel; // a channel: no reply, reaction, delete or vote (step 6.6g)
     m.data["album"] = QVariantList(); // MessageModel::albumData fills it for an album; never undefined in QML
     const QString text = q.value(8).toString();
     const bool deleted = q.value(11).toInt() != 0;
@@ -187,15 +188,7 @@ QString MessageModel::longDay(const QDate &date, const QLocale &locale)
 // hasn't made chats.db yet.
 static QSqlDatabase database()
 {
-    QSqlDatabase db = QSqlDatabase::database(kDb, false);
-    if (!db.isValid()) {
-        db = QSqlDatabase::addDatabase("QSQLITE", kDb);
-        db.setDatabaseName(QDir::homePath() + "/chats.db");
-        db.setConnectOptions("QSQLITE_OPEN_READONLY");
-    }
-    if (!db.isOpen())
-        db.open();
-    return db;
+    return ChatsDb::open(kDb);
 }
 
 // The chat's unread count in chats.db, 0 when it has no row (a contact with no chat yet).

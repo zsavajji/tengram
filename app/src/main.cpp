@@ -12,6 +12,7 @@
 #include <QtDeclarative>
 #include <cstdio>
 #include <devctl.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/procfs.h>
 #include <sys/slog2.h>
@@ -21,14 +22,11 @@
 
 #include "ChatController.h"
 #include "ChatRows.h"
-#include "CallAudio.h"
 #include <bb/ApplicationInfo>
 #include <bb/device/DisplayInfo>
 #include <QDeclarativeContext>
-#include "CallVideo.h"
-#include "CallsModel.h"
-#include "StoriesModel.h"
 #include "ChatListModel.h"
+#include "ChatsDb.h"
 #include "ContactBook.h"
 #include "ContactInfo.h"
 #include "ContactPicker.h"
@@ -47,7 +45,7 @@
 using namespace bb::cascades;
 
 // qDebug and qWarning, QML's errors included, go nowhere on the phone by themselves: they go to
-// the system log, where `slog2info -b hyperberry` shows them, and to data/logs/ui.log. The file
+// the system log, where `slog2info -b tengram` shows them, and to data/logs/ui.log. The file
 // outlives the process: the system recycles a closed app's log within minutes, and a freeze on
 // 0.0.1.132 left nothing to read (Q10, 2026-11-02).
 static slog2_buffer_t logBuffer;
@@ -74,7 +72,7 @@ static void startLog()
 {
     slog2_buffer_set_config_t config = {};
     config.num_buffers = 1;
-    config.buffer_set_name = "hyperberry";
+    config.buffer_set_name = "tengram";
     config.verbosity_level = SLOG2_INFO;
     config.buffer_config[0].buffer_name = "ui";
     config.buffer_config[0].num_pages = 4;
@@ -118,7 +116,7 @@ static bool loaded(QmlDocument *document, const char *name)
         return true;
     QFileInfo misc("/accounts/1000/shared/misc");
     QFile log((misc.isDir() && misc.isWritable() ? misc.filePath() : QDir::homePath())
-              + "/hyperberry-qml-errors.log");
+              + "/tengram-qml-errors.log");
     if (log.open(QIODevice::WriteOnly | QIODevice::Append)) {
         foreach (const QDeclarativeError &error, document->errors())
             log.write(QString("%1: %2\n").arg(name, error.toString()).toUtf8());
@@ -140,7 +138,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     // English, the source text, has none. Before the QML loads, whose qsTr reads it then.
     QTranslator translator;
     const QString language = bb::system::LocaleHandler(bb::system::LocaleType::Messages).locale().name().section('_', 0, 0);
-    if (translator.load("hyperberry_" + language, QCoreApplication::applicationDirPath() + "/assets/translations"))
+    if (translator.load("tengram_" + language, QCoreApplication::applicationDirPath() + "/assets/translations"))
         app.installTranslator(&translator);
     EngineLink engine(&app);
     engine.setLanguage(language); // before engine.start(): the hello sends it
@@ -148,14 +146,11 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     // again whenever the link drops. First of all, before the models and the QML: the engine comes up
     // while they load (it went last, and connected 1.2 s after the scene was set; Q10, 0.1.1.307).
     engine.start();
+    // Before every model: its connectedChanged slot runs first, so the models' own find chats.db reopened.
+    ChatsDbReconnect chatsDbReconnect(&engine, &app);
     ContactBook book(&engine, &app);
     ChatListModel chats(&engine, ChatListModel::Chats, &app);
     ChatListModel archivedChats(&engine, ChatListModel::Archived, &app);
-    ChatListModel channelChats(&engine, ChatListModel::Channels, &app);
-    CallsModel callList(&engine, &app);
-    StoriesModel storyList(&engine, &app);
-    CallAudio callAudio(&engine, &app);
-    CallVideo callVideo(&engine, &app);
     Proximity proximity(&app);
     // One for the run: the picker's table is built once, not per chat.
     EmojiModel emojis(&app);
@@ -172,32 +167,27 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     OpenRequests openRequests(engine.invoker(), &app);
     Invites invites(&engine, &app);
 
-    // bb.cascades has no Timer: the call screen's clock and its 2 s close (step 7.4).
-    qmlRegisterType<QTimer>("hyperberry", 1, 0, "Timer");
-    qmlRegisterType<ChatController>("hyperberry", 1, 0, "ChatController");
-    qmlRegisterType<ChatRows>("hyperberry", 1, 0, "ChatRows");
-    qmlRegisterType<ContactInfo>("hyperberry", 1, 0, "ContactInfo");
-    qmlRegisterType<ContactPicker>("hyperberry", 1, 0, "ContactPicker");
-    qmlRegisterType<MapChooser>("hyperberry", 1, 0, "MapChooser");
-    qmlRegisterType<MediaOpener>("hyperberry", 1, 0, "MediaOpener");
-    qmlRegisterType<MessageCards>("hyperberry", 1, 0, "MessageCards");
-    qmlRegisterType<Profile>("hyperberry", 1, 0, "Profile");
+    // bb.cascades has no Timer: QTimer stands in (Hint.qml, VideoViewer.qml).
+    qmlRegisterType<QTimer>("tengram", 1, 0, "Timer");
+    qmlRegisterType<ChatController>("tengram", 1, 0, "ChatController");
+    qmlRegisterType<ChatRows>("tengram", 1, 0, "ChatRows");
+    qmlRegisterType<ContactInfo>("tengram", 1, 0, "ContactInfo");
+    qmlRegisterType<ContactPicker>("tengram", 1, 0, "ContactPicker");
+    qmlRegisterType<MapChooser>("tengram", 1, 0, "MapChooser");
+    qmlRegisterType<MediaOpener>("tengram", 1, 0, "MediaOpener");
+    qmlRegisterType<MessageCards>("tengram", 1, 0, "MessageCards");
+    qmlRegisterType<Profile>("tengram", 1, 0, "Profile");
     QmlDocument *document = QmlDocument::create("asset:///main.qml").parent(&app);
     if (!loaded(document, "main.qml"))
         return 1;
     document->setContextProperty("engine", &engine);
     document->setContextProperty("chats", &chats);
     document->setContextProperty("archivedChats", &archivedChats);
-    document->setContextProperty("channelChats", &channelChats);
-    document->setContextProperty("callList", &callList);
-    document->setContextProperty("storyList", &storyList);
-    document->setContextProperty("callAudio", &callAudio);
     // About shows it where a profile shows the number: versionNumber.buildId, from the .bar.
     document->documentContext()->setContextProperty("appVersion", bb::ApplicationInfo().version());
-    document->setContextProperty("callVideo", &callVideo);
-    // The call screen's px(): its 720 px stage scaled to the screen's width.
+    // The pages' px(): a 720 px stage scaled to the screen's width.
     document->documentContext()->setContextProperty("screenWidth", bb::device::DisplayInfo().pixelSize().width());
-    // How far a tall screen (the Z10's 1280) runs above that stage: the caller's picture fills it.
+    // How far a tall screen (the Z10's 1280) runs above that stage.
     document->documentContext()->setContextProperty("screenHeight", bb::device::DisplayInfo().pixelSize().height());
     document->setContextProperty("proximity", &proximity);
     document->setContextProperty("emojis", &emojis);

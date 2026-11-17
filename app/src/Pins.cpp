@@ -1,5 +1,6 @@
 #include "Pins.h"
 
+#include "ChatsDb.h"
 #include "MediaData.h"
 
 #include <bb/data/JsonDataAccess>
@@ -14,7 +15,7 @@
 
 using namespace bb::data;
 
-// MessageModel's read-only connection.
+// MessageModel's read-only connection (ChatsDb opens it, if the select that is reading the row has not).
 static const char *const kDb = "chats";
 
 struct Pin
@@ -58,7 +59,7 @@ static QString preview(QSqlDatabase &db, const QString &chat, const QString &id)
 QVariantList Pins::current(const QString &chat)
 {
     QVariantList out;
-    QSqlDatabase db = QSqlDatabase::database(kDb, false);
+    QSqlDatabase db = ChatsDb::open(kDb);
     if (!db.isOpen())
         return out;
     QSqlQuery q(db);

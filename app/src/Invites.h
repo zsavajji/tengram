@@ -16,7 +16,7 @@ class Invites : public QObject
 public:
     Invites(EngineLink *engine, QObject *parent = 0);
 
-    // A tap on a link: true when it's a WhatsApp group or channel link, now being asked about
+    // A tap on a link: true when it's a Telegram group or channel link, now being asked about
     // (offered or joined follows; a failure shows in engine's failure), false for anything else,
     // which the caller opens as usual.
     Q_INVOKABLE bool openLink(const QString &url);

@@ -1,5 +1,6 @@
 #include "ChatListModel.h"
 
+#include "ChatsDb.h"
 #include "EngineLink.h"
 #include "Moves.h"
 #include "colors.h"
@@ -21,11 +22,11 @@
 using namespace bb::cascades;
 using namespace bb::utility::i18n;
 
-// The QSQLITE connection to chats.db, read-only: only the engine writes it (PLAN.md §12).
+// The connection to chats.db (ChatsDb), read-only: only the engine writes it (PLAN.md §12).
 static const char *const kDb = "chats";
 
 // A chat with no name yet, by docs/protocol.md's chats.kind.
-static QString placeholder(const QString &jid, int kind)
+static QString placeholder(int kind)
 {
     switch (kind) {
     case 1:
@@ -35,8 +36,6 @@ static QString placeholder(const QString &jid, int kind)
     case 3:
         return ChatListModel::tr("Channel");
     }
-    if (jid.endsWith("@s.whatsapp.net"))
-        return "+" + jid.section('@', 0, 0);
     return ChatListModel::tr("Unknown");
 }
 
@@ -48,7 +47,7 @@ static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
 {
     const QString jid = q.value(0).toString();
     const int kind = q.value(1).toInt();
-    const QString name = q.value(2).isNull() ? placeholder(jid, kind) : q.value(2).toString();
+    const QString name = q.value(2).isNull() ? placeholder(kind) : q.value(2).toString();
     QVariantMap row;
     row["jid"] = jid;
     row["kind"] = kind;
@@ -69,15 +68,11 @@ ChatListModel::ChatListModel(EngineLink *engine, Mode mode, QObject *parent)
     : DataModel(parent)
     , m_engine(engine)
     , m_mode(mode)
-    , m_dbName(mode == Archived ? "chats-archived" : mode == Channels ? "chats-channels" : kDb)
+    , m_dbName(mode == Archived ? "chats-archived" : kDb)
     , m_unreadTotal(0)
     , m_revision(0)
     , m_region(bb::system::LocaleType::Region)
 {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", m_dbName);
-    db.setDatabaseName(QDir::homePath() + "/chats.db");
-    db.setConnectOptions("QSQLITE_OPEN_READONLY");
-
     // During a history sync the engine sends a chats event every 50 ms; a reload at most every
     // 250 ms keeps the UI thread free.
     m_soon.setSingleShot(true);
@@ -129,8 +124,8 @@ QVariantMap ChatListModel::chat(const QString &jid)
                 return row;
         }
     }
-    QSqlDatabase db = QSqlDatabase::database(m_dbName, false);
-    if (!db.isOpen() && !db.open())
+    QSqlDatabase db = ChatsDb::open(m_dbName);
+    if (!db.isOpen())
         return QVariantMap();
     QSqlQuery q(db);
     q.prepare(QString("SELECT %1 FROM chats WHERE jid = ?").arg(kRowColumns));
@@ -149,8 +144,8 @@ QStringList ChatListModel::findMessages(const QString &jid, const QString &text)
     const QString t = text.trimmed();
     if (t.isEmpty())
         return ids;
-    QSqlDatabase db = QSqlDatabase::database(m_dbName, false);
-    if (!db.isOpen() && !db.open())
+    QSqlDatabase db = ChatsDb::open(m_dbName);
+    if (!db.isOpen())
         return ids;
     QSqlQuery q(db);
     q.prepare("SELECT id, text FROM messages WHERE chat = ? AND kind NOT IN (6, 13) AND deleted = 0 "
@@ -167,52 +162,13 @@ QStringList ChatListModel::findMessages(const QString &jid, const QString &text)
     return ids;
 }
 
-// ponytail: scans messages for starred = 1 (no index, as Qt 4.8's SQLite reads the file); an index on the engine's
-// side if the page gets slow.
-QVariantList ChatListModel::starred()
-{
-    QVariantList rows;
-    QSqlDatabase db = QSqlDatabase::database(m_dbName, false);
-    if (!db.isOpen() && !db.open())
-        return rows;
-    QSqlQuery q(db);
-    if (!q.exec("SELECT m.chat, m.id, m.ts, m.out, m.sender_name, m.kind, m.text, c.name, c.kind "
-                "FROM messages m JOIN chats c ON c.jid = m.chat WHERE m.starred = 1 AND m.deleted = 0 "
-                "ORDER BY m.ts DESC, m.rowid DESC")) {
-        qWarning() << "starred:" << q.lastError().text();
-        return rows;
-    }
-    dayFormatter().applyCurrentTimeAsAnchor();
-    const QLocale locale = m_region.locale();
-    const QString clock = timeFormat(locale, DateFormat::Short);
-    const QDate today = QDate::currentDate();
-    while (q.next()) {
-        const QString chat = q.value(0).toString();
-        const int kind = q.value(8).toInt();
-        const QDateTime when = QDateTime::fromTime_t(q.value(2).toUInt());
-        const int age = when.date().daysTo(today);
-        QVariantMap row;
-        row["chat"] = chat;
-        row["id"] = q.value(1).toString();
-        row["chatName"] = q.value(7).isNull() ? placeholder(chat, kind) : q.value(7).toString();
-        row["sender"] = kind != 1 ? QString() : q.value(3).toInt() != 0 ? tr("You") : q.value(4).toString();
-        row["text"] = Pins::summary(q.value(5).toInt(), q.value(6).toString());
-        // As the chat list: the time today, the day within the week, else the date.
-        row["time"] = age == 0 ? locale.toString(when.time(), clock)
-                    : age < 7 ? dayLabel(when, today, locale, dayFormatter())
-                    : locale.toString(when.date(), QLocale::ShortFormat);
-        rows << row;
-    }
-    return rows;
-}
-
 // For the toast of the chip under a card: "You 👍" for ours, else the reactor's name, or the part
 // of the sender's key before the '@' when there is no name.
 QString ChatListModel::reactionsText(const QString &jid, const QString &id)
 {
     QStringList lines;
-    QSqlDatabase db = QSqlDatabase::database(m_dbName, false);
-    if (!db.isOpen() && !db.open())
+    QSqlDatabase db = ChatsDb::open(m_dbName);
+    if (!db.isOpen())
         return QString();
     QSqlQuery q(db);
     q.prepare("SELECT sender, sender_name, emoji FROM reactions WHERE chat = ? AND msg = ? "
@@ -271,14 +227,12 @@ void ChatListModel::setFilter(const QString &text)
 // changed jids if accounts with thousands of chats make it show.
 void ChatListModel::reload()
 {
-    QSqlDatabase db = QSqlDatabase::database(m_dbName, false);
+    QSqlDatabase db = ChatsDb::open(m_dbName);
     // Before the first link the engine hasn't made chats.db: try again at the next event.
-    if (!db.isOpen() && !db.open())
+    if (!db.isOpen())
         return;
     QSqlQuery q(db);
-    // Channels have their own list: WhatsApp keeps them apart too.
-    const QString where = m_mode == Channels ? QString("kind = 3")
-                                             : QString("kind != 3 AND archived = %1").arg(m_mode == Archived ? 1 : 0);
+    const QString where = QString("archived = %1").arg(m_mode == Archived ? 1 : 0);
     if (!q.exec(QString("SELECT %1 FROM chats WHERE %2 ORDER BY pinned DESC, last_ts DESC").arg(kRowColumns).arg(where))) {
         qWarning() << "chats:" << q.lastError().text();
         return;
@@ -377,15 +331,15 @@ void ChatListModel::updateFrame()
 {
     if (m_engine->fullscreen())
         return;
-    QSqlDatabase db = QSqlDatabase::database(m_dbName, false);
-    if (!db.isOpen() && !db.open())
+    QSqlDatabase db = ChatsDb::open(m_dbName);
+    if (!db.isOpen())
         return;
     const qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
     int total = 0;
     QStringList names;
     QSqlQuery q(db);
     // ponytail: the first 10 names are more than the frame's three lines hold.
-    q.prepare("SELECT name, jid, unread FROM chats WHERE muted_until <= ? AND unread != 0 AND archived = 0 AND kind != 3 "
+    q.prepare("SELECT name, jid, unread FROM chats WHERE muted_until <= ? AND unread != 0 AND archived = 0 "
               "ORDER BY last_ts DESC");
     q.addBindValue(now);
     if (q.exec()) {

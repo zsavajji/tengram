@@ -1,7 +1,7 @@
 import bb.cascades 1.4
 import bb.system 1.2
 import bb.cascades.pickers 1.0
-import hyperberry 1.0
+import tengram 1.0
 
 // One chat (PLAN.md §7, step 3.1): a FreeForm title bar with the tile, name and status line, and
 // the messages as cards. chat is a ChatListModel row, set right after createObject().
@@ -76,13 +76,9 @@ Page {
             chatCtl: ctl
         },
         PollAction { id: pollAction; jid: page.chat ? page.chat.jid : "" },
-        ComponentDefinition {
-            id: callPickDef
-            source: "CallPickPage.qml"
-        },
         SystemToast {
             id: notSent
-            body: qsTr("Not sent: HyperBerry is reconnecting. Try again in a moment.")
+            body: qsTr("Not sent: Tengram is reconnecting. Try again in a moment.")
         },
         // The player, the recorder and the search, reaction and staged bars are made at their first use, by
         // the functions of their names: together they were 135 of the 215 ms a chat's page took to build
@@ -146,7 +142,7 @@ Page {
         },
         SystemToast {
             id: deleteFailed
-            body: qsTr("Not deleted: HyperBerry is reconnecting. Try again in a moment.")
+            body: qsTr("Not deleted: Tengram is reconnecting. Try again in a moment.")
         },
         SystemToast {
             id: editFailed
@@ -427,18 +423,6 @@ Page {
         members: ctl.groupInfo.participants ? ctl.groupInfo.participants.length : 0
         onTapped: infoAction.showInfo()
         onBack: nav.pop()
-        onGroupCall: page.pickGroupCall()
-    }
-    // A group call (step 7d.G4): who to ring is picked on a page of its own; it pops once the call
-    // is asked for, and the call screen opens on the engine's first call event.
-    function pickGroupCall() {
-        var p = callPickDef.createObject()
-        p.load(page.chat.jid)
-        p.done.connect(page.callPlaced)
-        nav.push(p)
-    }
-    function callPlaced() {
-        nav.pop()
     }
     // At the ear, a voice note playing: the screen goes black and takes no touch, as the call screen does (the
     // user's ask, 2026-11-16); the title bar hides, so the black covers it all. The action bar is hidden already.
@@ -483,10 +467,6 @@ Page {
                     function copy(text) {
                         ctl.copy(text)
                     }
-                    // Star, or take the star off one that has it: the engine tells the phone, and the card redraws.
-                    function star(msg) {
-                        engine.request("msg.star", {"chat": page.chat.jid, "id": msg.id, "star": !msg.starred})
-                    }
                     // Edit (ours, a text): the composer takes its text, the bar above says so, Send replaces it.
                     function edit(msg) {
                         page.unstage()
@@ -494,10 +474,6 @@ Page {
                         composer.text = msg.text
                         composer.requestFocus()
                         composer.editor.cursorPosition = msg.text.length
-                    }
-                    // A tap on the quote of a reply to a story, or of a like on one of ours: the Stories tab plays it.
-                    function openStory(msg) {
-                        nav.showStory(msg.storyPoster, msg.quote)
                     }
                     // A mention's link in a card: the person's page.
                     function openPerson(jid, name) {

@@ -33,7 +33,7 @@ SceneCover {
                     textStyle.base: SystemDefaults.TextStyles.BodyText
                     textStyle.fontSize: FontSize.PercentageValue
                     textStyle.fontSizeValue: 130
-                    textStyle.color: Color.create("#1BD862") // as the idle state's name
+                    textStyle.color: Color.create("#24A1DE") // as the idle state's name
                     topMargin: 0
                     bottomMargin: 0
                 }
@@ -72,9 +72,9 @@ SceneCover {
             verticalAlignment: VerticalAlignment.Center
             Label {
                 horizontalAlignment: HorizontalAlignment.Center
-                text: "HyperBerry"
+                text: "Tengram"
                 textStyle.base: SystemDefaults.TextStyles.BodyText
-                textStyle.color: Color.create("#1BD862")
+                textStyle.color: Color.create("#24A1DE")
                 topMargin: 0
                 bottomMargin: 0
             }

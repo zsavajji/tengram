@@ -82,7 +82,7 @@ Page {
             horizontalAlignment: HorizontalAlignment.Fill
             Label {
                 multiline: true
-                text: qsTr("Type the number of the phone that has WhatsApp.")
+                text: qsTr("Type the number of the phone that has Telegram.")
             }
         }
         Container {
@@ -149,7 +149,7 @@ Page {
             layout: DockLayout {}
             Busy {
                 running: page.asking
-                text: qsTr("Asking WhatsApp for a code…")
+                text: qsTr("Asking Telegram for a code…")
             }
         }
     }

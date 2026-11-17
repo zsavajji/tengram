@@ -36,7 +36,7 @@ void MapChooser::choose(double lat, double lon, const QString &name)
     InvokeQueryTargetsRequest request;
     request.setAction("bb.action.OPEN");
     request.setUri(QString("geo:%1,%2").arg(m_lat, m_lon));
-    // No Self in the types: the system leaves HyperBerry out. Services and headless apps have no screen.
+    // No Self in the types: the system leaves Tengram out. Services and headless apps have no screen.
     request.setTargetTypes(InvokeTarget::Application | InvokeTarget::Card);
     m_reply = m_invoker.queryTargets(request);
     if (m_reply)

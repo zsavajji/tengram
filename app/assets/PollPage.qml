@@ -2,7 +2,7 @@ import bb.cascades 1.4
 import bb.system 1.2
 
 // Create poll (step 6.6e): the question, the options (two to start, up to WhatsApp's 12) and whether
-// several can be picked. The engine checks WhatsApp's limits (poll.create); a failure to send shows
+// several can be picked. The engine checks Telegram's limits (poll.create); a failure to send shows
 // as a toast on the chat page (ReactBar), which this page has gone back to by then.
 Page {
     id: page
@@ -84,7 +84,7 @@ Page {
         },
         SystemToast {
             id: offline
-            body: qsTr("Not sent: HyperBerry is reconnecting. Try again in a moment.")
+            body: qsTr("Not sent: Tengram is reconnecting. Try again in a moment.")
         }
     ]
     onCreationCompleted: {

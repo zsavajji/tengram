@@ -1,28 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="de_DE">
+<TS version="2.0" language="pl_PL">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutPage</name>
     <message>
         <source>About</source>
-        <translation>Über die App</translation>
-    </message>
-    <message>
-        <source>A client for WhatsApp based on hypermeow and meowcaller, for BlackBerry 10.</source>
-        <translation>Ein WhatsApp-Client auf Basis von hypermeow und meowcaller für BlackBerry 10.</translation>
+        <translation>O aplikacji</translation>
     </message>
     <message>
         <source>Thanks</source>
-        <translation>Danksagung</translation>
-    </message>
-    <message>
-        <source>vbbot, for whatsapp-light's patches to meowcaller</source>
-        <translation>vbbot, für die Patches von whatsapp-light an meowcaller</translation>
+        <translation>Podziękowania</translation>
     </message>
     <message>
         <source>Developer</source>
-        <translation>Entwickler</translation>
+        <translation>Programista</translation>
     </message>
 </context>
 <context>
@@ -38,12 +30,12 @@
     <message>
         <location filename="../assets/ArchivedPage.qml" line="14" />
         <source>Archived</source>
-        <translation>Archiviert</translation>
+        <translation>Zarchiwizowane</translation>
     </message>
     <message>
         <location filename="../assets/ArchivedPage.qml" line="40" />
         <source>No archived chats</source>
-        <translation>Keine archivierten Chats</translation>
+        <translation>Brak zarchiwizowanych czatów</translation>
     </message>
 </context>
 <context>
@@ -51,7 +43,7 @@
     <message>
         <location filename="../assets/SharePage.qml" line="11" />
         <source>Send to</source>
-        <translation>Senden an</translation>
+        <translation>Wyślij do</translation>
     </message>
 </context>
 <context>
@@ -59,46 +51,47 @@
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="19" />
         <source>Channel info</source>
-        <translation>Kanalinfo</translation>
+        <translation>Dane kanału</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="23" />
         <location filename="../assets/ChannelInfoPage.qml" line="39" />
         <source>Unfollow</source>
-        <translation>Nicht mehr folgen</translation>
+        <translation>Przestań obserwować</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="37" />
         <source>Unfollow this channel?</source>
-        <translation>Diesem Kanal nicht mehr folgen?</translation>
+        <translation>Przestać obserwować ten kanał?</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="40" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message numerus="yes">
         <location filename="../assets/ChannelInfoPage.qml" line="106" />
         <source>%Ln followers</source>
         <translation>
-            <numerusform>%Ln Follower</numerusform>
-            <numerusform>%Ln Follower</numerusform>
+            <numerusform>%Ln obserwujący</numerusform>
+            <numerusform>%Ln obserwujących</numerusform>
+            <numerusform>%Ln obserwujących</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="116" />
         <source>Loading…</source>
-        <translation>Wird geladen…</translation>
+        <translation>Ładowanie…</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="125" />
         <source>Couldn't load the channel's info. Check the connection and try again.</source>
-        <translation>Kanalinfo konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.</translation>
+        <translation>Nie udało się wczytać danych kanału. Sprawdź połączenie i spróbuj ponownie.</translation>
     </message>
     <message>
         <location filename="../assets/ChannelInfoPage.qml" line="129" />
         <source>Description</source>
-        <translation>Beschreibung</translation>
+        <translation>Opis</translation>
     </message>
 </context>
 <context>
@@ -106,42 +99,42 @@
     <message>
         <location filename="../assets/ChannelsPage.qml" line="12" />
         <source>Channels</source>
-        <translation>Kanäle</translation>
+        <translation>Kanały</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="40" />
         <source>Follow</source>
-        <translation>Folgen</translation>
+        <translation>Obserwuj</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="13" />
         <source>Follow a channel</source>
-        <translation>Einem Kanal folgen</translation>
+        <translation>Obserwuj kanał</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="14" />
         <source>Paste the channel's link</source>
-        <translation>Füge den Link des Kanals ein</translation>
+        <translation>Wklej link do kanału</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="16" />
         <source>Next</source>
-        <translation>Weiter</translation>
+        <translation>Dalej</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="17" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="15" />
         <source>That isn't a channel link</source>
-        <translation>Das ist kein Kanal-Link</translation>
+        <translation>To nie jest link do kanału</translation>
     </message>
     <message>
         <location filename="../assets/ChannelsPage.qml" line="70" />
         <source>No channels. Follow one by its link, or on your phone.</source>
-        <translation>Keine Kanäle. Folge einem über seinen Link oder auf deinem Handy.</translation>
+        <translation>Brak kanałów. Zacznij obserwować kanał przez link lub na telefonie.</translation>
     </message>
 </context>
 <context>
@@ -149,37 +142,37 @@
     <message>
         <location filename="../src/ChatControllerGroup.cpp" line="23" />
         <source>1 participant</source>
-        <translation>1 Teilnehmer</translation>
+        <translation>1 uczestnik</translation>
     </message>
     <message>
         <location filename="../src/ChatControllerGroup.cpp" line="23" />
         <source>%1 participants</source>
-        <translation>%1 Teilnehmer</translation>
+        <translation>Uczestników: %1</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="270" />
         <source>You</source>
-        <translation>Du</translation>
+        <translation>Ty</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="424" />
         <source>%1 is recording audio…</source>
-        <translation>%1 nimmt Audio auf…</translation>
+        <translation>%1 nagrywa dźwięk…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="424" />
         <source>%1 is typing…</source>
-        <translation>%1 schreibt…</translation>
+        <translation>%1 pisze…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="426" />
         <source>recording audio…</source>
-        <translation>nimmt Audio auf…</translation>
+        <translation>nagrywa dźwięk…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="426" />
         <source>typing…</source>
-        <translation>schreibt…</translation>
+        <translation>pisze…</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="441" />
@@ -189,17 +182,17 @@
     <message>
         <location filename="../src/ChatController.cpp" line="448" />
         <source>last seen today at %1</source>
-        <translation>zuletzt online heute um %1</translation>
+        <translation>ostatnio online dziś o %1</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="450" />
         <source>last seen yesterday at %1</source>
-        <translation>zuletzt online gestern um %1</translation>
+        <translation>ostatnio online wczoraj o %1</translation>
     </message>
     <message>
         <location filename="../src/ChatController.cpp" line="452" />
         <source>last seen %1 at %2</source>
-        <translation>zuletzt online am %1 um %2</translation>
+        <translation>ostatnio online %1 o %2</translation>
     </message>
 </context>
 <context>
@@ -207,42 +200,42 @@
     <message>
         <location filename="../assets/ChatList.qml" line="41" />
         <source>Mute for…</source>
-        <translation>Stummschalten für…</translation>
+        <translation>Wycisz na…</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="42" />
         <source>Mute</source>
-        <translation>Stummschalten</translation>
+        <translation>Wycisz</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="43" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="45" />
         <source>8 hours</source>
-        <translation>8 Stunden</translation>
+        <translation>8 godzin</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="46" />
         <source>1 week</source>
-        <translation>1 Woche</translation>
+        <translation>1 tydzień</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="47" />
         <source>Always</source>
-        <translation>Immer</translation>
+        <translation>Zawsze</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="58" />
         <source>Unfollow this channel?</source>
-        <translation>Diesem Kanal nicht mehr folgen?</translation>
+        <translation>Przestać obserwować ten kanał?</translation>
     </message>
     <message>
         <location filename="../assets/ChatList.qml" line="60" />
         <source>Unfollow</source>
-        <translation>Nicht mehr folgen</translation>
+        <translation>Przestań obserwować</translation>
     </message>
 </context>
 <context>
@@ -250,37 +243,37 @@
     <message>
         <location filename="../src/ChatListModel.cpp" line="31" />
         <source>Unnamed group</source>
-        <translation>Gruppe ohne Namen</translation>
+        <translation>Grupa bez nazwy</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="33" />
         <source>Broadcast list</source>
-        <translation>Broadcast-Liste</translation>
+        <translation>Lista rozgłoszeniowa</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="35" />
         <source>Channel</source>
-        <translation>Kanal</translation>
+        <translation>Kanał</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="39" />
         <source>Unknown</source>
-        <translation>Unbekannt</translation>
+        <translation>Nieznany</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="190" />
         <source>You</source>
-        <translation>Du</translation>
+        <translation>Ty</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="278" />
         <source>Pinned</source>
-        <translation>Angepinnt</translation>
+        <translation>Przypięte</translation>
     </message>
     <message>
         <location filename="../src/ChatListModel.cpp" line="278" />
         <source>No messages</source>
-        <translation>Keine Nachrichten</translation>
+        <translation>Brak wiadomości</translation>
     </message>
 </context>
 <context>
@@ -288,82 +281,82 @@
     <message>
         <location filename="../assets/ChatPage.qml" line="45" />
         <source>Attach</source>
-        <translation>Anhängen</translation>
+        <translation>Załącz</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="73" />
         <source>Contact info</source>
-        <translation>Kontaktinfo</translation>
+        <translation>Dane kontaktu</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="73" />
         <source>Channel info</source>
-        <translation>Kanalinfo</translation>
+        <translation>Dane kanału</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="73" />
         <source>Group info</source>
-        <translation>Gruppeninfo</translation>
+        <translation>Dane grupy</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="79" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Nicht gesendet: HyperBerry stellt die Verbindung wieder her. Versuche es gleich noch einmal.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Nie wysłano: Tengram łączy się ponownie. Spróbuj za chwilę.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="93" />
         <source>Couldn't open this file</source>
-        <translation>Diese Datei konnte nicht geöffnet werden</translation>
+        <translation>Nie udało się otworzyć tego pliku</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="97" />
         <source>Couldn't play this voice note</source>
-        <translation>Diese Sprachnachricht konnte nicht abgespielt werden</translation>
+        <translation>Nie udało się odtworzyć tej wiadomości głosowej</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="101" />
-        <source>Not deleted: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Nicht gelöscht: HyperBerry stellt die Verbindung wieder her. Versuche es gleich noch einmal.</translation>
+        <source>Not deleted: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Nie usunięto: Tengram łączy się ponownie. Spróbuj za chwilę.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="108" />
         <source>Message deleted</source>
-        <translation>Nachricht gelöscht</translation>
+        <translation>Wiadomość usunięta</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="109" />
         <source>Undo</source>
-        <translation>Rückgängig</translation>
+        <translation>Cofnij</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="122" />
         <source>Delete for everyone?</source>
-        <translation>Für alle löschen?</translation>
+        <translation>Usunąć dla wszystkich?</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="123" />
         <source>It will be deleted for everyone in this chat.</source>
-        <translation>Die Nachricht wird für alle in diesem Chat gelöscht.</translation>
+        <translation>Wiadomość zostanie usunięta dla wszystkich w tym czacie.</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="124" />
         <source>Delete</source>
-        <translation>Löschen</translation>
+        <translation>Usuń</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="125" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="173" />
         <source>Search</source>
-        <translation>Suchen</translation>
+        <translation>Szukaj</translation>
     </message>
     <message>
         <location filename="../assets/ChatPage.qml" line="108"/>
         <source>Couldn&apos;t edit this message</source>
-        <translation>Nachricht konnte nicht bearbeitet werden</translation>
+        <translation>Nie udało się edytować tej wiadomości</translation>
     </message>
 </context>
 <context>
@@ -371,52 +364,52 @@
     <message>
         <location filename="../assets/ChatRow.qml" line="20" />
         <source>Mark as read</source>
-        <translation>Als gelesen markieren</translation>
+        <translation>Oznacz jako przeczytane</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="20" />
         <source>Mark as unread</source>
-        <translation>Als ungelesen markieren</translation>
+        <translation>Oznacz jako nieprzeczytane</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="25" />
         <source>Unpin</source>
-        <translation>Anpinnen aufheben</translation>
+        <translation>Odepnij</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="25" />
         <source>Pin</source>
-        <translation>Anpinnen</translation>
+        <translation>Przypnij</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="30" />
         <source>Unmute</source>
-        <translation>Stummschaltung aufheben</translation>
+        <translation>Wyłącz wyciszenie</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="30" />
         <source>Mute…</source>
-        <translation>Stummschalten…</translation>
+        <translation>Wycisz…</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="35" />
         <source>Unarchive</source>
-        <translation>Archivierung aufheben</translation>
+        <translation>Przywróć z archiwum</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="35" />
         <source>Archive</source>
-        <translation>Archivieren</translation>
+        <translation>Zarchiwizuj</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="38" />
         <source>Unfollow</source>
-        <translation>Nicht mehr folgen</translation>
+        <translation>Przestań obserwować</translation>
     </message>
     <message>
         <location filename="../assets/ChatRow.qml" line="1" />
         <source>Call</source>
-        <translation>Anrufen</translation>
+        <translation>Zadzwoń</translation>
     </message>
 </context>
 <context>
@@ -424,22 +417,22 @@
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Call</source>
-        <translation>Anrufen</translation>
+        <translation>Zadzwoń</translation>
     </message>
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Audio only</source>
-        <translation>Nur Audio</translation>
+        <translation>Tylko dźwięk</translation>
     </message>
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Video</source>
-        <translation>Video</translation>
+        <translation>Wideo</translation>
     </message>
     <message>
         <location filename="../assets/ChatTitleBar.qml" line="1" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
 </context>
 <context>
@@ -447,69 +440,70 @@
     <message>
         <location filename="../assets/ChatsPage.qml" line="28" />
         <source>New chat</source>
-        <translation>Neuer Chat</translation>
+        <translation>Nowy czat</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="50" />
         <source>New group</source>
-        <translation>Neue Gruppe</translation>
+        <translation>Nowa grupa</translation>
     </message>
     <message numerus="yes">
         <location filename="../assets/ChatsPage.qml" line="150" />
         <source>%n couldn't be added: their privacy settings don't allow it. Invite them with the group's link from your main phone.</source>
         <translation>
-            <numerusform>%n Person konnte nicht hinzugefügt werden: Die Datenschutzeinstellungen erlauben es nicht. Lade sie über den Gruppenlink von deinem Haupt-Handy ein.</numerusform>
-            <numerusform>%n Personen konnten nicht hinzugefügt werden: Die Datenschutzeinstellungen erlauben es nicht. Lade sie über den Gruppenlink von deinem Haupt-Handy ein.</numerusform>
+            <numerusform>Nie udało się dodać %n osoby: ustawienia prywatności na to nie pozwalają. Wyślij zaproszenie przez link do grupy z głównego telefonu.</numerusform>
+            <numerusform>Nie udało się dodać %n osób: ustawienia prywatności na to nie pozwalają. Wyślij zaproszenie przez link do grupy z głównego telefonu.</numerusform>
+            <numerusform>Nie udało się dodać %n osób: ustawienia prywatności na to nie pozwalają. Wyślij zaproszenie przez link do grupy z głównego telefonu.</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="39" />
         <source>Top</source>
-        <translation>Nach oben</translation>
+        <translation>Na górę</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="48" />
         <source>Bottom</source>
-        <translation>Nach unten</translation>
+        <translation>Na dół</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="57" />
         <source>Search</source>
-        <translation>Suchen</translation>
+        <translation>Szukaj</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="67" />
         <source>Archived</source>
-        <translation>Archiviert</translation>
+        <translation>Zarchiwizowane</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="112" />
         <source>Chats</source>
-        <translation>Chats</translation>
+        <translation>Czaty</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="112" />
         <source>Connecting…</source>
-        <translation>Verbindung wird hergestellt…</translation>
+        <translation>Łączenie…</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="124" />
         <source>Search chats</source>
-        <translation>Chats suchen</translation>
+        <translation>Szukaj czatów</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="156" />
         <source>No chat matches.</source>
-        <translation>Kein passender Chat.</translation>
+        <translation>Brak pasujących czatów.</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="80" />
         <source>Channels</source>
-        <translation>Kanäle</translation>
+        <translation>Kanały</translation>
     </message>
     <message>
         <source>Starred messages</source>
-        <translation>Mit Stern markierte Nachrichten</translation>
+        <translation>Wiadomości z gwiazdką</translation>
     </message>
 </context>
 <context>
@@ -517,7 +511,7 @@
     <message>
         <location filename="../assets/Composer.qml" line="73" />
         <source>Message</source>
-        <translation>Nachricht</translation>
+        <translation>Wiadomość</translation>
     </message>
 </context>
 <context>
@@ -525,7 +519,7 @@
     <message>
         <location filename="../src/ContactInfo.cpp" line="77" />
         <source>Unnamed group</source>
-        <translation>Gruppe ohne Namen</translation>
+        <translation>Grupa bez nazwy</translation>
     </message>
 </context>
 <context>
@@ -533,131 +527,131 @@
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="39" />
         <source>Contact info</source>
-        <translation>Kontaktinfo</translation>
+        <translation>Dane kontaktu</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="44" />
         <source>Message</source>
-        <translation>Nachricht</translation>
+        <translation>Wiadomość</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="50" />
         <source>Export chat</source>
-        <translation>Chat exportieren</translation>
+        <translation>Eksportuj czat</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="58" />
         <source>Clear chat</source>
-        <translation>Chat leeren</translation>
+        <translation>Wyczyść czat</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="67" />
         <source>Unblock</source>
-        <translation>Blockierung aufheben</translation>
+        <translation>Odblokuj</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="67" />
         <location filename="../assets/ContactInfoPage.qml" line="163" />
         <source>Block</source>
-        <translation>Blockieren</translation>
+        <translation>Zablokuj</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="79" />
         <source>Delete chat</source>
-        <translation>Chat löschen</translation>
+        <translation>Usuń czat</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="149" />
         <source>Clear this chat?</source>
-        <translation>Diesen Chat leeren?</translation>
+        <translation>Wyczyścić ten czat?</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="150" />
         <location filename="../assets/ContactInfoPage.qml" line="174" />
         <source>Its messages will be deleted from this phone.</source>
-        <translation>Die Nachrichten werden von diesem Handy gelöscht.</translation>
+        <translation>Wiadomości zostaną usunięte z tego telefonu.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="151" />
         <source>Clear</source>
-        <translation>Leeren</translation>
+        <translation>Wyczyść</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="152" />
         <location filename="../assets/ContactInfoPage.qml" line="164" />
         <location filename="../assets/ContactInfoPage.qml" line="176" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="161" />
         <source>Block %1?</source>
-        <translation>%1 blockieren?</translation>
+        <translation>Zablokować %1?</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="162" />
         <source>Blocked contacts can't call you or send you messages.</source>
-        <translation>Blockierte Kontakte können dich nicht anrufen oder dir Nachrichten senden.</translation>
+        <translation>Zablokowane kontakty nie mogą do ciebie dzwonić ani wysyłać ci wiadomości.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="173" />
         <source>Delete this chat?</source>
-        <translation>Diesen Chat löschen?</translation>
+        <translation>Usunąć ten czat?</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="175" />
         <source>Delete</source>
-        <translation>Löschen</translation>
+        <translation>Usuń</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="190" />
         <source>Couldn't do that. Check the connection and try again.</source>
-        <translation>Das hat nicht geklappt. Prüfe deine Verbindung und versuche es erneut.</translation>
+        <translation>Nie udało się. Sprawdź połączenie i spróbuj ponownie.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="203" />
         <source>Saved to Downloads: %1</source>
-        <translation>In Downloads gespeichert: %1</translation>
+        <translation>Zapisano w folderze Pobrane: %1</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="271" />
         <source>Loading…</source>
-        <translation>Wird geladen…</translation>
+        <translation>Ładowanie…</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="280" />
         <source>Couldn't load the contact's info. Check the connection and try again.</source>
-        <translation>Kontaktinfo konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.</translation>
+        <translation>Nie udało się wczytać danych kontaktu. Sprawdź połączenie i spróbuj ponownie.</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="284" />
         <source>About</source>
-        <translation>Info</translation>
+        <translation>Informacje</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="319" />
         <source>Mute notifications</source>
-        <translation>Benachrichtigungen stummschalten</translation>
+        <translation>Wycisz powiadomienia</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="329" />
         <source>1 group in common</source>
-        <translation>1 gemeinsame Gruppe</translation>
+        <translation>1 wspólna grupa</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="329" />
         <source>%1 groups in common</source>
-        <translation>%1 gemeinsame Gruppen</translation>
+        <translation>Wspólnych grup: %1</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="1" />
         <source>Voice call</source>
-        <translation>Sprachanruf</translation>
+        <translation>Połączenie głosowe</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="1" />
         <source>Video call</source>
-        <translation>Videoanruf</translation>
+        <translation>Połączenie wideo</translation>
     </message>
 </context>
 <context>
@@ -665,12 +659,12 @@
     <message>
         <location filename="../assets/CountryPage.qml" line="13" />
         <source>Country</source>
-        <translation>Land</translation>
+        <translation>Kraj</translation>
     </message>
     <message>
         <location filename="../assets/CountryPage.qml" line="38" />
         <source>Search by name or code</source>
-        <translation>Nach Name oder Vorwahl suchen</translation>
+        <translation>Szukaj według nazwy lub kodu</translation>
     </message>
 </context>
 <context>
@@ -678,7 +672,7 @@
     <message>
         <location filename="../src/EmojiModel.cpp" line="28" />
         <source>Recent</source>
-        <translation>Zuletzt verwendet</translation>
+        <translation>Ostatnie</translation>
     </message>
 </context>
 <context>
@@ -686,7 +680,7 @@
     <message>
         <location filename="../assets/EmptyNote.qml" line="8" />
         <source>No messages here</source>
-        <translation>Hier sind keine Nachrichten</translation>
+        <translation>Brak wiadomości</translation>
     </message>
 </context>
 <context>
@@ -695,7 +689,7 @@
         <location filename="../src/EngineLink.cpp" line="260" />
         <location filename="../src/EngineLink.cpp" line="284" />
         <source>The engine isn't running.</source>
-        <translation>Die Engine läuft nicht.</translation>
+        <translation>Silnik nie działa.</translation>
     </message>
 </context>
 <context>
@@ -703,27 +697,27 @@
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="15" />
         <source>Group info</source>
-        <translation>Gruppeninfo</translation>
+        <translation>Dane grupy</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="98" />
         <source>1 participant</source>
-        <translation>1 Teilnehmer</translation>
+        <translation>1 uczestnik</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="98" />
         <source>%1 participants</source>
-        <translation>%1 Teilnehmer</translation>
+        <translation>Uczestników: %1</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="142" />
         <source>You</source>
-        <translation>Du</translation>
+        <translation>Ty</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="142" />
         <source>Unknown</source>
-        <translation>Unbekannt</translation>
+        <translation>Nieznany</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="152" />
@@ -733,67 +727,67 @@
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="170" />
         <source>Loading…</source>
-        <translation>Wird geladen…</translation>
+        <translation>Ładowanie…</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="179" />
         <source>Couldn't load the group's info. Check the connection and try again.</source>
-        <translation>Gruppeninfo konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.</translation>
+        <translation>Nie udało się wczytać danych grupy. Sprawdź połączenie i spróbuj ponownie.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="56" />
         <source>Add participant</source>
-        <translation>Teilnehmer hinzufügen</translation>
+        <translation>Dodaj uczestnika</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="62" />
         <source>Remove %1 from the group?</source>
-        <translation>%1 aus der Gruppe entfernen?</translation>
+        <translation>Usunąć %1 z grupy?</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="63" />
         <source>Remove</source>
-        <translation>Entfernen</translation>
+        <translation>Usuń</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="64" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="79" />
         <source>Their privacy settings don't let you add them. Invite them with the group's link from your main phone.</source>
-        <translation>Wegen der Datenschutzeinstellungen kannst du die Person nicht hinzufügen. Lade sie über den Gruppenlink von deinem Haupt-Handy ein.</translation>
+        <translation>Ustawienia prywatności nie pozwalają dodać tej osoby. Wyślij zaproszenie przez link do grupy z głównego telefonu.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="82" />
         <source>They're already in the group.</source>
-        <translation>Die Person ist bereits in der Gruppe.</translation>
+        <translation>Ta osoba jest już w grupie.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="85" />
-        <source>WhatsApp refused that (%1).</source>
-        <translation>WhatsApp hat das abgelehnt (%1).</translation>
+        <source>Telegram refused that (%1).</source>
+        <translation>Telegram odrzucił żądanie (%1).</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="87" />
         <source>Couldn't do that. Check the connection and try again.</source>
-        <translation>Das hat nicht geklappt. Prüfe deine Verbindung und versuche es erneut.</translation>
+        <translation>Nie udało się. Sprawdź połączenie i spróbuj ponownie.</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="251" />
         <source>Dismiss as admin</source>
-        <translation>Als Admin entfernen</translation>
+        <translation>Usuń z administratorów</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="251" />
         <source>Make group admin</source>
-        <translation>Zum Gruppenadmin machen</translation>
+        <translation>Mianuj administratorem</translation>
     </message>
     <message>
         <location filename="../assets/GroupInfoPage.qml" line="256" />
         <source>Remove from group</source>
-        <translation>Aus Gruppe entfernen</translation>
+        <translation>Usuń z grupy</translation>
     </message>
 </context>
 <context>
@@ -801,85 +795,85 @@
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="20" />
         <source>Link with phone number</source>
-        <translation>Mit Telefonnummer verknüpfen</translation>
+        <translation>Połącz przez numer telefonu</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="24" />
         <source>Get code</source>
-        <translation>Code anfordern</translation>
+        <translation>Pobierz kod</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="85" />
-        <source>Type the number of the phone that has WhatsApp.</source>
-        <translation>Gib die Nummer des Handys ein, auf dem du WhatsApp hast.</translation>
+        <source>Type the number of the phone that has Telegram.</source>
+        <translation>Wpisz numer telefonu, na którym masz Telegram.</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="116" />
         <source>Country</source>
-        <translation>Land</translation>
+        <translation>Kraj</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="127" />
         <source>Phone number</source>
-        <translation>Telefonnummer</translation>
+        <translation>Numer telefonu</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="152" />
-        <source>Asking WhatsApp for a code…</source>
-        <translation>Code wird bei WhatsApp angefragt…</translation>
+        <source>Asking Telegram for a code…</source>
+        <translation>Pobieranie kodu z Telegram…</translation>
     </message>
 </context>
 <context>
     <name>LinkPage</name>
     <message>
         <location filename="../assets/LinkPage.qml" line="15" />
-        <source>Link to WhatsApp</source>
-        <translation>Mit WhatsApp verknüpfen</translation>
+        <source>Link to Telegram</source>
+        <translation>Połącz z Telegram</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="19" />
         <source>Link with phone number</source>
-        <translation>Mit Telefonnummer verknüpfen</translation>
+        <translation>Połącz przez numer telefonu</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="69" />
-        <source>On your phone, open WhatsApp, go to Linked devices, tap Link a device, and scan this code.</source>
-        <translation>Öffne auf deinem Handy WhatsApp, gehe zu Verknüpfte Geräte, tippe auf Gerät verknüpfen und scanne diesen Code.</translation>
+        <source>On your phone, open Telegram, go to Linked devices, tap Link a device, and scan this code.</source>
+        <translation>Na telefonie otwórz Telegram, przejdź do „Połączone urządzenia”, dotknij „Połącz urządzenie” i zeskanuj ten kod.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="83" />
-        <source>On your phone, open WhatsApp, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:</source>
-        <translation>Öffne auf deinem Handy WhatsApp, gehe zu Verknüpfte Geräte, tippe auf Gerät verknüpfen, dann auf Stattdessen mit Telefonnummer verknüpfen und gib diesen Code ein:</translation>
+        <source>On your phone, open Telegram, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:</source>
+        <translation>Na telefonie otwórz Telegram, przejdź do „Połączone urządzenia”, dotknij „Połącz urządzenie”, potem „Połącz przez numer telefonu” i wpisz ten kod:</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="97" />
         <source>The code expired.</source>
-        <translation>Der Code ist abgelaufen.</translation>
+        <translation>Kod wygasł.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="101" />
         <source>Show a new code</source>
-        <translation>Neuen Code anzeigen</translation>
+        <translation>Pokaż nowy kod</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="101" />
         <source>Show the code</source>
-        <translation>Code anzeigen</translation>
+        <translation>Pokaż kod</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="114" />
         <source>Starting…</source>
-        <translation>Wird gestartet…</translation>
+        <translation>Uruchamianie…</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="114" />
-        <source>Linking… Keep WhatsApp open on your phone.</source>
-        <translation>Verknüpfung läuft… Lass WhatsApp auf deinem Handy geöffnet.</translation>
+        <source>Linking… Keep Telegram open on your phone.</source>
+        <translation>Łączenie… Nie zamykaj Telegram na telefonie.</translation>
     </message>
     <message>
         <location filename="../assets/LinkPage.qml" line="117" />
         <source>Getting your chats from your phone… This can take a few minutes.</source>
-        <translation>Deine Chats werden von deinem Handy geladen… Das kann ein paar Minuten dauern.</translation>
+        <translation>Pobieranie czatów z telefonu… Może to potrwać kilka minut.</translation>
     </message>
 </context>
 <context>
@@ -887,12 +881,12 @@
     <message>
         <location filename="../src/MapChooser.cpp" line="79" />
         <source>Open with</source>
-        <translation>Öffnen mit</translation>
+        <translation>Otwórz za pomocą</translation>
     </message>
     <message>
         <location filename="../src/MapChooser.cpp" line="81" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
 </context>
 <context>
@@ -900,22 +894,22 @@
     <message>
         <location filename="../assets/MediaBubble.qml" line="46" />
         <source>Video</source>
-        <translation>Video</translation>
+        <translation>Wideo</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="46" />
         <source>Photo</source>
-        <translation>Foto</translation>
+        <translation>Zdjęcie</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="106" />
         <source>Sticker</source>
-        <translation>Sticker</translation>
+        <translation>Naklejka</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="106" />
         <source>Audio file</source>
-        <translation>Audiodatei</translation>
+        <translation>Plik audio</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="106" />
@@ -925,7 +919,7 @@
     <message>
         <location filename="../assets/MediaBubble.qml" line="152" />
         <source>Show on map</source>
-        <translation>Auf Karte anzeigen</translation>
+        <translation>Pokaż na mapie</translation>
     </message>
     <message>
         <location filename="../assets/MediaBubble.qml" line="75" />
@@ -938,12 +932,12 @@
     <message>
         <location filename="../src/MediaData.cpp" line="49" />
         <source>Photo</source>
-        <translation>Foto</translation>
+        <translation>Zdjęcie</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="50" />
         <source>Video</source>
-        <translation>Video</translation>
+        <translation>Wideo</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="50" />
@@ -953,17 +947,17 @@
     <message>
         <location filename="../src/MediaData.cpp" line="91" />
         <source>Sticker</source>
-        <translation>Sticker</translation>
+        <translation>Naklejka</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="51" />
         <source>Audio file</source>
-        <translation>Audiodatei</translation>
+        <translation>Plik audio</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="103" />
         <source>Location</source>
-        <translation>Standort</translation>
+        <translation>Lokalizacja</translation>
     </message>
     <message>
         <location filename="../src/MediaData.cpp" line="105" />
@@ -975,81 +969,81 @@
     <name>MessageItem</name>
     <message>
         <source>Forwarded</source>
-        <translation>Weitergeleitet</translation>
+        <translation>Przekazane dalej</translation>
     </message>
     <message>
         <source>Forwarded many times</source>
-        <translation>Häufig weitergeleitet</translation>
+        <translation>Wielokrotnie przekazane dalej</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="30" />
         <source>Reply</source>
-        <translation>Antworten</translation>
+        <translation>Odpowiedz</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="45" />
         <source>View votes</source>
-        <translation>Stimmen anzeigen</translation>
+        <translation>Zobacz głosy</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="37" />
         <source>React</source>
-        <translation>Reagieren</translation>
+        <translation>Zareaguj</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="44" />
         <source>Copy</source>
-        <translation>Kopieren</translation>
+        <translation>Kopiuj</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="50" />
         <source>Delete for everyone</source>
-        <translation>Für alle löschen</translation>
+        <translation>Usuń dla wszystkich</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="56" />
         <source>Delete for me</source>
-        <translation>Für mich löschen</translation>
+        <translation>Usuń dla mnie</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="194" />
         <source>edited</source>
-        <translation>bearbeitet</translation>
+        <translation>edytowano</translation>
     </message>
     <message>
         <location filename="../assets/MessageItem.qml" line="1" />
         <source>Join group</source>
-        <translation>Gruppe beitreten</translation>
+        <translation>Dołącz do grupy</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Sending</source>
-        <translation>Wird gesendet</translation>
+        <translation>Wysyłanie</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Sent</source>
-        <translation>Gesendet</translation>
+        <translation>Wysłano</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Delivered</source>
-        <translation>Zugestellt</translation>
+        <translation>Dostarczono</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Read</source>
-        <translation>Gelesen</translation>
+        <translation>Przeczytano</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Not sent</source>
-        <translation>Nicht gesendet</translation>
+        <translation>Nie wysłano</translation>
     </message>
     <message>
         <location filename="../src/MessageCardActions.cpp" line="24" />
         <source>Edited</source>
-        <translation>Bearbeitet</translation>
+        <translation>Edytowano</translation>
     </message>
     <message>
         <location filename="../src/MessageCard.cpp" line="1" />
@@ -1059,15 +1053,15 @@
     <message>
         <location filename="../assets/MessageItem.qml" line="44"/>
         <source>Edit</source>
-        <translation>Bearbeiten</translation>
+        <translation>Edytuj</translation>
     </message>
     <message>
         <source>Star</source>
-        <translation>Mit Stern markieren</translation>
+        <translation>Oznacz gwiazdką</translation>
     </message>
     <message>
         <source>Unstar</source>
-        <translation>Stern entfernen</translation>
+        <translation>Usuń gwiazdkę</translation>
     </message>
 </context>
 <context>
@@ -1075,120 +1069,121 @@
     <message>
         <location filename="../src/MessageKinds.cpp" line="23" />
         <source>Voice call, %1</source>
-        <translation>Sprachanruf, %1</translation>
+        <translation>Połączenie głosowe, %1</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="24" />
         <source>Voice call</source>
-        <translation>Sprachanruf</translation>
+        <translation>Połączenie głosowe</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="26" />
         <source>Video call, %1</source>
-        <translation>Videoanruf, %1</translation>
+        <translation>Połączenie wideo, %1</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="27" />
         <source>Video call</source>
-        <translation>Videoanruf</translation>
+        <translation>Połączenie wideo</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="29" />
         <source>Missed voice call</source>
-        <translation>Verpasster Sprachanruf</translation>
+        <translation>Nieodebrane połączenie głosowe</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="31" />
         <source>Missed video call</source>
-        <translation>Verpasster Videoanruf</translation>
+        <translation>Nieodebrane połączenie wideo</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="36" />
         <source>You pinned a message</source>
-        <translation>Du hast eine Nachricht angepinnt</translation>
+        <translation>Wiadomość przypięta przez ciebie</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="37" />
         <source>%1 pinned a message</source>
-        <translation>%1 hat eine Nachricht angepinnt</translation>
+        <translation>Wiadomość przypięta przez %1</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="38" />
         <source>A message was pinned</source>
-        <translation>Eine Nachricht wurde angepinnt</translation>
+        <translation>Wiadomość została przypięta</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="41" />
         <source>You unpinned a message</source>
-        <translation>Du hast das Anpinnen einer Nachricht aufgehoben</translation>
+        <translation>Wiadomość odpięta przez ciebie</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="42" />
         <source>%1 unpinned a message</source>
-        <translation>%1 hat das Anpinnen einer Nachricht aufgehoben</translation>
+        <translation>Wiadomość odpięta przez %1</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="43" />
         <source>A message was unpinned</source>
-        <translation>Das Anpinnen einer Nachricht wurde aufgehoben</translation>
+        <translation>Wiadomość została odpięta</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="46" />
         <source>View once message. Open it on your phone.</source>
-        <translation>Nachricht zur einmaligen Ansicht. Öffne sie auf deinem Handy.</translation>
+        <translation>Wiadomość jednorazowego wyświetlenia. Otwórz ją na telefonie.</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="48" />
         <source>This message can only be seen on your phone.</source>
-        <translation>Diese Nachricht kann nur auf deinem Handy angezeigt werden.</translation>
+        <translation>Tę wiadomość można zobaczyć tylko na telefonie.</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="49" />
         <source>Message</source>
-        <translation>Nachricht</translation>
+        <translation>Wiadomość</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="78" />
         <source>Live location</source>
-        <translation>Live-Standort</translation>
+        <translation>Lokalizacja na żywo</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="79" />
         <source>Location</source>
-        <translation>Standort</translation>
+        <translation>Lokalizacja</translation>
     </message>
     <message numerus="yes">
         <location filename="../src/MessageKinds.cpp" line="99" />
         <source>%n contacts</source>
         <translation>
-            <numerusform>%n Kontakt</numerusform>
-            <numerusform>%n Kontakte</numerusform>
+            <numerusform>%n kontakt</numerusform>
+            <numerusform>%n kontakty</numerusform>
+            <numerusform>%n kontaktów</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="110" />
         <source>Poll</source>
-        <translation>Umfrage</translation>
+        <translation>Ankieta</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="111" />
         <source>Poll, choose several</source>
-        <translation>Umfrage, Mehrfachauswahl</translation>
+        <translation>Ankieta, wiele odpowiedzi</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="103" />
         <source>Event canceled</source>
-        <translation>Event abgesagt</translation>
+        <translation>Wydarzenie anulowane</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="104" />
         <source>Event</source>
-        <translation>Event</translation>
+        <translation>Wydarzenie</translation>
     </message>
     <message>
         <location filename="../src/MessageKinds.cpp" line="122" />
         <source>Group invite</source>
-        <translation>Gruppeneinladung</translation>
+        <translation>Zaproszenie do grupy</translation>
     </message>
 </context>
 <context>
@@ -1196,12 +1191,12 @@
     <message>
         <location filename="../src/MessageModel.cpp" line="117" />
         <source>This message was deleted</source>
-        <translation>Diese Nachricht wurde gelöscht</translation>
+        <translation>Ta wiadomość została usunięta</translation>
     </message>
     <message>
         <location filename="../src/MessageModel.cpp" line="173" />
         <source>You</source>
-        <translation>Du</translation>
+        <translation>Ty</translation>
     </message>
 </context>
 <context>
@@ -1209,27 +1204,27 @@
     <message>
         <location filename="../assets/NewChatPage.qml" line="11" />
         <source>New chat</source>
-        <translation>Neuer Chat</translation>
+        <translation>Nowy czat</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="38" />
         <source>Search contacts</source>
-        <translation>Kontakte suchen</translation>
+        <translation>Szukaj kontaktów</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="109" />
         <source>Loading…</source>
-        <translation>Wird geladen…</translation>
+        <translation>Ładowanie…</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="118" />
         <source>No contacts yet. Your phone sends them shortly after linking.</source>
-        <translation>Noch keine Kontakte. Dein Handy sendet sie kurz nach dem Verknüpfen.</translation>
+        <translation>Brak kontaktów. Telefon wysyła je krótko po połączeniu.</translation>
     </message>
     <message>
         <location filename="../assets/NewChatPage.qml" line="118" />
         <source>No contact matches.</source>
-        <translation>Kein passender Kontakt.</translation>
+        <translation>Brak pasujących kontaktów.</translation>
     </message>
 </context>
 <context>
@@ -1237,67 +1232,67 @@
     <message>
         <location filename="../assets/NewGroupPage.qml" line="8" />
         <source>New group</source>
-        <translation>Neue Gruppe</translation>
+        <translation>Nowa grupa</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="16" />
         <source>Create</source>
-        <translation>Erstellen</translation>
+        <translation>Utwórz</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="38" />
         <source>A group needs a name and someone in it</source>
-        <translation>Eine Gruppe braucht einen Namen und mindestens einen Teilnehmer</translation>
+        <translation>Grupa potrzebuje nazwy i co najmniej jednego uczestnika</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="42" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Nicht gesendet: HyperBerry stellt die Verbindung wieder her. Versuche es gleich noch einmal.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Nie wysłano: Tengram łączy się ponownie. Spróbuj za chwilę.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="14" />
-        <source>WhatsApp won't take a name that long</source>
-        <translation>WhatsApp akzeptiert keinen so langen Namen</translation>
+        <source>Telegram won't take a name that long</source>
+        <translation>Telegram nie przyjmie tak długiej nazwy</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="14" />
         <source>Couldn't create the group. Check the connection and try again.</source>
-        <translation>Die Gruppe konnte nicht erstellt werden. Prüfe deine Verbindung und versuche es erneut.</translation>
+        <translation>Nie udało się utworzyć grupy. Sprawdź połączenie i spróbuj ponownie.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="76" />
         <source>Group name</source>
-        <translation>Gruppenname</translation>
+        <translation>Nazwa grupy</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="80" />
         <source>Search contacts</source>
-        <translation>Kontakte suchen</translation>
+        <translation>Szukaj kontaktów</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="85" />
         <source>%1 chosen</source>
-        <translation>%1 ausgewählt</translation>
+        <translation>Wybrano: %1</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="111" />
         <source>Loading…</source>
-        <translation>Wird geladen…</translation>
+        <translation>Ładowanie…</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="115" />
         <source>Creating the group…</source>
-        <translation>Gruppe wird erstellt…</translation>
+        <translation>Tworzenie grupy…</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="118" />
         <source>No contacts yet. Your phone sends them shortly after linking.</source>
-        <translation>Noch keine Kontakte. Dein Handy sendet sie kurz nach dem Verknüpfen.</translation>
+        <translation>Brak kontaktów. Telefon wysyła je krótko po połączeniu.</translation>
     </message>
     <message>
         <location filename="../assets/NewGroupPage.qml" line="118" />
         <source>No contact matches.</source>
-        <translation>Kein passender Kontakt.</translation>
+        <translation>Brak pasujących kontaktów.</translation>
     </message>
 </context>
 <context>
@@ -1305,22 +1300,22 @@
     <message>
         <location filename="../assets/PhotoViewer.qml" line="21" />
         <source>Save</source>
-        <translation>Speichern</translation>
+        <translation>Zapisz</translation>
     </message>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="24" />
         <source>Saved to Pictures</source>
-        <translation>In Bildern gespeichert</translation>
+        <translation>Zapisano w folderze Obrazy</translation>
     </message>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="25" />
         <source>Couldn't save the photo</source>
-        <translation>Das Foto konnte nicht gespeichert werden</translation>
+        <translation>Nie udało się zapisać zdjęcia</translation>
     </message>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="13" />
         <source>Share</source>
-        <translation>Teilen</translation>
+        <translation>Udostępnij</translation>
     </message>
 </context>
 <context>
@@ -1328,27 +1323,27 @@
     <message>
         <location filename="../assets/PinnedAction.qml" line="14" />
         <source>Pinned message</source>
-        <translation>Angepinnte Nachricht</translation>
+        <translation>Przypięta wiadomość</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="45" />
         <source>No pinned messages</source>
-        <translation>Keine angepinnten Nachrichten</translation>
+        <translation>Brak przypiętych wiadomości</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="49" />
         <source>This pinned message isn't on this phone</source>
-        <translation>Diese angepinnte Nachricht ist nicht auf diesem Handy</translation>
+        <translation>Tej przypiętej wiadomości nie ma na tym telefonie</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="55" />
         <source>Pinned messages</source>
-        <translation>Angepinnte Nachrichten</translation>
+        <translation>Przypięte wiadomości</translation>
     </message>
     <message>
         <location filename="../assets/PinnedAction.qml" line="57" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
 </context>
 <context>
@@ -1356,7 +1351,7 @@
     <message>
         <location filename="../src/Pins.cpp" line="42" />
         <source>Voice message</source>
-        <translation>Sprachnachricht</translation>
+        <translation>Wiadomość głosowa</translation>
     </message>
 </context>
 <context>
@@ -1364,7 +1359,7 @@
     <message>
         <location filename="../assets/PollBubble.qml" line="79" />
         <source>Nobody yet</source>
-        <translation>Noch niemand</translation>
+        <translation>Jeszcze nikt</translation>
     </message>
 </context>
 <context>
@@ -1372,7 +1367,7 @@
     <message>
         <location filename="../assets/PollAction.qml" line="6" />
         <source>Create poll</source>
-        <translation>Umfrage erstellen</translation>
+        <translation>Utwórz ankietę</translation>
     </message>
 </context>
 <context>
@@ -1380,52 +1375,52 @@
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Create poll</source>
-        <translation>Umfrage erstellen</translation>
+        <translation>Utwórz ankietę</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Question</source>
-        <translation>Frage</translation>
+        <translation>Pytanie</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Ask something</source>
-        <translation>Stelle eine Frage</translation>
+        <translation>Zadaj pytanie</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Options</source>
-        <translation>Optionen</translation>
+        <translation>Opcje</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Add option</source>
-        <translation>Option hinzufügen</translation>
+        <translation>Dodaj opcję</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Allow several answers</source>
-        <translation>Mehrere Antworten erlauben</translation>
+        <translation>Zezwól na wiele odpowiedzi</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Send</source>
-        <translation>Senden</translation>
+        <translation>Wyślij</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>A poll needs a question and two options</source>
-        <translation>Eine Umfrage braucht eine Frage und zwei Optionen</translation>
+        <translation>Ankieta wymaga pytania i dwóch opcji</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Nicht gesendet: HyperBerry stellt die Verbindung wieder her. Versuche es gleich noch einmal.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Nie wysłano: Tengram łączy się ponownie. Spróbuj za chwilę.</translation>
     </message>
     <message>
         <location filename="../assets/PollPage.qml" line="10" />
         <source>Option %1</source>
-        <translation>Option %1</translation>
+        <translation>Opcja %1</translation>
     </message>
 </context>
 <context>
@@ -1433,7 +1428,7 @@
     <message>
         <location filename="../src/Polls.cpp" line="40" />
         <source>You</source>
-        <translation>Du</translation>
+        <translation>Ty</translation>
     </message>
 </context>
 <context>
@@ -1446,57 +1441,57 @@
     <message>
         <location filename="../assets/ProfilePage.qml" line="35" />
         <source>Change photo</source>
-        <translation>Foto ändern</translation>
+        <translation>Zmień zdjęcie</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="37" />
         <source>Remove photo</source>
-        <translation>Foto entfernen</translation>
+        <translation>Usuń zdjęcie</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="69" />
         <source>Profile photo</source>
-        <translation>Profilbild</translation>
+        <translation>Zdjęcie profilowe</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="70" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="84" />
         <source>Your name</source>
-        <translation>Dein Name</translation>
+        <translation>Twoje imię</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="95" />
         <source>About</source>
-        <translation>Info</translation>
+        <translation>Informacje</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="106" />
         <source>Couldn't update your profile. Check the connection and try again.</source>
-        <translation>Dein Profil konnte nicht aktualisiert werden. Prüfe deine Verbindung und versuche es erneut.</translation>
+        <translation>Nie udało się zaktualizować profilu. Sprawdź połączenie i spróbuj ponownie.</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="110" />
         <source>Couldn't read that picture.</source>
-        <translation>Dieses Bild konnte nicht gelesen werden.</translation>
+        <translation>Nie udało się odczytać tego obrazu.</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="169" />
         <source>Tap to edit</source>
-        <translation>Zum Bearbeiten tippen</translation>
+        <translation>Dotknij, aby edytować</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="192" />
         <source>Loading…</source>
-        <translation>Wird geladen…</translation>
+        <translation>Ładowanie…</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="201" />
         <source>Couldn't load your profile. Check the connection and try again.</source>
-        <translation>Dein Profil konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.</translation>
+        <translation>Nie udało się wczytać profilu. Sprawdź połączenie i spróbuj ponownie.</translation>
     </message>
 </context>
 <context>
@@ -1504,17 +1499,17 @@
     <message>
         <location filename="../assets/ReactBar.qml" line="58" />
         <source>Vote not sent</source>
-        <translation>Stimme nicht gesendet</translation>
+        <translation>Nie wysłano głosu</translation>
     </message>
     <message>
         <location filename="../assets/ReactBar.qml" line="60" />
         <source>Poll not sent</source>
-        <translation>Umfrage nicht gesendet</translation>
+        <translation>Nie wysłano ankiety</translation>
     </message>
     <message>
         <location filename="../assets/ReactBar.qml" line="123" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Nicht gesendet: HyperBerry stellt die Verbindung wieder her. Versuche es gleich noch einmal.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Nie wysłano: Tengram łączy się ponownie. Spróbuj za chwilę.</translation>
     </message>
 </context>
 <context>
@@ -1522,7 +1517,7 @@
     <message>
         <location filename="../assets/RecordingBar.qml" line="23" />
         <source>Recording %1</source>
-        <translation>Aufnahme %1</translation>
+        <translation>Nagrywanie %1</translation>
     </message>
 </context>
 <context>
@@ -1530,12 +1525,12 @@
     <message>
         <location filename="../assets/ReplyBar.qml" line="35" />
         <source>Replying to %1</source>
-        <translation>Antwort an %1</translation>
+        <translation>Odpowiedź dla %1</translation>
     </message>
     <message>
         <location filename="../assets/ReplyBar.qml" line="36"/>
         <source>Edit message</source>
-        <translation>Nachricht bearbeiten</translation>
+        <translation>Edytuj wiadomość</translation>
     </message>
 </context>
 <context>
@@ -1543,153 +1538,153 @@
     <message>
         <location filename="../assets/SearchBar.qml" line="65" />
         <source>Search in chat</source>
-        <translation>Im Chat suchen</translation>
+        <translation>Szukaj w czacie</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
         <source>Proximity sensor</source>
-        <translation>Näherungssensor</translation>
+        <translation>Czujnik zbliżeniowy</translation>
     </message>
     <message>
         <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
-        <translation>Wenn aus, bleiben Sprachnachrichten auf dem Lautsprecher und der Bildschirm bleibt bei Anrufen an. Für einen defekten Sensor.</translation>
+        <translation>Gdy wyłączone, wiadomości głosowe zostają na głośniku, a ekran pozostaje włączony podczas połączeń. Dla uszkodzonego czujnika.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="9" />
         <source>Settings</source>
-        <translation>Einstellungen</translation>
+        <translation>Ustawienia</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="16" />
         <source>Unlink this device?</source>
-        <translation>Dieses Gerät abmelden?</translation>
+        <translation>Odłączyć to urządzenie?</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="17" />
         <source>This device is removed from your linked devices and its chats are deleted here.</source>
-        <translation>Dieses Gerät wird aus deinen verknüpften Geräten entfernt und seine Chats werden hier gelöscht.</translation>
+        <translation>To urządzenie zostanie usunięte z połączonych urządzeń, a jego czaty zostaną tu usunięte.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="18" />
         <source>Unlink</source>
-        <translation>Abmelden</translation>
+        <translation>Odłącz</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="19" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="36" />
         <source>Theme</source>
-        <translation>Design</translation>
+        <translation>Motyw</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38" />
         <source>Dark</source>
-        <translation>Dunkel</translation>
+        <translation>Ciemny</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="39" />
         <source>Bright</source>
-        <translation>Hell</translation>
+        <translation>Jasny</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="44" />
         <source>Text size</source>
-        <translation>Textgröße</translation>
+        <translation>Rozmiar tekstu</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="46" />
         <source>Small</source>
-        <translation>Klein</translation>
+        <translation>Mały</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="47" />
         <source>Normal</source>
-        <translation>Normal</translation>
+        <translation>Normalny</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="48" />
         <source>Large</source>
-        <translation>Groß</translation>
+        <translation>Duży</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="63" />
         <source>Enter sends</source>
-        <translation>Enter sendet</translation>
+        <translation>Enter wysyła</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="67" />
         <source>Off, Enter starts a new line; the Send action still sends.</source>
-        <translation>Wenn aus, beginnt Enter eine neue Zeile; die Aktion Senden sendet weiterhin.</translation>
+        <translation>Gdy wyłączone, Enter przechodzi do nowego wiersza; działanie Wyślij nadal wysyła.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="91" />
         <source>Notification preview</source>
-        <translation>Benachrichtigungsvorschau</translation>
+        <translation>Podgląd powiadomień</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="95" />
         <source>Off, a notification says "New message" instead of the text.</source>
-        <translation>Wenn aus, zeigt eine Benachrichtigung „Neue Nachricht“ statt des Textes.</translation>
+        <translation>Gdy wyłączone, powiadomienie pokazuje „Nowa wiadomość” zamiast tekstu.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="116" />
         <source>Start at boot</source>
-        <translation>Autostart</translation>
+        <translation>Uruchom przy starcie</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="120" />
-        <source>Brings HyperBerry back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
-        <translation>Startet HyperBerry innerhalb von 6 Minuten nach einem Neustart oder nach einem Stopp neu, auch bei geschlossener App.</translation>
+        <source>Brings Tengram back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
+        <translation>Przywraca Tengram w ciągu 6 minut po restarcie lub zatrzymaniu, także przy zamkniętej aplikacji.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="110" />
         <source>Storage</source>
-        <translation>Speicher</translation>
+        <translation>Pamięć</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="119" />
         <source>Download on mobile data</source>
-        <translation>Über Mobilfunk laden</translation>
+        <translation>Pobieranie w sieci komórkowej</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="170" />
         <source>Cache limit</source>
-        <translation>Cache-Limit</translation>
+        <translation>Limit pamięci podręcznej</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="123" />
         <source>Off, photos and voice notes wait for a tap unless you're on Wi-Fi.</source>
-        <translation>Wenn aus, warten Fotos und Sprachnachrichten auf einen Fingertipp, außer im WLAN.</translation>
+        <translation>Gdy wyłączone, zdjęcia i wiadomości głosowe pobierają się po dotknięciu, chyba że jesteś w Wi-Fi.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="122" />
         <source>Cache: %1</source>
-        <translation>Cache: %1</translation>
+        <translation>Pamięć podręczna: %1</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="126" />
         <source>Clear cache</source>
-        <translation>Cache leeren</translation>
+        <translation>Wyczyść pamięć podręczną</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="131" />
         <source>Cache cleared: %1 freed</source>
-        <translation>Cache geleert: %1 freigegeben</translation>
+        <translation>Wyczyszczono pamięć: zwolniono %1</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="139" />
         <source>Voice notes' decoded audio and photo previews; they're made again when needed.</source>
-        <translation>Dekodierte Audiodaten von Sprachnachrichten und Fotovorschauen; sie werden bei Bedarf neu erstellt.</translation>
+        <translation>Zdekodowany dźwięk wiadomości głosowych i miniatury zdjęć; w razie potrzeby powstają ponownie.</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="147" />
         <source>Unlink this device</source>
-        <translation>Dieses Gerät abmelden</translation>
+        <translation>Odłącz to urządzenie</translation>
     </message>
 </context>
 <context>
@@ -1697,32 +1692,32 @@
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Unknown</source>
-        <translation>Unbekannt</translation>
+        <translation>Nieznany</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Missed voice call</source>
-        <translation>Verpasster Sprachanruf</translation>
+        <translation>Nieodebrane połączenie głosowe</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Outgoing, %1</source>
-        <translation>Ausgehend, %1</translation>
+        <translation>Wychodzące, %1</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Incoming, %1</source>
-        <translation>Eingehend, %1</translation>
+        <translation>Przychodzące, %1</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Outgoing</source>
-        <translation>Ausgehend</translation>
+        <translation>Wychodzące</translation>
     </message>
     <message>
         <location filename="../src/CallsModel.cpp" line="1" />
         <source>Incoming</source>
-        <translation>Eingehend</translation>
+        <translation>Przychodzące</translation>
     </message>
 </context>
 <context>
@@ -1730,17 +1725,17 @@
     <message>
         <location filename="../assets/CallsPage.qml" line="1" />
         <source>Calls</source>
-        <translation>Anrufe</translation>
+        <translation>Połączenia</translation>
     </message>
     <message>
         <location filename="../assets/CallsPage.qml" line="1" />
         <source>No calls yet</source>
-        <translation>Noch keine Anrufe</translation>
+        <translation>Brak połączeń</translation>
     </message>
     <message>
         <location filename="../assets/CallsPage.qml" line="1" />
         <source>New call</source>
-        <translation>Neuer Anruf</translation>
+        <translation>Nowe połączenie</translation>
     </message>
 </context>
 <context>
@@ -1748,12 +1743,12 @@
     <message>
         <location filename="../assets/CallRow.qml" line="1" />
         <source>Call</source>
-        <translation>Anrufen</translation>
+        <translation>Zadzwoń</translation>
     </message>
     <message>
         <location filename="../assets/CallRow.qml" line="1" />
         <source>Open chat</source>
-        <translation>Chat öffnen</translation>
+        <translation>Otwórz czat</translation>
     </message>
 </context>
 <context>
@@ -1761,62 +1756,62 @@
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Calling…</source>
-        <translation>Anruf…</translation>
+        <translation>Dzwonienie…</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming voice call</source>
-        <translation>Eingehender Sprachanruf</translation>
+        <translation>Przychodzące połączenie głosowe</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming video call</source>
-        <translation>Eingehender Videoanruf</translation>
+        <translation>Przychodzące połączenie wideo</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group voice call</source>
-        <translation>Eingehender Gruppen-Sprachanruf</translation>
+        <translation>Przychodzące grupowe połączenie głosowe</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group voice call · %1</source>
-        <translation>Eingehender Gruppen-Sprachanruf · %1</translation>
+        <translation>Przychodzące grupowe połączenie głosowe · %1</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Connecting…</source>
-        <translation>Verbindung wird hergestellt…</translation>
+        <translation>Łączenie…</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Reconnecting…</source>
-        <translation>Verbindung wird wiederhergestellt…</translation>
+        <translation>Ponowne łączenie…</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Call ended</source>
-        <translation>Anruf beendet</translation>
+        <translation>Połączenie zakończone</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Declined</source>
-        <translation>Abgelehnt</translation>
+        <translation>Odrzucono</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Busy</source>
-        <translation>Besetzt</translation>
+        <translation>Zajęte</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>No answer</source>
-        <translation>Keine Antwort</translation>
+        <translation>Brak odpowiedzi</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Call failed</source>
-        <translation>Anruf fehlgeschlagen</translation>
+        <translation>Połączenie nie powiodło się</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
@@ -1825,33 +1820,33 @@
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
-        <source>WhatsApp: voice call</source>
-        <translation>WhatsApp: Sprachanruf</translation>
+        <source>Telegram: voice call</source>
+        <translation>Telegram: połączenie głosowe</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
-        <source>WhatsApp: video call</source>
-        <translation>WhatsApp: Videoanruf</translation>
+        <source>Telegram: video call</source>
+        <translation>Telegram: połączenie wideo</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>%1 and %2</source>
-        <translation>%1 und %2</translation>
+        <translation>%1 i %2</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>%1, %2 and %3 more</source>
-        <translation>%1, %2 und %3 weitere</translation>
+        <translation>%1, %2 i jeszcze %3</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group video call</source>
-        <translation>Eingehender Gruppen-Videoanruf</translation>
+        <translation>Przychodzące grupowe połączenie wideo</translation>
     </message>
     <message>
         <location filename="../assets/CallSheet.qml" line="1" />
         <source>Incoming group video call · %1</source>
-        <translation>Eingehender Gruppen-Videoanruf · %1</translation>
+        <translation>Przychodzące grupowe połączenie wideo · %1</translation>
     </message>
 </context>
 <context>
@@ -1859,7 +1854,7 @@
     <message>
         <location filename="../assets/CallDrawer.qml" line="1" />
         <source>Swipe from the left edge to see who is in the call</source>
-        <translation>Wische vom linken Rand, um zu sehen, wer im Anruf ist</translation>
+        <translation>Przesuń od lewej krawędzi, aby zobaczyć, kto jest w połączeniu</translation>
     </message>
 </context>
 <context>
@@ -1867,47 +1862,47 @@
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Speaker</source>
-        <translation>Lautspr.</translation>
+        <translation>Głośnik</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Mute</source>
-        <translation>Stumm</translation>
+        <translation>Wycisz mikrofon</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>End call</source>
-        <translation>Auflegen</translation>
+        <translation>Zakończ połączenie</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Unmute</source>
-        <translation>Ton an</translation>
+        <translation>Włącz mikrofon</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Stop video</source>
-        <translation>Video aus</translation>
+        <translation>Wyłącz wideo</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Start video</source>
-        <translation>Video an</translation>
+        <translation>Włącz wideo</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Switch camera</source>
-        <translation>Kamera wechseln</translation>
+        <translation>Przełącz kamerę</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Hide preview</source>
-        <translation>Vorschau ausblenden</translation>
+        <translation>Ukryj podgląd</translation>
     </message>
     <message>
         <location filename="../assets/CallPanel.qml" line="1" />
         <source>Show preview</source>
-        <translation>Vorschau anzeigen</translation>
+        <translation>Pokaż podgląd</translation>
     </message>
 </context>
 <context>
@@ -1915,52 +1910,52 @@
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Call</source>
-        <translation>Anrufen</translation>
+        <translation>Zadzwoń</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>At most 31 people in a call</source>
-        <translation>Maximal 31 Personen in einem Anruf</translation>
+        <translation>Maksymalnie 31 osób w połączeniu</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
-        <source>Not sent: HyperBerry is reconnecting. Try again in a moment.</source>
-        <translation>Nicht gesendet: HyperBerry stellt die Verbindung wieder her. Versuche es gleich noch einmal.</translation>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Nie wysłano: Tengram łączy się ponownie. Spróbuj za chwilę.</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Call %1 people?</source>
-        <translation>%1 Personen anrufen?</translation>
+        <translation>Zadzwonić do %1 osób?</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Search members</source>
-        <translation>Mitglieder suchen</translation>
+        <translation>Szukaj uczestników</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>%1 chosen</source>
-        <translation>%1 ausgewählt</translation>
+        <translation>Wybrano: %1</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Loading…</source>
-        <translation>Wird geladen…</translation>
+        <translation>Ładowanie…</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Voice call</source>
-        <translation>Sprachanruf</translation>
+        <translation>Połączenie głosowe</translation>
     </message>
     <message>
         <location filename="../assets/CallPickPage.qml" line="1" />
         <source>Video call</source>
-        <translation>Videoanruf</translation>
+        <translation>Połączenie wideo</translation>
     </message>
 </context>
 <context>
@@ -1968,7 +1963,7 @@
     <message>
         <location filename="../assets/CallVideoView.qml" line="1" />
         <source>Wants to turn on video</source>
-        <translation>Möchte das Video einschalten</translation>
+        <translation>Chce włączyć wideo</translation>
     </message>
 </context>
 <context>
@@ -1976,17 +1971,17 @@
     <message>
         <location filename="../assets/cover.qml" line="25" />
         <source>unread</source>
-        <translation>ungelesen</translation>
+        <translation>do przeczytania</translation>
     </message>
     <message>
         <location filename="../assets/cover.qml" line="25" />
         <source>Nothing new to see</source>
-        <translation>Nichts Neues</translation>
+        <translation>Nic nowego</translation>
     </message>
     <message>
         <location filename="../assets/cover.qml" line="83" />
         <source>Not logged in</source>
-        <translation>Nicht angemeldet</translation>
+        <translation>Nie zalogowano</translation>
     </message>
 </context>
 <context>
@@ -1994,57 +1989,57 @@
     <message>
         <location filename="../assets/errors.js" line="5" />
         <source>That doesn't look like a phone number. Type it with the country code, as in +39 333 123 4567.</source>
-        <translation>Das sieht nicht nach einer Telefonnummer aus. Gib sie mit Landesvorwahl ein, zum Beispiel +49 151 23456789.</translation>
+        <translation>To nie wygląda na numer telefonu. Wpisz go z numerem kierunkowym kraju, na przykład +39 333 123 4567.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="7" />
-        <source>You're offline. Connect to use HyperBerry.</source>
-        <translation>Du bist offline. Verbinde dich, um HyperBerry zu nutzen.</translation>
+        <source>You're offline. Connect to use Tengram.</source>
+        <translation>Jesteś offline. Połącz się z internetem, aby korzystać z Tengram.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="9" />
-        <source>HyperBerry's engine isn't running yet. Try again in a moment.</source>
-        <translation>Die Engine von HyperBerry läuft noch nicht. Versuche es gleich noch einmal.</translation>
+        <source>Tengram's engine isn't running yet. Try again in a moment.</source>
+        <translation>Silnik Tengram jeszcze nie działa. Spróbuj za chwilę.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="11" />
         <source>This BlackBerry is already linked.</source>
-        <translation>Dieses BlackBerry ist bereits verknüpft.</translation>
+        <translation>Ten BlackBerry jest już połączony.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="13" />
         <source>That didn't work: %1</source>
-        <translation>Das hat nicht geklappt: %1</translation>
+        <translation>To się nie udało: %1</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>You're already on a call.</source>
-        <translation>Du bist bereits in einem Anruf.</translation>
+        <translation>Już prowadzisz rozmowę.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>You're offline. Connect to call.</source>
-        <translation>Du bist offline. Verbinde dich, um anzurufen.</translation>
+        <translation>Jesteś offline. Połącz się z internetem, aby zadzwonić.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
-        <source>Link this BlackBerry to WhatsApp to call.</source>
-        <translation>Verknüpfe dieses BlackBerry mit WhatsApp, um anzurufen.</translation>
+        <source>Link this BlackBerry to Telegram to call.</source>
+        <translation>Połącz ten BlackBerry z Telegram, aby dzwonić.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>The simulator can't place calls.</source>
-        <translation>Der Simulator kann keine Anrufe tätigen.</translation>
+        <translation>Symulator nie może wykonywać połączeń.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>You can only call a person, not a group.</source>
-        <translation>Du kannst nur eine Person anrufen, keine Gruppe.</translation>
+        <translation>Możesz zadzwonić tylko do osoby, nie do grupy.</translation>
     </message>
     <message>
         <location filename="../assets/errors.js" line="1" />
         <source>Couldn't place the call: %1</source>
-        <translation>Der Anruf konnte nicht gestartet werden: %1</translation>
+        <translation>Nie udało się wykonać połączenia: %1</translation>
     </message>
 </context>
 <context>
@@ -2057,67 +2052,67 @@
     <message>
         <location filename="../assets/main.qml" line="34" />
         <source>About</source>
-        <translation>Über die App</translation>
+        <translation>O aplikacji</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>This invite doesn't work any more</source>
-        <translation>Diese Einladung funktioniert nicht mehr</translation>
+        <translation>To zaproszenie już nie działa</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Couldn't open this invite. Try again in a moment.</source>
-        <translation>Diese Einladung konnte nicht geöffnet werden. Versuche es gleich noch einmal.</translation>
+        <translation>Nie udało się otworzyć tego zaproszenia. Spróbuj za chwilę.</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Follow this channel?</source>
-        <translation>Diesem Kanal folgen?</translation>
+        <translation>Obserwować ten kanał?</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Join this group?</source>
-        <translation>Dieser Gruppe beitreten?</translation>
+        <translation>Dołączyć do tej grupy?</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>%1 followers</source>
-        <translation>%1 Follower</translation>
+        <translation>Obserwujących: %1</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>%1 members</source>
-        <translation>%1 Mitglieder</translation>
+        <translation>Uczestników: %1</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Follow</source>
-        <translation>Folgen</translation>
+        <translation>Obserwuj</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Join</source>
-        <translation>Beitreten</translation>
+        <translation>Dołącz</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="110" />
-        <source>WhatsApp won't let this number join by link. If an admin removed it, an admin has to add it back.</source>
-        <translation>WhatsApp lässt diese Nummer nicht per Link beitreten. Wenn ein Admin sie entfernt hat, muss ein Admin sie wieder hinzufügen.</translation>
+        <source>Telegram won't let this number join by link. If an admin removed it, an admin has to add it back.</source>
+        <translation>Telegram nie pozwala temu numerowi dołączyć przez link. Jeśli administrator go usunął, administrator musi dodać go ponownie.</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Chats</source>
-        <translation>Chats</translation>
+        <translation>Czaty</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
         <source>Calls</source>
-        <translation>Anrufe</translation>
+        <translation>Połączenia</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="1" />
@@ -2130,32 +2125,32 @@
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Reply</source>
-        <translation>Antworten</translation>
+        <translation>Odpowiedz</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>React</source>
-        <translation>Reagieren</translation>
+        <translation>Zareaguj</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Copy</source>
-        <translation>Kopieren</translation>
+        <translation>Kopiuj</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Delete for everyone</source>
-        <translation>Für alle löschen</translation>
+        <translation>Usuń dla wszystkich</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>Delete for me</source>
-        <translation>Für mich löschen</translation>
+        <translation>Usuń dla mnie</translation>
     </message>
     <message>
         <location filename="../assets/TextCard.qml" line="1" />
         <source>edited</source>
-        <translation>bearbeitet</translation>
+        <translation>edytowano</translation>
     </message>
 </context>
 <context>
@@ -2163,22 +2158,22 @@
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>Delete for everyone?</source>
-        <translation>Für alle löschen?</translation>
+        <translation>Usunąć dla wszystkich?</translation>
     </message>
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>It will be deleted for everyone in this chat.</source>
-        <translation>Die Nachricht wird für alle in diesem Chat gelöscht.</translation>
+        <translation>Wiadomość zostanie usunięta dla wszystkich w tym czacie.</translation>
     </message>
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>Delete</source>
-        <translation>Löschen</translation>
+        <translation>Usuń</translation>
     </message>
     <message>
         <location filename="../assets/RevokeDialog.qml" line="1" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
 </context>
 <context>
@@ -2186,7 +2181,7 @@
     <message>
         <location filename="../assets/StagedBar.qml" line="78"/>
         <source>Send as file</source>
-        <translation>Als Datei senden</translation>
+        <translation>Wyślij jako plik</translation>
     </message>
 </context>
 <context>
@@ -2194,12 +2189,12 @@
     <message>
         <location filename="../src/StoriesModel.cpp" line="1" />
         <source>Unknown</source>
-        <translation>Unbekannt</translation>
+        <translation>Nieznany</translation>
     </message>
     <message>
         <location filename="../src/StoriesModel.cpp" line="1" />
         <source>My story</source>
-        <translation>Mein Status</translation>
+        <translation>Mój status</translation>
     </message>
 </context>
 <context>
@@ -2212,37 +2207,37 @@
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>No stories yet</source>
-        <translation>Noch keine Status-Updates</translation>
+        <translation>Brak statusów</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>New story</source>
-        <translation>Neuer Status</translation>
+        <translation>Nowy status</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Text story</source>
-        <translation>Text-Status</translation>
+        <translation>Status tekstowy</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Couldn't post the story</source>
-        <translation>Der Status konnte nicht gepostet werden</translation>
+        <translation>Nie udało się opublikować statusu</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Couldn't delete the story</source>
-        <translation>Der Status konnte nicht gelöscht werden</translation>
+        <translation>Nie udało się usunąć statusu</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>Pick a JPEG photo or an MP4 video</source>
-        <translation>Wähle ein JPEG-Foto oder ein MP4-Video aus</translation>
+        <translation>Wybierz zdjęcie JPEG lub wideo MP4</translation>
     </message>
     <message>
         <location filename="../assets/StoriesPage.qml" line="1" />
         <source>This story is no longer available</source>
-        <translation>Dieser Status ist nicht mehr verfügbar</translation>
+        <translation>Ten status nie jest już dostępny</translation>
     </message>
 </context>
 <context>
@@ -2250,42 +2245,42 @@
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Couldn't load the story</source>
-        <translation>Der Status konnte nicht geladen werden</translation>
+        <translation>Nie udało się wczytać statusu</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Couldn't send the reply</source>
-        <translation>Die Antwort konnte nicht gesendet werden</translation>
+        <translation>Nie udało się wysłać odpowiedzi</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Couldn't send the heart</source>
-        <translation>Das Herz konnte nicht gesendet werden</translation>
+        <translation>Nie udało się wysłać serduszka</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Reply</source>
-        <translation>Antworten</translation>
+        <translation>Odpowiedz</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Delete this story?</source>
-        <translation>Diesen Status löschen?</translation>
+        <translation>Usunąć ten status?</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>It is taken back from everyone who saw it.</source>
-        <translation>Er wird für alle zurückgezogen, die ihn gesehen haben.</translation>
+        <translation>Zostanie wycofany dla wszystkich, którzy go widzieli.</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Delete</source>
-        <translation>Löschen</translation>
+        <translation>Usuń</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewer.qml" line="1" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
 </context>
 <context>
@@ -2293,12 +2288,12 @@
     <message>
         <location filename="../assets/StoryViewersPage.qml" line="1" />
         <source>Viewed by</source>
-        <translation>Gesehen von</translation>
+        <translation>Wyświetlenia</translation>
     </message>
     <message>
         <location filename="../assets/StoryViewersPage.qml" line="1" />
         <source>No views yet</source>
-        <translation>Noch keine Aufrufe</translation>
+        <translation>Brak wyświetleń</translation>
     </message>
 </context>
 <context>
@@ -2306,47 +2301,47 @@
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Couldn't post the story</source>
-        <translation>Der Status konnte nicht gepostet werden</translation>
+        <translation>Nie udało się opublikować statusu</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>New story</source>
-        <translation>Neuer Status</translation>
+        <translation>Nowy status</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Post</source>
-        <translation>Posten</translation>
+        <translation>Opublikuj</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Write something</source>
-        <translation>Schreib etwas</translation>
+        <translation>Napisz coś</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Add a caption</source>
-        <translation>Beschriftung hinzufügen</translation>
+        <translation>Dodaj podpis</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Share with</source>
-        <translation>Teilen mit</translation>
+        <translation>Udostępnij dla</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>Everyone</source>
-        <translation>Alle</translation>
+        <translation>Wszyscy</translation>
     </message>
     <message>
         <location filename="../assets/StoryComposer.qml" line="1" />
         <source>%1 chosen</source>
-        <translation>%1 ausgewählt</translation>
+        <translation>Wybrano: %1</translation>
     </message>
 </context>
 <context>
@@ -2354,48 +2349,48 @@
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Share with</source>
-        <translation>Teilen mit</translation>
+        <translation>Udostępnij dla</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Cancel</source>
-        <translation>Abbrechen</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Done</source>
-        <translation>Fertig</translation>
+        <translation>Gotowe</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Search contacts</source>
-        <translation>Kontakte suchen</translation>
+        <translation>Szukaj kontaktów</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>%1 chosen</source>
-        <translation>%1 ausgewählt</translation>
+        <translation>Wybrano: %1</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Everyone</source>
-        <translation>Alle</translation>
+        <translation>Wszyscy</translation>
     </message>
     <message>
         <location filename="../assets/StoryAudienceSheet.qml" line="1" />
         <source>Loading…</source>
-        <translation>Wird geladen…</translation>
+        <translation>Ładowanie…</translation>
     </message>
 </context>
 <context>
     <name>StarredPage</name>
     <message>
         <source>Starred messages</source>
-        <translation>Mit Stern markierte Nachrichten</translation>
+        <translation>Wiadomości z gwiazdką</translation>
     </message>
     <message>
         <source>No starred messages</source>
-        <translation>Keine mit Stern markierten Nachrichten</translation>
+        <translation>Brak wiadomości z gwiazdką</translation>
     </message>
 </context>
 </TS>

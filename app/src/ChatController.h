@@ -89,7 +89,7 @@ public:
     // False when the engine isn't connected: nothing was sent.
     Q_INVOKABLE bool deleteForEveryone(const QString &id);
     // A group's member changed by an admin: action is add, remove, promote or demote. groupInfo
-    // is asked again once WhatsApp agrees; a refusal shows in the engine's failure.
+    // is asked again once Telegram agrees; a refusal shows in the engine's failure.
     Q_INVOKABLE void changeParticipant(const QString &jid, const QString &action);
 
 signals:
