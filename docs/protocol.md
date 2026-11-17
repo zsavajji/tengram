@@ -196,6 +196,15 @@ it*), with these meanings for Telegram. `user_version` is 2.
 | `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
 | `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs` |
 
+Any kind's `extra` can also carry `ent`, the formatting of `text` (or of a document's
+`extra.caption`): a list of `[offset, length, type]` or `[offset, length, type, argument]`, in
+Telegram's order. Offsets and lengths are in UTF-16 code units, which is what a `QString` counts.
+Types: `b` bold, `i` italic, `u` underline, `s` strikethrough, `sp` spoiler, `c` code, `p`
+preformatted (argument: the language, when given), `q` block quote, `a` a link (argument: the
+URL; absent when the text itself is the URL), `m` a mention (argument: the user id, when the
+mention is by name), `h` hashtag, `cmd` bot command, `e` e-mail address, `t` phone number.
+Other entity types are left out.
+
 A notice's `text` is `call`, `video_call`, `missed_call` or `missed_video_call`.
 `deleted`, `media` and `starred` are unused (0 or NULL). `reactions` and `poll_votes` exist and
 are empty for now.
