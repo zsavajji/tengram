@@ -263,7 +263,11 @@ void EngineLink::readLines()
 void EngineLink::setLink(const QVariantMap &link)
 {
     m_link = link;
-    const bool linked = link["state"].toString() == "ready";
+    // "linking" passes: the engine says it at every start while TDLib opens (and during a login step), so it keeps
+    // what was known. Taken as "not linked" it swapped the chat list for the linking page's "Starting…" at every
+    // engine restart (the user, 2026-11-17). Only a state that asks for a login unlinks.
+    const QString state = link["state"].toString();
+    const bool linked = state == "ready" || (state == "linking" && m_linked);
     if (linked != m_linked) {
         m_linked = linked;
         QSettings settings(QDir::homePath() + "/settings.ini", QSettings::IniFormat);

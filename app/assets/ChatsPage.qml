@@ -147,11 +147,41 @@ Page {
         }
     }
     titleBar: TitleBar {
-        title: engine.connected && engine.conn == "ready" ? qsTr("Chats") : qsTr("Connecting…")
+        id: listBar
+        // The engine is down, starting (TDLib opening: "linking") or not yet through to Telegram: the list stays,
+        // and the bar says so with a spinner (the user, 2026-11-17), instead of the linking page.
+        property bool waiting: !engine.connected || engine.conn != "ready" || (engine.link.state || "") == "linking"
+        kind: TitleBarKind.FreeForm
         // Sticky: a bar that scrolls away resizes the list on every frame, and laying out rows
         // that hold several of our font's emoji again each frame made scrolling lag (Q10,
         // 2026-10-31).
         scrollBehavior: TitleBarScrollBehavior.Sticky
+        kindProperties: FreeFormTitleBarKindProperties {
+            Container {
+                horizontalAlignment: HorizontalAlignment.Fill
+                verticalAlignment: VerticalAlignment.Fill
+                leftPadding: ui.du(2)
+                rightPadding: ui.du(2)
+                layout: StackLayout {
+                    orientation: LayoutOrientation.LeftToRight
+                }
+                Label {
+                    verticalAlignment: VerticalAlignment.Center
+                    layoutProperties: StackLayoutProperties {
+                        spaceQuota: 1
+                    }
+                    text: listBar.waiting ? qsTr("Connecting…") : qsTr("Chats")
+                    textStyle.base: SystemDefaults.TextStyles.TitleText
+                }
+                // An ActivityIndicator hides itself while stopped: running, not visible.
+                ActivityIndicator {
+                    verticalAlignment: VerticalAlignment.Center
+                    preferredWidth: ui.du(5)
+                    preferredHeight: ui.du(5)
+                    running: listBar.waiting
+                }
+            }
+        }
     }
     Container {
         horizontalAlignment: HorizontalAlignment.Fill
