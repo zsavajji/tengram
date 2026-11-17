@@ -55,7 +55,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
 | `media.get` | `chat`, `id` (a message with a file) | `{path}`, the absolute path of the file | `not_found`, `download_failed` |
-| `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600); each optional, at least one | — | |
+| `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool); each optional, at least one | — | |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
 (`requestQrCodeAuthentication`); `link.phone`, `link.code` and `link.password` are the phone
@@ -101,7 +101,8 @@ A file that is already here answers at once. Nothing downloads by itself: the UI
 shows. `not_found` is a message TDLib doesn't have or one without a file.
 
 **`prefs.set`:** kept in `prefs.json` in the data folder. `mode` and `batchSecs` are the
-delivery mode's settings (below). Defaults: `auto`, 300.
+delivery mode's settings (below), `notifyPreview` whether a notification shows the message's
+text. Defaults: `auto`, 300, true.
 
 ## Events
 
@@ -136,6 +137,21 @@ How quickly messages reach the phone while the UI is closed, against the battery
   closed: batched while our own account is online on another device (`updateUserStatus` for
   our user says online, which can only be another session since ours is `online=false`),
   instant otherwise. A sync that finds us offline elsewhere goes back to instant.
+
+## Notifications: the Hub account
+
+No request of its own. The engine keeps a "Tengram" account in the BlackBerry Hub while logged
+in, with one item per chat that got a notification. What deserves one is TDLib's decision
+(its notification groups): mutes, mentions in muted chats, silent messages, messages already
+read on another device, and the delay while another device is in use are all Telegram's rules.
+- An item's unread count is the number of notifications TDLib holds for the chat; when that
+  drops to 0 (read here or anywhere) the item shows as read.
+- It alerts (sound, LED, instant preview) unless Telegram says the notification is silent, or
+  the chat is the `openChat` of a UI that is in front.
+- The text is the chat list's preview of the message, or "New message" when `notifyPreview` is
+  false (default true) or Telegram hides the preview.
+- `hub.json` in the data folder records the account and the chats that have items.
+- Calls are not notified yet.
 
 ## chats.db, as the UI reads it
 
