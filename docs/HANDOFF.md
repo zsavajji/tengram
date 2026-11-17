@@ -69,8 +69,8 @@ Host `bb10rootx` in `~/.ssh/config`, **USB only** (169.254.0.1), a root shell.
   user's real account (listed as "BlackBerry Classic"). Sandbox data:
   `/accounts/1000/appdata/com.zsavajji.tengram.testRel_jji_tengram30796029/data/` — `logs/tengramd.log` (the
   engine), `logs/ui.log` (the UI), `chats.db`, `db.key`, `db/`, `files/`, `engine.json`, `hub.json`.
-- **`/root/tengram`** is empty but for `denied/`: the old test session and binaries were deleted at the user's
-  request (they end that session from Telega's Devices list).
+- **`/root/tengram` does not exist:** the old test session, binaries and logs were deleted at the user's request
+  (they end that session from Telega's Devices list). `scripts/push.sh` makes the folder again when needed.
 - **The `headless-mem` addon** (`../rlimit-patch`) is installed in `/var/addons`; authman's
   `_sys_headless_xlarge` is patched to 128 MiB in memory since the 11:22 boot. Authman also still holds a
   harmless `hmem` prefix from a failed experiment, until the next reboot.
