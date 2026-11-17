@@ -50,6 +50,7 @@ void MessageCard::onPopulating()
     const bool readOnly = flag("readOnly");
     m_reply->setEnabled(!deleted && !readOnly);
     m_react->setEnabled(!deleted && !readOnly);
+    m_forward->setEnabled(flag("forwardable"));
     if (m_votes)
         m_votes->setEnabled(flag("poll") && !deleted);
     m_copy->setEnabled(!deleted && !str("text").isEmpty());
@@ -91,6 +92,7 @@ void MessageCard::makeActions()
     m_reply = action("Reply", "file:///usr/share/icons/bb_action_reply.png", SLOT(onReply()), "r");
     // The icon is the emoji picker's action (step 5.11); the bar opens over the composer.
     m_react = action("React", "asset:///images/emoji.png", SLOT(onReact()), "a");
+    m_forward = action("Forward", "file:///usr/share/icons/bb_action_forward.png", SLOT(onForward()), "f");
     // Who chose what in a poll (the user's request, 0.0.1.132), as the counts' tap shows it per option.
     if (m_rich)
         m_votes = action("View votes", "file:///usr/share/icons/ic_accept.png", SLOT(onVotes()), "v");
@@ -160,6 +162,7 @@ void MessageCard::onTouch(TouchEvent *event)
         onReply();
 }
 void MessageCard::onReact() { Card::call(m_list, "react", m_msg); }
+void MessageCard::onForward() { Card::call(m_list, "forward", m_msg); }
 void MessageCard::onVotes() { Card::call(m_list, "showVoters", str("votesText")); }
 void MessageCard::onCopy() { Card::call(m_list, "copy", str("text")); }
 void MessageCard::onEdit() { Card::call(m_list, "edit", m_msg); }

@@ -533,6 +533,46 @@ void msg_edit(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   }
 }
 
+// `chat` is the message's chat, `to` the one it goes to. TDLib decides what can be forwarded and answers the new
+// message (a null one for what it left out): its row is queued as send_content's is, and `{id}` is the first's.
+// `topic` is the target's: the forum topic of `to` the message goes to.
+void msg_forward(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t message = 0;
+  if (!message_id(conn, id, req, "id", message)) {
+    return;
+  }
+  auto text = string_field(req, "to");
+  std::int64_t to = 0;
+  if (text.is_error() || !parse_i64(text.ok(), to)) {
+    return bad_request(conn, id, "need the field to, a string with a chat number");
+  }
+  std::int32_t topic = -1;
+  if (!topic_field(conn, id, req, topic)) {
+    return;
+  }
+  tdlib.send(make_object<td_api::forwardMessages>(to, topic_object(topic), chat, std::vector<std::int64_t>{message},
+                                                  nullptr, false, false),
+             [conn, id](Obj o) {
+               if (auto e = as_error(o)) {
+                 say("td error: %d %s", e->code_, e->message_.c_str());
+                 return reply_td_error(conn, id, *e);
+               }
+               std::string first;
+               for (auto &m : static_cast<td_api::messages &>(*o).messages_) {
+                 if (m) {
+                   messages_queue(*m);
+                   if (first.empty()) {
+                     first = std::to_string(m->id_);
+                   }
+                 }
+               }
+               if (first.empty()) {
+                 return reply_td_error(conn, id, td_api::error(400, "the message can't be forwarded"));
+               }
+               queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) { r("id", first); })));
+             });
+}
+
 // ---- media.get
 
 // The files a media.get (not a preview) is downloading, for media.progress: the message each belongs to and when its
@@ -843,6 +883,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     msg_delete(conn, id, req, chat);
   } else if (cmd == "msg.edit") {
     msg_edit(conn, id, req, chat);
+  } else if (cmd == "msg.forward") {
+    msg_forward(conn, id, req, chat);
   } else if (cmd == "media.cancel") {
     media_cancel(conn, id, req, chat);
   } else {

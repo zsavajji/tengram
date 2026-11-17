@@ -117,6 +117,10 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     // Edit: our own sent text or caption (a photo's or video's), inside WhatsApp's 15 minutes (the server allows 20).
     m.data["editable"] = out && !deleted && (kind == 0 || ((kind == 1 || kind == 2) && !text.isEmpty())) && state >= 1 && state <= 3
                          && m_now - m.ts < 15 * 60;
+    // Forward: what the engine sends again (text, photo, video, voice, document, sticker, audio file); a
+    // media row of ours waits for its upload (sending) and isn't one that failed.
+    const bool media = kind == 1 || kind == 2 || kind == 3 || kind == 4 || kind == 5 || kind == 8;
+    m.data["forwardable"] = !deleted && (kind == 0 || media) && !(out && media && (state == 0 || state == 4));
     m.data["time"] = time;
     // The long-press menu's title: the day in full and the time.
     m.data["stamp"] = longDay(when.date(), locale) + ", " + time;

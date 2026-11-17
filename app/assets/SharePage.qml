@@ -6,8 +6,10 @@ import bb.cascades 1.4
 Page {
     id: page
     property variant share
+    // A message to forward, {chat, id}, instead of a share: a tap sends it to the chat (a forum asks for its topic first).
+    property variant forward
     titleBar: TitleBar {
-        title: qsTr("Send to")
+        title: page.forward ? qsTr("Forward to") : qsTr("Send to")
         scrollBehavior: TitleBarScrollBehavior.Sticky
     }
     ChatList {
@@ -15,6 +17,6 @@ Page {
         emojiStyle: nav.emojiStyle
         bodySize: nav.bodySize
         smallSize: nav.smallSize
-        onChatTapped: nav.shareTo(chat, page.share)
+        onChatTapped: page.forward ? nav.forwardTo(chat, page.forward) : nav.shareTo(chat, page.share)
     }
 }

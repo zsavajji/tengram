@@ -56,6 +56,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`; all but `chat` and `path` optional | `{id}` | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
+| `msg.forward` | `chat` (the message's chat), `id` (the message's id), `to` (the chat it goes to); optional `topic` (a topic of `to`) | `{id}`, the new message's id | |
 | `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`) | `not_found`, `download_failed`, `cancelled` |
 | `media.cancel` | `chat`, `id` (a message with a file) | — | `not_found` |
 | `voice.start` | `chat`, `path` (the `.wav` the recorder is writing, inside the data folder); optional `topic` | — | |
@@ -149,6 +150,11 @@ here. The rows go when Telegram confirms (a `msgs` event names them: they no lon
 **`msg.edit`:** the row's `kind` decides: a text is edited as text, a photo or video gets a new
 caption; any other kind is `bad_request`, a message `chats.db` doesn't hold `not_found`. The row
 changes when Telegram's echo arrives.
+
+**`msg.forward`:** TDLib forwards the one message (`forwardMessages`, as a forward, not a copy: Telegram names the
+original sender). A missing or non-numeric `to` is `bad_request`. What TDLib refuses (a message that can't be forwarded,
+a chat we can't write to) comes back as its `td` error. Our row in the target chat is `msg.send`'s: queued as *sending*
+under a temporary id, and `{id}` is that id.
 
 **`media.get`:** downloads the message's file (a photo's largest size) into TDLib's files folder
 and answers when it is complete, after the row has `media_state` 2 and `path` (a `msgs` event).

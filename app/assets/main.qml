@@ -312,6 +312,23 @@ NavigationPane {
         at(0).openChat(chat).share(share.path, share.text)
     }
 
+    // The Send to page over the chat, for a message to forward; SharePage's pick comes back as forwardTo.
+    function forwardPick(fwd) {
+        var picker = shareDef.createObject()
+        picker.forward = fwd
+        push(picker)
+    }
+
+    // SharePage's pick for a forward: the engine sends the message, and the chat opens as after a share. A forum has
+    // no chat to open yet: its topics page goes over the Forward to page (Back picks again), holding the forward;
+    // a tap on a topic (TopicsPage.openTopic) comes back here with the topic, and that topic's chat opens.
+    function forwardTo(chat, fwd, topic) {
+        var args = {"chat": fwd.chat, "id": fwd.id, "to": chat.jid}
+        engine.request("msg.forward", args)
+        backToList()
+        var opened = at(0).openChat(chat)
+    }
+
     // A photo full screen (step 6.1): a received one, or an info page's picture.
     function showPhoto(path) {
         var viewer = viewerDef.createObject()
