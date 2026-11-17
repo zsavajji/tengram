@@ -52,10 +52,10 @@ Container {
             verticalAlignment: VerticalAlignment.Center
             preferredWidth: ui.du(9 * bar.big)
             minHeight: ui.du(9 * bar.big)
-            opacity: bar.readOnly ? 0.4 : 1
+            visible: !bar.readOnly
             layout: DockLayout {}
             gestureHandlers: TapHandler {
-                onTapped: if (!bar.readOnly) bar.recording ? bar.discard() : bar.emoji()
+                onTapped: bar.recording ? bar.discard() : bar.emoji()
             }
             ImageView {
                 horizontalAlignment: HorizontalAlignment.Center
@@ -68,8 +68,10 @@ Container {
                 filterColor: ui.palette.textOnPlain
             }
         }
-        // The field with Attach and Send inside it, as the stock bar's black box.
+        // The field with Attach and Send inside it, as the stock bar's black box. A channel has neither it nor Emoji,
+        // only the menu, at the right (the user, 2026-11-17).
         Container {
+            visible: !bar.readOnly
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1
             }
@@ -101,7 +103,6 @@ Container {
                 // A tap on Send, Attach or Emoji (not focusable) leaves the focus here, so the next key
                 // still goes through the input method (bb10-pitfalls).
                 focusRetentionPolicyFlags: FocusRetentionPolicy.LoseToFocusable
-                enabled: !bar.readOnly
                 autoSize.maxLineCount: 5
                 input {
                     submitKey: SubmitKey.Send
@@ -114,10 +115,9 @@ Container {
                 verticalAlignment: VerticalAlignment.Bottom
                 preferredWidth: ui.du(8 * bar.big)
                 minHeight: ui.du(8 * bar.big)
-                opacity: bar.readOnly ? 0.4 : 1
                 layout: DockLayout {}
                 gestureHandlers: TapHandler {
-                    onTapped: if (!bar.readOnly) bar.attach()
+                    onTapped: bar.attach()
                 }
                 ImageView {
                     horizontalAlignment: HorizontalAlignment.Center
@@ -133,10 +133,9 @@ Container {
                 verticalAlignment: VerticalAlignment.Bottom
                 preferredWidth: ui.du(8 * bar.big)
                 minHeight: ui.du(8 * bar.big)
-                opacity: bar.readOnly ? 0.4 : 1
                 layout: DockLayout {}
                 gestureHandlers: TapHandler {
-                    onTapped: if (!bar.readOnly) bar.send()
+                    onTapped: bar.send()
                 }
                 ImageView {
                     horizontalAlignment: HorizontalAlignment.Center
@@ -148,6 +147,12 @@ Container {
                                          : "file:///usr/share/icons/bb_action_sendtextmessage.png"
                     filterColor: ui.palette.textOnPlain
                 }
+            }
+        }
+        Container {
+            visible: bar.readOnly
+            layoutProperties: StackLayoutProperties {
+                spaceQuota: 1
             }
         }
         // The action menu (Search, Pinned, info, ...); always live, a channel needs it too.
