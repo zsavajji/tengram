@@ -125,7 +125,9 @@ void MessageCard::onTouch(TouchEvent *event)
     if (m_swipe != 1) // up or cancel
         return;
     m_swipe = 0;
-    const bool reply = event->isUp() && qMin(dx, m_root->translationX()) <= -enough;
+    // A cancel counts as a let-go: it is the list taking the touch once a long swipe drifts up or down (the user,
+    // 2026-11-17: two swipes in three missed, every one cancelled 270-720 px out, none let go short).
+    const bool reply = qMin(dx, m_root->translationX()) <= -enough;
     if (!reply)
         qDebug("swipe: no reply, %s at %.0f px", event->isUp() ? "up" : "cancelled", dx);
     m_slide = ImplicitAnimationController(); // the animation back on, for the slide back
