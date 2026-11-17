@@ -544,8 +544,8 @@ the ARM `__aeabi_mem*` helpers clang-built objects need under qcc, and a test pr
 The engine does more than the probe (it writes every message and chat change into the encrypted
 `chats.db`) and still used less, but the hour was the quietest of the night, so this is a
 floor. Start-up costs 3–4 s of CPU, once. Telega's service: 15–40 s/h. A daytime hour, on
-battery, is still to be measured (run 5 was started at 06:12 for six hours, default mode,
-sampled every 5 minutes: `run5-engine*.log` in `/root/tengram`).
+battery, is still to be measured (run 6 was started at 06:19 for six hours with the final
+build, default mode, sampled every 5 minutes: `run6-engine*.log` in `/root/tengram`).
 
 ### Steps 5, 6a, 6b and a fix (2026-11-17 morning)
 
@@ -584,7 +584,7 @@ and started again with `orbctl` (it had no containers). About three hours were l
 
 ### Next, in order
 
-1. Read run 5's log: `hub:` lines against what really notified, `own status:` lines against
+1. Read run 6's log: `hub:` lines against what really notified, `own status:` lines against
    when another device was in use (the one unverified part of auto mode).
 2. The user's calls: keep or drop the "encryption off" toggle (patch 0007); how the passcode
    lock should behave (option C's second half).
@@ -598,3 +598,10 @@ and started again with `orbctl` (it had no containers). About three hours were l
   gives `bad_phone` from Telegram and the state returns to `unlinked`; `link.qr` gives a `link`
   event in state `qr` with the `tg://login?token=…` link 0.2 s later. Not tried: a real code
   (it would have sent one to the user's phone at night), the password step, `link.logout`.
+
+- **Smoke test** (`tests/engine_smoke.py [--batched]`, commit `82b6252`): tonight's manual checks
+  in one command, in Saved Messages only; all pass on the phone. It found that after the busy
+  window nothing re-evaluated the mode (fixed in the same commit).
+- **Unexplained, once:** in run 5 an own-status update was ignored as "our own doing" with no
+  client request in the 10 s before, so some TDLib request with a callback was unanswered at that
+  moment. The log now names such requests by TDLib type id (`mode: busy with … of types …`).
