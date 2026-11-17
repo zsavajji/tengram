@@ -188,6 +188,16 @@ after an engine restart (the read-at-start pass ran before the chat names were i
 hub.json's `glyph` re-adds the account once for a new glyph (0.1.0.16); a channel's composer row has only the menu
 (0.1.0.17, not yet seen).
 
+**Later the same night (0.1.0.18 to 0.1.0.23, each installed at the user's go-ahead):** Send as file is a square
+toggle ("As file") at the staged bar's right, for PNGs and the user's own JPEGs (`media.send`'s `file`; seen ok);
+**Edit** in the staged bar opens the system picture editor card (`sys.pictureeditor.cardeditor`, `bb.action.EDIT`)
+and restages what it saves: a copy comes back as reason `SaveDone` with a path, the original saved over as `save`
+with `[{"uri": …}]` (both seen on the phone; works); **Settings → Devices** (`engine/sessions.cpp`, `Sessions`,
+`DevicesPage.qml`, `QrScanPage.qml`): the sessions list and terminate work on the phone; Telegram refuses ending
+sessions from a device signed in under ~24 h (406 FRESH_RESET_AUTHORISATION_FORBIDDEN, now said in words);
+**Link desktop device** (camera + BarcodeDetector, `confirmQrCodeAuthentication`) is **not yet tried**.
+`README.md` written (features as of 0.1.0.23).
+
 **Tested with 0.1.0.15 (first launch migrates chats.db to v4: chats open empty for a moment and refill):** a voice note
 plays, records, sends (the other side sees "recording…" throughout), a received one turns played; a big video and a
 document show the ring and the size, a tap cancels, a finished video plays in the viewer; swipe to reply on long swipes;
@@ -206,8 +216,8 @@ ChatRow, MediaBubble) obsolete and lrelease drops them. They were restored by ha
 
 ## 7. Where to resume, in order
 
-**First:** see the channel composer (0.1.0.17) and the Hub account's re-add (`hub: the account has glyph` in
-tengramd.log); then step 4.
+**First:** try Link desktop device (scan Telegram Desktop's QR; then the camera is free for other apps); see the
+channel composer (0.1.0.17) and the Hub account's re-add (`hub: the account has glyph` in tengramd.log); then step 4.
 
 **Then the evening's step 4 (agreed with the user):**
 - **Reactions:** one chip per emoji with its count under the message (Telegram's look, several chips, wrapping), ours
