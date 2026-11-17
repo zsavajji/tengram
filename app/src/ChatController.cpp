@@ -143,9 +143,23 @@ void ChatController::onReplied(const QString &id, const QString &cmd, const QVar
         askGroupInfo();
         return;
     }
+    if (cmd == "chat.pins" && id == m_pinsId) {
+        emit pinsReady(Pins::previews(m_jid, result.toMap()["ids"].toStringList()));
+        return;
+    }
     if (cmd != "group.info" || id != m_infoId)
         return;
     takeGroupInfo(result.toMap());
+}
+
+void ChatController::askPins()
+{
+    if (!m_engine)
+        return;
+    QVariantMap args;
+    args["chat"] = m_jid;
+    addTopic(args);
+    m_pinsId = m_engine->request("chat.pins", args);
 }
 
 // The topic's own requests carry it (docs/protocol.md, Forum topics).

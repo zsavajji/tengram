@@ -1,9 +1,9 @@
 import bb.cascades 1.4
 import bb.system 1.2
 
-// ⋮ → Pinned message (step 6.5h), out of ChatPage.qml to keep that file short. The chat's pins come
-// from ChatController.pins(), newest first: none says so in a toast, one is jumped to, several are
-// listed by their previews to pick from. It is always in the menu: ActionItem has no visible, and
+// ⋮ → Pinned message (step 6.5h), out of ChatPage.qml to keep that file short. Telegram's pins come from the
+// engine (ChatController.askPins, then pinsReady), newest message first: none says so in a toast, one is jumped to,
+// several are listed by their previews to pick from. It is always in the menu: ActionItem has no visible, and
 // following the pins as they change isn't worth it.
 ActionItem {
     id: action
@@ -14,8 +14,17 @@ ActionItem {
     title: qsTr("Pinned message")
     imageSource: "file:///usr/share/icons/bb_action_flag.png"
     ActionBar.placement: ActionBarPlacement.InOverflow
-    onTriggered: {
-        var pins = chatCtl.pins()
+    // Not a Connections: Cascades' QML has none.
+    onCreationCompleted: chatCtl.pinsReady.connect(action.listed)
+    onTriggered: chatCtl.askPins()
+    property string failedCmd: engine.failure.cmd || ""
+    onFailedCmdChanged: {
+        if (failedCmd == "chat.pins") {
+            pinsFailed.show()
+        }
+    }
+    // The pins are maps of id and preview.
+    function listed(pins) {
         if (pins.length == 0) {
             noPins.show()
         } else if (pins.length == 1) {
@@ -45,6 +54,10 @@ ActionItem {
         SystemToast {
             id: noPins
             body: qsTr("No pinned messages")
+        },
+        SystemToast {
+            id: pinsFailed
+            body: qsTr("Couldn't load the pinned messages")
         },
         SystemToast {
             id: notHere

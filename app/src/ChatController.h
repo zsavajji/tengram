@@ -83,8 +83,9 @@ public:
     // The reply's message id, "" when not replying: a file sent as the reply carries it (step 6.4).
     Q_INVOKABLE QString quoteId() const { return m_quoteId; }
     Q_INVOKABLE void copy(const QString &text);
-    // The messages pinned now, newest pin first: maps of id and preview (Pins.h, step 6.5h).
-    Q_INVOKABLE QVariantList pins() const { return Pins::current(m_jid); }
+    // Asks Telegram for the chat's (or the topic's) pinned messages: pinsReady comes with them (a failure shows in the
+    // engine's failure, as chat.pins).
+    Q_INVOKABLE void askPins();
     // Delete for me waits for the Undo toast: the card hides at once, the request goes with
     // commitDelete (the toast closed, or the page going away).
     Q_INVOKABLE void deleteForMe(const QString &id);
@@ -103,6 +104,8 @@ signals:
     void groupInfoChanged();
     // The reply to a voice.play: the request's id, and the WAV to play.
     void voiceReady(const QString &id, const QString &path);
+    // The pinned messages, newest message first: maps of id and preview (Pins.h), after askPins.
+    void pinsReady(const QVariantList &pins);
     // A recording was dropped from here (minimised): the page resets its recorder.
     void voiceCancelled();
 
@@ -141,6 +144,7 @@ private:
     QVariantMap m_groupInfo;
     QString m_infoId; // the group.info request we wait for
     QString m_changeId; // the group.participants request we wait for
+    QString m_pinsId; // the chat.pins request we wait for
     QString m_participants; // "N participants", the status line of a group
     QStringList m_pending;
     bool m_group;

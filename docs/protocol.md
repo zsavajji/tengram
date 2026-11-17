@@ -48,6 +48,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.open` | `chat`, `limit` (1 to 200, default 50); optional `topic` (a forum topic's id) | `{oldest, newest, count, more}` | |
 | `chat.history` | `chat`, `before` (a message id), `limit` (1 to 100, default 50); optional `topic` | `{oldest, newest, count, more}` | |
 | `chat.newer` | `chat`, `after` (a message id), `limit` (1 to 100, default 50); optional `topic` | `{oldest, newest, count, more}` | |
+| `chat.pins` | `chat`; optional `topic` | `{ids: [message ids]}`, newest message first | |
 | `chat.close` | `chat` | — | |
 | `topics.list` | `chat` (a forum: `chats.forum` is 1) | `{count}` | `bad_chat` |
 | `chat.read` | `chat`; optional `upto` (a message id), `topic` | — | |
@@ -124,6 +125,12 @@ engine asks Telegram for the topic first (`getForumTopic`, which also writes its
 below the topic's newest message at that moment. A topic's history (`getForumTopicHistory`) has no abort to avoid: TDLib
 answers it from Telegram only, never from its loaded messages (no `CHECK(!have_a_gap)` is on that path). A topic's page of
 newer messages is cut one message shorter by TDLib than a chat's, which the engine allows for.
+
+**`chat.pins`:** the chat's pinned messages (with `topic`, the topic's), as Telegram has them now: a pin never expires and
+an unpin leaves no message, so the list is asked for every time (`searchChatMessages` with the pinned filter, 100 a call,
+following `next_from_message_id` until a call brings nothing, at most 5 calls). Every message's row is written first, so the
+UI can read its preview and jump to it. The reply `{ids}`, the message ids newest message first (id descending; a pin's own
+date is not kept), comes after that commit; no pins is an empty list. TDLib's errors are the `td` error.
 
 **`chat.read`:** marks the chat read up to its newest message, or with `upto` up to that message
 (an id above the chat's newest counts as the newest; anything but a message id is `bad_request`).

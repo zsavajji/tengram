@@ -249,6 +249,54 @@ void chat_newer(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   });
 }
 
+// ---- chat.pins: the pinned messages, newest message first
+
+struct Pinned {
+  std::uint64_t conn;
+  std::string id;
+  std::int64_t chat;
+  std::int32_t topic;
+  std::vector<std::int64_t> found;
+  int calls = 0;
+};
+
+// Telegram's own list: a pin never expires, and unpinning leaves no message, so it is asked for, not kept.
+// Every message goes through messages_queue: the UI reads its row for the preview and the jump.
+void fetch_pins(const std::shared_ptr<Pinned> &p, std::int64_t from) {
+  tdlib.send(make_object<td_api::searchChatMessages>(p->chat, topic_object(p->topic), "", nullptr, from, 0, 100,
+                                                     make_object<td_api::searchMessagesFilterPinned>()),
+             [p](Obj o) {
+               if (auto e = as_error(o)) {
+                 say("td error: %d %s", e->code_, e->message_.c_str());
+                 return reply_td_error(p->conn, p->id, *e);
+               }
+               auto &r = static_cast<td_api::foundChatMessages &>(*o);
+               for (auto &m : r.messages_) {
+                 if (m) {
+                   messages_queue(*m);
+                   p->found.push_back(m->id_);
+                 }
+               }
+               if (r.messages_.empty() || r.next_from_message_id_ == 0 || ++p->calls >= 5) {
+                 std::sort(p->found.begin(), p->found.end(), std::greater<>());
+                 // A page may repeat its `from`.
+                 p->found.erase(std::unique(p->found.begin(), p->found.end()), p->found.end());
+                 const auto text = [](std::int64_t m) { return std::to_string(m); };
+                 return queue_reply(p->conn, p->id, td::json_encode<std::string>(td::json_object([&](auto &out) {
+                                      out("ids", td::json_array(p->found, text));
+                                    })));
+               }
+               fetch_pins(p, r.next_from_message_id_);
+             });
+}
+
+void chat_pins(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int32_t topic = -1;
+  if (topic_field(conn, id, req, topic)) {
+    fetch_pins(std::make_shared<Pinned>(Pinned{conn, id, chat, topic, {}}), 0);
+  }
+}
+
 // ---- chat.set: several calls, one reply
 
 struct Several {
@@ -886,6 +934,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     chat_history(conn, id, req, chat);
   } else if (cmd == "chat.newer") {
     chat_newer(conn, id, req, chat);
+  } else if (cmd == "chat.pins") {
+    chat_pins(conn, id, req, chat);
   } else if (cmd == "chat.close") {
     live_close(conn, chat);
     tdlib.send(make_object<td_api::closeChat>(chat), [conn, id](Obj) { server.reply_ok(conn, id); });
