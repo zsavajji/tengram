@@ -323,10 +323,20 @@ NavigationPane {
     // no chat to open yet: its topics page goes over the Forward to page (Back picks again), holding the forward;
     // a tap on a topic (TopicsPage.openTopic) comes back here with the topic, and that topic's chat opens.
     function forwardTo(chat, fwd, topic) {
+        if (chat.forum && !topic) {
+            at(0).openChat(chat).forward(fwd)
+            return
+        }
         var args = {"chat": fwd.chat, "id": fwd.id, "to": chat.jid}
+        if (topic) {
+            args.topic = topic.topic
+        }
         engine.request("msg.forward", args)
         backToList()
         var opened = at(0).openChat(chat)
+        if (topic) {
+            opened.openTopic(topic)
+        }
     }
 
     // A photo full screen (step 6.1): a received one, or an info page's picture.
