@@ -15,6 +15,9 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/resource.h>
+
+#include <new>
 
 #include <algorithm>
 #include <cerrno>
@@ -168,6 +171,42 @@ void handle_request(std::uint64_t conn, const std::string &id, const std::string
   server.reply_error(conn, id, "unknown_cmd", "unknown cmd " + cmd);
 }
 
+// The headless service runs under limits the launcher sets (RLIMIT_DATA from launcher.cfg's
+// headless_heapsize_limit_mb, and QNX's RLIMIT_FREEMEM, a share of the whole phone's memory): the first sync
+// after a login died with bad_alloc in 0.1.0.3. They are logged, and each soft limit is raised to its hard one,
+// which a process may do for itself. RLIM_INFINITY prints as "inf".
+void limits(bool raise) {
+  static const struct { int id; const char *name; } kLimits[] = {
+      {RLIMIT_DATA, "DATA"}, {RLIMIT_AS, "AS"}, {RLIMIT_STACK, "STACK"},
+#ifdef RLIMIT_FREEMEM
+      {RLIMIT_FREEMEM, "FREEMEM"},
+#endif
+  };
+  auto show = [](rlim_t v) {
+    return v == RLIM_INFINITY ? std::string("inf") : std::to_string(static_cast<unsigned long long>(v));
+  };
+  for (const auto &l : kLimits) {
+    struct rlimit r;
+    if (getrlimit(l.id, &r) != 0) {
+      say("rlimit %s: %s", l.name, std::strerror(errno));
+      continue;
+    }
+    std::string done;
+    if (raise && r.rlim_cur != r.rlim_max) {
+      struct rlimit up = {r.rlim_max, r.rlim_max};
+      done = setrlimit(l.id, &up) == 0 ? ", raised to the hard limit" : std::string(", raise: ") + std::strerror(errno);
+    }
+    say("rlimit %s: soft %s, hard %s%s", l.name, show(r.rlim_cur).c_str(), show(r.rlim_max).c_str(), done.c_str());
+  }
+}
+
+// The first failed allocation says when, with the limits as they are then; the next one throws as usual.
+void out_of_memory() {
+  std::set_new_handler(nullptr);
+  say("out of memory: an allocation failed");
+  limits(false);
+}
+
 int main(int argc, char **argv) {
   if (argc == 2 && std::strcmp(argv[1], "-h") == 0) {
     usage(stdout);
@@ -212,6 +251,8 @@ int main(int argc, char **argv) {
     usage(stderr);
     return 2;
   }
+  limits(true);
+  std::set_new_handler(out_of_memory);
   // The API id and hash are compiled in from the build's environment (scripts/build-app.sh), never kept in a
   // file of the repository; TG_API_ID and TG_API_HASH in the environment override them (test runs under /root).
 #ifdef TENGRAM_API_ID
