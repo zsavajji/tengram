@@ -1,7 +1,7 @@
 // tdprobe: measures TDLib (TDLight fork) on a BB10 phone. Single-threaded loop on
 // ClientManager::receive; RSS is measured from outside (pidin), CPU time is read here.
 // See README.md. Usage: tdprobe <data-dir> [--once] [--no-history] [--background]
-//                        [--no-files] [--plain] [--qr] [--first-page] [--interval <s>] [--batch <s>]
+//                        [--no-files] [--qr] [--first-page] [--interval <s>] [--batch <s>]
 // --batch <s> (implies --background): after the load the network is set to None, then every <s>
 // seconds one sync is run (WiFi, wait for connectionStateReady + 3 s quiet, None) and timed.
 
@@ -45,7 +45,7 @@ td::ClientManager::ClientId cid = 0;
 std::string data_dir;
 int api_id = 0;
 std::string api_hash;
-bool once = false, no_history = false, background = false, no_files = false, qr = false, first_page = false, plain = false;
+bool once = false, no_history = false, background = false, no_files = false, qr = false, first_page = false;
 int interval = 300;  // seconds between status lines; 0 = only on SIGUSR1
 int batch = 0;       // seconds between syncs; 0 = off
 
@@ -387,8 +387,7 @@ void on_auth(const td_api::AuthorizationState &s) {
   switch (auth_id) {
     case td_api::authorizationStateWaitTdlibParameters::ID: {
       auto p = td_api::make_object<td_api::setTdlibParameters>();
-      // --plain: TDLight's unencrypted format (patch 0007 keeps its journal and sync on)
-      p->database_directory_ = data_dir + (plain ? "/db?use_custom_database_format=true" : "/db");
+      p->database_directory_ = data_dir + "/db";
       p->files_directory_ = data_dir + "/files";
       p->use_file_database_ = true;
       p->use_chat_info_database_ = true;
@@ -506,8 +505,6 @@ int main(int argc, char **argv) {
       qr = true;
     } else if (a == "--no-files") {
       no_files = true;
-    } else if (a == "--plain") {
-      plain = true;
     } else if (a == "--interval" && i + 1 < argc && (interval = std::atoi(argv[++i])) >= 0) {
     } else if (a == "--batch" && i + 1 < argc && (batch = std::atoi(argv[++i])) > 0) {
       background = true;
@@ -520,7 +517,7 @@ int main(int argc, char **argv) {
   }
   if (data_dir.empty()) {
     std::fprintf(stderr,
-                 "usage: %s <data-dir> [--once] [--no-history] [--background] [--no-files] [--plain] [--qr] [--first-page] [--interval <s>] "
+                 "usage: %s <data-dir> [--once] [--no-history] [--background] [--no-files] [--qr] [--first-page] [--interval <s>] "
                  "[--batch <s>]\n",
                  argv[0]);
     return 2;
