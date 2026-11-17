@@ -72,11 +72,14 @@ struct Chat {
 
 struct UserNames {
   std::string first, full;
+  int photo_file = 0;  // the small profile photo's file id, 0 for none
+  std::string photo_path;  // "" until it is downloaded
 };
 
 std::unordered_map<std::int64_t, Chat> chats;
 std::unordered_map<std::int64_t, UserNames> users;
 std::unordered_map<int, std::int64_t> downloads;  // photo file id -> chat id, for each download asked for
+std::unordered_map<int, std::int64_t> user_downloads;  // the same for the users' small profile photos
 std::unordered_set<std::int64_t> unknown_chats;   // chats an update named that we have no record of (logged once)
 std::vector<std::int64_t> dirty_ids;              // the chats with dirty set
 std::vector<std::int64_t> changed;                // written or deleted, their event is still to come
@@ -261,6 +264,23 @@ void set_user(const td_api::user &u) {
   UserNames &n = users[u.id_];
   n.first = u.first_name_;
   n.full = u.last_name_.empty() ? u.first_name_ : u.first_name_ + " " + u.last_name_;
+  const td_api::file *small = u.profile_photo_ ? u.profile_photo_->small_.get() : nullptr;
+  n.photo_file = small ? small->id_ : 0;
+  n.photo_path = small && small->local_ && small->local_->is_downloading_completed_ ? small->local_->path_ : "";
+}
+
+// A user's small photo is here: the UI is told, to every connection (a page that listed the user without it).
+void user_photo_here(std::int64_t user_id, int file, const std::string &path) {
+  auto it = users.find(user_id);
+  if (it == users.end() || it->second.photo_file != file) {  // not a photo the user has since replaced
+    return;
+  }
+  it->second.photo_path = path;
+  server.broadcast(td::json_encode<std::string>(td::json_object([&](auto &o) {
+    o("ev", "photo");
+    o("jid", std::to_string(user_id));
+    o("photo", path);
+  })));
 }
 
 std::int64_t muted_until(const Chat &c) {
@@ -474,6 +494,36 @@ const std::string &chat_title(std::int64_t chat_id) {
   return it == chats.end() ? none : it->second.title;
 }
 
+const std::string &user_photo(std::int64_t user_id) {
+  static const std::string none;
+  auto it = users.find(user_id);
+  return it == users.end() ? none : it->second.photo_path;
+}
+
+bool user_photo_ask(std::int64_t user_id) {
+  auto it = users.find(user_id);
+  if (it == users.end() || it->second.photo_file == 0 || !it->second.photo_path.empty()) {
+    return false;
+  }
+  const int file = it->second.photo_file;
+  if (!user_downloads.emplace(file, user_id).second) {
+    return false;
+  }
+  tdlib.send(td_api::make_object<td_api::downloadFile>(file, 1, 0, 0, false), [user_id, file](Obj o) {
+    if (auto e = as_error(o)) {
+      say("user photo: %d %s", e->code_, e->message_.c_str());
+      user_downloads.erase(file);  // asked for again with the next page
+      return;
+    }
+    // Not synchronous: this is the file as it is now. One that was here already has no update coming.
+    const auto &f = static_cast<const td_api::file &>(*o);
+    if (f.local_ && f.local_->is_downloading_completed_ && user_downloads.erase(file)) {
+      user_photo_here(user_id, file, f.local_->path_);
+    }
+  });
+  return true;
+}
+
 void chats_update(td_api::Object &update) {
   switch (update.get_id()) {
     case td_api::updateNewChat::ID: {
@@ -588,14 +638,23 @@ void chats_update(td_api::Object &update) {
     }
     case td_api::updateFile::ID: {
       auto &f = *static_cast<td_api::updateFile &>(update).file_;
-      auto asked = downloads.find(f.id_);
-      if (asked == downloads.end() || !f.local_ || !f.local_->is_downloading_completed_) {
+      if (!f.local_ || !f.local_->is_downloading_completed_) {
         break;
       }
-      Chat *c = find(asked->second);
-      if (c && c->photo_file == f.id_) {  // not a photo the chat has since replaced
-        c->photo_path = f.local_->path_;
-        touch(*c);
+      auto asked = downloads.find(f.id_);
+      if (asked != downloads.end()) {
+        Chat *c = find(asked->second);
+        if (c && c->photo_file == f.id_) {  // not a photo the chat has since replaced
+          c->photo_path = f.local_->path_;
+          touch(*c);
+        }
+      }
+      // The same file can be both: a person's chat photo is their profile photo.
+      auto wanted = user_downloads.find(f.id_);
+      if (wanted != user_downloads.end()) {
+        const std::int64_t user = wanted->second;
+        user_downloads.erase(wanted);
+        user_photo_here(user, f.id_, f.local_->path_);
       }
       break;
     }
@@ -720,6 +779,7 @@ void chats_reset() {
   chats.clear();
   users.clear();
   downloads.clear();
+  user_downloads.clear();
   unknown_chats.clear();
   dirty_ids.clear();
   for (int s = 0; s < 3; ++s) {

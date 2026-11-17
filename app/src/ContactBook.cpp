@@ -129,6 +129,8 @@ void ContactBook::onRead(const QVariantList &entries)
 // changed costs it nothing.
 void ContactBook::send()
 {
+    // Nothing is sent: uploading the address book to Telegram is a setting the user turns on, never a default.
+    return;
     if (!m_engine->connected() || m_entries.isEmpty())
         return;
     QVariantMap args;

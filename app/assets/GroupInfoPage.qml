@@ -11,6 +11,8 @@ Page {
     property variant ctl
     property variant info: ctl ? ctl.groupInfo : {}
     property bool loaded: info.participants !== undefined
+    // All the group's members (the engine lists at most 200 of them), else the ones listed.
+    property int total: !loaded ? 0 : info.count !== undefined ? info.count : info.participants.length
     property bool failed: !loaded && engine.failure.cmd == "group.info"
     // The full-size picture the engine fetched with the info; its file name has the picture's id.
     property bool hasPicture: !!info.picture
@@ -231,7 +233,7 @@ Page {
             // From info, not people.size(): a method call in a binding isn't re-read when the model fills.
             Header {
                 visible: page.loaded
-                title: !page.loaded ? "" : page.info.participants.length == 1 ? qsTr("1 participant") : qsTr("%1 participants").arg(page.info.participants.length)
+                title: !page.loaded ? "" : page.total == 1 ? qsTr("1 participant") : qsTr("%1 participants").arg(page.total)
             }
             ListView {
                 // The rows reach the shared emoji style and sizes through the view, as the chat list's do.

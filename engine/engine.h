@@ -58,6 +58,9 @@ void link_syncing(bool on);  // the first full chat list load is running: `synci
 void reply_td_error(std::uint64_t conn, const std::string &id, const td_api::error &e);
 // The reply for a TDLib answer that carries nothing for the UI: ok, or the error.
 void answer(std::uint64_t conn, const std::string &id, const Obj &o);
+// Downloads a file now (synchronous, as media.get) and gives its absolute path to `done`: at once when it is here
+// already, "" when there is no file or the download fails (logged under `what`; the caller goes on without it).
+void download_path(const td_api::file *file, const std::string &what, std::function<void(const std::string &)> done);
 
 // chats.cpp: the mirror of the chat list in `chats`.
 void chats_update(td_api::Object &update);  // the chat updates; anything else is ignored
@@ -83,6 +86,12 @@ std::string message_preview(const td_api::message &m);  // the chat list's one l
 bool chats_read(std::int64_t chat, std::function<void(const td_api::error *)> done, std::int64_t upto = 0);
 const std::string &user_name(std::int64_t user_id, bool full);  // first name, or full; "" when unknown
 const std::string &chat_title(std::int64_t chat_id);            // "" when the chat is not mirrored
+// The path of a user's small profile photo; "" when they have none or it is not downloaded yet.
+const std::string &user_photo(std::int64_t user_id);
+// Asks TDLib, in the background, for the small profile photo of a user who has one that is not here yet. The `photo`
+// event (jid: the user id, photo: the path) comes to every connection when it is. False when there is nothing to ask:
+// no photo, it is here, or it was asked for already (its event is still to come).
+bool user_photo_ask(std::int64_t user_id);
 
 // body.cpp: what a message says, as one piece of text, without a sender's name in front. is_service is set for the
 // service messages ("Anna joined") and the calls: their previews take no name either.
@@ -113,11 +122,18 @@ void queue_reply(std::uint64_t conn, const std::string &id, const std::string &r
 // requests.cpp: chat.open, chat.history, chat.newer, chat.close, chat.read, chat.typing, chat.set, msg.send,
 // media.send, msg.delete, msg.edit, media.get.
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+// The common start of a request about a chat: the account is logged in and "chat" is a string holding an int64
+// (`unlinked` or `bad_request` otherwise). False after the reply.
+bool request_chat(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t &chat);
 // A path a request names for a file to send: absolute and an existing regular file (stat). Its size goes in `size`.
 bool regular_file(const std::string &path, std::int64_t &size);
 
 // profile.cpp: profile.get and profile.set, our own account's name, about, phone and picture. They have no chat.
 bool profile_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+
+// pages.cpp: contact.info, channel.info, group.info, contacts.list, chat.clear, chat.delete and channel.unfollow, the
+// requests behind the info pages.
+bool pages_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).
 void mode_init();                                                    // read prefs.json

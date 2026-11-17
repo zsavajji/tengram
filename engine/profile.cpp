@@ -19,7 +19,7 @@ void td_failed(std::uint64_t conn, const std::string &id, const td_api::error &e
   reply_td_error(conn, id, e);
 }
 
-// ---- profile.get: getMe, then getUserFullInfo for the bio, then the photo if it is not here yet
+// ---- profile.get: getMe, then the photo if it is not here yet, then getUserFullInfo for the bio
 
 struct Profile {
   std::string name, about, phone, picture;
@@ -43,36 +43,19 @@ void profile_get(std::uint64_t conn, const std::string &id) {
     auto p = std::make_shared<Profile>();
     p->name = me.first_name_ + (me.last_name_.empty() ? "" : " " + me.last_name_);
     p->phone = me.phone_number_.empty() ? "" : "+" + me.phone_number_;
-    const td_api::file *big = me.profile_photo_ ? me.profile_photo_->big_.get() : nullptr;
-    std::int32_t download = 0;  // the photo's file id when it is not here yet
-    if (big && big->local_ && big->local_->is_downloading_completed_) {
-      p->picture = big->local_->path_;
-    } else if (big) {
-      download = big->id_;
-    }
-    tdlib.send(make_object<td_api::getUserFullInfo>(me.id_), [conn, id, p, download](Obj o2) {
-      if (auto e = as_error(o2)) {
-        return td_failed(conn, id, *e);
-      }
-      const auto &bio = static_cast<const td_api::userFullInfo &>(*o2).bio_;
-      p->about = bio ? bio->text_ : "";
-      if (!download) {
-        return profile_reply(conn, id, *p);
-      }
-      // Synchronous, as media.get: the answer is the file once the download is over. A photo that does not come
-      // is no reason to fail the rest of the profile.
-      tdlib.send(make_object<td_api::downloadFile>(download, 16, 0, 0, true), [conn, id, p](Obj o3) {
-        const auto *got = as_error(o3) ? nullptr : static_cast<const td_api::file *>(o3.get());
-        if (got && got->local_ && got->local_->is_downloading_completed_) {
-          p->picture = got->local_->path_;
-        } else if (const auto *e = as_error(o3)) {
-          say("profile.get: the picture: %d %s", e->code_, e->message_.c_str());
-        } else {
-          say("profile.get: the picture did not finish");
-        }
-        profile_reply(conn, id, *p);
-      });
-    });
+    // A photo that does not come is no reason to fail the rest of the profile: the path is then "".
+    download_path(me.profile_photo_ ? me.profile_photo_->big_.get() : nullptr, "profile.get: the picture",
+                  [conn, id, p, me_id = me.id_](const std::string &path) {
+                    p->picture = path;
+                    tdlib.send(make_object<td_api::getUserFullInfo>(me_id), [conn, id, p](Obj o2) {
+                      if (auto e = as_error(o2)) {
+                        return td_failed(conn, id, *e);
+                      }
+                      const auto &bio = static_cast<const td_api::userFullInfo &>(*o2).bio_;
+                      p->about = bio ? bio->text_ : "";
+                      profile_reply(conn, id, *p);
+                    });
+                  });
   });
 }
 

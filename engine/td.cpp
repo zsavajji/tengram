@@ -36,6 +36,30 @@ void answer(std::uint64_t conn, const std::string &id, const Obj &o) {
   }
 }
 
+void download_path(const td_api::file *file, const std::string &what, std::function<void(const std::string &)> done) {
+  if (!file) {
+    return done("");
+  }
+  if (file->local_ && file->local_->is_downloading_completed_) {
+    return done(file->local_->path_);
+  }
+  // Synchronous: the answer is the file once the download is over. A file that does not come is no reason to fail
+  // what the caller was doing.
+  tdlib.send(td_api::make_object<td_api::downloadFile>(file->id_, 16, 0, 0, true), [what, done](Obj o) {
+    const auto *e = as_error(o);
+    const auto *got = e ? nullptr : static_cast<const td_api::file *>(o.get());
+    if (got && got->local_ && got->local_->is_downloading_completed_) {
+      return done(got->local_->path_);
+    }
+    if (e) {
+      say("%s: %d %s", what.c_str(), e->code_, e->message_.c_str());
+    } else {
+      say("%s did not finish", what.c_str());
+    }
+    done("");
+  });
+}
+
 void Td::start(int wake_fd) {
   wake_fd_ = wake_fd;
   td::ClientManager::execute(td_api::make_object<td_api::setLogVerbosityLevel>(1));

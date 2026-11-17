@@ -59,6 +59,13 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `media.get` | `chat`, `id` (a message with a file) | `{path}`, the absolute path of the file | `not_found`, `download_failed` |
 | `profile.get` | — | `{name, about, phone, picture}` | |
 | `profile.set` | `name`, `about`, `picture` (strings); each optional, at least one | — | |
+| `contact.info` | `chat` (a person: a private or a secret chat) | `{phone, about, groups: [{jid, name}], blocked, picture}` | `bad_chat` |
+| `channel.info` | `chat` (a channel) | `{followers, description, picture}` | `bad_chat` |
+| `group.info` | `chat` (a basic group, or a supergroup that is not a channel) | `{subject, description, participants: [{jid, name, admin, me, photo}], count, picture, membersAdd}`; `photo` is absent when not downloaded yet | `bad_chat` |
+| `contacts.list` | — | `[{jid, name, photo}]`, an array: the account's contacts by name; `photo` is absent when not downloaded yet | |
+| `chat.clear` | `chat` | — | |
+| `chat.delete` | `chat` | — | |
+| `channel.unfollow` | `chat` (a channel) | — | `bad_chat` |
 | `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `mediaOnMobile` (bool), `language` (string), `cacheMB` (64 to 512); each optional, at least one | — | |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
@@ -156,6 +163,45 @@ and nothing changes. The changes then go to Telegram one after another, in the o
 TDLib error is the reply (`td`) and the ones after it are not sent, while those before it stay done. The reply
 comes after the last.
 
+**`contact.info`:** a person's page. `chat` is a private or a secret chat, any other is `bad_chat`. `phone` is the
+number with a "+" in front, "" when the user hides it or Telegram has none; `about` the bio; `blocked` whether the
+user is on our block list; `groups` the groups we both are in (at most 100, in TDLib's order), each with `jid` (the
+chat id) and `name` (its title); `[]` for our own chat, Saved Messages, since TDLib has no groups in common with
+ourselves; `picture` the absolute path of the user's big profile photo, downloaded first when it is not here ("" when
+there is none, or when the download fails: that is only logged). A TDLib error is the `td` reply.
+
+**`channel.info`:** a channel's page. `chat` is a channel (a supergroup with `is_channel`), any other is `bad_chat`.
+`followers` is its member count (a number), `description` its description, `picture` the big chat photo, as
+`contact.info`'s.
+
+**`group.info`:** a group's page. `chat` is a basic group or a supergroup that is not a channel, any other is
+`bad_chat`. `subject` is the title, `description` the group's description, `picture` the big chat photo as above, and
+`membersAdd` whether the group's own permissions let every member invite people (an admin always may). `participants`
+are the members that are users (a member that is a chat is left out), at most 200, in TDLib's order: the basic
+group's own, or for a supergroup the recent ones, or only its administrators when Telegram does not let us list its
+members. Each has `jid` (the user id), `name` (the full name as the engine knows it; "" when it does not), `admin`
+(the creator or an administrator) and `me` (it is us). `count` is how many members the group has in all, which can be
+more than the list holds. A participant's `photo` is the path of their small profile photo, and is absent when it is
+not downloaded yet: the engine then asks TDLib for it in the background (for at most 50 members a request), after
+the reply, and each one that comes arrives as a `photo` event.
+
+**`contacts.list`:** the account's Telegram contacts: the result is a JSON array, not an object. `jid` is the user id,
+`name` the full name, and they are sorted by `name` ignoring case (only for the ASCII letters: a name in another
+script sorts by its UTF-8 bytes). `photo` is as a `group.info` participant's, for at most 100 contacts a request.
+
+**`chat.clear`:** deletes the chat's messages for us alone (TDLib's `deleteChatHistory`, the chat staying in the
+list); an active secret chat is the one exception, TDLib deletes its history only for both sides. The rows go with
+TDLib's delete updates, as `msg.delete`'s do (`msgs` events). The chat's `last_preview` stays as it was until its
+next message: the engine keeps a chat's preview when TDLib says it has no newest message. A TDLib error is `td`.
+
+**`chat.delete`:** for a private or a secret chat, deletes its history for us and removes the chat from the list (a
+`chats` event names it). For a basic group, a supergroup or a channel it leaves the chat (`leaveChat`: deleting a group
+in Telegram means leaving it, the others keep it), and then for a basic group also deletes its history and removes it
+from the list; TDLib allows that call for no supergroup or channel we have left, so whether such a chat goes from the
+list is TDLib's. The reply comes when the last call is done.
+
+**`channel.unfollow`:** leaves a channel (`leaveChat`). Any other chat is `bad_chat`.
+
 **`prefs.set`:** the fields given are merged into the stored ones, kept in `prefs.json` in the
 data folder. `mode` and `batchSecs` are the delivery mode's settings (below), `notifyPreview`
 whether a notification shows the message's text. `mediaOnMobile`, `language` and `cacheMB` are
@@ -173,8 +219,10 @@ not pruned). Defaults: `auto`, 300, true, true, "", 64.
 | `msgs` | `chat`, `ids`: [message ids] | these rows of `messages` changed or disappeared: re-read them |
 | `typing` | `chat`, `who` (first name in a group, "" in a 1:1 chat), `on`, `voice` (recording a voice note) | someone started or stopped typing; only for chats between their `chat.open` and `chat.close` |
 | `presence` | `chat`, `online`, `lastSeen` (unix seconds, 0 when hidden) | the other person's online status in a 1:1 chat, once after `chat.open` and at every change until `chat.close` |
+| `photo` | `jid` (a user id), `photo` (the absolute path of the user's small profile photo) | a photo that `group.info` or `contacts.list` left out is downloaded: put it on that person's row |
 
-`chats` and `msgs` come after the engine commits, at most every 50 ms.
+`chats` and `msgs` come after the engine commits, at most every 50 ms. `photo` does not wait for that: it comes when
+TDLib has downloaded the photo, which is always after the reply that left it out.
 
 **The link body** (the `hello` result and every `link` event): `state`, `conn` and `memMB`, plus:
 

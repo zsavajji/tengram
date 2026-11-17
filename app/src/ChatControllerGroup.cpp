@@ -19,7 +19,8 @@ void ChatController::takeGroupInfo(QVariantMap info)
     info["participants"] = people;
     m_groupInfo = info;
     emit groupInfoChanged();
-    const int n = people.size();
+    // The engine lists at most 200 members and says how many there are in all.
+    const int n = info.contains("count") ? info["count"].toInt() : people.size();
     m_participants = n == 1 ? tr("1 participant") : tr("%1 participants").arg(n);
     emit statusChanged();
 }

@@ -42,20 +42,6 @@ bool parse_i64(const std::string &s, std::int64_t &out) {
   return errno == 0;
 }
 
-// The common start: the account is logged in and "chat" is a string holding an int64. False after the reply.
-bool start(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t &chat) {
-  if (!link_ready()) {
-    server.reply_error(conn, id, "unlinked", "not logged in");
-    return false;
-  }
-  auto text = string_field(req, "chat");
-  if (text.is_error() || !parse_i64(text.ok(), chat)) {
-    bad_request(conn, id, "need the field chat, a string with a number");
-    return false;
-  }
-  return true;
-}
-
 // A message id in a string field of the request. False after the bad_request reply.
 bool message_id(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::int64_t &out) {
   auto text = string_field(req, name);
@@ -663,6 +649,20 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
 
 }  // namespace
 
+// The common start: the account is logged in and "chat" is a string holding an int64. False after the reply.
+bool request_chat(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t &chat) {
+  if (!link_ready()) {
+    server.reply_error(conn, id, "unlinked", "not logged in");
+    return false;
+  }
+  auto text = string_field(req, "chat");
+  if (text.is_error() || !parse_i64(text.ok(), chat)) {
+    bad_request(conn, id, "need the field chat, a string with a number");
+    return false;
+  }
+  return true;
+}
+
 bool regular_file(const std::string &path, std::int64_t &size) {
   struct stat st;
   if (path.empty() || path[0] != '/' || stat(path.c_str(), &st) != 0 || !S_ISREG(st.st_mode)) {
@@ -680,7 +680,7 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     return false;
   }
   std::int64_t chat = 0;
-  if (!start(conn, id, req, chat)) {
+  if (!request_chat(conn, id, req, chat)) {
     return true;
   }
 
