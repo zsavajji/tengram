@@ -471,6 +471,10 @@ Three commits (`809fe98`, `b954fe0`, `1a2c5ea`); all compile in the SDK image, n
   the newest at once; a search match or a pinned message outside a window leaves it, then lands,
   and one inside it lands without leaving; the log's `chat: window of N messages` and `chat: no window after` lines say
   which way a chat went.
+- **Engine restarts keep the chat list (user, 2026-11-17, 0.1.0.8).** The engine reports `linking` at every start
+  while TDLib opens; `EngineLink::setLink` now keeps the known link state through it, so the chat list stays and
+  its title bar shows "Connecting…" with a spinner instead of the linking page's "Starting…". To test: reopen
+  the app, kill the engine (it comes back), Install/Close of the memory patch, a phone restart.
 - **Chat list (§3.8).** Nothing read while not fullscreen; rows that keep their place are patched.
   Moves still reload: look for `chat list: reload, … ms` in the log to decide whether moves need
   a patch too. `fullscreen()` firing twice is harmless (the second finds nothing stale).

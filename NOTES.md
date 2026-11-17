@@ -582,7 +582,7 @@ The Mac went to sleep at about 02:35 and only woke for moments until 05:54, whic
 sub-agent's build and OrbStack. From 05:54 `caffeinate` kept it awake; OrbStack was stopped
 and started again with `orbctl` (it had no containers). About three hours were lost.
 
-### Next, in order
+### Next, in order (superseded: see `docs/HANDOFF.md` §7)
 
 1. Read run 7's log: `hub:` lines against what really notified, `own status:` lines against
    when another device was in use (the one unverified part of auto mode).
@@ -638,3 +638,39 @@ and started again with `orbctl` (it had no containers). About three hours were l
   opened under its default key and moved to ours; second start: opens directly, ready in
   0.36 s; smoke test passes. The probe (`tdprobe`) passes no key, so it can no longer open this
   session: use the engine.
+
+## 2026-11-17 afternoon: the UI on the phone, the memory cap
+
+The UI's step 2 (login pages, history paging, the chat list in front only), opening a chat at its first unread
+message with a window of history for long-unread chats, and packaging: commits and details in
+`docs/HANDOFF.md` §6, what to test in `docs/ui-fork.md` §8b. The plan from here is `docs/HANDOFF.md` §7.
+
+- **The test phone is a BlackBerry Classic** (SQC100-1, OS 10.3.3.3216), read from BPS `deviceinfo`; earlier
+  notes say Q10. The engine now tells Telegram the device it reads (`device_model` "BlackBerry Classic").
+- **The first install** (0.1.0.1 to 0.1.0.8, root installer job, each at the user's ask). The navigator starts
+  the headless entry point with one argument, `invoke://localhost` (launcher.cfg: `cmd_template=%b %a`):
+  0.1.0.2 took it for the data folder and exited unseen, since a headless app's stderr goes nowhere. The
+  service now uses `HOME` and logs to `logs/tengramd.log`; test runs pass `--data`.
+- **QR login works** (the user scanned from Telega): `authorizationStateReady` 40 s after the start. The first
+  full sync: 467 chats in 12.9 s. Chat list reloads cost 125 to 277 ms for 200 to 467 chats (log), so moves
+  need a patch too (§3.8's question answered).
+- **The headless memory cap is 30 MiB** (`RLIMIT_DATA` soft = hard), from `_sys_headless_xlarge` in
+  `/etc/authman/sys.acl` on the read-only OS image. Under it the first sync died with `bad_alloc` every time,
+  while TDLib reloaded the installed sticker sets. Raising it: `../rlimit-patch` (patches authman's in-memory
+  `RLM` text at every boot, as a root addon). Restarting authman broke every app launch until a reboot (its
+  clients never reconnect); authman refuses `RLM` in a capability loaded at run time; an overlay before
+  authman needs root too early. With 128 MiB the engine gets through the first sync.
+- **The navigator keeps an app's memory limit from its first launch** until every process of the app has
+  ended (seen: an engine restarted under the open UI kept 30 MiB; with both ended, 128 MiB).
+- **The app installs the patch itself** (0.1.0.7, verified on a clean boot): a one-button dialog, the addon
+  through AutoRoot v4's `__root` and `tg-install-patcher` (VoLTE Manager's NEWAPP design), then "Close Tengram".
+
+### Decisions, 2026-11-17 afternoon (user)
+
+- A chat opens at its first unread message (Telegram's way), with a window of history when the unread ones
+  don't fit; search and pin jumps leave the window.
+- Every user is rooted: root-side fixes are product routes. The memory patch is installed by the app, with no
+  "No": the engine doesn't fit without it, and refusing root means not using Tengram. No login on an
+  unpatched engine.
+- The engine never anchors `chat.newer` on the chat's last message (TDLib's `CHECK(!have_a_gap)` aborts).
+- Engine restarts keep the chat list on screen, with a spinner in its title bar.

@@ -74,8 +74,9 @@ Host `bb10rootx` in `~/.ssh/config`, **USB only** (169.254.0.1), a root shell.
 - **The `headless-mem` addon** (`../rlimit-patch`) is installed in `/var/addons`; authman's
   `_sys_headless_xlarge` is patched to 128 MiB in memory since the 11:22 boot. Authman also still holds a
   harmless `hmem` prefix from a failed experiment, until the next reboot.
-- **Installed: Tengram 0.1.0.7** (the in-app memory patch, verified); `build/buildid.txt` is at 7. The
-  `headless-mem` addon is installed again (by the app) and authman is patched since 13:40.
+- **Installed: Tengram 0.1.0.8** (the chat list kept across engine restarts, installed at the user's ask, not yet
+  confirmed by them); `build/buildid.txt` is at 8. The `headless-mem` addon is installed (by the app, 0.1.0.7)
+  and authman is patched since 13:40 (boot 13:34).
 
 ## 4. Build and install
 
@@ -133,11 +134,15 @@ All compile; **only the login, the chat list's first draw and the service start 
 | `5b41598`, `52c5ca3`, `e3e78a2` | **A chat opens at its first unread message** (the user's ask), an "Unread messages" divider; reading follows what is shown (`chat.read upto`); a *window* of history for long-unread chats (`chat.newer`), joined to the live end by paging down; search and pin jumps leave the window. Engine: `chats.read_inbox` (schema 3, migrated in place), `chat.open limit`, `chat.newer`, `chat.read upto`. |
 | `dbfe2d5`, `ab3a13b` | **Packaging:** `scripts/build-app.sh`, API keys compiled in, device read from BPS. The service takes `HOME` and logs to `logs/tengramd.log`; test runs use `--data`. |
 | `7a89b22` … `7c8297b` | The 30 MiB headless cap: found, raised to 128 MiB, moved to `../rlimit-patch`. |
+| `facdf11`, `efe1a3d`, `08dd382`, `0a2b194` | **The in-app memory patch** (§7 item 0): engine `memMB` in the link body; a one-button dialog installs the addon through `__root` + `tg-install-patcher`; the login page asks Telegram for nothing under 128 MB; "Close Tengram" ends both processes (the navigator's per-app cache); the dialog in the user's words. |
+| `566876e` | **The chat list stays across engine restarts:** `linking` (what the engine says while TDLib opens) keeps the known link state instead of swapping to the linking page's "Starting…"; the chat list's title bar shows "Connecting…" and a spinner instead. |
 
 **Seen on the phone (0.1.0.3/0.1.0.4):** the service starts and registers the Hub account; QR login works
 (scanned from Telega); the first full sync loaded 467 chats in 12.9 s once it fit in memory; the chat list
 drew. Under the 30 MiB cap the engine died with `bad_alloc` at every start while TDLib reloaded the installed
-sticker sets; with the patched 128 MiB it ran through.
+sticker sets; with the patched 128 MiB it ran through. **0.1.0.7:** the in-app patch flow end to end on a clean
+boot (§7 item 0). **0.1.0.8:** installed; the user reported the "Starting…" screen at engine restarts, which it
+fixes: still to confirm.
 
 ## 7. Where to resume, in order
 
@@ -149,7 +154,8 @@ sticker sets; with the patched 128 MiB it ran through.
    logged `rlimit DATA: soft 134217728`. The **navigator keeps an app's memory limit from its first launch until
    every process of the app has ended**, hence the close step (`MemoryPatch::closeAll`). While the dialog is up
    a logged-in engine still runs at 30 MB and may die once at the first sync; the UI restarts it. Not yet seen:
-   the login page's gate (a phone that isn't logged in), and the no-root dialog.
+   the login page's gate (a phone that isn't logged in), and the no-root dialog. **Also to confirm (0.1.0.8):**
+   an engine restart keeps the chat list on screen, with the title bar's spinner, not "Starting…".
 
 1. **The memory patch in the app (done 2026-11-17, never run):** `MemoryPatch` (`app/src/`), the dialog in
    `main.qml`, `app/helper/tg-install-patcher.c`, the bar bundling `headless-mem.zip`, the engine's `memMB` in
