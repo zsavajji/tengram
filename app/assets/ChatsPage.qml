@@ -34,6 +34,18 @@ Page {
         }
     ]
     actions: [
+        // On the bar (the user's ask, 2026-11-17): Search left of New chat, New group right of it;
+        // the on-bar actions take the sides in the order they are declared.
+        ActionItem {
+            title: qsTr("Search")
+            imageSource: "asset:///images/search.png"
+            ActionBar.placement: ActionBarPlacement.OnBar
+            shortcuts: SystemShortcut {
+                type: SystemShortcuts.Search
+                enabled: !page.searching
+            }
+            onTriggered: page.toggleSearch()
+        },
         ActionItem {
             title: qsTr("New chat")
             // The stock Phone app's text message bubble; /usr/share/icons only has BBM's.
@@ -48,7 +60,7 @@ Page {
         ActionItem {
             title: qsTr("New group")
             imageSource: "asset:///images/contacts_action.png"
-            ActionBar.placement: ActionBarPlacement.InOverflow
+            ActionBar.placement: ActionBarPlacement.OnBar
             onTriggered: page.newGroup()
         },
         ActionItem {
@@ -70,16 +82,6 @@ Page {
                 enabled: !page.searching
             }
             onTriggered: list.scrollToPosition(ScrollPosition.End, ScrollAnimation.None)
-        },
-        ActionItem {
-            title: qsTr("Search")
-            imageSource: "asset:///images/search.png"
-            ActionBar.placement: ActionBarPlacement.InOverflow
-            shortcuts: SystemShortcut {
-                type: SystemShortcuts.Search
-                enabled: !page.searching
-            }
-            onTriggered: page.toggleSearch()
         },
         ActionItem {
             title: qsTr("Archived")
