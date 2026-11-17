@@ -1,5 +1,5 @@
-// The requests about chats and messages: chat.open, chat.history, chat.close, chat.read, chat.typing, chat.set,
-// msg.send, msg.delete, msg.edit and media.get (docs/protocol.md). The rows they ask for are written by
+// The requests about chats and messages: chat.open, chat.history, chat.newer, chat.close, chat.read, chat.typing,
+// chat.set, msg.send, msg.delete, msg.edit and media.get (docs/protocol.md). The rows they ask for are written by
 // messages.cpp; the replies that tell the UI to read them come after the flush that commits them (queue_reply).
 
 #include "engine.h"
@@ -52,6 +52,16 @@ bool start(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::
   return true;
 }
 
+// A message id in a string field of the request. False after the bad_request reply.
+bool message_id(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::int64_t &out) {
+  auto text = string_field(req, name);
+  if (text.is_error() || !parse_i64(text.ok(), out) || out <= 0) {
+    bad_request(conn, id, std::string("need the field ") + name + ", a string with a message id");
+    return false;
+  }
+  return true;
+}
+
 std::string page_json(const std::string &oldest, const std::string &newest, std::size_t count, bool more) {
   return td::json_encode<std::string>(td::json_object([&](auto &o) {
     o("oldest", oldest);
@@ -61,7 +71,7 @@ std::string page_json(const std::string &oldest, const std::string &newest, std:
   }));
 }
 
-// ---- chat.open and chat.history: a page of history
+// ---- chat.open, chat.history and chat.newer: a page of history
 
 struct Page {
   std::uint64_t conn;
@@ -72,6 +82,7 @@ struct Page {
   std::vector<td_api::object_ptr<td_api::message>> got;  // newest first
   bool more = true;
   int calls = 0;
+  bool newer = false;  // chat.newer: upper is the newest message's id + 1, and `more` asks about newer messages
 };
 
 void finish(const std::shared_ptr<Page> &p) {
@@ -81,7 +92,13 @@ void finish(const std::shared_ptr<Page> &p) {
   }
   const std::int64_t oldest = p->got.back()->id_;
   const std::int64_t newest = p->got.front()->id_;
-  messages_reconcile(p->chat, p->got, oldest, p->upper);
+  std::int64_t upper = p->upper;
+  if (p->newer) {  // the newest message itself is part of the page
+    ChatBrief brief = {};
+    p->more = chat_brief(p->chat, brief) && brief.has_last && newest < brief.last_id;
+    upper = newest + 1;
+  }
+  messages_reconcile(p->chat, p->got, oldest, upper);
   queue_reply(p->conn, p->id, page_json(std::to_string(oldest), std::to_string(newest), p->got.size(), p->more));
 }
 
@@ -116,6 +133,47 @@ void fetch(const std::shared_ptr<Page> &p, std::int64_t from) {
       return finish(p);
     }
     fetch(p, p->got.back()->id_);
+  });
+}
+
+// The page of chat.newer: the messages after `from`, collected newest first (each call's batch goes in front).
+//
+// THE ABORT THIS AVOIDS: with a negative offset, OrderedMessages::get_history has CHECK(!have_a_gap) once
+// from_message_id >= the chat's last_message_id and that message is not in TDLib's loaded set (a closeChat unloads
+// it): TDLib aborts the whole process. meegram2 hit it (docs/ui-fork.md, 3.6). So a negative offset is never sent
+// with `from` >= the chat's last message id as the engine knows it. The engine learns that id from TDLib's own
+// updates, so it is not ahead of TDLib's; it is read again right before every call, and when `from` has reached
+// it the page ends here without asking.
+void fetch_newer(const std::shared_ptr<Page> &p, std::int64_t from) {
+  ChatBrief brief = {};
+  if (!chat_brief(p->chat, brief) || !brief.has_last || from >= brief.last_id) {
+    return finish(p);
+  }
+  // offset -k with limit k: TDLib raises limit to k + 1, starts k newer than `from` and drops `from` itself, so
+  // the answer is the k messages right above it, newest first (fewer near the newest; then `from` and older ones
+  // can come back, which the filter drops).
+  const int k = static_cast<int>(std::min<std::size_t>(99, p->want - p->got.size()));
+  tdlib.send(make_object<td_api::getChatHistory>(p->chat, from, -k, k, false), [p, from](Obj o) {
+    if (auto e = as_error(o)) {
+      say("td error: %d %s", e->code_, e->message_.c_str());
+      reply_td_error(p->conn, p->id, *e);
+      return;
+    }
+    std::vector<td_api::object_ptr<td_api::message>> batch;
+    for (auto &m : static_cast<td_api::messages &>(*o).messages_) {
+      if (m && m->id_ > from) {
+        batch.push_back(std::move(m));
+      }
+    }
+    if (batch.empty()) {  // TDLib has tried its database and the server: nothing newer, or nothing it can give
+      say("history: nothing newer than %lld in %lld", static_cast<long long>(from), static_cast<long long>(p->chat));
+      return finish(p);
+    }
+    p->got.insert(p->got.begin(), std::make_move_iterator(batch.begin()), std::make_move_iterator(batch.end()));
+    if (p->got.size() >= p->want || ++p->calls >= 20) {
+      return finish(p);
+    }
+    fetch_newer(p, p->got.front()->id_);
   });
 }
 
@@ -166,6 +224,21 @@ void chat_history(std::uint64_t conn, const std::string &id, td::JsonObject &req
     return;
   }
   fetch(std::make_shared<Page>(Page{conn, id, chat, static_cast<std::size_t>(limit), before, {}}), before);
+}
+
+void chat_newer(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t after = 0;
+  long limit = 0;
+  if (!message_id(conn, id, req, "after", after) || !parse_limit(conn, id, req, 100, limit)) {
+    return;
+  }
+  ChatBrief brief = {};
+  if (!chat_brief(chat, brief)) {
+    return server.reply_error(conn, id, "bad_chat", "no such chat");
+  }
+  auto page = std::make_shared<Page>(Page{conn, id, chat, static_cast<std::size_t>(limit), 0, {}});
+  page->newer = true;
+  fetch_newer(page, after);  // replies at once with the empty page when `after` is the chat's last message or newer
 }
 
 // ---- chat.set: several calls, one reply
@@ -330,16 +403,6 @@ std::vector<td_api::object_ptr<td_api::textEntity>> mention_entities(
   return entities;
 }
 
-// A message id in a string field of the request. False after the bad_request reply.
-bool message_id(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::int64_t &out) {
-  auto text = string_field(req, name);
-  if (text.is_error() || !parse_i64(text.ok(), out) || out <= 0) {
-    bad_request(conn, id, std::string("need the field ") + name + ", a string with a message id");
-    return false;
-  }
-  return true;
-}
-
 void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   auto text = string_field(req, "text");
   if (text.is_error() || text.ok().empty()) {
@@ -489,8 +552,8 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
 }  // namespace
 
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
-  static const char *const ours[] = {"chat.open", "chat.history", "chat.close", "chat.read", "chat.typing",
-                                     "chat.set", "msg.send", "msg.delete", "msg.edit", "media.get"};
+  static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.close", "chat.read",
+                                     "chat.typing", "chat.set", "msg.send", "msg.delete", "msg.edit", "media.get"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -506,10 +569,19 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     }
   } else if (cmd == "chat.history") {
     chat_history(conn, id, req, chat);
+  } else if (cmd == "chat.newer") {
+    chat_newer(conn, id, req, chat);
   } else if (cmd == "chat.close") {
     live_close(conn, chat);
     tdlib.send(make_object<td_api::closeChat>(chat), [conn, id](Obj) { server.reply_ok(conn, id); });
   } else if (cmd == "chat.read") {
+    std::int64_t upto = 0;  // 0: up to the chat's newest message
+    td::JsonValue v;
+    const int has_upto = optional_field(req, "upto", td::JsonValue::Type::String, v);
+    if (has_upto < 0 || (has_upto == 1 && (!parse_i64(v.get_string().str(), upto) || upto <= 0))) {
+      bad_request(conn, id, "upto is a string with a message id");
+      return true;
+    }
     const bool known = chats_read(chat, [conn, id](const td_api::error *e) {
       if (e) {
         say("td error: %d %s", e->code_, e->message_.c_str());
@@ -517,7 +589,7 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
       } else {
         server.reply_ok(conn, id);
       }
-    });
+    }, upto);
     if (!known) {
       server.reply_error(conn, id, "bad_chat", "no such chat");
     }

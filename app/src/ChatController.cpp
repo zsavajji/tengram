@@ -32,6 +32,8 @@ ChatController::ChatController(QObject *parent)
     , m_group(false)
     , m_unseen(false)
     , m_atBottom(true)
+    , m_placed(false)
+    , m_readUpto(0)
     , m_composing(false)
     , m_region(bb::system::LocaleType::Region)
 {
@@ -44,6 +46,10 @@ ChatController::ChatController(QObject *parent)
     m_composeRepeat.setSingleShot(true);
     m_composeRepeat.setInterval(5000);
     // After 5 s without a key, send "off" so the other side never shows a stale "typing…".
+    // Reading down a chat reports at most once a second: a scroll changes the bottom row many times.
+    m_readSoon.setSingleShot(true);
+    m_readSoon.setInterval(1000);
+    connect(&m_readSoon, SIGNAL(timeout()), this, SLOT(sendReadUpto()));
     m_composePause.setSingleShot(true);
     m_composePause.setInterval(5000);
     connect(&m_composePause, SIGNAL(timeout()), this, SLOT(composePaused()));
@@ -157,6 +163,7 @@ void ChatController::open(const QVariantMap &chat)
     connect(m_engine, SIGNAL(replied(QString, QString, QVariant)), this,
             SLOT(onReplied(QString, QString, QVariant)));
     connect(m_messages, SIGNAL(incoming()), this, SLOT(onIncoming()));
+    connect(m_messages, SIGNAL(wantOpen()), this, SLOT(onWantOpen()));
     // From chats.db, not the row we were given: a contact from the picker has no unread, and
     // a notification tap (step 5.1) won't either. Marked unread is -1 (step 5.3).
     m_unseen = m_messages->unread() != 0;
@@ -172,6 +179,7 @@ void ChatController::open(const QVariantMap &chat)
 void ChatController::setAtBottom(bool atBottom)
 {
     m_atBottom = atBottom;
+    m_placed = true; // the page's first call comes after it positioned the list (ChatPage.qml, settle)
     if (atBottom)
         markRead();
 }
@@ -186,11 +194,24 @@ void ChatController::onIncoming()
 // This is what keeps a badge from showing for a chat that's open.
 void ChatController::markRead()
 {
-    if (!m_unseen || !m_atBottom || !m_engine || !m_engine->connected() || !m_engine->fullscreen())
+    if (!m_atBottom || !m_engine || !m_engine->connected() || !m_engine->fullscreen())
         return;
-    m_unseen = false;
     QVariantMap args;
     args["chat"] = m_jid;
+    // In window mode the list's bottom is the newest loaded message, not the chat's: reading it reads up to it
+    // and no further (the messages below haven't been shown), and m_unseen is left for the live end.
+    if (m_messages && m_messages->window()) {
+        const QString newest = m_messages->newestLoaded();
+        if (newest.isEmpty() || newest.toLongLong() <= m_readUpto)
+            return;
+        m_readUpto = newest.toLongLong();
+        args["upto"] = newest; // a string: ids exceed 2^53
+        m_engine->request("chat.read", args);
+        return;
+    }
+    if (!m_unseen)
+        return;
+    m_unseen = false;
     m_engine->request("chat.read", args);
 }
 
@@ -217,14 +238,42 @@ void ChatController::onFullscreenChanged()
 
 void ChatController::nearTop(const QVariantList &firstVisible)
 {
-    if (m_messages)
-        m_messages->nearTop(firstVisible);
+    if (!m_messages)
+        return;
+    m_messages->nearTop(firstVisible);
+    // Telegram reads what was shown: reading down a chat that opened at its first unread message (or a window
+    // far back) marks read up to the bottom-most message on screen, not only once the newest is reached.
+    if (!m_placed || firstVisible.isEmpty())
+        return;
+    const QString shown = m_messages->shownUpTo(firstVisible.value(0).toInt());
+    if (shown.isEmpty() || shown.toLongLong() <= m_readUpto)
+        return;
+    m_pendingUpto = shown;
+    if (!m_readSoon.isActive())
+        m_readSoon.start();
+}
+
+void ChatController::sendReadUpto()
+{
+    if (m_pendingUpto.isEmpty() || m_pendingUpto.toLongLong() <= m_readUpto || !m_engine || !m_engine->connected()
+        || !m_engine->fullscreen())
+        return;
+    m_readUpto = m_pendingUpto.toLongLong();
+    QVariantMap args;
+    args["chat"] = m_jid;
+    args["upto"] = m_pendingUpto; // a string: ids exceed 2^53
+    m_pendingUpto.clear();
+    m_engine->request("chat.read", args);
 }
 
 bool ChatController::send(const QString &text, const QVariantList &mentions)
 {
     if (!m_engine || !m_engine->connected())
         return false;
+    // From a window far back our own message would be dropped (it is beyond the loaded rows): go to the newest
+    // first, as Telegram does. An edit adds no row.
+    if (m_messages && m_editId.isEmpty())
+        m_messages->toLiveEnd();
     setComposing(false);
     QVariantMap args;
     args["chat"] = m_jid;
@@ -261,6 +310,8 @@ void ChatController::sendVoice()
 {
     if (m_voicePath.isEmpty() || !m_engine)
         return;
+    if (m_messages)
+        m_messages->toLiveEnd(); // as send()
     QVariantMap args;
     args["chat"] = m_jid;
     args["path"] = m_voicePath;
@@ -433,6 +484,14 @@ void ChatController::sendOpen()
     const QString id = m_engine->request("chat.open", args);
     if (m_messages)
         m_messages->expectOpen(id);
+}
+
+// The model left window mode and has no floor: chat.open sets it, as at a first open. Not connected: the
+// onConnected below sends it.
+void ChatController::onWantOpen()
+{
+    if (m_engine && m_engine->connected())
+        sendOpen();
 }
 
 // An engine restart loses the presence subscription, and at a cold start the first chat.open

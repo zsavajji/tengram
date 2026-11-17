@@ -242,9 +242,10 @@ than the oldest verified id may have gaps and are not shown.
   - *Ids cross into QML as strings* (QtScript turns large numbers into doubles): Tengram does.
   - *Opening position:* meegram2, as Telegram, opens at the first unread message and reports
     read up to the bottom-most visible one; Tengram (HyperBerry's way) opens at the newest and
-    marks the chat read once its bottom is on screen. A difference for the user to decide, not
-    a bug. If it changes, meegram2's other lesson applies: position on a bounded retry, never
-    from a height-change handler (that never converged and froze its app).
+    marked the chat read once its bottom was on screen. The user chose Telegram's way
+    (2026-11-17, §8b). meegram2's other lesson applies to it: position on a bounded retry, never
+    from a height-change handler (that never converged and froze its app); Tengram scrolls once
+    and settles 300 ms later.
 - **`scrollToPosition` right after the model is set stops short;** the chat is a bottom-to-top
   list that starts at its newest row with no scroll call. Nothing in the paging may add one.
 
@@ -442,9 +443,30 @@ Three commits (`809fe98`, `b954fe0`, `1a2c5ea`); all compile in the SDK image, n
   holds all `unread` of them within 150 rows, puts an "Unread messages" header above it, and
   `chat.open` verifies that far (`limit`, back to 50 after the first reply). The chat is no longer
   read on opening: a settle timer 300 ms after positioning reports whether the list's bottom shows.
-  More than 150 unread opens at the newest, as before (ponytail in `MessageRows.cpp`).
+  When the cache lacks some of the unread rows, or more than 150 unread, the model opens in a
+  *window* (the `window` property of `MessageModel`): the page keeps its spinner while
+  `chat.newer {after: read_inbox}` verifies one page after the last read message, the model shows
+  that page with the divider above its first incoming row, and older pages come as always
+  (`chat.history`). Newer pages come as the list nears its bottom: the rows `chat.newer` verified are
+  loaded (`loadNewer`), the next page is asked a page ahead (`askNewer`), and when the verified run
+  reaches Telegram's newest message `joinLive` leaves window mode and loads the live rows that were
+  skipped meanwhile. While in the window the list's stick-to-edge policy is off (a newer page lands
+  at index 0 and must not drag the view), a live row beyond the loaded newest is dropped (it comes
+  with the window), `chat.open` replies are ignored, and the list's bottom (the newest loaded row) is not the chat's.
+  Reading, in a window or not, follows what is shown, as Telegram's: once the page has positioned
+  the list, each scroll reports `chat.read {upto}` the bottom-most message on screen, at most once a
+  second (`ChatController::nearTop`, `sendReadUpto`); at the chat's real bottom `chat.read` reads all. Sending from the window (a text, a voice
+  note, a file) drops it first (`toLiveEnd`, the controller sends `chat.open` again): the chat
+  jumps to the newest, as Telegram's does. A window that gets no answer in 15 s, or an empty one,
+  does the same and opens at the newest. Needs the engine's `chat.newer` and `chat.read upto`.
   To test: where `scrollToItem` leaves the divider (top or bottom of the screen); a chat whose
-  unread fit on one screen is read at once; one scrolled to the bottom is read then, not before.
+  unread fit on one screen is read at once; one scrolled to the bottom is read then, not before;
+  a group with hundreds unread (opens at the divider after the spinner; scrolling down pages newer
+  and joins the newest; a message sent from the window jumps to the newest; the unread count drops
+  as you read down; the view does not jump when a newer page lands at the bottom); a chat whose
+  cache lacks unread rows (a few unread, an empty cache) opens in a window of one page that joins
+  the newest at once; the log's `chat: window of N messages` and `chat: no window after` lines say
+  which way a chat went.
 - **Chat list (§3.8).** Nothing read while not fullscreen; rows that keep their place are patched.
   Moves still reload: look for `chat list: reload, … ms` in the log to decide whether moves need
   a patch too. `fullscreen()` firing twice is harmless (the second finds nothing stale).

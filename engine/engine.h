@@ -76,9 +76,10 @@ struct ChatBrief {
 bool chat_brief(std::int64_t chat_id, ChatBrief &out);  // false when the chat is not mirrored
 void chats_last_message(const td_api::message &m);      // m is the chat's newest message now: refresh its preview
 std::string message_preview(const td_api::message &m);  // the chat list's one line for a message, sender prefix and all
-// Marks the chat read up to its newest message, as chat.read does. False when the chat is not mirrored. With
-// nothing to read done gets nullptr at once; else TDLib's answer: its error, or nullptr.
-bool chats_read(std::int64_t chat, std::function<void(const td_api::error *)> done);
+// Marks the chat read up to its newest message, or up to `upto` (a message id; 0 is the newest, and one past the
+// newest is the newest), as chat.read does. False when the chat is not mirrored. With nothing to read done gets
+// nullptr at once; else TDLib's answer: its error, or nullptr.
+bool chats_read(std::int64_t chat, std::function<void(const td_api::error *)> done, std::int64_t upto = 0);
 const std::string &user_name(std::int64_t user_id, bool full);  // first name, or full; "" when unknown
 const std::string &chat_title(std::int64_t chat_id);            // "" when the chat is not mirrored
 
@@ -108,8 +109,8 @@ void messages_reconcile(std::int64_t chat, const std::vector<td_api::object_ptr<
 // A reply to send after the next flush has committed. Marks dirty.
 void queue_reply(std::uint64_t conn, const std::string &id, const std::string &result_json);
 
-// requests.cpp: chat.open, chat.history, chat.close, chat.read, chat.typing, chat.set, msg.send, msg.delete, msg.edit,
-// media.get.
+// requests.cpp: chat.open, chat.history, chat.newer, chat.close, chat.read, chat.typing, chat.set, msg.send,
+// msg.delete, msg.edit, media.get.
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).

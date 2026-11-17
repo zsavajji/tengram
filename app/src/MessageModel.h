@@ -14,6 +14,7 @@
 #include <QSqlQuery>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
 #include <QVariantMap>
 
 class EngineLink;
@@ -37,9 +38,21 @@ class EngineLink;
 // oldest loaded day has no header until an older day's message, or the start of the history, is
 // loaded (docs/ui-fork.md 3.6): older rows of that day append at the model's end and the header
 // appends after them, so a page never lands inside the loaded rows.
-// A chat with unread messages opens at the first one, as Telegram does: the constructor finds it from
-// chats.read_inbox and loadFirst loads back to it, and an "Unread messages" header ("unread", a "header"
-// entry like a day's) sits above it for the life of the model; unreadEntry says where it is.
+// A chat with unread messages opens at the first one, as Telegram does, and an "Unread messages" header
+// ("unread", a "header" entry like a day's) sits above it for the life of the model; unreadEntry says where
+// it is. Two ways there. When chats.db holds every unread message and they are no more than kUnreadMax rows
+// (MessageRows.cpp findUnread), loadFirst loads back to the first one. Otherwise the model is in WINDOW mode
+// (the `window` property): the cache may have gaps around the unread messages, so nothing of it is shown.
+// The page keeps its spinner while chat.newer (docs/protocol.md) verifies one page after chats.read_inbox,
+// and the model shows exactly that page, [m_floor, m_top], with the divider above its first incoming row.
+// Older pages come as always (chat.history lowers the floor). Newer pages come as the list nears its
+// bottom (index 0): loadNewer reads what chat.newer verified, askNewer asks for the next page, and when the
+// verified run reaches Telegram's newest message joinLive leaves window mode and loads what arrived live
+// meanwhile. Rows are only ever added at an end (the pitfall in docs/ui-fork.md 3.6), and the page turns its
+// stick-to-edge policy off while `window` is true, so a page landing at the bottom doesn't drag the view.
+// In window mode a live row beyond the loaded newest is dropped (merge), chat.open replies are ignored
+// (takeOpen), and toLiveEnd (sending from far back) or a window that never answers (15 s) drops the window
+// and opens at the newest, as a chat with nothing unread does (leaveWindow).
 class MessageModel : public bb::cascades::DataModel
 {
     Q_OBJECT
@@ -47,6 +60,9 @@ class MessageModel : public bb::cascades::DataModel
     Q_PROPERTY(bool empty READ empty NOTIFY emptyChanged)
     // True from opening the chat until its first page is in: the page shows a spinner meanwhile.
     Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
+    // True while the model shows a window of history around the first unread message, not the newest end:
+    // newer pages are still to come. The page's stick-to-edge policy follows it.
+    Q_PROPERTY(bool window READ window NOTIFY windowChanged)
 public:
     MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, QObject *parent = 0);
 
@@ -58,7 +74,12 @@ public:
     // Loads the next older page when the first visible entry, an index path, is within kNearTop
     // entries of the visual top (in a bottom-to-top list that is the model's end). Does nothing
     // until the first chat.open reply set the floor: only the first paint from the cache shows.
+    // In window mode it also loads the next newer page when that entry is within kNearTop of the
+    // bottom: the first visible item of a bottom-to-top list is the lowest index on screen.
     Q_INVOKABLE void nearTop(const QVariantList &firstVisible);
+    // Leaves window mode for the newest message (sending from far back, as Telegram jumps to the newest
+    // too): drops the loaded rows, shows the newest page and has chat.open sent again. No-op otherwise.
+    Q_INVOKABLE void toLiveEnd();
 
     // The entry index of the message for a jump, after loading older messages back to its day;
     // -1 when it isn't shown (hidden by a pending delete, say).
@@ -70,6 +91,11 @@ public:
 
     bool empty() const { return m_entries.isEmpty(); }
     bool loading() const { return m_loading; }
+    bool window() const { return m_window; }
+    // The id of the newest loaded message, "" when none: what reading down to the bottom reports.
+    // The newest message on screen when entry `first` is the bottom-most one shown (chat.read's upto).
+    QString shownUpTo(int first) const;
+    QString newestLoaded() const { return m_all.isEmpty() ? QString() : m_all.last().id; }
 
     // The id of the chat.open request the controller just sent: its reply sets the verified floor.
     void expectOpen(const QString &requestId);
@@ -88,6 +114,9 @@ public:
 signals:
     void emptyChanged();
     void loadingChanged();
+    void windowChanged();
+    // The model left window mode and has no verified floor: the controller sends chat.open again.
+    void wantOpen();
     // A merge added a message that isn't ours and wasn't there before (not a first load or an
     // older page): the controller decides whether it was seen.
     void incoming();
@@ -97,6 +126,7 @@ private slots:
     void onMsgs(const QString &chat, const QStringList &ids);
     void onConnected();
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
+    void giveUp();
 
 private:
     struct Msg
@@ -121,7 +151,8 @@ private:
 
     static bool lessThan(const Msg &a, const Msg &b);
     Msg read(QSqlQuery &q);
-    QList<Msg> select(const QString &where, const QVariantList &args, int limit);
+    // oldestFirst: the oldest `limit` rows that match instead of the newest (still returned oldest first).
+    QList<Msg> select(const QString &where, const QVariantList &args, int limit, bool oldestFirst = false);
     QList<qint64> pageTimes(const QString &where, const QVariantList &args, int limit);
     void findUnread();
     void loadPage();
@@ -131,6 +162,13 @@ private:
     void takeHistory(const QVariantMap &r);
     void askBridge(const QString &before);
     void takeBridge(const QVariantMap &r);
+    void askWindow();
+    void takeNewer(const QVariantMap &r);
+    void takeWindow(const QVariantMap &r);
+    void askNewer();
+    void loadNewer();
+    void joinLive();
+    void leaveWindow();
     void dropBelowFloor();
     bool atStart() const;
     void merge(const QStringList &asked, const QList<Msg> &fresh, bool older);
@@ -164,6 +202,13 @@ private:
     int m_bridgePages; // the bridge's requests so far
     qint64 m_bridgeNewest; // the newest id of the chat.open page that started the bridge
     qint64 m_bridgeBefore; // the before of the bridge's last request
+    bool m_window; // window mode (the class comment): the rows from m_floor to the newest loaded, not the newest end
+    bool m_newerMore; // newer messages exist beyond m_top (chat.newer's more)
+    qint64 m_readInbox; // chats.read_inbox when the window was chosen: the window starts after it
+    QString m_newerId; // the chat.newer request in flight (the window's first included), "" for none
+    QElapsedTimer m_newerAt; // when it was sent; invalid until the first
+    QTimer m_windowGiveUp; // the window's first reply never came: open at the newest instead
+    int m_low; // the lowest visible entry the list last reported: whether the bottom is within reach
     QList<Msg> m_all;
     QSet<QString> m_hidden;
     QSet<QString> m_revealed; // the spoilers tapped open (unspoil)

@@ -203,15 +203,18 @@ int MessageModel::unread() const
     return q.exec() && q.next() ? q.value(0).toInt() : 0;
 }
 
-// More unread messages than this open at the newest, as before: loading every row back to the first one
-// would hold the UI thread too long (about 3 ms a row).
-// ponytail: a window around the first unread, with its own floor, if long-unread groups need it.
+// More unread messages than this are not loaded back to the first one: that would hold the UI thread too
+// long (about 3 ms a row). They open in a window around the first unread instead (findUnread).
 static const int kUnreadMax = 150;
 
 // Where the chat opens. A chat with unread messages (chats.unread) opens at the first one that came after
-// chats.read_inbox, if the rows from it to the newest are no more than kUnreadMax; chat.open then verifies
-// that far (openLimit). Run once, by the constructor: chats.db is not open at the first launch, and then
-// none of this applies. read_inbox is 0 when unknown (an old database, until the engine next writes the row).
+// chats.read_inbox. If chats.db holds every unread message and the rows from it to the newest are no more
+// than kUnreadMax, loadFirst loads back to it and chat.open verifies that far (openLimit). Otherwise (the cache
+// lacks unread rows, so it has gaps there, or there are too many) the model goes into window mode: it shows
+// one verified page after read_inbox, chat.newer (askWindow), and pages newer and older from it (the class
+// comment). Run once, by the constructor: chats.db is not open at the first launch, and then none of this
+// applies. read_inbox is 0 when unknown (an old database, until the engine next writes the row): the chat
+// opens at the newest, as one with nothing unread does.
 void MessageModel::findUnread()
 {
     QSqlDatabase db = database();
@@ -233,16 +236,26 @@ void MessageModel::findUnread()
                  "AND CAST(id AS INTEGER) > ?");
     have.addBindValue(m_chat);
     have.addBindValue(readInbox);
-    if (!have.exec() || !have.next() || have.value(0).toInt() < unread)
+    if (!have.exec() || !have.next())
         return;
+    if (have.value(0).toInt() < unread) {
+        m_window = true;
+        m_readInbox = readInbox;
+        return;
+    }
     const qint64 first = have.value(1).toLongLong();
     // Every row from it to the newest, ours included: what loadFirst reads and chat.open must verify.
     QSqlQuery count(db);
     count.prepare("SELECT count(*) FROM messages WHERE chat = ? AND CAST(id AS INTEGER) >= ?");
     count.addBindValue(m_chat);
     count.addBindValue(first);
-    if (!count.exec() || !count.next() || count.value(0).toInt() > kUnreadMax)
+    if (!count.exec() || !count.next())
         return;
+    if (count.value(0).toInt() > kUnreadMax) {
+        m_window = true;
+        m_readInbox = readInbox;
+        return;
+    }
     m_unreadId = QString::number(first);
     m_openLimit = qMax(50, count.value(0).toInt() + 10);
 }
@@ -268,9 +281,10 @@ QList<qint64> MessageModel::pageTimes(const QString &where, const QVariantList &
 }
 
 // Runs the messages query of this chat: "where" adds conditions on top of chat = ?, args are
-// bound after it. Newest first, then reversed to the order the list shows.
+// bound after it. Newest first, then reversed to the order the list shows. oldestFirst takes the oldest
+// `limit` rows instead (the next page after a row), and returns them in the same order.
 QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVariantList &args,
-                                              int limit)
+                                              int limit, bool oldestFirst)
 {
     QList<Msg> rows;
     QSqlDatabase db = database();
@@ -280,8 +294,8 @@ QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVaria
     m_clock = timeFormat(m_locale, DateFormat::Short);
     m_now = QDateTime::currentDateTime().toTime_t();
     QSqlQuery q(db);
-    q.prepare(QString("SELECT %1 FROM messages WHERE chat = ? %2 ORDER BY ts DESC, CAST(id AS INTEGER) DESC "
-                      "LIMIT %3").arg(kColumns, where).arg(limit));
+    q.prepare(QString("SELECT %1 FROM messages WHERE chat = ? %2 ORDER BY ts %3, CAST(id AS INTEGER) %3 "
+                      "LIMIT %4").arg(kColumns, where, oldestFirst ? "ASC" : "DESC").arg(limit));
     q.addBindValue(m_chat);
     foreach (const QVariant &a, args)
         q.addBindValue(a);
@@ -289,7 +303,11 @@ QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVaria
         qWarning() << "messages:" << q.lastError().text();
         return rows;
     }
-    while (q.next())
-        rows.prepend(read(q));
+    while (q.next()) {
+        if (oldestFirst)
+            rows.append(read(q));
+        else
+            rows.prepend(read(q));
+    }
     return rows;
 }

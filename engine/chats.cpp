@@ -428,7 +428,7 @@ std::string message_preview(const td_api::message &m) {
   return it != chats.end() ? preview_of(it->second, m) : preview_of(Chat(), m);  // an unknown chat is a person's
 }
 
-bool chats_read(std::int64_t chat_id, std::function<void(const td_api::error *)> done) {
+bool chats_read(std::int64_t chat_id, std::function<void(const td_api::error *)> done, std::int64_t upto) {
   ChatBrief brief = {};
   if (!chat_brief(chat_id, brief)) {
     return false;
@@ -436,8 +436,8 @@ bool chats_read(std::int64_t chat_id, std::function<void(const td_api::error *)>
   if (!brief.has_last) {
     done(nullptr);
   } else {
-    tdlib.send(td_api::make_object<td_api::viewMessages>(chat_id, std::vector<std::int64_t>{brief.last_id}, nullptr,
-                                                         true),
+    const std::int64_t at = upto > 0 ? std::min(upto, brief.last_id) : brief.last_id;  // never past the newest
+    tdlib.send(td_api::make_object<td_api::viewMessages>(chat_id, std::vector<std::int64_t>{at}, nullptr, true),
                [done](Obj o) { done(as_error(o)); });
   }
   return true;

@@ -286,6 +286,9 @@ Page {
     }
     // A photo's or a video's caption rides in the message; the other kinds' text follows as a message.
     function sendStaged(text) {
+        // From a window of history around the first unread message our row would be dropped (it is beyond the
+        // loaded ones): the newest first, as ctl.send does for a text.
+        ctl.messages.toLiveEnd()
         // Send as file: the PNG itself, which the engine sends as a document; the text follows it.
         var asFile = page.stagedBar().asFile && stagedPng != ""
         var picture = stagedInfo.picture && !asFile
@@ -583,8 +586,11 @@ Page {
                     // The newest card keeps the cards' gap above the composer.
                     bottomPadding: ui.du(1.5)
                     // The beginning is the bottom: a new message is followed only when the list was
-                    // already there.
-                    stickToEdgePolicy: ListViewStickToEdgePolicy.Beginning
+                    // already there. Not in a window of history around the first unread message
+                    // (ctl.messages.window): its newer pages are inserted at the bottom (index 0), where the
+                    // policy would drag the view to them; None is the enum's "no particular behaviour".
+                    stickToEdgePolicy: ctl.messages && ctl.messages.window ? ListViewStickToEdgePolicy.None
+                                                                          : ListViewStickToEdgePolicy.Beginning
                     attachedObjects: [
                         ListScrollStateHandler {
                             id: scrollState

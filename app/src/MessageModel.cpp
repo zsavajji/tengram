@@ -24,6 +24,8 @@ static const int kPageMin = 20;
 // the first page's top row on the screen, 25 asked for the next page with no scroll at all, and in a group
 // that was 103 rows and five more cards, holding the UI thread 1.4 s just after opening (Q10, 0.0.1.158).
 static const int kNearTop = 8;
+// How close to the bottom a newer page is loaded in window mode, in entries (see nearTop).
+static const int kNearBottom = 20;
 // Long enough for the page's push to reach the system before the first page takes the UI thread.
 static const int kFirstLoadMs = 50;
 // How long a chat.history request is waited for before one that failed quietly is asked again.
@@ -34,6 +36,11 @@ static const int kBridgePages = 3;
 static const int kBridgeLimit = 100;
 // The floor of an empty chat: no row is old enough to show.
 static const qint64 kNoFloor = 0x7fffffffffffffffLL;
+// How long the window's first chat.newer reply is waited for: a request that fails quietly (the engine is
+// older, TDLib refused) gives no reply, and the page would keep its spinner for good.
+static const int kWindowGiveUpMs = 15000;
+// m_low before the list says where it is: far from the bottom, so nothing loads newer by a stale guess.
+static const int kFar = 0x7fffffff;
 
 bool MessageModel::lessThan(const Msg &a, const Msg &b)
 {
@@ -56,6 +63,10 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_bridgePages(0)
     , m_bridgeNewest(0)
     , m_bridgeBefore(0)
+    , m_window(false)
+    , m_newerMore(false)
+    , m_readInbox(0)
+    , m_low(kFar)
     , m_region(bb::system::LocaleType::Region)
     , m_now(0)
     , m_titlesDay(0)
@@ -67,6 +78,10 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
             SLOT(onReplied(QString, QString, QVariant)));
     m_historyAt.invalidate(); // QElapsedTimer has no constructor
     m_bridgeAt.invalidate();
+    m_newerAt.invalidate();
+    m_windowGiveUp.setSingleShot(true);
+    m_windowGiveUp.setInterval(kWindowGiveUpMs);
+    connect(&m_windowGiveUp, SIGNAL(timeout()), this, SLOT(giveUp()));
     findUnread();
     QTimer::singleShot(kFirstLoadMs, this, SLOT(loadFirst()));
 }
@@ -76,6 +91,13 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
 // runs the slide by itself, so this doesn't stop it.
 void MessageModel::loadFirst()
 {
+    if (m_window) {
+        // Not the newest page: the cache may have gaps around the unread messages, so nothing unverified is
+        // shown and m_loading stays true (the spinner) until chat.newer answers (takeWindow).
+        askWindow();
+        m_windowGiveUp.start();
+        return;
+    }
     QElapsedTimer took;
     took.start();
     loadPage();
@@ -247,6 +269,8 @@ void MessageModel::onReplied(const QString &id, const QString &cmd, const QVaria
     Q_UNUSED(cmd);
     if (id == m_openId)
         takeOpen(result.toMap());
+    else if (!m_newerId.isEmpty() && id == m_newerId)
+        takeNewer(result.toMap());
     else if (id == m_historyId)
         takeHistory(result.toMap());
     else if (id == m_bridgeId)
@@ -256,6 +280,10 @@ void MessageModel::onReplied(const QString &id, const QString &cmd, const QVaria
 // chat.open verified the newest 50 and says where they start and end.
 void MessageModel::takeOpen(const QVariantMap &r)
 {
+    // The newest page is not the window: the floor comes from chat.newer (takeWindow), and after joinLive a
+    // later chat.open is the normal one below.
+    if (m_window)
+        return;
     const QString oldest = r["oldest"].toString();
     const qint64 newest = r["newest"].toString().toLongLong(); // 0 for an empty reply
     if (m_floorKnown) {
@@ -364,17 +392,211 @@ void MessageModel::takeHistory(const QVariantMap &r)
         refresh(keys(), QSet<QString>()); // atStart() may have just become true: the oldest day's header
 }
 
+// Window mode (the class comment in the header). The first chat.newer asks for the page right after
+// chats.read_inbox; its reply says where the verified run starts and ends, which is what chat.open does for
+// the newest page.
+void MessageModel::askWindow()
+{
+    if (!m_engine)
+        return;
+    QVariantMap ask;
+    ask["chat"] = m_chat;
+    ask["after"] = QString::number(m_readInbox); // a string: ids exceed 2^53
+    ask["limit"] = kPage;
+    m_newerId = m_engine->requestQuiet("chat.newer", ask);
+    m_newerAt.start();
+}
+
+// A chat.newer reply: the window's first (no floor yet), or a later page that moves m_top up.
+void MessageModel::takeNewer(const QVariantMap &r)
+{
+    m_newerId.clear();
+    if (!m_window)
+        return;
+    if (!m_floorKnown) {
+        takeWindow(r);
+        return;
+    }
+    const QString oldest = r["oldest"].toString();
+    if (!oldest.isEmpty())
+        m_top = qMax(m_top, r["newest"].toString().toLongLong());
+    m_newerMore = r["more"].toBool() && !oldest.isEmpty();
+    // The rows are in chats.db now; they join the list when the view is at the bottom (the user waited for
+    // them there), else when it scrolls there (nearTop). Loading them always would walk the whole backlog.
+    if (m_low <= kNearBottom)
+        loadNewer();
+}
+
+// The window's first reply. Its rows are shown as a page, the divider goes above the first incoming one, and
+// the spinner ends; the page scrolls to the divider (loaded()).
+void MessageModel::takeWindow(const QVariantMap &r)
+{
+    const QString oldest = r["oldest"].toString();
+    // Nothing newer than read_inbox after all (a stale unread count): open at the newest.
+    if (oldest.isEmpty()) {
+        leaveWindow();
+        return;
+    }
+    const qint64 floor = oldest.toLongLong();
+    const qint64 top = r["newest"].toString().toLongLong();
+    const QList<Msg> rows = select("AND CAST(id AS INTEGER) BETWEEN ? AND ?", QVariantList() << floor << top,
+                                   kPage * 2);
+    if (rows.isEmpty()) { // the engine said it wrote them: not showing anything would be worse than the newest
+        leaveWindow();
+        return;
+    }
+    m_floorKnown = true;
+    m_floor = floor;
+    m_top = top;
+    m_newerMore = r["more"].toBool();
+    m_more = true; // older is unknown until chat.history says
+    foreach (const Msg &m, rows) {
+        if (!m.data["out"].toBool()) {
+            m_unreadId = m.id; // oldest first: the first one the user hasn't read
+            break;
+        }
+    }
+    m_windowGiveUp.stop();
+    merge(QStringList(), rows, true);
+    m_loading = false;
+    emit loadingChanged();
+    askOlder();
+    // The window already reaches the newest message: it is the normal model with a divider. Else the next page.
+    if (m_newerMore)
+        askNewer();
+    else
+        joinLive();
+    qDebug() << "chat: window of" << m_all.size() << "messages after" << m_readInbox
+             << (m_window ? "(more to come)" : "(reaches the newest)");
+}
+
+// One page ahead of the bottom: chat.newer verifies the next page after m_top into chats.db (docs/protocol.md).
+void MessageModel::askNewer()
+{
+    if (!m_window || !m_floorKnown || !m_engine)
+        return;
+    // A request that failed quietly is asked again on a later call, as askOlder's.
+    if (!m_newerId.isEmpty() && m_newerAt.isValid() && m_newerAt.elapsed() < kHistoryMs)
+        return;
+    QVariantMap ask;
+    ask["chat"] = m_chat;
+    ask["after"] = QString::number(m_top); // a string: ids exceed 2^53
+    ask["limit"] = kPage;
+    m_newerId = m_engine->requestQuiet("chat.newer", ask);
+    m_newerAt.start();
+}
+
+// The next page below the loaded newest: the verified rows (up to m_top) that chats.db holds, oldest first,
+// appended at index 0 like a live message (itemAdded at an end never moves the rows on screen). When the
+// verified run is all loaded it either ends at Telegram's newest message (join) or the engine is asked for more.
+void MessageModel::loadNewer()
+{
+    if (!m_window || m_all.isEmpty())
+        return;
+    const Msg n = m_all.last(); // a copy: merge replaces m_all
+    const QList<Msg> rows = select("AND (ts > ? OR (ts = ? AND CAST(id AS INTEGER) > ?)) AND CAST(id AS INTEGER) <= ?",
+                                   QVariantList() << n.ts << n.ts << n.rowid << m_top, kPage, true);
+    merge(QStringList(), rows, true); // paged: never `incoming`, the user is reading down to them
+    // Fewer than a page: chats.db has nothing more up to m_top (the message at m_top may have been deleted
+    // since, so reaching its id is not the only way to be done).
+    if (rows.size() < kPage || rows.last().rowid >= m_top) {
+        if (m_newerMore)
+            askNewer();
+        else
+            joinLive();
+    }
+}
+
+// The window reaches the newest message: the model is the normal one from here (a later chat.open reply
+// checks the run against m_top), and the live rows that came meanwhile, which merge skipped, are loaded now.
+// ponytail: all of them at once, 3 ms a row; a page at a time if a chat can get hundreds in one window's life.
+void MessageModel::joinLive()
+{
+    m_window = false;
+    m_newerId.clear();
+    emit windowChanged();
+    merge(QStringList(), select("AND CAST(id AS INTEGER) > ?", QVariantList() << m_top, -1), true);
+}
+
+// Back to the newest end, with the floor unknown as at a first open: the window never answered, held nothing,
+// or the user sent a message (toLiveEnd). Everything loaded goes (a window is not the newest page); the
+// cache's newest page shows as the first paint of any chat and chat.open, sent again by the controller,
+// sets the floor.
+void MessageModel::leaveWindow()
+{
+    const bool wasLoading = m_loading;
+    const bool had = !m_entries.isEmpty();
+    m_windowGiveUp.stop();
+    m_window = false;
+    emit windowChanged();
+    m_newerId.clear();
+    m_newerMore = false;
+    m_unreadId.clear();
+    m_floorKnown = false;
+    m_floor = 0;
+    m_top = 0;
+    m_more = false;
+    m_starved = false;
+    m_historyId.clear(); // requests of the window's floor: their replies must not set the new one
+    m_bridgeId.clear();
+    m_all.clear();
+    rebuild();
+    if (had)
+        emit itemsChanged(DataModelChangeType::Init);
+    loadPage();
+    if (wasLoading) {
+        m_loading = false;
+        emit loadingChanged();
+    }
+    emit wantOpen();
+}
+
+void MessageModel::toLiveEnd()
+{
+    if (m_window)
+        leaveWindow();
+}
+
+// The window's first reply never came.
+void MessageModel::giveUp()
+{
+    if (m_window && !m_floorKnown) {
+        qDebug() << "chat: no window after" << kWindowGiveUpMs << "ms, opening at the newest";
+        leaveWindow();
+    }
+}
+
 // In a bottom-to-top list the model's end is the top. Until chat.open answers only the first paint
-// from the cache shows: paging waits.
+// from the cache shows: paging waits. In window mode the floor comes from chat.newer, and the bottom pages too.
 void MessageModel::nearTop(const QVariantList &firstVisible)
 {
-    if (!m_floorKnown || atStart() || firstVisible.isEmpty())
+    if (!m_floorKnown || firstVisible.isEmpty())
         return;
+    const int first = firstVisible.value(0).toInt();
+    m_low = first;
     // Nothing more in chats.db and the engine's page is on its way: every scroll would read nothing.
-    if (m_starved && !m_historyId.isEmpty() && m_historyAt.elapsed() < kHistoryMs)
-        return;
-    if (firstVisible.value(0).toInt() >= m_entries.size() - kNearTop)
+    const bool waiting = m_starved && !m_historyId.isEmpty() && m_historyAt.elapsed() < kHistoryMs;
+    if (!atStart() && !waiting && first >= m_entries.size() - kNearTop)
         loadPage();
+    // After the top: an older page appends at the model's end and leaves `first` right, a newer one shifts it.
+    // One page is 50 entries, more than kNearTop, so this can't cascade either.
+    // 20, not kNearTop: if `first` is the visual top's entry rather than the bottom's, the bottom shows it at
+    // about a screen (13 cards) and kNearTop would never be reached. Early is harmless; never is not.
+    if (m_window && first <= kNearBottom)
+        loadNewer();
+}
+
+// The newest message the screen shows when entry `first` is its bottom-most: a header or the divider walks up
+// to the message above it (older, also on screen); an album gives its newest member. "" when none.
+QString MessageModel::shownUpTo(int first) const
+{
+    for (int i = qMax(first, 0); i < m_entries.size(); ++i) {
+        const Entry &e = m_entries[i];
+        if (e.msg < 0)
+            continue;
+        return e.members.isEmpty() ? m_all[e.msg].id : m_all[e.members.last()].id;
+    }
+    return QString();
 }
 
 // The entry index of a message to jump to, -1 when it isn't shown (or is below the verified floor). One
@@ -411,10 +633,21 @@ void MessageModel::onMsgs(const QString &chat, const QStringList &ids)
 {
     if (chat != m_chat || m_loading) // the first page reads it anyway
         return;
+    // In window mode a row beyond the loaded newest is dropped by merge, so it isn't read at all: chat.open's
+    // newest page and every chat.newer page name 50 ids that would cost 150 ms each time.
+    QStringList want = ids;
+    if (m_window) {
+        want.clear();
+        const qint64 reach = m_all.isEmpty() ? m_top : m_all.last().rowid;
+        foreach (const QString &id, ids) {
+            if (id.toLongLong() <= reach)
+                want << id;
+        }
+    }
     // The sim's seed names 600 ids at once; SQLite binds 999 at most.
     QList<Msg> fresh;
-    for (int from = 0; from < ids.size(); from += 500) {
-        const QStringList part = ids.mid(from, 500);
+    for (int from = 0; from < want.size(); from += 500) {
+        const QStringList part = want.mid(from, 500);
         QVariantList args;
         QStringList marks;
         foreach (const QString &id, part) {
@@ -423,18 +656,29 @@ void MessageModel::onMsgs(const QString &chat, const QStringList &ids)
         }
         fresh += select(QString("AND id IN (%1)").arg(marks.join(",")), args, part.size());
     }
-    merge(ids, fresh, false);
+    merge(want, fresh, false); // not ids: a loaded row that wasn't read again would count as gone
 }
 
 // Events sent while the link was down are lost: read everything from the oldest loaded message
 // on again (not the newest N: messages that came meanwhile would push loaded ones out).
 void MessageModel::onConnected()
 {
-    if (!m_engine || !m_engine->connected() || m_loading)
+    if (!m_engine || !m_engine->connected())
+        return;
+    // The window's first request went out before the engine was there, or died with its restart: ask again.
+    // The give-up timer keeps running, so a window that never answers still ends. Before loadFirst's own
+    // request (m_newerAt invalid) there is nothing to repeat.
+    if (m_window && !m_floorKnown) {
+        if (m_newerAt.isValid())
+            askWindow();
+        return;
+    }
+    if (m_loading)
         return;
     m_asked.clear(); // a fetch the engine lost with its restart is asked again
     m_historyId.clear(); // so is a chat.history
     m_bridgeId.clear(); // and a bridge: the chat.open that follows checks the gap again
+    m_newerId.clear(); // and a chat.newer
     if (m_all.isEmpty()) {
         loadPage();
         return;
@@ -443,11 +687,23 @@ void MessageModel::onConnected()
     QStringList asked;
     foreach (const Msg &m, m_all)
         asked << m.id; // one that isn't read again is gone
-    const QList<Msg> fresh = select("AND (ts > ? OR (ts = ? AND CAST(id AS INTEGER) >= ?))",
-                                    QVariantList() << o.ts << o.ts << o.rowid, -1); // no limit
+    // In window mode only up to the loaded newest: the rows beyond it come with loadNewer, and there may be
+    // thousands in chats.db.
+    QString where = "AND (ts > ? OR (ts = ? AND CAST(id AS INTEGER) >= ?))";
+    QVariantList args;
+    args << o.ts << o.ts << o.rowid;
+    if (m_window) {
+        where += " AND CAST(id AS INTEGER) <= ?";
+        args << m_all.last().rowid;
+    }
+    const QList<Msg> fresh = select(where, args, -1); // no limit
     foreach (const Msg &m, fresh)
         asked << m.id;
     merge(asked, fresh, false);
+    if (m_window) {
+        askOlder(); // takeOpen, which asks it after a reconnect, returns early in window mode
+        askNewer();
+    }
 }
 
 // Puts rows into m_all and tells the list. asked: the ids that were read again; fresh: the
@@ -472,8 +728,14 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
     }
     const bool empty = m_all.isEmpty();
     bool incoming = false;
+    // In window mode what is beyond the loaded newest arrives with loadNewer, or with joinLive when the window
+    // reaches it: a live row appended now would leave a gap below it, since loadNewer reads from the newest
+    // loaded on. loadNewer and joinLive pass older, which skips this.
+    const qint64 reach = m_all.isEmpty() ? m_top : m_all.last().rowid;
     foreach (const Msg &m, fresh) {
         if (loaded.contains(m.id))
+            continue;
+        if (m_window && !older && m.rowid > reach)
             continue;
         // A new message older than the loaded ones comes with a later page.
         if (older || empty || atStart() || m.ts > m_all.first().ts

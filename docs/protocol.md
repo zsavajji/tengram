@@ -47,8 +47,9 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `ui.state` | `fullscreen` (bool), `openChat` (key or "") | — | — |
 | `chat.open` | `chat`, `limit` (1 to 200, default 50) | `{oldest, newest, count, more}` | |
 | `chat.history` | `chat`, `before` (a message id), `limit` (1 to 100, default 50) | `{oldest, newest, count, more}` | |
+| `chat.newer` | `chat`, `after` (a message id), `limit` (1 to 100, default 50) | `{oldest, newest, count, more}` | |
 | `chat.close` | `chat` | — | |
-| `chat.read` | `chat` | — | |
+| `chat.read` | `chat`; optional `upto` (a message id) | — | |
 | `chat.typing` | `chat`, `on` (bool) | — | |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool); at least one | — | |
 | `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional) | `{id}` | |
@@ -85,8 +86,24 @@ gaps: the UI shows them only after a `chat.history` covered them.
 **`chat.history`:** the same (`newest` included) for the page of `limit` messages older than
 `before`. Served from TDLib's local database when it has them, from Telegram otherwise.
 
-**`chat.read`:** marks the chat read up to its newest message. `unread` changes with the
-`chats` event that follows.
+**`chat.newer`:** the page of up to `limit` messages newer than `after` (exclusive; `chats.db`
+need not hold it), verified as `chat.history` verifies older ones: the rows from the page's
+`oldest` up to and including its `newest` are made exactly TDLib's (each change with `msgs`
+events), and the reply comes after that commit. `more` is whether newer messages exist beyond
+`newest`, that is, `newest` is below the chat's last message as the engine knows it; rows between
+`after` and `oldest` are not touched. An empty page, `{"", "", 0, false}`, means `after` is the
+chat's last message or newer, or TDLib has nothing newer to give. The UI uses it for a window
+that starts at the first unread message (`after` the last read one, `chat.history` for the
+older side), paging forward from there until `more` is false. The engine never anchors it on
+the chat's last message: TDLib's history with a negative offset (how it reaches newer messages)
+aborts the whole process when its `from` is the chat's last message or beyond and that message is
+not loaded in memory (a `closeChat` unloads it). So TDLib is asked only while `after` (then the
+newest message collected) is below the chat's last message id, and `after` at or past it is
+answered at once with the empty page. The chat's newest page is `chat.open`'s.
+
+**`chat.read`:** marks the chat read up to its newest message, or with `upto` up to that message
+(an id above the chat's newest counts as the newest; anything but a message id is `bad_request`).
+`unread` changes with the `chats` event that follows.
 
 **`chat.set`:** `pin`, `archive`, `unread` and `mute` as HyperBerry's. The row changes when
 Telegram's echo arrives (a `chats` event), not before.

@@ -104,6 +104,7 @@ signals:
     void voiceCancelled();
 
 private slots:
+    void sendReadUpto();
     void onTyping(const QString &chat, const QString &who, bool on, bool voice);
     void onPresence(const QString &chat, bool online, qint64 lastSeen);
     void onConnected();
@@ -113,6 +114,7 @@ private slots:
     void onFullscreenChanged();
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onPhoto(const QString &jid, const QString &path);
+    void onWantOpen();
 
 private:
     void takeGroupInfo(QVariantMap info);
@@ -139,6 +141,10 @@ private:
     bool m_group;
     bool m_unseen;   // a message arrived that no one has seen yet
     bool m_atBottom; // the list shows the newest message; false from open() until the page says
+    bool m_placed; // the page has positioned the list (its first setAtBottom): reads by scrolling count from then
+    QString m_pendingUpto; // the newest message shown since the last chat.read upto, sent by m_readSoon
+    QTimer m_readSoon;
+    qint64 m_readUpto; // the newest id chat.read was last sent up to in window mode (markRead), 0 for none
     QString m_typing;
     QString m_presence;
     QTimer m_idle;
