@@ -53,9 +53,12 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.typing` | `chat`, `on` (bool) | — | |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool); at least one | — | |
 | `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional) | `{id}` | |
+| `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored); all but `chat` and `path` optional | `{id}` | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
 | `media.get` | `chat`, `id` (a message with a file) | `{path}`, the absolute path of the file | `not_found`, `download_failed` |
+| `profile.get` | — | `{name, about, phone, picture}` | |
+| `profile.set` | `name`, `about`, `picture` (strings); each optional, at least one | — | |
 | `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `mediaOnMobile` (bool), `language` (string), `cacheMB` (64 to 512); each optional, at least one | — | |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
@@ -115,6 +118,18 @@ before the reply comes, and `{id}` is that id. When Telegram takes the message t
 replaced by one with the final id; a `msgs` event names both ids. On failure the row stays,
 state 4.
 
+**`media.send`:** a file as a new message in the chat, sent as `msg.send` sends a text: the same `quote`,
+the same row (*sending*, state 0, under a temporary id) and the reply `{id}` with that id. `path` is the absolute
+path of an existing regular file of at most 2000 MB (2000 x 2^20 bytes). `caption` is a string, `width` and `height`
+whole numbers from 0 (a photo's or video's size in pixels; 0 when not given). A `path` that is missing or is not
+such a file, or a field of the wrong kind, is `bad_request` and nothing is sent. The extension, in any case, decides
+the kind: `.jpg` and `.jpeg` a photo; `.mp4`, `.3gp` and `.mov` a video (streamable, its duration 0: the request has
+none); `.mp3`, `.m4a`, `.aac`, `.amr`, `.ogg` and `.wav` an audio file; anything else a document, PNG, GIF and PDF
+included. Only a photo or a video carries `caption`: for the other kinds it is not used, and the UI sends the text
+as a `msg.send` of its own. `thumb`, a base64 JPEG that HyperBerry needed, is accepted and ignored: TDLib makes its
+own thumbnails. What TDLib refuses (a photo whose `width` and `height` add up to more than 10000, say) is the `td`
+error.
+
 **`msg.delete`:** `everyone: true` deletes for all sides where Telegram allows it, `false` only
 here. The rows go when Telegram confirms (a `msgs` event names them: they no longer read back).
 
@@ -126,6 +141,20 @@ changes when Telegram's echo arrives.
 and answers when it is complete, after the row has `media_state` 2 and `path` (a `msgs` event).
 A file that is already here answers at once. Nothing downloads by itself: the UI asks for what it
 shows. `not_found` is a message TDLib doesn't have or one without a file.
+
+**`profile.get`:** our own account, as Telegram has it: `name` is the first name, then a space and the last name
+when there is one; `about` the bio; `phone` the number with a "+" in front ("" when Telegram gives none); `picture`
+the absolute path of the big profile photo, downloaded first when it is not here ("" when there is no photo, or when
+the download fails: that is only logged). `unlinked` before the login, as for `profile.set`.
+
+**`profile.set`:** changes what is given. `name` is trimmed of spaces and holds 1 to 64 characters; the first name
+is what comes before its first space, the last name the rest, trimmed (none when there is no space). `about` holds
+0 to 70 characters (code points, not bytes; "" clears the bio). `picture` is the absolute path of an image, a regular
+file, which becomes the profile photo; "" deletes the current photo (nothing happens when there is none). Everything
+is checked first: a field that is not a string, none of the three, or a value outside those rules is `bad_request`
+and nothing changes. The changes then go to Telegram one after another, in the order name, about, picture; the first
+TDLib error is the reply (`td`) and the ones after it are not sent, while those before it stay done. The reply
+comes after the last.
 
 **`prefs.set`:** the fields given are merged into the stored ones, kept in `prefs.json` in the
 data folder. `mode` and `batchSecs` are the delivery mode's settings (below), `notifyPreview`

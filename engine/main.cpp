@@ -166,7 +166,7 @@ void handle_update(Obj update) {
 void handle_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   mode_note_request();
   if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req) ||
-      mode_request(conn, id, cmd, req)) {
+      profile_handle(conn, id, cmd, req) || mode_request(conn, id, cmd, req)) {
     return;
   }
   server.reply_error(conn, id, "unknown_cmd", "unknown cmd " + cmd);

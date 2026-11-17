@@ -111,8 +111,13 @@ void messages_reconcile(std::int64_t chat, const std::vector<td_api::object_ptr<
 void queue_reply(std::uint64_t conn, const std::string &id, const std::string &result_json);
 
 // requests.cpp: chat.open, chat.history, chat.newer, chat.close, chat.read, chat.typing, chat.set, msg.send,
-// msg.delete, msg.edit, media.get.
+// media.send, msg.delete, msg.edit, media.get.
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+// A path a request names for a file to send: absolute and an existing regular file (stat). Its size goes in `size`.
+bool regular_file(const std::string &path, std::int64_t &size);
+
+// profile.cpp: profile.get and profile.set, our own account's name, about, phone and picture. They have no chat.
+bool profile_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).
 void mode_init();                                                    // read prefs.json

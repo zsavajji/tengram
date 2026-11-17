@@ -1,10 +1,14 @@
 // The requests about chats and messages: chat.open, chat.history, chat.newer, chat.close, chat.read, chat.typing,
-// chat.set, msg.send, msg.delete, msg.edit and media.get (docs/protocol.md). The rows they ask for are written by
-// messages.cpp; the replies that tell the UI to read them come after the flush that commits them (queue_reply).
+// chat.set, msg.send, media.send, msg.delete, msg.edit and media.get (docs/protocol.md). The rows they ask for are
+// written by messages.cpp; the replies that tell the UI to read them come after the flush that commits them
+// (queue_reply).
 
 #include "engine.h"
 
+#include <sys/stat.h>
+
 #include <algorithm>
+#include <cctype>
 #include <cerrno>
 #include <cmath>
 #include <cstdlib>
@@ -403,16 +407,50 @@ std::vector<td_api::object_ptr<td_api::textEntity>> mention_entities(
   return entities;
 }
 
+// The optional field "quote", a message id in a string: `reply` becomes the message it replies to, or stays null.
+// False after the bad_request reply.
+bool quote_field(std::uint64_t conn, const std::string &id, td::JsonObject &req,
+                 td_api::object_ptr<td_api::InputMessageReplyTo> &reply) {
+  std::int64_t quote = 0;
+  td::JsonValue v;
+  const int has_quote = optional_field(req, "quote", td::JsonValue::Type::String, v);
+  if (has_quote < 0 || (has_quote == 1 && (!parse_i64(v.get_string().str(), quote) || quote <= 0))) {
+    bad_request(conn, id, "quote is a string with a message id");
+    return false;
+  }
+  if (has_quote == 1) {
+    reply = make_object<td_api::inputMessageReplyToMessage>(quote, nullptr, 0, "");
+  }
+  return true;
+}
+
+// Sends the content as a new message of the chat. TDLib's answer is the message: its row is queued, state 0 under
+// a temporary id, and `{id}` is that id.
+void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat,
+                  td_api::object_ptr<td_api::InputMessageReplyTo> reply,
+                  td_api::object_ptr<td_api::InputMessageContent> content) {
+  tdlib.send(make_object<td_api::sendMessage>(chat, nullptr, std::move(reply), nullptr, nullptr, std::move(content)),
+             [conn, id](Obj o) {
+               if (auto e = as_error(o)) {
+                 say("td error: %d %s", e->code_, e->message_.c_str());
+                 return reply_td_error(conn, id, *e);
+               }
+               auto &m = static_cast<td_api::message &>(*o);
+               messages_queue(m);  // the row, state 0, under its temporary id
+               queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                             r("id", std::to_string(m.id_));
+                           })));
+             });
+}
+
 void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   auto text = string_field(req, "text");
   if (text.is_error() || text.ok().empty()) {
     return bad_request(conn, id, "need the field text, a string that is not empty");
   }
-  std::int64_t quote = 0;
-  td::JsonValue v;
-  const int has_quote = optional_field(req, "quote", td::JsonValue::Type::String, v);
-  if (has_quote < 0 || (has_quote == 1 && (!parse_i64(v.get_string().str(), quote) || quote <= 0))) {
-    return bad_request(conn, id, "quote is a string with a message id");
+  td_api::object_ptr<td_api::InputMessageReplyTo> reply;
+  if (!quote_field(conn, id, req, reply)) {
+    return;
   }
   std::vector<std::pair<std::string, std::string>> mentions;  // jid, name
   td::JsonValue list;
@@ -432,24 +470,98 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   } else if (has_mentions < 0) {
     return bad_request(conn, id, "mentions is an array of objects with jid and name");
   }
-  td_api::object_ptr<td_api::InputMessageReplyTo> reply;
-  if (has_quote == 1) {
-    reply = make_object<td_api::inputMessageReplyToMessage>(quote, nullptr, 0, "");
-  }
   auto content = make_object<td_api::inputMessageText>(
       plain_text(text.ok(), mention_entities(text.ok(), mentions)), nullptr, true);
-  tdlib.send(make_object<td_api::sendMessage>(chat, nullptr, std::move(reply), nullptr, nullptr, std::move(content)),
-             [conn, id](Obj o) {
-               if (auto e = as_error(o)) {
-                 say("td error: %d %s", e->code_, e->message_.c_str());
-                 return reply_td_error(conn, id, *e);
-               }
-               auto &m = static_cast<td_api::message &>(*o);
-               messages_queue(m);  // the row, state 0, under its temporary id
-               queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
-                             r("id", std::to_string(m.id_));
-                           })));
-             });
+  send_content(conn, id, chat, std::move(reply), std::move(content));
+}
+
+// The optional field `name`, a whole number from 0 up, into `out` (which stays as it was when the field is
+// missing). False after the bad_request reply.
+bool size_field(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::int32_t &out) {
+  td::JsonValue v;
+  int given = optional_field(req, name, td::JsonValue::Type::Number, v);
+  if (given == 1) {
+    char *end = nullptr;
+    const std::string number = v.get_number().str();
+    const long n = std::strtol(number.c_str(), &end, 10);
+    if (*end || n < 0) {
+      given = -1;
+    } else {
+      out = static_cast<std::int32_t>(std::min<long>(n, INT32_MAX));
+    }
+  }
+  if (given < 0) {
+    bad_request(conn, id, std::string(name) + " is a whole number, 0 or more");
+    return false;
+  }
+  return true;
+}
+
+// The extension of a path in lower case, with its dot (".jpg"); "" when the file name has none.
+std::string extension(const std::string &path) {
+  const std::size_t dot = path.find_last_of("./");
+  if (dot == std::string::npos || path[dot] == '/') {
+    return "";
+  }
+  std::string ext = path.substr(dot);
+  for (char &c : ext) {
+    c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+  }
+  return ext;
+}
+
+// What Telegram takes of a file (without a Premium account), in bytes.
+constexpr std::int64_t kMaxFile = std::int64_t{2000} << 20;
+
+// media.send: the file's kind comes from its extension. Only a photo or a video carries a caption: the UI sends the
+// text of any other kind as a msg.send of its own. `thumb` (a base64 JPEG HyperBerry needed for WhatsApp) is not
+// read: TDLib makes its own thumbnails.
+void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  auto path = string_field(req, "path");
+  std::int64_t bytes = 0;
+  if (path.is_error() || !regular_file(path.ok(), bytes) || bytes > kMaxFile) {
+    return bad_request(conn, id, "need the field path, the absolute path of a file of at most 2000 MB");
+  }
+  td_api::object_ptr<td_api::InputMessageReplyTo> reply;
+  if (!quote_field(conn, id, req, reply)) {
+    return;
+  }
+  td::JsonValue v;
+  const int has_caption = optional_field(req, "caption", td::JsonValue::Type::String, v);
+  if (has_caption < 0) {
+    return bad_request(conn, id, "caption is a string");
+  }
+  std::int32_t width = 0, height = 0;
+  if (!size_field(conn, id, req, "width", width) || !size_field(conn, id, req, "height", height)) {
+    return;
+  }
+  const std::string text = has_caption == 1 ? v.get_string().str() : "";
+  auto caption = [&]() -> td_api::object_ptr<td_api::formattedText> {
+    return text.empty() ? nullptr : plain_text(text);  // null is TDLib's empty caption
+  };
+  auto file = [&] { return make_object<td_api::inputFileLocal>(path.ok()); };
+
+  static const char *const audio[] = {".mp3", ".m4a", ".aac", ".amr", ".ogg", ".wav"};
+  const std::string ext = extension(path.ok());
+  td_api::object_ptr<td_api::InputMessageContent> content;
+  if (ext == ".jpg" || ext == ".jpeg") {
+    content = make_object<td_api::inputMessagePhoto>(
+        make_object<td_api::inputPhoto>(file(), nullptr, nullptr, std::vector<std::int32_t>(), width, height),
+        caption(), false, nullptr, false);
+  } else if (ext == ".mp4" || ext == ".3gp" || ext == ".mov") {
+    // The request has no duration, so it is 0.
+    content = make_object<td_api::inputMessageVideo>(
+        make_object<td_api::inputVideo>(file(), nullptr, nullptr, 0, std::vector<std::int32_t>(), 0, width, height,
+                                        true),
+        caption(), false, nullptr, false);
+  } else if (std::find(std::begin(audio), std::end(audio), ext) != std::end(audio)) {
+    content = make_object<td_api::inputMessageAudio>(make_object<td_api::inputAudio>(file(), nullptr, 0, "", ""),
+                                                     nullptr);
+  } else {
+    content = make_object<td_api::inputMessageDocument>(make_object<td_api::inputDocument>(file(), nullptr, false),
+                                                        nullptr);
+  }
+  send_content(conn, id, chat, std::move(reply), std::move(content));
 }
 
 void msg_delete(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
@@ -551,9 +663,19 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
 
 }  // namespace
 
+bool regular_file(const std::string &path, std::int64_t &size) {
+  struct stat st;
+  if (path.empty() || path[0] != '/' || stat(path.c_str(), &st) != 0 || !S_ISREG(st.st_mode)) {
+    return false;
+  }
+  size = st.st_size;
+  return true;
+}
+
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.close", "chat.read",
-                                     "chat.typing", "chat.set", "msg.send", "msg.delete", "msg.edit", "media.get"};
+                                     "chat.typing", "chat.set", "msg.send", "media.send", "msg.delete", "msg.edit",
+                                     "media.get"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -611,6 +733,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     chat_set(conn, id, req, chat);
   } else if (cmd == "msg.send") {
     msg_send(conn, id, req, chat);
+  } else if (cmd == "media.send") {
+    media_send(conn, id, req, chat);
   } else if (cmd == "msg.delete") {
     msg_delete(conn, id, req, chat);
   } else if (cmd == "msg.edit") {
