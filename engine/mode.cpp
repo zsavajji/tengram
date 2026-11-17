@@ -39,6 +39,12 @@ struct Prefs {
   std::string mode = "auto";  // auto, instant or batched
   int batch_secs = 300;
   bool notify_preview = true;  // the Hub's items say what the message says
+  // HyperBerry's three, which the UI sends on every connect. The engine keeps them and does nothing with them yet:
+  // nothing downloads by itself (mediaOnMobile), previews are worded in English (language), and TDLib's file cache
+  // is not pruned (cacheMB).
+  bool media_on_mobile = true;
+  std::string language;
+  int cache_mb = 64;
 } prefs;
 
 struct Ui {
@@ -184,6 +190,9 @@ void save_prefs() {
     o("mode", prefs.mode);
     o("batchSecs", prefs.batch_secs);
     o("notifyPreview", td::JsonBool(prefs.notify_preview));
+    o("mediaOnMobile", td::JsonBool(prefs.media_on_mobile));
+    o("language", prefs.language);
+    o("cacheMB", prefs.cache_mb);
   }));
   const std::string tmp = prefs_path() + ".tmp";
   if (!write_file(tmp, json) || rename(tmp.c_str(), prefs_path().c_str()) < 0) {
@@ -195,13 +204,18 @@ bool valid_mode(const std::string &m) {
   return m == "auto" || m == "instant" || m == "batched";
 }
 
-// A whole number of seconds from kBatchMin to kBatchMax in a JSON number.
-bool valid_secs(const td::JsonValue &v, int &out) {
+// A whole number from lo to hi in a JSON number.
+bool whole_in(const td::JsonValue &v, int lo, int hi, int &out) {
   char *end = nullptr;
   const std::string text = v.get_number().str();
   const long n = std::strtol(text.c_str(), &end, 10);
   out = static_cast<int>(n);
-  return !*end && n >= kBatchMin && n <= kBatchMax;
+  return !*end && n >= lo && n <= hi;
+}
+
+bool valid_language(const td::JsonValue &v, std::string &out) {
+  out = v.get_string().str();
+  return out.size() <= 16;
 }
 
 void ui_state(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
@@ -221,16 +235,26 @@ void ui_state(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
 }
 
 void prefs_set(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
-  td::JsonValue mode, secs, preview;
+  td::JsonValue mode, secs, preview, mobile, language, cache;
   const int has_mode = optional_field(req, "mode", td::JsonValue::Type::String, mode);
   const int has_secs = optional_field(req, "batchSecs", td::JsonValue::Type::Number, secs);
   const int has_preview = optional_field(req, "notifyPreview", td::JsonValue::Type::Boolean, preview);
-  int batch = 0;
-  if (has_mode < 0 || has_secs < 0 || has_preview < 0 || has_mode + has_secs + has_preview == 0 ||
-      (has_mode == 1 && !valid_mode(mode.get_string().str())) || (has_secs == 1 && !valid_secs(secs, batch))) {
+  const int has_mobile = optional_field(req, "mediaOnMobile", td::JsonValue::Type::Boolean, mobile);
+  const int has_language = optional_field(req, "language", td::JsonValue::Type::String, language);
+  const int has_cache = optional_field(req, "cacheMB", td::JsonValue::Type::Number, cache);
+  int batch = 0, cache_mb = 0;
+  std::string lang;
+  if (has_mode < 0 || has_secs < 0 || has_preview < 0 || has_mobile < 0 || has_language < 0 || has_cache < 0 ||
+      has_mode + has_secs + has_preview + has_mobile + has_language + has_cache == 0 ||
+      (has_mode == 1 && !valid_mode(mode.get_string().str())) ||
+      (has_secs == 1 && !whole_in(secs, kBatchMin, kBatchMax, batch)) ||
+      (has_language == 1 && !valid_language(language, lang)) ||
+      (has_cache == 1 && !whole_in(cache, 64, 512, cache_mb))) {
     server.reply_error(conn, id, "bad_request",
                        "mode is auto, instant or batched, batchSecs a whole number from " + std::to_string(kBatchMin) +
-                           " to " + std::to_string(kBatchMax) + ", notifyPreview true or false; at least one");
+                           " to " + std::to_string(kBatchMax) + ", notifyPreview and mediaOnMobile true or false, " +
+                           "language a string of at most 16 bytes, cacheMB a whole number from 64 to 512; " +
+                           "at least one");
     return;
   }
   if (has_mode == 1) {
@@ -244,6 +268,15 @@ void prefs_set(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
   }
   if (has_preview == 1) {
     prefs.notify_preview = preview.get_boolean();
+  }
+  if (has_mobile == 1) {
+    prefs.media_on_mobile = mobile.get_boolean();
+  }
+  if (has_language == 1) {
+    prefs.language = lang;
+  }
+  if (has_cache == 1) {
+    prefs.cache_mb = cache_mb;
   }
   save_prefs();
   server.reply_ok(conn, id);
@@ -263,17 +296,28 @@ void mode_init() {
   if (parsed.is_error() || parsed.ok_ref().type() != td::JsonValue::Type::Object) {
     return;  // missing or unreadable: the defaults
   }
-  td::JsonValue mode, secs, preview;
+  td::JsonValue mode, secs, preview, mobile, language, cache;
   auto &obj = parsed.ok_ref().get_object();
-  int batch = 0;
+  int batch = 0, cache_mb = 0;
+  std::string lang;
   if (optional_field(obj, "mode", td::JsonValue::Type::String, mode) == 1 && valid_mode(mode.get_string().str())) {
     prefs.mode = mode.get_string().str();
   }
-  if (optional_field(obj, "batchSecs", td::JsonValue::Type::Number, secs) == 1 && valid_secs(secs, batch)) {
+  if (optional_field(obj, "batchSecs", td::JsonValue::Type::Number, secs) == 1 &&
+      whole_in(secs, kBatchMin, kBatchMax, batch)) {
     prefs.batch_secs = batch;
   }
   if (optional_field(obj, "notifyPreview", td::JsonValue::Type::Boolean, preview) == 1) {
     prefs.notify_preview = preview.get_boolean();
+  }
+  if (optional_field(obj, "mediaOnMobile", td::JsonValue::Type::Boolean, mobile) == 1) {
+    prefs.media_on_mobile = mobile.get_boolean();
+  }
+  if (optional_field(obj, "language", td::JsonValue::Type::String, language) == 1 && valid_language(language, lang)) {
+    prefs.language = lang;
+  }
+  if (optional_field(obj, "cacheMB", td::JsonValue::Type::Number, cache) == 1 && whole_in(cache, 64, 512, cache_mb)) {
+    prefs.cache_mb = cache_mb;
   }
   say("prefs: mode %s, every %d s, preview %s", prefs.mode.c_str(), prefs.batch_secs,
       prefs.notify_preview ? "on" : "off");

@@ -25,6 +25,7 @@ class Server {
   void reply_ok(std::uint64_t conn, const std::string &id);
   void reply_ok(std::uint64_t conn, const std::string &id, const std::string &result_json);
   void reply_error(std::uint64_t conn, const std::string &id, const std::string &code, const std::string &message);
+  bool alive(std::uint64_t conn);  // the connection is still open
   // One event line, as JSON, to every authenticated connection.
   void broadcast(const std::string &event_json);
 

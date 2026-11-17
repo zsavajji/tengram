@@ -148,9 +148,19 @@ bool entity_code(const td_api::TextEntityType &t, const char *&code, std::string
   }
 }
 
+// Adds one member (`"key":value`, already JSON) to the row's extra. extra is a JSON object this file has just
+// encoded (never "{}": that is NULL), so the member goes in before its closing brace.
+void append_extra(Row &r, const std::string &member) {
+  if (auto *old = std::get_if<std::string>(&r.v[kExtra])) {
+    old->pop_back();
+    *old += "," + member + "}";
+  } else {
+    r.v[kExtra] = "{" + member + "}";
+  }
+}
+
 // The formatting of the text a row shows goes into extra as `ent`: [offset, length, code(, argument)] for each
-// entity we keep, offsets and lengths as TDLib gives them (UTF-16 code units). extra is a JSON object this file has
-// just encoded (never "{}": that is NULL), so `ent` is added before its closing brace.
+// entity we keep, offsets and lengths as TDLib gives them (UTF-16 code units).
 void add_entities(Row &r, const td_api::formattedText *text) {
   if (!text) {
     return;
@@ -174,14 +184,8 @@ void add_entities(Row &r, const td_api::formattedText *text) {
       }
     }
   }));
-  if (!any) {
-    return;
-  }
-  if (auto *old = std::get_if<std::string>(&r.v[kExtra])) {
-    old->pop_back();
-    *old += ",\"ent\":" + list + "}";
-  } else {
-    r.v[kExtra] = "{\"ent\":" + list + "}";
+  if (any) {
+    append_extra(r, "\"ent\":" + list);
   }
 }
 
@@ -269,6 +273,9 @@ void content(Row &r, const td_api::message &m) {
       r.v[kKind] = 1;
       r.v[kText] = Val();
       set_text(r, kText, caption(p.caption_));
+      if (p.has_spoiler_) {
+        append_extra(r, "\"spoiler\":true");  // Telegram covers it until it is tapped
+      }
       if (p.photo_) {
         set_thumb(r, p.photo_->minithumbnail_.get());
         if (const auto *big = largest(*p.photo_)) {
@@ -283,6 +290,9 @@ void content(Row &r, const td_api::message &m) {
       r.v[kKind] = 2;
       r.v[kText] = Val();
       set_text(r, kText, caption(p.caption_));
+      if (p.has_spoiler_) {
+        append_extra(r, "\"spoiler\":true");
+      }
       if (const auto *v = p.video_.get()) {
         r.v[kDuration] = v->duration_;
         r.v[kWidth] = v->width_;
@@ -297,6 +307,9 @@ void content(Row &r, const td_api::message &m) {
       r.v[kText] = Val();
       set_text(r, kText, caption(p.caption_));
       r.v[kExtra] = extra_of([](auto &o) { o("gif", td::JsonTrue()); });
+      if (p.has_spoiler_) {
+        append_extra(r, "\"spoiler\":true");
+      }
       if (const auto *a = p.animation_.get()) {
         r.v[kDuration] = a->duration_;
         r.v[kWidth] = a->width_;
@@ -463,6 +476,9 @@ void content(Row &r, const td_api::message &m) {
     }
   }
   set_file(r, message_file(m));
+  if (m.forward_info_) {
+    append_extra(r, "\"forwarded\":true");
+  }
   add_entities(r, shown_text(c));
 }
 

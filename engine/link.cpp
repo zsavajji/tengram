@@ -16,6 +16,7 @@ struct Link {
   std::string hint;              // Password
   std::string me, name;          // Ready
   std::int64_t me_id = 0;
+  bool syncing = false;          // Ready: the first full chat list load is still running
 } cur;
 
 bool logging_out = false;  // authorizationStateLoggingOut came: the Closed after it is a logout's
@@ -39,6 +40,9 @@ void fields(td::JsonObjectScope &o) {
     case State::Ready:
       o("me", cur.me);
       o("name", cur.name);
+      if (cur.syncing) {
+        o("syncing", td::JsonTrue());
+      }
       break;
     default:
       break;
@@ -147,9 +151,9 @@ void on_ready() {
       cur.me_id = u.id_;
       cur.name = u.first_name_ + (u.last_name_.empty() ? "" : " " + u.last_name_);
     }
+    chats_start();  // before the state is ready: if it sets `syncing`, the first link event carries it
     cur.state = State::Ready;
     changed();
-    chats_start();
     mode_ready();
   });
 }
@@ -161,6 +165,7 @@ void on_closed() {
       chats_reset();
       messages_reset();
       notifier_reset();
+      live_reset();
     }
     done = true;
     return;
@@ -170,6 +175,7 @@ void on_closed() {
   chats_reset();
   messages_reset();
   notifier_reset();
+  live_reset();
   mode_reset();
   logging_out = false;
   cur = Link{};
@@ -202,6 +208,15 @@ bool need_string(std::uint64_t conn, const std::string &id, td::JsonObject &req,
 }
 
 }  // namespace
+
+void link_syncing(bool on) {
+  if (cur.syncing != on) {
+    cur.syncing = on;
+    if (cur.state == State::Ready) {
+      changed();
+    }
+  }
+}
 
 std::int64_t link_me_id() {
   return cur.me_id;

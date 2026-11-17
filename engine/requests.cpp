@@ -121,6 +121,7 @@ void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat) {
         say("td error: %d %s", e->code_, e->message_.c_str());
         return reply_td_error(conn, id, *e);
       }
+      live_open(conn, chat);  // typing and presence now flow for it
       fetch(std::make_shared<Page>(Page{conn, id, chat, 50, INT64_MAX, {}}), 0);
     });
   });
@@ -256,9 +257,59 @@ void chat_set(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
 
 // ---- msg.send, msg.edit, msg.delete
 
-// A text as the UI typed it: no entities.
-td_api::object_ptr<td_api::formattedText> plain_text(const std::string &text) {
-  return make_object<td_api::formattedText>(text, std::vector<td_api::object_ptr<td_api::textEntity>>());
+// A text as the UI typed it, with the entities it has (the mentions: none else).
+td_api::object_ptr<td_api::formattedText> plain_text(
+    const std::string &text, std::vector<td_api::object_ptr<td_api::textEntity>> entities = {}) {
+  return make_object<td_api::formattedText>(text, std::move(entities));
+}
+
+// The UTF-16 code units in the first `bytes` bytes of a UTF-8 string, which is how TDLib counts: a character of four
+// bytes is two units, any other one.
+std::int32_t utf16_units(const std::string &s, std::size_t bytes) {
+  std::int32_t units = 0;
+  for (std::size_t i = 0; i < bytes; ++i) {
+    const unsigned char c = static_cast<unsigned char>(s[i]);
+    if ((c & 0xC0) != 0x80) {  // not the middle of a character
+      units += c >= 0xF0 ? 2 : 1;
+    }
+  }
+  return units;
+}
+
+// One textEntityTypeMentionName for each "@name" of the mentions that the text holds (the first place that no
+// earlier mention has), sorted by offset. A mention whose "@name" is not there, or whose jid is not a user id, is
+// skipped.
+std::vector<td_api::object_ptr<td_api::textEntity>> mention_entities(
+    const std::string &text, const std::vector<std::pair<std::string, std::string>> &mentions) {
+  struct Found {
+    std::size_t at, size;
+    std::int64_t user;
+  };
+  std::vector<Found> found;
+  for (const auto &mention : mentions) {
+    std::int64_t user = 0;
+    if (mention.second.empty() || !parse_i64(mention.first, user) || user <= 0) {
+      continue;
+    }
+    const std::string needle = "@" + mention.second;
+    for (std::size_t at = text.find(needle); at != std::string::npos; at = text.find(needle, at + 1)) {
+      const bool taken = std::any_of(found.begin(), found.end(), [&](const Found &f) {
+        return at < f.at + f.size && f.at < at + needle.size();
+      });
+      if (!taken) {
+        found.push_back({at, needle.size(), user});
+        break;
+      }
+    }
+  }
+  std::sort(found.begin(), found.end(), [](const Found &a, const Found &b) { return a.at < b.at; });
+  std::vector<td_api::object_ptr<td_api::textEntity>> entities;
+  for (const Found &f : found) {
+    entities.push_back(make_object<td_api::textEntity>(utf16_units(text, f.at),
+                                                       utf16_units(text.substr(f.at, f.size), f.size),
+                                                       make_object<td_api::textEntityTypeMentionName>(f.user)));
+  }
+  return entities;
 }
 
 // A message id in a string field of the request. False after the bad_request reply.
@@ -282,11 +333,30 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   if (has_quote < 0 || (has_quote == 1 && (!parse_i64(v.get_string().str(), quote) || quote <= 0))) {
     return bad_request(conn, id, "quote is a string with a message id");
   }
+  std::vector<std::pair<std::string, std::string>> mentions;  // jid, name
+  td::JsonValue list;
+  const int has_mentions = optional_field(req, "mentions", td::JsonValue::Type::Array, list);
+  if (has_mentions == 1) {
+    for (td::JsonValue &item : list.get_array()) {
+      if (item.type() != td::JsonValue::Type::Object) {
+        return bad_request(conn, id, "mentions are objects with jid and name");
+      }
+      auto jid = string_field(item.get_object(), "jid");
+      auto name = string_field(item.get_object(), "name");
+      if (jid.is_error() || name.is_error()) {
+        return bad_request(conn, id, "mentions are objects with jid and name, both strings");
+      }
+      mentions.emplace_back(jid.move_as_ok(), name.move_as_ok());
+    }
+  } else if (has_mentions < 0) {
+    return bad_request(conn, id, "mentions is an array of objects with jid and name");
+  }
   td_api::object_ptr<td_api::InputMessageReplyTo> reply;
   if (has_quote == 1) {
     reply = make_object<td_api::inputMessageReplyToMessage>(quote, nullptr, 0, "");
   }
-  auto content = make_object<td_api::inputMessageText>(plain_text(text.ok()), nullptr, true);
+  auto content = make_object<td_api::inputMessageText>(
+      plain_text(text.ok(), mention_entities(text.ok(), mentions)), nullptr, true);
   tdlib.send(make_object<td_api::sendMessage>(chat, nullptr, std::move(reply), nullptr, nullptr, std::move(content)),
              [conn, id](Obj o) {
                if (auto e = as_error(o)) {
@@ -416,6 +486,7 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
   } else if (cmd == "chat.history") {
     chat_history(conn, id, req, chat);
   } else if (cmd == "chat.close") {
+    live_close(conn, chat);
     tdlib.send(make_object<td_api::closeChat>(chat), [conn, id](Obj) { server.reply_ok(conn, id); });
   } else if (cmd == "chat.read") {
     const bool known = chats_read(chat, [conn, id](const td_api::error *e) {

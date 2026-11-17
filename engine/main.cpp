@@ -153,6 +153,7 @@ void handle_update(Obj update) {
       messages_update(*update);
       mode_update(*update);
       notifier_update(*update);
+      live_update(*update);
       break;
   }
 }

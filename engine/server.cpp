@@ -154,6 +154,7 @@ void Server::close_conn(Conn &c) {
     c.out.clear();
     if (c.authed) {
       mode_conn_closed(c.id);
+      live_conn_closed(c.id);
     }
   }
 }
@@ -239,6 +240,10 @@ Server::Conn *Server::find(std::uint64_t id) {
     }
   }
   return nullptr;
+}
+
+bool Server::alive(std::uint64_t conn) {
+  return find(conn) != nullptr;
 }
 
 void Server::send_line(Conn &c, const std::string &json) {

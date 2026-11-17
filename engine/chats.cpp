@@ -44,6 +44,7 @@ bool same(const Row &a, const Row &b) {
 struct Chat {
   std::int64_t id = 0;
   int kind = 0;  // chats.kind: 0 a person, 1 a group, 3 a channel
+  std::int64_t peer = 0;  // the other person's user id in a private chat (chatTypePrivate), else 0
   std::string title;
   int photo_file = 0;  // the small photo's file id, 0 for none
   std::string photo_path;
@@ -79,6 +80,7 @@ std::vector<std::int64_t> changed;                // written or deleted, their e
 int scope_mute[3] = {0, 0, 0};                    // default mute_for of private chats, groups, channels
 std::int64_t scope_learned[3] = {0, 0, 0};
 bool flag_pending = false;                        // chatlist_complete is to be written with the next flush
+bool flag_written = false;                        // ... and was, in the flush that is committing now
 Clock::time_point load_start;
 
 td::SqliteStatement insert_row, delete_row, select_row;
@@ -204,6 +206,9 @@ void new_chat(const td_api::chat &t) {
   Chat &c = chats[t.id_];
   c.id = t.id_;
   c.kind = t.type_ ? kind_of(*t.type_) : 0;
+  c.peer = t.type_ && t.type_->get_id() == td_api::chatTypePrivate::ID
+               ? static_cast<const td_api::chatTypePrivate &>(*t.type_).user_id_
+               : 0;
   c.title = t.title_;
   c.unread = t.unread_count_;
   c.marked_unread = t.is_marked_as_unread_;
@@ -375,6 +380,7 @@ void load_list(bool main_list) {
     }
     if (e->code_ != 404) {  // 404 is "no more"; anything else is a load that failed: try again at the next start
       say("loadChats: %d %s; the chat list stays partly loaded", e->code_, e->message_.c_str());
+      link_syncing(false);  // the UI goes on with what there is; the next start tries again
       return;
     }
     if (main_list) {
@@ -435,7 +441,7 @@ bool chat_brief(std::int64_t chat_id, ChatBrief &out) {
   if (it == chats.end()) {
     return false;
   }
-  out = {it->second.kind, it->second.has_last, it->second.last_id, it->second.read_outbox};
+  out = {it->second.kind, it->second.has_last, it->second.last_id, it->second.read_outbox, it->second.peer};
   return true;
 }
 
@@ -603,6 +609,7 @@ void chats_start() {
     return;
   }
   say("chat list: loading all of it");
+  link_syncing(true);  // until the flush that writes chatlist_complete has committed
   load_start = Clock::now();
   load_list(true);
 }
@@ -610,7 +617,7 @@ void chats_start() {
 void chats_write() {
   if (flag_pending) {
     flag_pending = false;
-    db.exec("INSERT OR REPLACE INTO engine_state VALUES('chatlist_complete', 1)");
+    flag_written = db.exec("INSERT OR REPLACE INTO engine_state VALUES('chatlist_complete', 1)");
   }
   if (dirty_ids.empty()) {
     return;
@@ -687,6 +694,10 @@ void chats_events() {
     })));
   }
   changed.clear();
+  if (flag_written) {  // the whole list is in chats.db for the first time: the linking page can go
+    flag_written = false;
+    link_syncing(false);
+  }
 }
 
 void chats_reset() {
@@ -706,6 +717,7 @@ void chats_reset() {
     scope_learned[s] = 0;
   }
   flag_pending = false;
+  flag_written = false;
   mark_dirty();  // for the event
 }
 

@@ -51,6 +51,7 @@ void link_conn(const td_api::ConnectionState &s);
 bool link_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 bool link_ready();  // the account is logged in: the requests that need it answer `unlinked` otherwise
 std::int64_t link_me_id();  // our own user id, 0 until known
+void link_syncing(bool on);  // the first full chat list load is running: `syncing` in the link body (while ready)
 
 // td.cpp: the reply for a TDLib error. Every command that hands TDLib's answer to the UI uses this.
 void reply_td_error(std::uint64_t conn, const std::string &id, const td_api::error &e);
@@ -70,6 +71,7 @@ struct ChatBrief {
   bool has_last;
   std::int64_t last_id;
   std::int64_t read_outbox;  // last_read_outbox_message_id_
+  std::int64_t peer;         // the other person's user id in a private chat, else 0
 };
 bool chat_brief(std::int64_t chat_id, ChatBrief &out);  // false when the chat is not mirrored
 void chats_last_message(const td_api::message &m);      // m is the chat's newest message now: refresh its preview
@@ -138,3 +140,10 @@ void notifier_action(const std::string &action, std::int64_t chat);  // "read", 
 // bb10.cpp (--service only): the navigator's and the network status's events, from a thread of its own.
 void bb10_start(int wake_fd);  // the thread writes to wake_fd when it has something: main calls bb10_drain()
 void bb10_drain();
+
+// live.cpp: typing and presence for the chats the UI has open.
+void live_open(std::uint64_t conn, std::int64_t chat);   // chat.open succeeded: the chat is open for this connection
+void live_close(std::uint64_t conn, std::int64_t chat);  // chat.close
+void live_conn_closed(std::uint64_t conn);               // a connection went away: what it opened is closed
+void live_reset();                                       // a new client after a logout
+void live_update(td_api::Object &update);                // updateChatAction, updateUser, updateUserStatus
