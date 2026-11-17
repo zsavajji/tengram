@@ -6,6 +6,7 @@
 #include "server.h"
 #include "td.h"
 
+#include <chrono>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -28,6 +29,8 @@ bool set_nonblock(int fd);
 // A string field of a request. Strict: a number is not a string (td's own get_*_string_field says it is).
 // Takes the value out of obj, so ask once per field.
 td::Result<std::string> string_field(td::JsonObject &obj, const char *name);
+// An optional field of one JSON type: 1 it is there (in v), 0 it is missing, -1 it has another type.
+int optional_field(td::JsonObject &obj, const char *name, td::JsonValue::Type type, td::JsonValue &v);
 
 // main.cpp: where TDLib's updates and the UI's requests go. A later step adds a line to each.
 void handle_update(Obj update);
@@ -43,6 +46,7 @@ void link_auth(const td_api::AuthorizationState &s);
 void link_conn(const td_api::ConnectionState &s);
 bool link_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 bool link_ready();  // the account is logged in: the requests that need it answer `unlinked` otherwise
+std::int64_t link_me_id();  // our own user id, 0 until known
 
 // td.cpp: the reply for a TDLib error. Every command that hands TDLib's answer to the UI uses this.
 void reply_td_error(std::uint64_t conn, const std::string &id, const td_api::error &e);
@@ -92,3 +96,17 @@ void queue_reply(std::uint64_t conn, const std::string &id, const std::string &r
 
 // requests.cpp: chat.open, chat.history, chat.close, chat.read, chat.typing, chat.set, msg.send.
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+
+// mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).
+void mode_init();                                                    // read prefs.json
+bool mode_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+void mode_conn_closed(std::uint64_t conn);  // an authenticated connection went away: its fullscreen with it
+void mode_conn_changed();                   // the UI may have come to the front or left it
+void mode_ready();                          // the link became ready
+void mode_evaluate();                       // the link left ready, or anything else that changes what is wanted
+void mode_reset();                          // a new client after a logout: the network is on, no sync
+void mode_note_update();                    // an update of any kind came
+void mode_connected();                      // connectionStateReady came
+void mode_update(td_api::Object &update);   // updateUserStatus of our own account
+bool mode_deadline(std::chrono::steady_clock::time_point &due);  // the next sync, or the end of the running one
+void mode_tick();                           // the deadline has passed

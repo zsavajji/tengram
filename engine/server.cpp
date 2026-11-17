@@ -47,6 +47,15 @@ td::Result<std::string> string_field(td::JsonObject &obj, const char *name) {
   return v.ok().get_string().str();
 }
 
+int optional_field(td::JsonObject &obj, const char *name, td::JsonValue::Type type, td::JsonValue &v) {
+  auto r = obj.extract_optional_field(td::Slice(name), type);
+  if (r.is_error()) {
+    return -1;
+  }
+  v = r.move_as_ok();
+  return v.type() == type ? 1 : 0;
+}
+
 bool Server::start(const std::string &dir) {
   dir_ = dir;
   std::string raw(16, '\0');
@@ -143,6 +152,9 @@ void Server::close_conn(Conn &c) {
     c.fd = -1;
     c.in.clear();
     c.out.clear();
+    if (c.authed) {
+      mode_conn_closed(c.id);
+    }
   }
 }
 

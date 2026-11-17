@@ -15,6 +15,7 @@ struct Link {
   int length = 0;                // Code, 0 unknown
   std::string hint;              // Password
   std::string me, name;          // Ready
+  std::int64_t me_id = 0;
 } cur;
 
 bool logging_out = false;  // authorizationStateLoggingOut came: the Closed after it is a logout's
@@ -109,8 +110,7 @@ void send_parameters() {
 void on_ready() {
   // What the probe's --no-files and --background do, always: nothing downloads by itself, and the
   // account is offline until the UI says it is in the foreground.
-  tdlib.set_bool_option("disable_auto_download", true);
-  tdlib.set_bool_option("online", false);
+  tdlib.set_bool_option("disable_auto_download", true);  // "online" is set by mode_ready, once we know who we are
   tdlib.send(td_api::make_object<td_api::getMe>(), [](Obj o) {
     if (!tdlib_ready) {  // the state moved on while getMe was out
       return;
@@ -119,14 +119,17 @@ void on_ready() {
       say("getMe: %d %s", e->code_, e->message_.c_str());
       cur.me.clear();
       cur.name.clear();
+      cur.me_id = 0;
     } else {
       auto &u = static_cast<td_api::user &>(*o);
       cur.me = std::to_string(u.id_);
+      cur.me_id = u.id_;
       cur.name = u.first_name_ + (u.last_name_.empty() ? "" : " " + u.last_name_);
     }
     cur.state = State::Ready;
     changed();
     chats_start();
+    mode_ready();
   });
 }
 
@@ -144,6 +147,7 @@ void on_closed() {
   db.wipe();
   chats_reset();
   messages_reset();
+  mode_reset();
   logging_out = false;
   cur = Link{};
   changed();
@@ -175,6 +179,10 @@ bool need_string(std::uint64_t conn, const std::string &id, td::JsonObject &req,
 }
 
 }  // namespace
+
+std::int64_t link_me_id() {
+  return cur.me_id;
+}
 
 bool link_ready() {
   return cur.state == State::Ready;
@@ -230,10 +238,14 @@ void link_auth(const td_api::AuthorizationState &s) {
       break;
   }
   changed();
+  mode_evaluate();  // a state that is not ready: the network must be on, for a logout to get through
 }
 
 void link_conn(const td_api::ConnectionState &s) {
   say("conn: %s", type_name(s).c_str());
+  if (s.get_id() == td_api::connectionStateReady::ID) {
+    mode_connected();
+  }
   const char *state = "connecting";
   if (s.get_id() == td_api::connectionStateWaitingForNetwork::ID) {
     state = "offline";

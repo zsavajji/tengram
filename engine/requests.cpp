@@ -38,16 +38,6 @@ bool parse_i64(const std::string &s, std::int64_t &out) {
   return errno == 0;
 }
 
-// An optional field of one JSON type: 1 it is there (in v), 0 it is missing, -1 it has another type.
-int optional(td::JsonObject &req, const char *name, td::JsonValue::Type type, td::JsonValue &v) {
-  auto r = req.extract_optional_field(td::Slice(name), type);
-  if (r.is_error()) {
-    return -1;
-  }
-  v = r.move_as_ok();
-  return v.type() == type ? 1 : 0;
-}
-
 // The common start: the account is logged in and "chat" is a string holding an int64. False after the reply.
 bool start(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t &chat) {
   if (!link_ready()) {
@@ -144,7 +134,7 @@ void chat_history(std::uint64_t conn, const std::string &id, td::JsonObject &req
   }
   long limit = 50;
   td::JsonValue v;
-  const int given = optional(req, "limit", td::JsonValue::Type::Number, v);
+  const int given = optional_field(req, "limit", td::JsonValue::Type::Number, v);
   if (given == 1) {
     char *end = nullptr;
     const std::string number = v.get_number().str();
@@ -194,10 +184,10 @@ void part_done(const std::shared_ptr<Several> &s, const td_api::error *e, bool l
 
 void chat_set(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   td::JsonValue pin, archive, unread, mute;
-  const int has_pin = optional(req, "pin", td::JsonValue::Type::Boolean, pin);
-  const int has_archive = optional(req, "archive", td::JsonValue::Type::Boolean, archive);
-  const int has_unread = optional(req, "unread", td::JsonValue::Type::Boolean, unread);
-  const int has_mute = optional(req, "mute", td::JsonValue::Type::Number, mute);
+  const int has_pin = optional_field(req, "pin", td::JsonValue::Type::Boolean, pin);
+  const int has_archive = optional_field(req, "archive", td::JsonValue::Type::Boolean, archive);
+  const int has_unread = optional_field(req, "unread", td::JsonValue::Type::Boolean, unread);
+  const int has_mute = optional_field(req, "mute", td::JsonValue::Type::Number, mute);
   double until = 0;  // unix seconds; 0 off; -1 always
   if (has_mute == 1) {
     char *end = nullptr;
@@ -273,7 +263,7 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   }
   std::int64_t quote = 0;
   td::JsonValue v;
-  const int has_quote = optional(req, "quote", td::JsonValue::Type::String, v);
+  const int has_quote = optional_field(req, "quote", td::JsonValue::Type::String, v);
   if (has_quote < 0 || (has_quote == 1 && (!parse_i64(v.get_string().str(), quote) || quote <= 0))) {
     return bad_request(conn, id, "quote is a string with a message id");
   }
@@ -329,7 +319,7 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     }
   } else if (cmd == "chat.typing") {
     td::JsonValue on;
-    if (optional(req, "on", td::JsonValue::Type::Boolean, on) != 1) {
+    if (optional_field(req, "on", td::JsonValue::Type::Boolean, on) != 1) {
       bad_request(conn, id, "need the field on, true or false");
       return true;
     }

@@ -133,6 +133,7 @@ void log_update_counts() {
 }
 
 void handle_update(Obj update) {
+  mode_note_update();
   auto &count = update_counts[update->get_id()];
   if (count.second++ == 0) {
     count.first = type_name(*update);
@@ -147,12 +148,14 @@ void handle_update(Obj update) {
     default:  // the parts that mirror state take what is theirs and ignore the rest
       chats_update(*update);
       messages_update(*update);
+      mode_update(*update);
       break;
   }
 }
 
 void handle_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
-  if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req)) {
+  if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req) ||
+      mode_request(conn, id, cmd, req)) {
     return;
   }
   server.reply_error(conn, id, "unknown_cmd", "unknown cmd " + cmd);
@@ -211,6 +214,7 @@ int main(int argc, char **argv) {
   if (!db.open(data_dir) || !server.start(data_dir)) {
     return 1;
   }
+  mode_init();
 
   // A socketpair, not a pipe: pipes are not reliable with poll here. Both ends never block.
   int wake[2];
@@ -234,14 +238,24 @@ int main(int argc, char **argv) {
     fds.clear();
     fds.push_back({wake[0], POLLIN, 0});
     server.fill(fds);
-    // Sleep until something happens, or until the flush or the end of a stop is due, whichever is nearer.
+    // Sleep until something happens, or until the nearest of the stop, the flush and the delivery mode's timer.
     int timeout = -1;
     if (stop_asked && Clock::now() >= stop_by) {
       say("TDLib did not close in 5 s");
       break;
     }
-    if (stop_asked || flush_pending) {
-      const auto due = stop_asked && flush_pending ? std::min(stop_by, flush_at) : stop_asked ? stop_by : flush_at;
+    auto due = Clock::time_point::max();
+    Clock::time_point mode_due;
+    if (stop_asked) {
+      due = std::min(due, stop_by);
+    }
+    if (flush_pending) {
+      due = std::min(due, flush_at);
+    }
+    if (mode_deadline(mode_due)) {
+      due = std::min(due, mode_due);
+    }
+    if (due != Clock::time_point::max()) {
       const auto us = std::chrono::duration_cast<std::chrono::microseconds>(due - Clock::now()).count();
       timeout = us <= 0 ? 0 : static_cast<int>((us + 999) / 1000);  // rounded up: no early wake-up to spin on
     }
@@ -264,6 +278,10 @@ int main(int argc, char **argv) {
       tdlib.drain();
     }
     server.service(&fds[1]);
+    Clock::time_point mode_now_due;
+    if (mode_deadline(mode_now_due) && Clock::now() >= mode_now_due) {
+      mode_tick();
+    }
     if (flush_pending && Clock::now() >= flush_at) {
       flush();
     }
