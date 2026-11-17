@@ -147,7 +147,6 @@ void content(Row &r, const td_api::message &m) {
         if (const auto *big = largest(*p.photo_)) {
           r.v[kWidth] = big->width_;
           r.v[kHeight] = big->height_;
-          set_file(r, big->photo_.get());
         }
       }
       break;
@@ -162,7 +161,6 @@ void content(Row &r, const td_api::message &m) {
         r.v[kWidth] = v->width_;
         r.v[kHeight] = v->height_;
         set_thumb(r, v->minithumbnail_.get());
-        set_file(r, v->video_.get());
       }
       break;
     }
@@ -177,7 +175,6 @@ void content(Row &r, const td_api::message &m) {
         r.v[kWidth] = a->width_;
         r.v[kHeight] = a->height_;
         set_thumb(r, a->minithumbnail_.get());
-        set_file(r, a->animation_.get());
       }
       break;
     }
@@ -191,7 +188,6 @@ void content(Row &r, const td_api::message &m) {
         r.v[kWidth] = v->length_;
         r.v[kHeight] = v->length_;
         set_thumb(r, v->minithumbnail_.get());
-        set_file(r, v->video_.get());
       }
       break;
     }
@@ -207,7 +203,6 @@ void content(Row &r, const td_api::message &m) {
         if (!wave.empty()) {
           r.v[kWaveform] = Blob{wave};
         }
-        set_file(r, v->voice_.get());
       }
       break;
     }
@@ -221,7 +216,6 @@ void content(Row &r, const td_api::message &m) {
       if (const auto *d = p.document_.get()) {
         set_text(r, kText, d->file_name_);
         set_thumb(r, d->minithumbnail_.get());
-        set_file(r, d->document_.get());
       }
       break;
     }
@@ -241,7 +235,6 @@ void content(Row &r, const td_api::message &m) {
             o("animated", td::JsonTrue());
           }
         });
-        set_file(r, s->sticker_.get());
       }
       break;
     }
@@ -260,7 +253,6 @@ void content(Row &r, const td_api::message &m) {
             o("performer", a->performer_);
           }
         });
-        set_file(r, a->audio_.get());
       }
       break;
     }
@@ -343,6 +335,7 @@ void content(Row &r, const td_api::message &m) {
       break;
     }
   }
+  set_file(r, message_file(m));
 }
 
 Row row_of(const td_api::message &m) {
@@ -397,7 +390,9 @@ Row row_of(const td_api::message &m) {
 
 // ---- the table
 
-enum Stmt { kInsert, kSelSig, kSelText, kSelPlayed, kDelete, kIdsInRange, kIdsRead, kSetRead, kSetPlayed, kStmts };
+enum Stmt {
+  kInsert, kSelSig, kSelText, kSelKind, kSelPlayed, kDelete, kIdsInRange, kIdsRead, kSetRead, kSetPlayed, kStmts
+};
 
 const char *const kSql[kStmts] = {
     "INSERT OR REPLACE INTO messages(chat, id, ts, out, state, sender, sender_name, kind, text, quote_id, "
@@ -405,6 +400,7 @@ const char *const kSql[kStmts] = {
     "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23)",
     "SELECT sig FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT text FROM messages WHERE chat = ?1 AND id = ?2",
+    "SELECT kind FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT played FROM messages WHERE chat = ?1 AND id = ?2",
     "DELETE FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT id FROM messages WHERE chat = ?1 AND CAST(id AS INTEGER) >= ?2 AND CAST(id AS INTEGER) < ?3",
@@ -645,6 +641,63 @@ void opened(std::int64_t chat, std::int64_t id) {
 }
 
 }  // namespace
+
+// The file of a message that has one: a photo's largest size, a video, animation, video note, voice note,
+// document, audio file or sticker. nullptr for the rest.
+const td_api::file *message_file(const td_api::message &m) {
+  if (!m.content_) {
+    return nullptr;
+  }
+  const td_api::MessageContent &c = *m.content_;
+  switch (c.get_id()) {
+    case td_api::messagePhoto::ID: {
+      const auto &p = static_cast<const td_api::messagePhoto &>(c);
+      const td_api::photoSize *big = p.photo_ ? largest(*p.photo_) : nullptr;
+      return big ? big->photo_.get() : nullptr;
+    }
+    case td_api::messageVideo::ID: {
+      const auto &v = static_cast<const td_api::messageVideo &>(c).video_;
+      return v ? v->video_.get() : nullptr;
+    }
+    case td_api::messageAnimation::ID: {
+      const auto &a = static_cast<const td_api::messageAnimation &>(c).animation_;
+      return a ? a->animation_.get() : nullptr;
+    }
+    case td_api::messageVideoNote::ID: {
+      const auto &v = static_cast<const td_api::messageVideoNote &>(c).video_note_;
+      return v ? v->video_.get() : nullptr;
+    }
+    case td_api::messageVoiceNote::ID: {
+      const auto &v = static_cast<const td_api::messageVoiceNote &>(c).voice_note_;
+      return v ? v->voice_.get() : nullptr;
+    }
+    case td_api::messageDocument::ID: {
+      const auto &d = static_cast<const td_api::messageDocument &>(c).document_;
+      return d ? d->document_.get() : nullptr;
+    }
+    case td_api::messageAudio::ID: {
+      const auto &a = static_cast<const td_api::messageAudio &>(c).audio_;
+      return a ? a->audio_.get() : nullptr;
+    }
+    case td_api::messageSticker::ID: {
+      const auto &t = static_cast<const td_api::messageSticker &>(c).sticker_;
+      return t ? t->sticker_.get() : nullptr;
+    }
+    default:
+      return nullptr;
+  }
+}
+
+int message_kind(std::int64_t chat, std::int64_t id) {
+  if (!prepare()) {
+    return -1;
+  }
+  bool row = false;
+  auto status = step_once(kSelKind, Key(chat, id), row);
+  const int kind = status.is_ok() && row ? stmts[kSelKind].view_int32(0) : -1;
+  stmts[kSelKind].reset();
+  return kind;
+}
 
 // ---- queueing
 

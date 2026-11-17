@@ -410,6 +410,26 @@ std::string one_line(std::string s) {
   return s;
 }
 
+std::string message_preview(const td_api::message &m) {
+  auto it = chats.find(m.chat_id_);
+  return it != chats.end() ? preview_of(it->second, m) : preview_of(Chat(), m);  // an unknown chat is a person's
+}
+
+bool chats_read(std::int64_t chat_id, std::function<void(const td_api::error *)> done) {
+  ChatBrief brief = {};
+  if (!chat_brief(chat_id, brief)) {
+    return false;
+  }
+  if (!brief.has_last) {
+    done(nullptr);
+  } else {
+    tdlib.send(td_api::make_object<td_api::viewMessages>(chat_id, std::vector<std::int64_t>{brief.last_id}, nullptr,
+                                                         true),
+               [done](Obj o) { done(as_error(o)); });
+  }
+  return true;
+}
+
 bool chat_brief(std::int64_t chat_id, ChatBrief &out) {
   auto it = chats.find(chat_id);
   if (it == chats.end()) {

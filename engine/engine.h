@@ -8,6 +8,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -69,6 +70,10 @@ struct ChatBrief {
 };
 bool chat_brief(std::int64_t chat_id, ChatBrief &out);  // false when the chat is not mirrored
 void chats_last_message(const td_api::message &m);      // m is the chat's newest message now: refresh its preview
+std::string message_preview(const td_api::message &m);  // the chat list's one line for a message, sender prefix and all
+// Marks the chat read up to its newest message, as chat.read does. False when the chat is not mirrored. With
+// nothing to read done gets nullptr at once; else TDLib's answer: its error, or nullptr.
+bool chats_read(std::int64_t chat, std::function<void(const td_api::error *)> done);
 const std::string &user_name(std::int64_t user_id, bool full);  // first name, or full; "" when unknown
 const std::string &chat_title(std::int64_t chat_id);            // "" when the chat is not mirrored
 
@@ -85,6 +90,10 @@ void messages_events();                        // flush(): the `msgs` events, af
 void messages_replies();                       // flush(): the replies that wait for the commit
 void messages_reset();                         // a new client after a logout: drop what is queued
 void messages_close();                         // before db.close(): finalizes the prepared statements
+// The kind of the message's row in the table, or -1 when there is none.
+int message_kind(std::int64_t chat, std::int64_t id);
+// The file of a message that has one (a photo's largest size, a video, a voice note...), or nullptr.
+const td_api::file *message_file(const td_api::message &m);
 // A message TDLib just gave us (the answer to msg.send): its row is written at the next flush.
 void messages_queue(const td_api::message &m);
 // A page of history, newest first, that must become the table's content for the chat from `oldest` up to but
@@ -94,7 +103,8 @@ void messages_reconcile(std::int64_t chat, const std::vector<td_api::object_ptr<
 // A reply to send after the next flush has committed. Marks dirty.
 void queue_reply(std::uint64_t conn, const std::string &id, const std::string &result_json);
 
-// requests.cpp: chat.open, chat.history, chat.close, chat.read, chat.typing, chat.set, msg.send.
+// requests.cpp: chat.open, chat.history, chat.close, chat.read, chat.typing, chat.set, msg.send, msg.delete, msg.edit,
+// media.get.
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).
@@ -108,5 +118,14 @@ void mode_reset();                          // a new client after a logout: the 
 void mode_note_update();                    // an update of any kind came
 void mode_connected();                      // connectionStateReady came
 void mode_update(td_api::Object &update);   // updateUserStatus of our own account
+bool mode_notify_preview();                 // the preference notifyPreview
+bool mode_ui_shows(std::int64_t chat);      // a UI that is in front has this chat open
 bool mode_deadline(std::chrono::steady_clock::time_point &due);  // the next sync, or the end of the running one
 void mode_tick();                           // the deadline has passed
+
+// notifier.cpp: TDLib's notification groups as Hub items (hub.h).
+void notifier_init();                                  // opens the Hub, reads hub.json
+bool notifier_active();                                // the Hub opened: TDLib is asked for notifications
+void notifier_update(td_api::Object &update);          // the notification updates; anything else is ignored
+void notifier_reset();                                 // a logout: the account goes, everything is forgotten
+void notifier_action(const std::string &action, std::int64_t chat);  // "read", "unread" or "delete", from a Hub item

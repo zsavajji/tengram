@@ -1,6 +1,6 @@
-// The requests about chats and messages: chat.open, chat.history, chat.close, chat.read, chat.typing,
-// chat.set and msg.send (docs/protocol.md). The rows they ask for are written by messages.cpp; the replies
-// that tell the UI to read them come after the flush that commits them (queue_reply).
+// The requests about chats and messages: chat.open, chat.history, chat.close, chat.read, chat.typing, chat.set,
+// msg.send, msg.delete, msg.edit and media.get (docs/protocol.md). The rows they ask for are written by
+// messages.cpp; the replies that tell the UI to read them come after the flush that commits them (queue_reply).
 
 #include "engine.h"
 
@@ -254,7 +254,22 @@ void chat_set(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   }
 }
 
-// ---- msg.send
+// ---- msg.send, msg.edit, msg.delete
+
+// A text as the UI typed it: no entities.
+td_api::object_ptr<td_api::formattedText> plain_text(const std::string &text) {
+  return make_object<td_api::formattedText>(text, std::vector<td_api::object_ptr<td_api::textEntity>>());
+}
+
+// A message id in a string field of the request. False after the bad_request reply.
+bool message_id(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::int64_t &out) {
+  auto text = string_field(req, name);
+  if (text.is_error() || !parse_i64(text.ok(), out) || out <= 0) {
+    bad_request(conn, id, std::string("need the field ") + name + ", a string with a message id");
+    return false;
+  }
+  return true;
+}
 
 void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   auto text = string_field(req, "text");
@@ -271,9 +286,7 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   if (has_quote == 1) {
     reply = make_object<td_api::inputMessageReplyToMessage>(quote, nullptr, 0, "");
   }
-  auto content = make_object<td_api::inputMessageText>(
-      make_object<td_api::formattedText>(text.ok(), std::vector<td_api::object_ptr<td_api::textEntity>>()), nullptr,
-      true);
+  auto content = make_object<td_api::inputMessageText>(plain_text(text.ok()), nullptr, true);
   tdlib.send(make_object<td_api::sendMessage>(chat, nullptr, std::move(reply), nullptr, nullptr, std::move(content)),
              [conn, id](Obj o) {
                if (auto e = as_error(o)) {
@@ -288,11 +301,108 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
              });
 }
 
+void msg_delete(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  td::JsonValue list, everyone;
+  if (optional_field(req, "ids", td::JsonValue::Type::Array, list) != 1 ||
+      optional_field(req, "everyone", td::JsonValue::Type::Boolean, everyone) != 1) {
+    return bad_request(conn, id, "need ids, an array of message ids, and everyone, true or false");
+  }
+  std::vector<std::int64_t> ids;
+  for (const td::JsonValue &item : list.get_array()) {
+    std::int64_t n = 0;
+    if (item.type() != td::JsonValue::Type::String || !parse_i64(item.get_string().str(), n) || n <= 0) {
+      return bad_request(conn, id, "ids are strings with message ids");
+    }
+    ids.push_back(n);
+  }
+  if (ids.empty() || ids.size() > 100) {
+    return bad_request(conn, id, "ids holds 1 to 100 message ids");
+  }
+  // The rows go when Telegram's updateDeleteMessages comes.
+  tdlib.send(make_object<td_api::deleteMessages>(chat, std::move(ids), everyone.get_boolean()),
+             [conn, id](Obj o) { answer(conn, id, o); });
+}
+
+void msg_edit(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t message = 0;
+  if (!message_id(conn, id, req, "id", message)) {
+    return;
+  }
+  auto text = string_field(req, "text");
+  if (text.is_error() || text.ok().empty()) {
+    return bad_request(conn, id, "need the field text, a string that is not empty");
+  }
+  // The row's kind decides how the message is edited; the row itself changes with TDLib's edit updates.
+  const int kind = message_kind(chat, message);
+  if (kind < 0) {
+    return server.reply_error(conn, id, "not_found", "no such message");
+  }
+  auto done = [conn, id](Obj o) { answer(conn, id, o); };
+  if (kind == 0) {
+    auto content = make_object<td_api::inputMessageText>(plain_text(text.ok()), nullptr, false);
+    tdlib.send(make_object<td_api::editMessageText>(chat, message, nullptr, std::move(content)), done);
+  } else if (kind == 1 || kind == 2) {
+    tdlib.send(make_object<td_api::editMessageCaption>(chat, message, nullptr, plain_text(text.ok()), false), done);
+  } else {
+    bad_request(conn, id, "only a text, a photo or a video can be edited");
+  }
+}
+
+// ---- media.get
+
+std::string path_json(const std::string &path) {
+  return td::json_encode<std::string>(td::json_object([&](auto &o) { o("path", path); }));
+}
+
+void download_failed(std::uint64_t conn, const std::string &id, const std::string &why) {
+  say("media.get: %s", why.c_str());
+  server.reply_error(conn, id, "download_failed", why);
+}
+
+void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t message = 0;
+  if (!message_id(conn, id, req, "id", message)) {
+    return;
+  }
+  tdlib.send(make_object<td_api::getMessage>(chat, message), [=](Obj o) {
+    if (as_error(o)) {
+      return server.reply_error(conn, id, "not_found", "no such message");
+    }
+    auto &m = static_cast<td_api::message &>(*o);
+    const td_api::file *file = message_file(m);
+    if (!file) {
+      return server.reply_error(conn, id, "not_found", "the message has no file");
+    }
+    if (file->local_ && file->local_->is_downloading_completed_) {
+      messages_queue(m);  // its row may still say the file is on the server
+      return queue_reply(conn, id, path_json(file->local_->path_));
+    }
+    // Synchronous: the answer is the file once the download is over. Another media.get for the same message
+    // may be waiting on its own downloadFile at the same time: nothing here is shared between them.
+    tdlib.send(make_object<td_api::downloadFile>(file->id_, 16, 0, 0, true), [=](Obj o2) {
+      if (auto e = as_error(o2)) {
+        return download_failed(conn, id, std::to_string(e->code_) + " " + e->message_);
+      }
+      const auto &got = static_cast<const td_api::file &>(*o2);
+      if (!got.local_ || !got.local_->is_downloading_completed_) {
+        return download_failed(conn, id, "the download did not finish");
+      }
+      const std::string path = got.local_->path_;
+      tdlib.send(make_object<td_api::getMessage>(chat, message), [=](Obj o3) {
+        if (!as_error(o3)) {
+          messages_queue(static_cast<td_api::message &>(*o3));  // now with media_state 2 and the path
+        }
+        queue_reply(conn, id, path_json(path));
+      });
+    });
+  });
+}
+
 }  // namespace
 
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
-  static const char *const ours[] = {"chat.open", "chat.history", "chat.close", "chat.read",
-                                     "chat.typing", "chat.set", "msg.send"};
+  static const char *const ours[] = {"chat.open", "chat.history", "chat.close", "chat.read", "chat.typing",
+                                     "chat.set", "msg.send", "msg.delete", "msg.edit", "media.get"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -308,14 +418,16 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
   } else if (cmd == "chat.close") {
     tdlib.send(make_object<td_api::closeChat>(chat), [conn, id](Obj) { server.reply_ok(conn, id); });
   } else if (cmd == "chat.read") {
-    ChatBrief brief = {};
-    if (!chat_brief(chat, brief)) {
+    const bool known = chats_read(chat, [conn, id](const td_api::error *e) {
+      if (e) {
+        say("td error: %d %s", e->code_, e->message_.c_str());
+        reply_td_error(conn, id, *e);
+      } else {
+        server.reply_ok(conn, id);
+      }
+    });
+    if (!known) {
       server.reply_error(conn, id, "bad_chat", "no such chat");
-    } else if (!brief.has_last) {
-      server.reply_ok(conn, id);  // an empty chat has nothing to read
-    } else {
-      tdlib.send(make_object<td_api::viewMessages>(chat, std::vector<std::int64_t>{brief.last_id}, nullptr, true),
-                 [conn, id](Obj o) { answer(conn, id, o); });
     }
   } else if (cmd == "chat.typing") {
     td::JsonValue on;
@@ -333,8 +445,14 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
                [conn, id](Obj o) { answer(conn, id, o); });
   } else if (cmd == "chat.set") {
     chat_set(conn, id, req, chat);
-  } else {
+  } else if (cmd == "msg.send") {
     msg_send(conn, id, req, chat);
+  } else if (cmd == "msg.delete") {
+    msg_delete(conn, id, req, chat);
+  } else if (cmd == "msg.edit") {
+    msg_edit(conn, id, req, chat);
+  } else {
+    media_get(conn, id, req, chat);
   }
   return true;
 }
