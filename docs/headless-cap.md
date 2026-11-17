@@ -64,19 +64,36 @@ already read the file. The stock process has to read it again.
 
 So `load` cannot redefine `_sys_headless_xlarge` (its prefix is taken), only add new capabilities.
 
-## Two root routes, both untested
+## Route 1, tried 2026-11-17: ruled out
 
-1. **Patch the class and restart authman.** Copy `sys.acl` to a writable place with a larger
-   `_sys_headless_xlarge` value; `ln -sP <copy> /base/etc/authman/sys.acl`; stop authman and start
-   `/base/sbin/authman -U 505` again. Every xlarge app gains. Risk: authman's run-time state goes with
-   it: the launcher's registrations of running apps (`defapp`/`defpid`), `carrier_mgr`'s `cds` prefix and
-   its loaded subsystem ACLs, dynamic capabilities. Apps launched before the restart may fail later checks
-   (`chkcap` from PIM, media, BBID) until relaunched; carrier apps until `carrier_mgr` loads again. Whether
-   a restart is survivable at all is the first thing to try.
-2. **Add a class through `load`, no restart.** As a user the whitelist allows (`carrier_mgr`), `regprefix
-   tgm` and `load tgm <dir>/tgm` with `tgm.acl` = `tgm_headless_huge` + `RLM RLIMIT_DATA <bytes>` and
-   `tgm.res` allowing the apps. Each app then asks for `tgm_headless_huge` in its bar. Unknowns: whether
-   a loaded ACL may carry `RLM`, whether the installer keeps an app permission it doesn't know, whether the
-   launcher applies `RLM` from a loaded capability. Redone at every boot, after root.
+A patched copy (`xlarge` = 128 MiB) at `/var/etc/authman/sys.acl`, `ln -sP` over
+`/base/etc/authman/sys.acl` (read back through both paths, checksum right), then authman started again as
+`startup.sh` does (`/base/sbin/authman -U 505`). Authman came up and made `/dev/authman`, but **every app
+launch failed from then on**: the navigator, the launchers and others opened `/dev/authman` once at boot and
+never reconnect (navigator: `pps_fd (-1)`, "pthread_mutex_lock failed - Resource deadlock avoided"). A reboot
+put everything back. A patched `sys.acl` can only work if the link exists before authman starts at boot, and
+root arrives about 4 minutes too late for that.
 
-Both change the phone's OS state (a reboot undoes them) and wait for the user's go-ahead.
+## Route 2: a new class with authman's own `load`, no restart
+
+What the disassembly says (2026-11-17):
+- **The wire format** is not a `write()`: the launcher sends an `_IO_MSG` with `MsgSendv`, a 16-byte header
+  (`type 0x113`, `combine_len 16`, `mgrid 0xf001`, `subtype 0`, `slen` = the command's length with its NUL,
+  `rlen` = the reply buffer's size), then the command; the reply comes back after the same header
+  (launcher `0x1bb48`). `tools/authman/authman-send.c` does the same.
+- **Under a prefix** (`apply_capability`, `0x5df4`): a capability's name must start with the prefix;
+  `ARQ` actions are refused ("Prefixed capability cannot contain %s actions"); `MAC` goes to the macro code;
+  every other action, `RLM` included, goes to the generic parser. So `hmem_headless_128` with
+  `RLM RLIMIT_DATA 134217728` should load.
+- **Who may:** `authman.cfg` grants `regprefix,load` to `carrier_mgr`; authman reads the files with the
+  client's uid. The helper switches to `carrier_mgr` (`-u`), and the files sit in a folder it can read.
+
+`tools/authman/` builds `build/hmem-addon.zip` (`build-addon.sh`), an addon for the root installer
+(`/var/rootdata/installer`, the VoLTE addon's layout): at install and at every boot its `start.sh` waits for
+`/dev/authman`, copies `hmem.acl`/`hmem.res` to `/var/etc/hmem`, and sends `regprefix hmem` and
+`load hmem /var/etc/hmem/hmem` as `carrier_mgr`. Classes: `hmem_headless_64`, `hmem_headless_128`,
+allowed to any app (`allow *`). An app asks for one in its bar descriptor, beside `_sys_headless_xlarge`.
+
+Still unknown, to test on the phone: whether root-as-`carrier_mgr` passes the whitelist; the `.res` syntax
+(`allow *`); whether the installer keeps an app permission it doesn't know; whether the launcher applies
+`RLM` from a loaded capability, and which limit wins beside `_sys_headless_xlarge`.
