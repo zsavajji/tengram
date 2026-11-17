@@ -196,6 +196,7 @@ private:
     bool atStart() const;
     void merge(const QStringList &asked, const QList<Msg> &fresh, bool older);
     void rebuild();
+    void fillShort();
     QString runOf(int entry) const;
     void markRuns();
     void askSenders();

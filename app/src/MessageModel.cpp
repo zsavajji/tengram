@@ -433,6 +433,16 @@ void MessageModel::takeOpen(const QVariantMap &r)
         return;
     dropBelowFloor();
     askOlder();
+    fillShort();
+}
+
+// A list too short to scroll never nears its top, so nearTop never loads the page the engine just verified: a chat
+// opened with only its last message cached showed that one and nothing older (Classic, 0.1.0.11). Fewer rows than
+// the smallest page, with more verified below, loads the next page now.
+void MessageModel::fillShort()
+{
+    if (!m_loading && !atStart() && m_all.size() < kPageMin)
+        loadPage();
 }
 
 // The first paint came from the cache: what is older than the verified page goes, and comes back
@@ -504,6 +514,7 @@ void MessageModel::takeHistory(const QVariantMap &r)
         loadPage(); // the list was waiting at its top
     else
         refresh(keys(), QSet<QString>()); // atStart() may have just become true: the oldest day's header
+    fillShort();
 }
 
 // Window mode (the class comment in the header). The first chat.newer asks for the page right after
