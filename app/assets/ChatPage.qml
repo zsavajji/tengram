@@ -305,6 +305,7 @@ Page {
             return
         }
         composer.text = ""
+        page.picking = false // sent, the emoji picker closes (the user's ask, 2026-11-17)
         page.unstage()
         ctl.cancelReply()
         page.followOwn = !editing // an edit adds no row to follow
