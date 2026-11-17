@@ -716,6 +716,40 @@ Page {
                 EmptyNote {
                     model: ctl.messages
                 }
+                // To the newest message, when the list is in a window of history or far above it. Square and
+                // opaque, as the cards are.
+                // ponytail: entries, not pixels (~2 screens on the 720x720 Classic); measure in pixels if it
+                // misfires on tall photo runs.
+                Container {
+                    // The list runs bottom to top: entry 0 is the newest, and the first visible item is the
+                    // lowest one on screen.
+                    property bool far: scrollState.firstVisibleItem.length > 0 && scrollState.firstVisibleItem[0] > 12
+                    visible: !!ctl.messages && (ctl.messages.window || far)
+                    horizontalAlignment: HorizontalAlignment.Right
+                    verticalAlignment: VerticalAlignment.Bottom
+                    rightMargin: ui.du(2)
+                    bottomMargin: ui.du(2)
+                    preferredWidth: ui.du(11)
+                    preferredHeight: ui.du(11)
+                    background: ui.palette.plain
+                    layout: DockLayout {
+                    }
+                    gestureHandlers: TapHandler {
+                        onTapped: {
+                            ctl.messages.toLiveEnd()
+                            list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.Default)
+                            page.startAim("bottom", "")
+                        }
+                    }
+                    ImageView {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        verticalAlignment: VerticalAlignment.Center
+                        preferredWidth: ui.du(5)
+                        preferredHeight: ui.du(5)
+                        imageSource: "asset:///images/bottom.png"
+                        filterColor: ui.palette.textOnPlain
+                    }
+                }
             }
             Container {
                 id: reactSlot
