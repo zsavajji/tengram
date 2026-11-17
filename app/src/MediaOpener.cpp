@@ -4,6 +4,7 @@
 #include "sizes.h"
 
 #include <bb/cascades/Image>
+#include <bb/data/JsonDataAccess>
 #include <bb/system/InvokeReplyError>
 #include <bb/system/InvokeRequest>
 #include <bb/system/InvokeTargetReply>
@@ -201,8 +202,9 @@ void MediaOpener::onInvoked()
     reply->deleteLater();
 }
 
-// What the editor returns isn't known yet, so every field is logged. Success is any reason but "cancel" or
-// "closed" (the card's own words for backing out) with data that is an existing file: a path or a file:// url.
+// Seen on the phone (2026-11-17): a copy saved comes back as reason "SaveDone" with its path; the original saved over
+// as reason "save" with [{"uri": "file://…"}], the same file now edited. Success is any reason but "cancel" or "closed"
+// with data that names an existing file. Every answer is logged.
 void MediaOpener::onCardDone(const CardDoneMessage &done)
 {
     qDebug() << "media: card done, reason" << done.reason() << "dataType" << done.dataType() << "data" << done.data();
@@ -213,6 +215,11 @@ void MediaOpener::onCardDone(const CardDoneMessage &done)
     if (done.data().isEmpty() || reason == "cancel" || reason == "closed")
         return;
     QString path = done.data();
+    if (path.startsWith("[")) {
+        bb::data::JsonDataAccess json;
+        const QVariantList list = json.loadFromBuffer(path.toUtf8()).toList();
+        path = list.isEmpty() ? QString() : list.first().toMap().value("uri").toString();
+    }
     if (path.startsWith("file://"))
         path = QUrl::fromPercentEncoding(path.mid(7).toUtf8());
     if (QFileInfo(path).isFile())
