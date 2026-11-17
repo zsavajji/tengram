@@ -148,6 +148,12 @@ amalgamation), opens read-only, and runs `PRAGMA key = "x'<db.key>'"`.
   without `SQLITE_OMIT_DECLTYPE`, which the driver needs); our `libcrypto.a` is built with clang
   and needs the `__aeabi_mem*` helpers (`ui/sqlcipher/aeabi_mem.c`) and `-lsocket`; qcc is C++98,
   so the helper has no `auto`, lambdas or `nullptr`.
+- **A static `libcrypto.a` in an executable exports its symbols** (the first build had 2,862
+  dynamic symbols, OpenSSL 3.5's `EVP_*` among them). A system library that uses the phone's own
+  OpenSSL 1.0 would bind to ours and crash. `tengram.pro` links with
+  `-Wl,--exclude-libs,ALL`; checked with `readelf --dyn-syms`: none left.
+- **`sqlite3.c` does not compile under `-std=c99`** (`open`, `fcntl` undeclared in strict ISO
+  mode): the project's C flag is `gnu99`, which qrcodegen and libwebp accept too.
 - **Cost, measured on the phone in a cold process:** open and key 5 ms, the chat list's first
   30 rows 52 ms, a chat's newest 20 messages 38 ms. The warm figures are still to measure.
 
@@ -269,10 +275,28 @@ in the background too.
 
 ### 3.9 Wording
 
-56 mentions of "WhatsApp" in pages and sources ("Link to WhatsApp", the linking instructions,
-"WhatsApp won't let this number join by link", About) and the same strings in ten `.ts` files.
-See §3.1 for the translation trap. `Label` text defaults to auto-detected format: any text a
-user wrote keeps `textFormat: TextFormat.Plain`.
+Every text the user reads says Telegram and Tengram: the pages, the sources' `tr()` strings and
+the ten `.ts` files, replaced in one pass so sources and translations still match (§3.1).
+`Label` text defaults to auto-detected format: any text a user wrote keeps
+`textFormat: TextFormat.Plain`.
+
+**Traps:**
+- **Comments are not wording.** The first pass also turned "WhatsApp's 15 minutes" into
+  "Telegram's 15 minutes" in comments. Where a comment states a WhatsApp rule that the code still
+  applies, it says WhatsApp, so the list below can be found with `grep -rn WhatsApp app/`.
+- **WhatsApp's rules still in the UI's logic,** each to be replaced by Telegram's or by what
+  the engine says:
+  - delete for everyone within about 2.5 days, edit within 15 minutes (`MessageRows.cpp:107`,
+    `:112`); Telegram allows edits for 48 hours and deletes without a limit in most chats;
+  - text styles typed as `*bold* _italic_ ~strike~` and "`mono`" (`Markup.h`, `MessageKinds.h`,
+    `ChatRows.cpp:255`); Telegram's formatting comes as `extra.ent`;
+  - typing: cleared after 25 s, re-sent every 5 s (`ChatController.cpp:38`, `:42`);
+  - a poll's 12 options (`PollPage.qml`); pins holding 7 days (`Pins.h`); "forwarded many
+    times" at a score of 5 (`MessageCard.cpp:534`); the 1600 px shrink of a sent picture
+    (`MediaOpener.cpp:199`); the album rule (`Albums.h`), which happens to suit Telegram's albums;
+  - group member errors 403 and 409 (`GroupInfoPage.qml:77`).
+- **Invite links:** `Invites.cpp` now recognises `t.me/+…` and `t.me/joinchat/…`, but the engine
+  has no `invite.info` yet: a tap shows the "couldn't open this invite" toast.
 
 ## 4. The engine, feature by feature
 
@@ -351,7 +375,25 @@ What HyperBerry's UI sends and listens for, where tengramd stands, and what to m
    `group.create`, invites, `contact.block`, `profile.set`, `chat.export`.
 6. **Voice notes,** then **Calls.**
 
-## 8. Open points
+## 8. State after step 1 (2026-11-17), and what to test first on the phone
+
+`scripts/build-ui.sh` builds `build/ui/app/tengram` (5.2 MB) and the SDK's `lupdate` parses every
+QML and JS file. Nothing of it has run. In order of doubt:
+
+1. **`ChatsDb`** (`app/src/ChatsDb.cpp`) has never opened a real `chats.db`: the spike proved the
+   driver and the key, not this helper, its retry when the file is missing, or its reopen after
+   the engine reconnects.
+2. **The application menu on the `NavigationPane`** (it sat on the `TabbedPane`).
+3. **A tap on a Hub item** (`chat_<id>`), which needs the packaged engine too.
+4. **Leftovers that only log:** `MessageCardActions.cpp` still calls `openStory` for a quote
+   flagged as a story, which Telegram's rows never are; `ChatList.channelList` and its Unfollow
+   row menu have no page that sets them; a starred mark is still drawn for `starred = 1`, which
+   the engine never writes.
+5. **`LinkPage.qml`'s code block** still carries HyperBerry's pairing-code wording: step 2 (§3.5).
+6. **`Nv12Rotate.h` is back** (the video window includes it); twenty imports of the module were
+   ten once the call and story pages were gone.
+
+## 9. Open points
 
 - **The address book** (§4, New chat).
 - **Reactions and poll votes:** bend the tables or change the bubbles' queries (§4).
