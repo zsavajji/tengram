@@ -11,6 +11,7 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QHash>
 #include <QLocale>
 #include <QPair>
@@ -60,9 +61,74 @@ static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
     row["unread"] = q.value(7).toInt();
     row["muted"] = q.value(8).toLongLong() > now;
     row["pinned"] = q.value(9).toInt() != 0;
+    row["ts"] = q.value(3).isNull() ? qint64(-1) : q.value(3).toLongLong(); // the sort key, with pinned
     row["photo"] = q.value(10).toString(); // the engine's preview file's path, "" when none
     return row;
 }
+
+// The list's order, pinned first and then newest: positive when a sorts before b, negative when
+// after, 0 for a tie.
+static int byKey(const QVariantMap &a, const QVariantMap &b)
+{
+    const bool pa = a.value("pinned").toBool();
+    const bool pb = b.value("pinned").toBool();
+    if (pa != pb)
+        return pa ? 1 : -1;
+    const qint64 ta = a.value("ts").toLongLong();
+    const qint64 tb = b.value("ts").toLongLong();
+    return ta > tb ? 1 : ta < tb ? -1 : 0;
+}
+
+// What a row's time and its group's title come from, for a reload and a patch alike so they cannot
+// disagree. One per run: it asks BB10's formatter for each day once.
+struct RowClock
+{
+    explicit RowClock(const QLocale &l)
+        : locale(l)
+        , clock(timeFormat(l, DateFormat::Short))
+        , today(QDate::currentDate())
+        , now(QDateTime::currentMSecsSinceEpoch() / 1000)
+    {
+    }
+
+    // Sets row["time"] from last_ts (null when the chat has no message) and pinned, and returns the
+    // title of the group the row belongs to.
+    QString place(QVariantMap *row, const QVariant &lastTs, bool pinned)
+    {
+        const bool hasTime = !lastTs.isNull();
+        const QDateTime when = QDateTime::fromTime_t(lastTs.toUInt());
+        // The last week goes by day: "Today" and "Yesterday" from BB10's formatter, then the
+        // weekday (the formatter names only two or three days back, and dates the rest). Older
+        // chats go by month, so a long tail of old chats isn't a header each.
+        QString day, header;
+        int age = 0;
+        if (hasTime) {
+            const QDate date = when.date();
+            age = date.daysTo(today);
+            // Only the last week's days are named. The formatter was asked for every older day too, a label
+            // nothing showed, and it is dear: most of a reload's 65 to 165 ms for 40 chats (Q10, 0.1.1.306).
+            if (age < 7) {
+                if (!days.contains(date.toJulianDay()))
+                    days.insert(date.toJulianDay(), dayLabel(when, today, locale, dayFormatter()));
+                day = days.value(date.toJulianDay());
+            }
+            header = age < 7 ? day : capitalized(locale.standaloneMonthName(date.month()));
+            if (age >= 7 && date.year() != today.year())
+                header += " " + QString::number(date.year());
+        }
+        // The time under a day's header; the day, or the date, where no header says it.
+        if (hasTime)
+            (*row)["time"] = age == 0 || (age < 7 && !pinned) ? locale.toString(when.time(), clock)
+                           : age < 7 ? day : locale.toString(when.date(), QLocale::ShortFormat);
+        return pinned ? ChatListModel::tr("Pinned") : hasTime ? header : ChatListModel::tr("No messages");
+    }
+
+    QLocale locale;
+    QString clock;
+    QDate today;
+    qint64 now;
+    QHash<int, QString> days; // the formatter's label by julian day: one call per day, not per chat
+};
 
 ChatListModel::ChatListModel(EngineLink *engine, Mode mode, QObject *parent)
     : DataModel(parent)
@@ -71,19 +137,21 @@ ChatListModel::ChatListModel(EngineLink *engine, Mode mode, QObject *parent)
     , m_dbName(mode == Archived ? "chats-archived" : kDb)
     , m_unreadTotal(0)
     , m_revision(0)
+    , m_stale(false)
+    , m_full(false)
     , m_region(bb::system::LocaleType::Region)
 {
     // During a history sync the engine sends a chats event every 50 ms; a reload at most every
     // 250 ms keeps the UI thread free.
     m_soon.setSingleShot(true);
     m_soon.setInterval(250);
-    connect(&m_soon, SIGNAL(timeout()), this, SLOT(reload()));
-    connect(engine, SIGNAL(chatsChanged(QStringList)), this, SLOT(reloadSoon()));
+    connect(&m_soon, SIGNAL(timeout()), this, SLOT(update()));
+    connect(engine, SIGNAL(chatsChanged(QStringList)), this, SLOT(onChats(QStringList)));
     // Events sent while the link was down are lost; the database has what they said.
-    connect(engine, SIGNAL(connectedChanged()), this, SLOT(reloadSoon()));
-    // Nobody sees the frame while the app is fullscreen: it's computed when the app leaves it.
-    if (m_mode == Chats)
-        connect(engine, SIGNAL(fullscreenChanged()), this, SLOT(updateFrame()));
+    connect(engine, SIGNAL(connectedChanged()), this, SLOT(onConnected()));
+    // Nobody sees the frame while the app is fullscreen: it's computed when the app leaves it. And
+    // the list is read only in front: coming back reads it if anything changed meanwhile.
+    connect(engine, SIGNAL(fullscreenChanged()), this, SLOT(onFullscreenChanged()));
     // A cold start draws what chats.db already has, before the engine answers (PLAN.md §12).
     reload();
 }
@@ -202,6 +270,123 @@ void ChatListModel::reloadSoon()
         m_soon.start();
 }
 
+void ChatListModel::onChats(const QStringList &jids)
+{
+    foreach (const QString &jid, jids)
+        m_changed.insert(jid);
+    reloadSoon();
+}
+
+void ChatListModel::onConnected()
+{
+    m_full = true;
+    reloadSoon();
+}
+
+// Both calls can come twice in a row: a second one finds nothing new to do.
+void ChatListModel::onFullscreenChanged()
+{
+    if (m_engine->fullscreen()) {
+        if (m_stale)
+            reload();
+    } else if (m_mode == Chats) {
+        updateFrame();
+    }
+}
+
+// The 250 ms timer. In the background reload() only notes that the list is stale.
+void ChatListModel::update()
+{
+    if (!m_engine->fullscreen() || m_full || m_groups.isEmpty() || !patch())
+        reload();
+    m_changed.clear();
+    m_full = false;
+}
+
+// The row next to [g, i] in the order of all groups' rows (step -1 or 1), as the patches leave it;
+// 0 past either end. A group is never empty.
+const QVariantMap *ChatListModel::adjacent(int g, int i, int step, const Patches &patched) const
+{
+    i += step;
+    if (i < 0 || i >= m_groups.at(g).rows.size()) {
+        g += step;
+        if (g < 0 || g >= m_groups.size())
+            return 0;
+        i = step < 0 ? m_groups.at(g).rows.size() - 1 : 0;
+    }
+    const Patches::const_iterator it = patched.constFind(qMakePair(g, i));
+    return it != patched.constEnd() ? &it.value() : &m_groups.at(g).rows.at(i);
+}
+
+// Updates the rows of the changed chats in place. False when one can't be: a chat that appears,
+// goes, changes group or moves in the order, which only a reload (with its moves) shows.
+bool ChatListModel::patch()
+{
+    if (m_changed.isEmpty())
+        return true;
+    QSqlDatabase db = ChatsDb::open(m_dbName);
+    if (!db.isOpen())
+        return false;
+    // Where the changed chats sit now, in one pass over the rows.
+    QHash<QString, QPair<int, int> > at;
+    for (int g = 0; g < m_groups.size(); ++g) {
+        const QList<QVariantMap> &rows = m_groups.at(g).rows;
+        for (int i = 0; i < rows.size(); ++i) {
+            const QString jid = rows.at(i).value("jid").toString();
+            if (m_changed.contains(jid))
+                at.insert(jid, qMakePair(g, i));
+        }
+    }
+
+    dayFormatter().applyCurrentTimeAsAnchor();
+    RowClock clock(m_region.locale());
+    QSqlQuery q(db);
+    q.prepare(QString("SELECT %1, archived FROM chats WHERE jid = ?").arg(kRowColumns));
+    Patches patched;
+    foreach (const QString &jid, m_changed) {
+        q.bindValue(0, jid);
+        if (!q.exec()) {
+            qWarning() << "chat:" << q.lastError().text();
+            return false;
+        }
+        // Does the chat belong in this list now?
+        QVariantMap row;
+        bool here = false;
+        if (q.next() && (q.value(11).toInt() != 0) == (m_mode == Archived)) {
+            row = baseRow(q, clock.now);
+            here = matches(row["name"].toString());
+        }
+        const QHash<QString, QPair<int, int> >::const_iterator was = at.constFind(jid);
+        if (was == at.constEnd()) {
+            if (here)
+                return false; // it appears
+            continue;
+        }
+        if (!here)
+            return false; // it goes
+        if (clock.place(&row, q.value(3), row["pinned"].toBool()) != m_groups.at(was->first).title)
+            return false; // another group
+        patched.insert(*was, row);
+    }
+    // It keeps its place only if it still sorts between its neighbours, as they will be.
+    for (Patches::const_iterator it = patched.constBegin(); it != patched.constEnd(); ++it) {
+        const QVariantMap *before = adjacent(it.key().first, it.key().second, -1, patched);
+        const QVariantMap *after = adjacent(it.key().first, it.key().second, 1, patched);
+        if ((before && byKey(*before, it.value()) < 0) || (after && byKey(it.value(), *after) < 0))
+            return false;
+    }
+    for (Patches::const_iterator it = patched.constBegin(); it != patched.constEnd(); ++it) {
+        m_groups[it.key().first].rows[it.key().second] = it.value();
+        emit itemUpdated(QVariantList() << it.key().first << it.key().second);
+    }
+    // Even with no row here: chat(jid) reads the other lists' chats from the database.
+    ++m_revision;
+    emit revisionChanged();
+    if (m_mode == Chats)
+        updateFrame();
+    return true;
+}
+
 // By the start of any word of the name, ignoring case, as ContactPicker::filter does.
 bool ChatListModel::matches(const QString &name) const
 {
@@ -223,10 +408,23 @@ void ChatListModel::setFilter(const QString &text)
     reload();
 }
 
-// ponytail: re-reads every chat on each change, a few ms for hundreds of chats; read only the
-// changed jids if accounts with thousands of chats make it show.
+// A chats event patches the rows it names in place when they keep their place (patch()). A chat that
+// moves, appears or goes still re-reads every chat, with the moves for the list.
+// ponytail: move the rows with itemMoved if reloads still show in the log.
 void ChatListModel::reload()
 {
+    // Nobody sees the list: the next time the app is in front reads it. The frame's numbers are
+    // what the change is for now.
+    if (!m_engine->fullscreen()) {
+        m_stale = true;
+        m_changed.clear();
+        m_full = false;
+        if (m_mode == Chats)
+            updateFrame();
+        return;
+    }
+    QElapsedTimer timer;
+    timer.start();
     QSqlDatabase db = ChatsDb::open(m_dbName);
     // Before the first link the engine hasn't made chats.db: try again at the next event.
     if (!db.isOpen())
@@ -237,54 +435,26 @@ void ChatListModel::reload()
         qWarning() << "chats:" << q.lastError().text();
         return;
     }
+    m_stale = false;
+    m_changed.clear();
+    m_full = false;
 
     dayFormatter().applyCurrentTimeAsAnchor();
-    const QLocale locale = m_region.locale();
-    const QString clock = timeFormat(locale, DateFormat::Short);
-    const QDate today = QDate::currentDate();
-    const qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
-    QHash<int, QString> days; // the formatter's label by julian day: one call per day, not per chat
+    RowClock clock(m_region.locale());
 
     QList<Group> groups;
     Moves *moves = new Moves;
     while (q.next()) {
         const QString jid = q.value(0).toString();
-        const bool pinned = q.value(9).toInt() != 0;
-        const bool hasTime = !q.value(3).isNull();
-        const QDateTime when = QDateTime::fromTime_t(q.value(3).toUInt());
-        // The last week goes by day: "Today" and "Yesterday" from BB10's formatter, then the
-        // weekday (the formatter names only two or three days back, and dates the rest). Older
-        // chats go by month, so a long tail of old chats isn't a header each.
-        QString day, header;
-        int age = 0;
-        if (hasTime) {
-            const QDate date = when.date();
-            age = date.daysTo(today);
-            // Only the last week's days are named. The formatter was asked for every older day too, a label
-            // nothing showed, and it is dear: most of a reload's 65 to 165 ms for 40 chats (Q10, 0.1.1.306).
-            if (age < 7) {
-                if (!days.contains(date.toJulianDay()))
-                    days.insert(date.toJulianDay(), dayLabel(when, today, locale, dayFormatter()));
-                day = days.value(date.toJulianDay());
-            }
-            header = age < 7 ? day : capitalized(locale.standaloneMonthName(date.month()));
-            if (age >= 7 && date.year() != today.year())
-                header += " " + QString::number(date.year());
-        }
-
-        QVariantMap row = baseRow(q, now);
+        QVariantMap row = baseRow(q, clock.now);
         if (!matches(row["name"].toString()))
             continue;
-        const QString title = pinned ? tr("Pinned") : hasTime ? header : tr("No messages");
+        const QString title = clock.place(&row, q.value(3), row["pinned"].toBool());
         if (groups.isEmpty() || groups.last().title != title) {
             groups.append(Group());
             groups.last().title = title;
             moves->groups.insert(title, groups.size() - 1);
         }
-        // The time under a day's header; the day, or the date, where no header says it.
-        if (hasTime)
-            row["time"] = age == 0 || (age < 7 && !pinned) ? locale.toString(when.time(), clock)
-                        : age < 7 ? day : locale.toString(when.date(), QLocale::ShortFormat);
         moves->items.insert(jid, qMakePair(groups.size() - 1, groups.last().rows.size()));
         groups.last().rows.append(row);
     }
@@ -310,18 +480,22 @@ void ChatListModel::reload()
         emit emptyChanged();
     ++m_revision;
     emit revisionChanged();
+    int chats = 0;
+    foreach (const Group &g, m_groups)
+        chats += g.rows.size();
     if (m_mode == Chats) {
         // Once per run: with "ui: main" and the Hub tap's line it times a cold start.
         static bool first = true;
         if (first) {
             first = false;
-            int chats = 0;
-            foreach (const Group &g, m_groups)
-                chats += g.rows.size();
             qDebug() << "chat list: first draw," << chats << "chats";
         }
         updateFrame();
     }
+    // A phone run decides whether insertions and moves need a patch too.
+    const qint64 ms = timer.elapsed();
+    if (ms > 50)
+        qDebug() << "chat list: reload," << chats << "chats in" << ms << "ms";
 }
 
 // A chat marked unread (unread < 0, step 5.3) counts as 1. 2^40 in muted_until is forever.

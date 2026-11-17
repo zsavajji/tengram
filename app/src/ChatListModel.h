@@ -5,6 +5,9 @@
 #include <bb/system/LocaleHandler>
 #include <bb/utility/i18n/RelativeDateFormatter>
 #include <QList>
+#include <QMap>
+#include <QPair>
+#include <QSet>
 #include <QString>
 #include <QStringList>
 #include <QTimer>
@@ -16,7 +19,8 @@ class EngineLink;
 // The chat list (PLAN.md §7, step 2.4): chats.db's chats that aren't archived (or, for the Archived page, only those), pinned first,
 // then newest first. Headers ("Pinned", "Today", "Yesterday", "Monday", "Jan 20") are the top
 // level ([g]), and the chats are their children ([g, i]): a map of jid, kind, name, initials,
-// color, preview, time, out, state, unread, muted, pinned and photo (a file path, or "").
+// color, preview, time, out, state, unread, muted, pinned, ts (last_ts, -1 for none) and photo (a
+// file path, or "").
 class ChatListModel : public bb::cascades::DataModel
 {
     Q_OBJECT
@@ -26,7 +30,7 @@ class ChatListModel : public bb::cascades::DataModel
     // incoming "Name: preview". Only recomputed while the app isn't fullscreen.
     Q_PROPERTY(int unreadTotal READ unreadTotal NOTIFY frameChanged)
     Q_PROPERTY(QString unreadChats READ unreadChats NOTIFY frameChanged)
-    // Bumped after each reload, so a QML binding that calls chat() is evaluated again.
+    // Bumped after each reload or patch, so a QML binding that calls chat() is evaluated again.
     Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
 public:
     // Which chats a list shows: the chat list or the Archived page. Only the chat list does frame work.
@@ -56,17 +60,24 @@ signals:
     void revisionChanged();
 
 private slots:
+    void onChats(const QStringList &jids);
+    void onConnected();
+    void onFullscreenChanged();
     void reloadSoon();
+    void update();
     void reload();
     void updateFrame();
 
 private:
     bool matches(const QString &name) const;
+    typedef QMap<QPair<int, int>, QVariantMap> Patches; // new rows, by [g, i]
     struct Group
     {
         QString title;
         QList<QVariantMap> rows;
     };
+    bool patch();
+    const QVariantMap *adjacent(int g, int i, int step, const Patches &patched) const;
     EngineLink *m_engine;
     Mode m_mode;
     QString m_dbName;
@@ -74,6 +85,9 @@ private:
     int m_unreadTotal;
     QString m_unreadChats;
     int m_revision;
+    bool m_stale;          // the app was not in front for a change: read the list when it is
+    bool m_full;           // the changed jids are not all there is: reload, don't patch
+    QSet<QString> m_changed; // jids of chats events since the last update
     QString m_filter;
     QTimer m_soon;
     bb::system::LocaleHandler m_region;
