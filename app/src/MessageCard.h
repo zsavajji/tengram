@@ -2,14 +2,17 @@
 #define MESSAGECARD_H
 
 #include <bb/cascades/Color>
+#include <bb/cascades/ContextMenuVisualState>
 #include <bb/cascades/CustomControl>
 #include <bb/cascades/ImplicitAnimationController>
 #include <bb/cascades/ListItemListener>
+#include <QList>
 #include <QString>
 #include <QVariantMap>
 
 namespace bb {
 namespace cascades {
+class AbstractShortcut;
 class ActionItem;
 class ActionSet;
 class ActiveTextTriggeredEvent;
@@ -64,6 +67,7 @@ private slots:
     void paintBackground();
     void onLink(bb::cascades::ActiveTextTriggeredEvent *event);
     void onPopulating();
+    void onMenuState(bb::cascades::ContextMenuVisualState::Type state);
     void onReply();
     void onTouch(bb::cascades::TouchEvent *event);
     void onReact();
@@ -97,7 +101,8 @@ private:
     void makeBubbles();
     void place(bb::cascades::Control *part, bb::cascades::Control *a = 0, bb::cascades::Control *b = 0,
                bb::cascades::Control *c = 0, bb::cascades::Control *d = 0);
-    bb::cascades::ActionItem *action(const char *title, const char *icon, const char *slot);
+    bb::cascades::ActionItem *action(const char *title, const char *icon, const char *slot, const char *key);
+    void setKeys(bool on);
 
     void restyle();
     void fillColumn();
@@ -200,6 +205,7 @@ private:
     bb::cascades::ActionItem *m_edit;
     bb::cascades::ActionItem *m_revoke;
     bb::cascades::DeleteActionItem *m_deleteMe;
+    QList<bb::cascades::AbstractShortcut *> m_keys; // the menu's letters, live only while it shows
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include <bb/cascades/Container>
 #include <bb/cascades/DeleteActionItem>
 #include <bb/cascades/ListView>
+#include <bb/cascades/Shortcut>
 #include <bb/cascades/TouchEvent>
 
 #include "CardStyle.h"
@@ -44,6 +45,7 @@ void MessageCard::onPopulating()
 {
     if (!m_reply)
         makeActions();
+    setKeys(true);
     const bool deleted = flag("deleted");
     const bool readOnly = flag("readOnly");
     m_reply->setEnabled(!deleted && !readOnly);
@@ -56,33 +58,55 @@ void MessageCard::onPopulating()
     m_deleteMe->setEnabled(!readOnly);
 }
 
-ActionItem *MessageCard::action(const char *title, const char *icon, const char *slot)
+// The menu's letters (the user's ask, 2026-11-17), as the Hub's: on from populating, which the menu
+// reads them at, until it hides. Left on, they ate the letters typed into the page (bb10-pitfalls).
+void MessageCard::setKeys(bool on)
+{
+    foreach (AbstractShortcut *key, m_keys)
+        key->setEnabled(on);
+}
+
+void MessageCard::onMenuState(ContextMenuVisualState::Type state)
+{
+    if (state == ContextMenuVisualState::Hidden)
+        setKeys(false);
+}
+
+ActionItem *MessageCard::action(const char *title, const char *icon, const char *slot, const char *key)
 {
     ActionItem *item = new ActionItem();
     item->setTitle(Card::tr(kContext, title));
     item->setImageSource(Card::url(icon));
     connect(item, SIGNAL(triggered()), this, slot);
+    Shortcut *shortcut = Shortcut::create().key(key);
+    shortcut->setEnabled(false);
+    item->addShortcut(shortcut);
+    m_keys << shortcut;
     m_menu->add(item);
     return item;
 }
 
 void MessageCard::makeActions()
 {
-    m_reply = action("Reply", "file:///usr/share/icons/bb_action_reply.png", SLOT(onReply()));
+    m_reply = action("Reply", "file:///usr/share/icons/bb_action_reply.png", SLOT(onReply()), "r");
     // The icon is the emoji picker's action (step 5.11); the bar opens over the composer.
-    m_react = action("React", "asset:///images/emoji.png", SLOT(onReact()));
+    m_react = action("React", "asset:///images/emoji.png", SLOT(onReact()), "a");
     // Who chose what in a poll (the user's request, 0.0.1.132), as the counts' tap shows it per option.
     if (m_rich)
-        m_votes = action("View votes", "file:///usr/share/icons/ic_accept.png", SLOT(onVotes()));
+        m_votes = action("View votes", "file:///usr/share/icons/ic_accept.png", SLOT(onVotes()), "v");
     // /usr/share/icons has no copy icon: this one is the stock Text Messages app's.
-    m_copy = action("Copy", "asset:///images/copy.png", SLOT(onCopy()));
-    m_edit = action("Edit", "file:///usr/share/icons/ic_edit.png", SLOT(onEdit()));
+    m_copy = action("Copy", "asset:///images/copy.png", SLOT(onCopy()), "c");
+    m_edit = action("Edit", "file:///usr/share/icons/ic_edit.png", SLOT(onEdit()), "e");
     m_revoke = action("Delete for everyone", "file:///usr/share/icons/bb_action_delete.png",
-                      SLOT(onRevoke()));
+                      SLOT(onRevoke()), "x");
     // "Delete for me" is a DeleteActionItem, which the system puts last.
     m_deleteMe = new DeleteActionItem();
     m_deleteMe->setTitle(Card::tr(kContext, "Delete for me"));
     connect(m_deleteMe, SIGNAL(triggered()), this, SLOT(onDeleteMe()));
+    Shortcut *key = Shortcut::create().key("d");
+    key->setEnabled(false);
+    m_deleteMe->addShortcut(key);
+    m_keys << key;
     m_menu->add(m_deleteMe);
 }
 

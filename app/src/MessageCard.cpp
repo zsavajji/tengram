@@ -239,6 +239,8 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     setContextMenuHandler(handler);
     connect(handler, SIGNAL(populating(bb::cascades::ContextMenuShowingEvent *)), this,
             SLOT(onPopulating()));
+    connect(handler, SIGNAL(visualStateChanged(bb::cascades::ContextMenuVisualState::Type)), this,
+            SLOT(onMenuState(bb::cascades::ContextMenuVisualState::Type)));
     connect(this, SIGNAL(touch(bb::cascades::TouchEvent *)), this, SLOT(onTouch(bb::cascades::TouchEvent *)));
 
     // The search match is tinted: the page sets foundId.
