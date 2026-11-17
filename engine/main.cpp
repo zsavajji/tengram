@@ -46,8 +46,8 @@ bool flush_pending = false;  // something is dirty: flush() is due at flush_at
 Clock::time_point flush_at;
 
 void usage(std::FILE *to) {
-  std::fprintf(to, "usage: tengramd <data-dir> [--service]\n"
-                   "  tengramd (no arguments): the packaged service, its data folder HOME\n"
+  std::fprintf(to, "usage: tengramd --data <dir> [--service]   (a test run)\n"
+                   "       tengramd                            (the packaged service: HOME, log in HOME/logs)\n"
                    "  TG_API_ID and TG_API_HASH (from my.telegram.org) in the environment, unless compiled in\n"
                    "  --service: the packaged app's headless service (BlackBerry Hub, navigator, network status)\n");
 }
@@ -173,23 +173,41 @@ int main(int argc, char **argv) {
     usage(stdout);
     return 0;
   }
+  // A test run names its data folder (--data). Without it this is the packaged service, started by the
+  // navigator with no arguments we choose (docs/ui-fork.md §5): its folder is the sandbox's, HOME, where the UI
+  // looks for engine.json (QDir::homePath()). Anything else on its command line is logged and ignored, as
+  // HyperBerry's Go flags did: 0.1.0.2 took a stray argument for the folder and exited unseen in 60 ms.
   const char *dir = nullptr;
+  std::string ignored;
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--service") == 0) {
       service = true;
-    } else if (argv[i][0] && argv[i][0] != '-' && !dir) {
-      dir = argv[i];
+    } else if (std::strcmp(argv[i], "--data") == 0 && i + 1 < argc) {
+      dir = argv[++i];
     } else {
-      usage(stderr);
-      return 2;
+      ignored += std::string(" [") + argv[i] + "]";
     }
   }
-  // The packaged service is started by the navigator with no arguments we choose (docs/ui-fork.md §5): its data
-  // folder is the sandbox's, HOME, which is where the UI looks for engine.json (QDir::homePath()).
-  if (argc == 1) {
+  if (!dir) {
     dir = std::getenv("HOME");
     service = true;
+    // A headless app's stderr goes nowhere: the log is a file in the data folder, the previous one kept once
+    // it passes 1 MB. Before anything else, so an early failure is seen too.
+    if (dir && *dir) {
+      const std::string logs = std::string(dir) + "/logs";
+      mkdir(logs.c_str(), 0700);
+      const std::string log = logs + "/tengramd.log";
+      struct stat st;
+      if (stat(log.c_str(), &st) == 0 && st.st_size > (1 << 20)) {
+        std::rename(log.c_str(), (log + ".old").c_str());
+      }
+      if (std::freopen(log.c_str(), "a", stderr)) {
+        setvbuf(stderr, nullptr, _IOLBF, 0);
+      }
+    }
   }
+  say("start: %s, data %s%s%s", service ? "service" : "test run", dir ? dir : "(no HOME)",
+      ignored.empty() ? "" : ", ignored:", ignored.c_str());
   if (!dir || !*dir) {
     usage(stderr);
     return 2;

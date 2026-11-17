@@ -98,7 +98,7 @@ names the local tag `bb10-cxx20:emutls-lto`; whether to move to a released image
 - **On the phone:**
   ```sh
   E=$(scripts/push.sh build/tengramd)
-  ssh bb10rootx "cd /root/tengram && TG_API_ID=… TG_API_HASH=… $E data >engine.log 2>&1 </dev/null &"
+  ssh bb10rootx "cd /root/tengram && TG_API_ID=… TG_API_HASH=… $E --data data >engine.log 2>&1 </dev/null &"
   tests/engine_smoke.py [--batched]      # Saved Messages only, deletes its own message
   tests/engine_client.py <cmd> '<json>' --listen 10   # any command, prints replies and events
   ssh bb10rootx "cd /root/tengram && ./dbq-<sha>-1 data/chats.db data/db.key '<sql>'"
