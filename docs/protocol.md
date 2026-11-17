@@ -125,7 +125,7 @@ How quickly messages reach the phone while the UI is closed, against the battery
 ## chats.db, as the UI reads it
 
 HyperBerry's tables and columns (`../hyperberry/docs/protocol.md`, *chats.db, as the UI reads
-it*), with these meanings for Telegram. `user_version` is 1.
+it*), with these meanings for Telegram. `user_version` is 2.
 
 **`chats`:** one row per chat in Telegram's main or archived chat list, and no others.
 
@@ -162,6 +162,7 @@ it*), with these meanings for Telegram. `user_version` is 1.
 | `width`, `height`, `size` | as HyperBerry's |
 | `path` | the downloaded file's absolute path with `media_state` 2 |
 | `played` | voice notes and round videos: 1 once listened to |
+| `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
 | `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs` |
 
 A notice's `text` is `call`, `video_call`, `missed_call` or `missed_video_call`.
