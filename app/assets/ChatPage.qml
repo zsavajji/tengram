@@ -396,9 +396,11 @@ Page {
     // chat would be read at once.
     property bool placed: false
     // The first page is in. A search or notification jump comes first; else a chat with unread messages
-    // opens at the divider (Telegram's: the first unread message is shown, not the newest). Which edge of
-    // the screen scrollToItem leaves the divider at, in a bottom-to-top list, is to check on the Q10; the
-    // search jump (HyperBerry 5.10) lands on its item. A chat with nothing unread is left at the bottom.
+    // opens at the divider (Telegram's: the first unread message is shown, not the newest), at the top of the
+    // screen (user, 2026-11-17). In this bottom-to-top list scrollToItem leaves an item at the screen's bottom
+    // edge (Classic, 0.1.0.8): the entry above the divider is put there, then the list moves one screen down,
+    // which leaves the divider at the top; a short unread run stops at the bottom instead. The search jump
+    // (HyperBerry 5.10) lands on its item. A chat with nothing unread is left at the bottom.
     function loaded() {
         if (ctl.messages.loading) {
             return
@@ -410,7 +412,8 @@ Page {
         } else {
             var u = ctl.messages.unreadEntry()
             if (u >= 0) {
-                list.scrollToItem([u], ScrollAnimation.None)
+                list.scrollToItem([u + 1 < ctl.messages.childCount([]) ? u + 1 : u], ScrollAnimation.None)
+                list.scroll(listFrame.layoutFrame.height, ScrollAnimation.None)
             }
         }
         settle.start()
@@ -596,6 +599,10 @@ Page {
                     stickToEdgePolicy: ctl.messages && ctl.messages.window ? ListViewStickToEdgePolicy.None
                                                                           : ListViewStickToEdgePolicy.Beginning
                     attachedObjects: [
+                        // The list's height on screen, for the first unread's scroll (loaded()).
+                        LayoutUpdateHandler {
+                            id: listFrame
+                        },
                         ListScrollStateHandler {
                             id: scrollState
                             // Older pages are appends, so asking on every change can't cascade.
