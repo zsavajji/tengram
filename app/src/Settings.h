@@ -24,6 +24,8 @@ class Settings : public QObject
     Q_PROPERTY(QString deliveryMode READ deliveryMode WRITE setDeliveryMode NOTIFY deliveryModeChanged)
     Q_PROPERTY(int textSize READ textSize WRITE setTextSize NOTIFY textSizeChanged) // 0..2
     Q_PROPERTY(qreal textScale READ textScale NOTIFY textSizeChanged)
+    // Interface: Normal (false) has the chat rows' bigger pictures and padding, Compact the old rows (ChatRows.cpp).
+    Q_PROPERTY(bool compact READ compact WRITE setCompact NOTIFY compactChanged)
     // How many group calls showed the people drawer's first-time hint (CallDrawer.qml shows it in the first 2).
     Q_PROPERTY(int callHints READ callHints WRITE setCallHints NOTIFY callHintsChanged)
 
@@ -39,6 +41,7 @@ public:
     QString deliveryMode() const;
     int textSize() const;
     qreal textScale() const;
+    bool compact() const;
     int callHints() const;
     void setTheme(int theme);
     void setEnterSends(bool on);
@@ -49,6 +52,7 @@ public:
     void setCacheLimit(int mb);
     void setDeliveryMode(const QString &mode);
     void setTextSize(int size);
+    void setCompact(bool on);
     void setCallHints(int count);
     Q_INVOKABLE QString cacheSize();
     Q_INVOKABLE QString clearCache();
@@ -63,6 +67,7 @@ signals:
     void cacheLimitChanged();
     void deliveryModeChanged();
     void textSizeChanged();
+    void compactChanged();
     void callHintsChanged();
 
 private slots:

@@ -48,6 +48,8 @@ VisualNode *ChatRows::createItem(ListView *list, const QString &type)
         m_list = list;
         if (!connect(list, SIGNAL(textScaleChanged()), this, SIGNAL(itemUpdatesNeeded())))
             qWarning("chat rows: the list has no textScaleChanged");
+        if (!connect(list, SIGNAL(compactChanged()), this, SIGNAL(itemUpdatesNeeded())))
+            qWarning("chat rows: the list has no compactChanged");
     }
     if (type == "header")
         return new Header();
@@ -69,6 +71,7 @@ ChatRow::ChatRow(ListView *list)
     , m_pressed(false)
     , m_styled(false)
     , m_scale(0)
+    , m_compact(false)
     , m_readItem(0)
     , m_pinItem(0)
     , m_muteItem(0)
@@ -84,8 +87,6 @@ ChatRow::ChatRow(ListView *list)
     // sizes are set by show().
     m_row = new Container();
     m_row->setHorizontalAlignment(HorizontalAlignment::Fill);
-    m_row->setLeftPadding(m_ui->du(1.5));
-    m_row->setRightPadding(m_ui->du(1.5));
     m_row->setLayout(Card::across());
 
     // The chat's picture (the engine's preview file, chat.photo) over the initials tile. The file's
@@ -104,10 +105,9 @@ ChatRow::ChatRow(ListView *list)
     m_tile->add(m_photo);
     m_tile->add(m_initials);
 
-    Container *col = new Container();
-    col->setVerticalAlignment(VerticalAlignment::Center);
-    col->setLeftMargin(m_ui->du(1.5));
-    Card::quota(col, 1);
+    m_col = new Container();
+    m_col->setVerticalAlignment(VerticalAlignment::Center);
+    Card::quota(m_col, 1);
 
     Container *top = new Container();
     top->setLayout(Card::across());
@@ -169,10 +169,10 @@ ChatRow::ChatRow(ListView *list)
     bottom->add(m_badge);
     bottom->add(m_dot);
 
-    col->add(top);
-    col->add(bottom);
+    m_col->add(top);
+    m_col->add(bottom);
     m_row->add(m_tile);
-    m_row->add(col);
+    m_row->add(m_col);
 
     m_sep = new Container();
     m_sep->setHorizontalAlignment(HorizontalAlignment::Fill);
@@ -198,6 +198,7 @@ void ChatRow::show(const QVariantMap &chat)
 {
     m_chat = chat;
     const float scale = Card::textScale(m_list);
+    const bool compact = m_list->property("compact").toBool();
     UIPalette *palette = m_ui->palette();
     const Color quiet = palette->secondaryTextOnPlain();
     const Color primary = palette->primary();
@@ -206,12 +207,20 @@ void ChatRow::show(const QVariantMap &chat)
     const bool out = flag("out");
     const int state = m_chat.value("state").toInt();
 
-    // What only the text size decides, set again when it changed (a recycle keeps it), as MessageCard::restyle does.
-    if (!m_styled || scale != m_scale) {
+    // What only the text size and the interface decide, set again when they change (a recycle
+    // keeps it), as MessageCard::restyle does. Normal: a bigger picture and more room around it, the text as
+    // Compact's, which is the 9.4 du row from before.
+    if (!m_styled || scale != m_scale || compact != m_compact) {
         m_styled = true;
         m_scale = scale;
-        m_row->setMinHeight(m_ui->du(9.4 * scale));
-        m_tile->setPreferredSize(m_ui->du(7 * scale), m_ui->du(7 * scale));
+        m_compact = compact;
+        const float side = compact ? 1.5 : 2;
+        const float tile = compact ? 7 : 8.2;
+        m_row->setLeftPadding(m_ui->du(side));
+        m_row->setRightPadding(m_ui->du(side));
+        m_col->setLeftMargin(m_ui->du(side));
+        m_row->setMinHeight(m_ui->du((compact ? 9.4 : 11.4) * scale));
+        m_tile->setPreferredSize(m_ui->du(tile * scale), m_ui->du(tile * scale));
         Card::style(m_initials, m_list, qRound(118 * scale));
         m_initials->textStyle()->setColor(Color::White);
         Card::style(m_name, m_list, qRound(115 * scale));

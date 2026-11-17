@@ -29,6 +29,14 @@ Page {
                 ]
                 onSelectedIndexChanged: settings.textSize = selectedIndex
             }
+            DropDown {
+                title: qsTr("Interface")
+                options: [
+                    Option { text: qsTr("Normal"); selected: !settings.compact },
+                    Option { text: qsTr("Compact"); selected: settings.compact }
+                ]
+                onSelectedIndexChanged: settings.compact = selectedIndex == 1
+            }
         }
     }
 }

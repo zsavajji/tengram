@@ -83,9 +83,11 @@ private:
     QString m_photoPath; // the picture last given to m_photo
     bool m_styled;
     float m_scale; // the text scale the sizes below were last set for
+    bool m_compact; // and the interface
 
     bb::cascades::Container *m_root; // carries the press colour, the separator included
     bb::cascades::Container *m_row;
+    bb::cascades::Container *m_col; // the name and preview lines
     bb::cascades::Container *m_tile;
     bb::cascades::ImageView *m_photo;
     bb::cascades::Label *m_initials;
