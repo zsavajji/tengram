@@ -6,6 +6,7 @@
 #include "engine.h"
 #include "hub.h"
 
+#include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <map>
@@ -25,6 +26,10 @@ struct ChatState {
 std::map<std::int64_t, ChatState> chats;
 bool usable = false;  // the Hub opened
 bool account = false;
+// The Hub keeps an account's icon from when it was added: a new glyph shows only on an account added again. hub.json
+// says which glyph its account has; another number re-adds the account once (the inverted glyphs, 2026-11-17).
+constexpr int kGlyph = 2;
+int glyph = 0;
 std::set<std::string> other_types;  // group types we have logged and ignore
 
 std::string path() {
@@ -40,6 +45,7 @@ void save() {
   }
   const std::string json = td::json_encode<std::string>(td::json_object([&](auto &o) {
     o("account", td::JsonBool(account));
+    o("glyph", glyph);
     o("chats", td::json_array(with_item, [](std::int64_t id) { return std::to_string(id); }));
   }));
   const std::string tmp = path() + ".tmp";
@@ -61,6 +67,10 @@ void load() {
   td::JsonValue has_account, list;
   account = optional_field(obj, "account", td::JsonValue::Type::Boolean, has_account) == 1 &&
             has_account.get_boolean();
+  td::JsonValue has_glyph;
+  glyph = optional_field(obj, "glyph", td::JsonValue::Type::Number, has_glyph) == 1
+              ? std::atoi(has_glyph.get_number().str().c_str())
+              : 0;
   if (optional_field(obj, "chats", td::JsonValue::Type::Array, list) == 1) {
     for (const td::JsonValue &item : list.get_array()) {
       if (item.type() == td::JsonValue::Type::String) {
@@ -107,9 +117,31 @@ std::string body_of(const td_api::notification *n) {
   return "New message";
 }
 
+// A column of the chat's row in chats.db, "" when there is none. The mirror in memory is empty for the first seconds
+// of a run (and holds only the chats TDLib has sent since), while the last run's items are rewritten at once: every
+// one said "Telegram / New message" after an engine restart (the user, 2026-11-17).
+std::string stored(std::int64_t chat, const char *sql) {
+  const std::string jid = std::to_string(chat);  // bound by reference: it must outlive the step
+  auto s = db.prepare(sql);
+  if (s.empty() || s.bind_string(1, jid).is_error() || s.step().is_error() || !s.has_row() ||
+      s.view_datatype(0) == td::SqliteStatement::Datatype::Null) {
+    return "";
+  }
+  return s.view_string(0).str();
+}
+
 std::string title_of(std::int64_t chat) {
-  const std::string &title = chat_title(chat);
+  std::string title = chat_title(chat);
+  if (title.empty()) {
+    title = stored(chat, "SELECT name FROM chats WHERE jid = ?1");
+  }
   return title.empty() ? "Telegram" : title;
+}
+
+// What an item said before this run, which hub.json doesn't keep: the chat's last preview.
+std::string last_body(std::int64_t chat, const ChatState &s) {
+  std::string body = s.body.empty() ? stored(chat, "SELECT last_preview FROM chats WHERE jid = ?1") : s.body;
+  return body.empty() || !mode_notify_preview() ? "New message" : body;
 }
 
 // Adds or updates the chat's item. The account goes in before the first item ever; hub.json is written when
@@ -120,6 +152,7 @@ void put_item(std::int64_t chat, ChatState &s, const std::string &title, const s
   if (!account) {
     hub_account(true);
     account = changed = true;
+    glyph = kGlyph;
   }
   const bool is_new = !s.has_item;
   hub_item(HubItem{chat, title, body, unread, ts_ms, alert}, is_new);
@@ -183,7 +216,7 @@ void active_update(const td_api::updateActiveNotifications &u) {
   for (auto &entry : chats) {
     if (entry.second.has_item && !with_group.count(entry.first)) {
       ChatState &s = entry.second;
-      put_item(entry.first, s, title_of(entry.first), s.body.empty() ? "New message" : s.body, 0,
+      put_item(entry.first, s, title_of(entry.first), last_body(entry.first, s), 0,
                s.ts_ms ? s.ts_ms : now_ms, false);
     }
   }
@@ -200,6 +233,12 @@ void notifier_init() {
   load();
   if (hub_new()) {  // the Hub holds nothing of ours, whatever hub.json says
     say("hub: new to the Hub, hub.json is forgotten");
+    account = false;
+    chats.clear();
+    save();
+  } else if (account && glyph != kGlyph) {  // its items go with it; the unread ones come back below
+    say("hub: the account has glyph %d, re-added with %d", glyph, kGlyph);
+    hub_account(false);
     account = false;
     chats.clear();
     save();
