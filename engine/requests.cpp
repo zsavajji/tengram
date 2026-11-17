@@ -553,6 +553,12 @@ void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   if (!size_field(conn, id, req, "width", width) || !size_field(conn, id, req, "height", height)) {
     return;
   }
+  td::JsonValue as_file;
+  const int has_file = optional_field(req, "file", td::JsonValue::Type::Boolean, as_file);
+  if (has_file < 0) {
+    return bad_request(conn, id, "file is true or false");
+  }
+  const bool document = has_file == 1 && as_file.get_boolean();  // a picture as it is, not as a compressed photo
   const std::string text = has_caption == 1 ? v.get_string().str() : "";
   auto caption = [&]() -> td_api::object_ptr<td_api::formattedText> {
     return text.empty() ? nullptr : plain_text(text);  // null is TDLib's empty caption
@@ -562,7 +568,10 @@ void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   static const char *const audio[] = {".mp3", ".m4a", ".aac", ".amr", ".ogg", ".wav"};
   const std::string ext = extension(path.ok());
   td_api::object_ptr<td_api::InputMessageContent> content;
-  if (ext == ".jpg" || ext == ".jpeg") {
+  if (document) {
+    content = make_object<td_api::inputMessageDocument>(make_object<td_api::inputDocument>(file(), nullptr, false),
+                                                        nullptr);
+  } else if (ext == ".jpg" || ext == ".jpeg") {
     content = make_object<td_api::inputMessagePhoto>(
         make_object<td_api::inputPhoto>(file(), nullptr, nullptr, std::vector<std::int32_t>(), width, height),
         caption(), false, nullptr, false);

@@ -26,6 +26,8 @@ Page {
     property variant stagedInfo: ({})
     // The PNG a staged JPEG was made from ("" for none): Send as file sends it instead.
     property string stagedPng: ""
+    // The staged file is a JPEG of the user's own (not one made from a PNG): it can go as a file too.
+    property bool stagedJpeg: stagedPng == "" && /\.jpe?g$/i.test(staged)
     property string failedCmd: engine.failure.cmd || ""
     onFailedCmdChanged: {
         if (failedCmd == "msg.delete") {
@@ -183,7 +185,7 @@ Page {
             id: stagedDef
             StagedBar {
                 info: page.stagedInfo
-                canFile: page.stagedPng != ""
+                canFile: page.stagedPng != "" || page.stagedJpeg
                 onCancelled: page.unstage()
             }
         },
@@ -337,10 +339,14 @@ Page {
         // From a window of history around the first unread message our row would be dropped (it is beyond the
         // loaded ones): the newest first, as ctl.send does for a text.
         ctl.messages.toLiveEnd()
-        // Send as file: the PNG itself, which the engine sends as a document; the text follows it.
-        var asFile = page.stagedBar().asFile && stagedPng != ""
+        // Send as file: the PNG itself, which the engine sends as a document by its extension, or the JPEG with `file`
+        // (the user's ask, 2026-11-17); the text follows it.
+        var asFile = page.stagedBar().asFile && (stagedPng != "" || stagedJpeg)
         var picture = stagedInfo.picture && !asFile
-        var args = {"chat": chat.jid, "path": asFile ? stagedPng : staged}
+        var args = {"chat": chat.jid, "path": asFile && stagedPng != "" ? stagedPng : staged}
+        if (asFile && stagedPng == "") {
+            args.file = true
+        }
         if (topic) {
             args.topic = topic
         }
