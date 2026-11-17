@@ -1,4 +1,4 @@
-# Tengram: handoff, 2026-11-17 (afternoon)
+# Tengram: handoff, 2026-11-17 (evening)
 
 For whoever picks this up next. It says what exists, what is proven on the phone and what only compiles,
 how to build, install and test, what the user has decided, and where to resume. Details live in:
@@ -74,8 +74,8 @@ Host `bb10rootx` in `~/.ssh/config`, **USB only** (169.254.0.1), a root shell.
 - **The `headless-mem` addon** (`../rlimit-patch`) is installed in `/var/addons`; authman's
   `_sys_headless_xlarge` is patched to 128 MiB in memory since the 11:22 boot. Authman also still holds a
   harmless `hmem` prefix from a failed experiment, until the next reboot.
-- **Installed: Tengram 0.1.0.8** (the chat list kept across engine restarts: confirmed by the user); `build/buildid.txt` is at 8. The `headless-mem` addon is installed (by the app, 0.1.0.7)
-  and authman is patched since 13:40 (boot 13:34).
+- **Installed: Tengram 0.1.0.14** (evening; `build/buildid.txt` is at 14). The `headless-mem` addon is installed (by
+  the app, 0.1.0.7) and authman is patched since 13:40 (boot 13:34).
 
 ## 4. Build and install
 
@@ -143,7 +143,41 @@ sticker sets; with the patched 128 MiB it ran through. **0.1.0.7:** the in-app p
 boot (§7 item 0). **0.1.0.8:** the chat list stays across engine restarts, with the title bar's spinner: confirmed by
 the user.
 
+## 6b. The evening (2026-11-17): the UI plan restarted, 0.1.0.9 to 0.1.0.14
+
+The user tests in rounds: **batch several features into one package**, then one test round (the user's ask).
+
+| Commit | What | State |
+|---|---|---|
+| `428bd38` | Engine `profile.get`/`profile.set` (name split at the first space, bio ≤ 70), `media.send` (kind by extension; caption on photos and videos only; `thumb` ignored) | phone: works |
+| `59f157f`, `5ea1875` | Settings: Background delivery (auto, instant, every 5 min = `prefs.set mode`); Settings split into pages as meegram2's (Account = ProfilePage with Log out, Appearance, Chats, Notifications, Data and storage) | phone: works |
+| `238b443` | Saved Messages in the chat list's menu (chat id = our user id); the engine names that row "Saved Messages" | phone: works |
+| `0625348` | Engine: `contact.info`, `channel.info`, `group.info` (≤ 200 members + `count`), `contacts.list`, `chat.clear`, `chat.delete`, `channel.unfollow`, the `photo` event; the UI no longer sends `contacts.book` | phone: info pages and New chat work; clear/delete not tried |
+| `ab61b78` | Sharp photo/video bubbles: `media.get {preview: true}` (photo size ≥ 400 px short side; video JPEG thumbnail), asked as rows are read, priority 8 | phone: works |
+| `dc2c9df` | Group senders as Telegram's: square picture (chat list tile size) beside the newest message of a run, name on the oldest, Telegram's 7 colours from the user's accent, admin tags (engine `senders.get`, `updateAccentColors`) | phone: works; a run's picture moving to a new message untested |
+| `6a0bddc`, `85e3d2d` | **First unread at the top.** `scrollToItem` in the bottom-to-top list lands by estimated heights (photos far taller). Now: the rows older than the divider are held back (`MessageModel::m_holdOlder`), the scroll is aimed 3× over 450 ms, the list is nudged 4 px off its top edge (a list exactly at an edge keeps it in view when rows are appended there), then `releaseOlder()` appends them | phone: works (0.1.0.13) |
+| `e565934` | Contact page: groups in common show their pictures (from the chat list) | not seen |
+| `f0e3832` | A chat opened with only its last message cached loads its history: a list too short to scroll never neared its top (`fillShort`) | not seen |
+| `de536ae` | Black screen: a second tap on the chat's back arrow during the slide popped the chat list (the root) too; the arrow now pops only while its page is on top. Same fix in HyperBerry, `bad0440` (not built) | not seen |
+
+**Not seen yet on the phone (test with 0.1.0.14):** a chat found through search loads its older messages; groups in common
+show pictures; a double tap on a chat's back arrow stays on the chat list; a group sender's picture moves down to their new
+message; Clear chat and Delete chat (on a throwaway chat).
+
 ## 7. Where to resume, in order
+
+**First, the evening's step 4 (agreed with the user):**
+- **Reactions:** one chip per emoji with its count under the message (Telegram's look, several chips, wrapping), ours
+  highlighted, a tap on a chip adds or removes that reaction; the long-press React stays for a new emoji. Stored in the
+  message row's `extra` as `"reactions": [{"e": "👍", "n": 5, "me": true}, …]` (the user's idea): the `reactions` table
+  and the UI's two subqueries per row go. Premium custom emoji are left out at first.
+- **Polls:** counts per option in the poll row's `extra`, next to `options`; `poll_votes` goes.
+- **Sending and managing:** `contact.block`, `group.participants`, `group.create`, `poll.create`, `poll.vote`,
+  `msg.react`, `invite.info`/`invite.accept`, `chat.export` (the UI sends all of them; the engine answers `unknown_cmd`).
+- Loose ends: a sent video has duration 0 (the UI sends none); Clear chat leaves the list's old preview; the Saved
+  Messages row keeps our name until that chat's row is next written.
+
+**The older list follows (items 0 to 8 below; 3's walk of §8b is mostly done by the evening's tests).**
 
 **Ask the user before each item that installs, reboots or touches the account.**
 
@@ -201,5 +235,10 @@ before a window's first request (commit `52c5ca3`).
 - A chat opens at its first unread message, Telegram's way (2026-11-17).
 - The 30 MiB headless cap is raised by the `../rlimit-patch` addon (users are rooted); the engine still keeps
   its peak low.
+- A chat opens with its first unread message at the **top** of the screen (user, 2026-11-17 evening); a short unread run
+  ends at the newest, as Telegram's.
+- Group senders' pictures are **square, the chat list's tile size** (user); colours are Telegram's 7 accent colours.
+- Reactions: a chip per emoji with its count; stored as JSON in the message row (user).
+- Settings are pages grouped as meegram2's (user).
 - Icons: the tangram paper plane; grey Hub glyph for read items, yellow for unread (HyperBerry's convention,
   not asked for by the user: ask), white for the account.
