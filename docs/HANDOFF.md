@@ -74,8 +74,7 @@ Host `bb10rootx` in `~/.ssh/config`, **USB only** (169.254.0.1), a root shell.
 - **The `headless-mem` addon** (`../rlimit-patch`) is installed in `/var/addons`; authman's
   `_sys_headless_xlarge` is patched to 128 MiB in memory since the 11:22 boot. Authman also still holds a
   harmless `hmem` prefix from a failed experiment, until the next reboot.
-- **Installed: Tengram 0.1.0.8** (the chat list kept across engine restarts, installed at the user's ask, not yet
-  confirmed by them); `build/buildid.txt` is at 8. The `headless-mem` addon is installed (by the app, 0.1.0.7)
+- **Installed: Tengram 0.1.0.8** (the chat list kept across engine restarts: confirmed by the user); `build/buildid.txt` is at 8. The `headless-mem` addon is installed (by the app, 0.1.0.7)
   and authman is patched since 13:40 (boot 13:34).
 
 ## 4. Build and install
@@ -141,8 +140,8 @@ All compile; **only the login, the chat list's first draw and the service start 
 (scanned from Telega); the first full sync loaded 467 chats in 12.9 s once it fit in memory; the chat list
 drew. Under the 30 MiB cap the engine died with `bad_alloc` at every start while TDLib reloaded the installed
 sticker sets; with the patched 128 MiB it ran through. **0.1.0.7:** the in-app patch flow end to end on a clean
-boot (§7 item 0). **0.1.0.8:** installed; the user reported the "Starting…" screen at engine restarts, which it
-fixes: still to confirm.
+boot (§7 item 0). **0.1.0.8:** the chat list stays across engine restarts, with the title bar's spinner: confirmed by
+the user.
 
 ## 7. Where to resume, in order
 
@@ -154,8 +153,7 @@ fixes: still to confirm.
    logged `rlimit DATA: soft 134217728`. The **navigator keeps an app's memory limit from its first launch until
    every process of the app has ended**, hence the close step (`MemoryPatch::closeAll`). While the dialog is up
    a logged-in engine still runs at 30 MB and may die once at the first sync; the UI restarts it. Not yet seen:
-   the login page's gate (a phone that isn't logged in), and the no-root dialog. **Also to confirm (0.1.0.8):**
-   an engine restart keeps the chat list on screen, with the title bar's spinner, not "Starting…".
+   the login page's gate (a phone that isn't logged in), and the no-root dialog.
 
 1. **The memory patch in the app (done 2026-11-17, never run):** `MemoryPatch` (`app/src/`), the dialog in
    `main.qml`, `app/helper/tg-install-patcher.c`, the bar bundling `headless-mem.zip`, the engine's `memMB` in
