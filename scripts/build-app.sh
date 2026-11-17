@@ -3,10 +3,15 @@
 # (scripts/build-ui.sh), the memory addon (../rlimit-patch, copied to build/headless-mem.zip) and the spawn helper
 # tg-install-patcher (app/helper), then the package, unsigned, with all of them (app/bar-descriptor.xml). Each package
 # gets the next build id from build/buildid.txt: the installer keeps the old app when Package-Version is the same.
-# TG_API_ID and TG_API_HASH must be in the environment; they are in no file.
+# TG_API_ID and TG_API_HASH come from the environment, else from .tg-keys at the repo's root (gitignored, the user's).
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 IMAGE=${BB10_NDK_IMAGE:-yamsergey/bb10-ndk:0.6}
+if [ -f "$ROOT/.tg-keys" ]; then
+	: "${TG_API_ID:=$(sed -n 's/^TG_API_ID=//p' "$ROOT/.tg-keys")}"
+	: "${TG_API_HASH:=$(sed -n 's/^TG_API_HASH=//p' "$ROOT/.tg-keys")}"
+	export TG_API_ID TG_API_HASH
+fi
 if [ -z "${TG_API_ID-}" ] || [ -z "${TG_API_HASH-}" ]; then
 	echo "build-app.sh: set TG_API_ID and TG_API_HASH (my.telegram.org)" >&2
 	exit 2
