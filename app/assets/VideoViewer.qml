@@ -139,6 +139,13 @@ Page {
             statusInterval: 250
             repeatMode: page.gif ? RepeatMode.Track : RepeatMode.None
             onPositionChanged: page.settling = false
+            // The video's own shape, once the player has read it: mm-renderer stretches the picture to the window,
+            // and the message's width and height can be wrong (a TikTok clip came out square, the user 2026-11-17).
+            onVideoDimensionsChanged: {
+                if (videoDimensions.width > 0 && videoDimensions.height > 0) {
+                    page.ratio = videoDimensions.height / videoDimensions.width
+                }
+            }
             onError: page.fail("error " + mediaError + " at " + position)
         },
         // A drag whose end never came (no up, no cancel) ends 1.5 s after its last move, so the dot is never left stuck.
