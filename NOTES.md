@@ -532,3 +532,64 @@ the ARM `__aeabi_mem*` helpers clang-built objects need under qcc, and a test pr
   as the first statement of each connection.
 - To do when the UI is forked: time the same queries on a warm connection, and against the
   unencrypted figure HyperBerry has.
+
+### One idle hour of the engine (run 4, 2026-11-17 02:06 to 03:16, plugged in, instant mode)
+
+| | Probe, `-O2` build (run 3) | Engine, step 4 build (run 4) |
+|---|---|---|
+| CPU over the 60 idle minutes after the first 9 | 1.6 s per 50 min (1.95 s/h) | 0.57 s (0.57 s/h) |
+| Memory (`pidin mem` data) | 47 MB | 14 MB, flat |
+| New messages in the run | not counted (401 updates) | 19 |
+
+The engine does more than the probe (it writes every message and chat change into the encrypted
+`chats.db`) and still used less, but the hour was the quietest of the night, so this is a
+floor. Start-up costs 3–4 s of CPU, once. Telega's service: 15–40 s/h. A daytime hour, on
+battery, is still to be measured (run 5 was started at 06:12 for six hours, default mode,
+sampled every 5 minutes: `run5-engine*.log` in `/root/tengram`).
+
+### Steps 5, 6a, 6b and a fix (2026-11-17 morning)
+
+- **Step 5** (`48e0cae`): `msg.delete`, `msg.edit`, `media.get`. On the phone: an edit, a photo
+  of Saved Messages downloaded (row `media_state` 2 with its path), the test messages deleted.
+- **Step 6a** (`d8cb597`): the notifier on TDLib's notification groups, Hub backend that logs
+  (`hub:` lines). No notification arrived during the night's tests; run 5's log will show the
+  first real ones.
+- **Step 6b** (`bff3bbb`): `tengramd <data> --service` for the packaged app: the Hub through
+  `dlopen` of `libunifieddatasourcec.so.1` (ported from HyperBerry's `hub_qnx.go`), a BPS thread
+  for `NAVIGATOR_EXIT`, Hub actions (Mark as read, Mark as unread, Delete) and network status.
+  **Compiled only.** Without the flag none of it runs and the binary needs no Qt library.
+- **Fix found on the phone** (same commit): after `msg.send`, Telegram reports our own account
+  online for 300 s. Auto mode read that as "another device is active", went offline, and the
+  next requests hung. Now a request in the last 10 s, or an answer TDLib still owes, keeps the
+  network on and brings it up, and our own online status is not believed meanwhile.
+- **To verify on the phone once the app is packaged** (none of it could run from a root shell):
+  - the app's public assets hold `hub_account.png`, `hub_unread.png`, `hub_read.png`,
+    `tick_action.png`, `unread_action.png`, `delete_action.png`;
+  - `dlopen` of the UDS library works through the bar's library path, with the Hub permission
+    (`_sys_access_pim_unified`), on a thread with no Qt event loop;
+  - the account and its three actions register, and a fresh registration is reported;
+  - the Hub actions arrive at `com.zsavajji.tengram.service`, and where the item id sits in
+    them (the engine logs each invocation whole);
+  - `NAVIGATOR_EXIT` stops the engine in time; `NETSTATUS_INFO` arrives with the right type;
+  - items alert or stay silent as meant; the headless memory class (14 MB measured as root).
+- **Bar descriptor to write with the UI fork:** ids `com.zsavajji.tengram` (UI) and
+  `com.zsavajji.tengram.service` (engine, started with `--service`), item MIME
+  `application/vnd.zsavajji.tengram.chat`, as HyperBerry's descriptor has them.
+
+### What happened to the unattended night
+
+The Mac went to sleep at about 02:35 and only woke for moments until 05:54, which froze the
+sub-agent's build and OrbStack. From 05:54 `caffeinate` kept it awake; OrbStack was stopped
+and started again with `orbctl` (it had no containers). About three hours were lost.
+
+### Next, in order
+
+1. Read run 5's log: `hub:` lines against what really notified, `own status:` lines against
+   when another device was in use (the one unverified part of auto mode).
+2. The user's calls: keep or drop the "encryption off" toggle (patch 0007); how the passcode
+   lock should behave (option C's second half).
+3. Fork HyperBerry's UI: the SQLCipher driver is ready (`ui/sqlcipher/`), the login pages need
+   Telegram's states (`docs/protocol.md`), Stories and Calls go.
+4. Package (`bar-descriptor.xml`, engine with `--service`), the user installs it, and the list
+   above is checked on the phone.
+5. Engine, later: text entities, reactions, pruning old rows, calls' notifications.
