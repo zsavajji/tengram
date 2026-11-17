@@ -11,6 +11,7 @@ decisions and measurements are in `NOTES.md`.
 | `link.cpp` | login states and `link.*` |
 | `chats.cpp`, `body.cpp` | the chat list mirrored into `chats`, previews |
 | `messages.cpp`, `requests.cpp` | the `messages` table, `chat.*`, `msg.*`, `media.get` |
+| `voice.cpp`, `opus_ogg.cpp` | `voice.*`: the recording's requests; the WAV / OGG Opus codec (no TDLib in it) |
 | `mode.cpp` | delivery mode (instant, batched, auto), `ui.state`, `prefs.set` |
 | `notifier.cpp`, `hub*.cpp` | notifications from TDLib's groups to the Hub (or to the log) |
 | `bb10.cpp` | `--service` only: navigator and network events |
@@ -19,8 +20,8 @@ decisions and measurements are in `NOTES.md`.
 ## Build and run on the phone
 
 ```sh
-scripts/build-deps.sh                      # once: TDLib, OpenSSL (Docker)
-engine/build.sh                            # build/tengramd, build/dbq
+scripts/build-deps.sh                      # once: TDLib, OpenSSL, libopus (Docker)
+engine/build.sh                            # build/tengramd, build/dbq, build/voice_check (the codec's check)
 E=$(scripts/push.sh build/tengramd)        # copies and trusts it, prints its path on the phone
 ssh bb10rootx "cd /root/tengram && TG_API_ID=… TG_API_HASH=… $E data >engine.log 2>&1 </dev/null &"
 ```

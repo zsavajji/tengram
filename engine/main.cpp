@@ -165,8 +165,9 @@ void handle_update(Obj update) {
 
 void handle_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   mode_note_request();
-  if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req) ||
-      profile_handle(conn, id, cmd, req) || pages_handle(conn, id, cmd, req) || mode_request(conn, id, cmd, req)) {
+  if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req) || voice_handle(conn, id, cmd, req) ||
+      profile_handle(conn, id, cmd, req) || pages_handle(conn, id, cmd, req) || topics_handle(conn, id, cmd, req) ||
+      mode_request(conn, id, cmd, req)) {
     return;
   }
   server.reply_error(conn, id, "unknown_cmd", "unknown cmd " + cmd);
@@ -355,6 +356,10 @@ int main(int argc, char **argv) {
     if (flush_pending) {
       due = std::min(due, flush_at);
     }
+    Clock::time_point voice_due;
+    if (voice_deadline(voice_due)) {
+      due = std::min(due, voice_due);
+    }
     if (mode_deadline(mode_due)) {
       due = std::min(due, mode_due);
     }
@@ -387,6 +392,10 @@ int main(int argc, char **argv) {
     Clock::time_point mode_now_due;
     if (mode_deadline(mode_now_due) && Clock::now() >= mode_now_due) {
       mode_tick();
+    }
+    Clock::time_point voice_now_due;
+    if (voice_deadline(voice_now_due) && Clock::now() >= voice_now_due) {
+      voice_tick();
     }
     if (flush_pending && Clock::now() >= flush_at) {
       flush();

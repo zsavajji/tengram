@@ -1,6 +1,6 @@
 #!/bin/sh
-# Builds build/tengramd (stripped), build/tengramd.unstripped and build/dbq for BB10 inside the tengram-build
-# image. Run from the Mac after scripts/build-deps.sh. With TG_API_ID and TG_API_HASH in the environment they are
+# Builds build/tengramd (stripped), build/tengramd.unstripped, build/dbq and build/voice_check for BB10 inside the
+# tengram-build image. Run from the Mac after scripts/build-deps.sh. With TG_API_ID and TG_API_HASH in the environment they are
 # compiled in (the packaged service gets no environment of ours); they are never written to a file. Same link line as probe/build.sh. TD_LTO= (empty) if the
 # libraries were built with TD_LTO=OFF.
 set -eu
@@ -12,7 +12,7 @@ INC="-isystem build/prefix/include -isystem third_party/td/tddb -isystem third_p
 -isystem build/td-bb10/tdutils -isystem third_party/td -isystem third_party/td/sqlite"
 LIBS="-Wl,--gc-sections -Wl,--start-group $L/libtdclient.a $L/libtdcore.a $L/libtdapi.a $L/libtdmtproto.a \
 $L/libtdnet.a $L/libtddb.a $L/libtdsqlite.a $L/libtdactor.a $L/libtde2e.a $L/libtdutils.a \
-$L/libssl.a $L/libcrypto.a -Wl,--end-group /opt/bb10-sdk/target/qnx6/armle-v7/usr/lib/libz.so -lsocket -lm"
+$L/libssl.a $L/libcrypto.a $L/libopus.a -Wl,--end-group /opt/bb10-sdk/target/qnx6/armle-v7/usr/lib/libz.so -lsocket -lm"
 KEYS=
 if [ -n "$TG_API_ID" ] && [ -n "$TG_API_HASH" ]; then KEYS="-DTENGRAM_API_ID=$TG_API_ID -DTENGRAM_API_HASH=\"$TG_API_HASH\""; fi
 STRIP=/opt/bb10-toolchain/bin/arm-unknown-nto-qnx6.5.0eabi-strip
@@ -20,4 +20,6 @@ bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $KEYS $INC engine/*.cpp 
 $STRIP -o build/tengramd build/tengramd.unstripped &&
 bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $INC tests/dbq.cpp -o build/dbq $LIBS &&
 $STRIP build/dbq &&
-ls -l build/tengramd build/dbq'
+bb10-clang++ -std=c++20 -O2 -Wall -isystem build/prefix/include tests/voice_check.cpp engine/opus_ogg.cpp -o build/voice_check $L/libopus.a -lm &&
+$STRIP build/voice_check &&
+ls -l build/tengramd build/dbq build/voice_check'

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Cross-build TDLight and OpenSSL as static libraries for BlackBerry 10
+# Cross-build TDLight, OpenSSL and libopus as static libraries for BlackBerry 10
 # (QNX 6.6, ARMv7 softfp), into build/prefix. Run it from the Mac.
 #
 # Host (this script): fetch TDLight at a pinned commit, apply patches/td/*.patch,
-# download OpenSSL. Compiles run inside the `tengram-build` Docker image
+# download OpenSSL and libopus. Compiles run inside the `tengram-build` Docker image
 # (FROM bb10-cxx20, see docker/Dockerfile); the same file is re-run in there
 # with --in-container <function>.
 #
@@ -24,6 +24,12 @@ readonly OPENSSL_SHA256="a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa3
 # the C code on the phone; patches/openssl/ makes it start on BB10). No engines/dso/async (TDLib
 # needs none of them). -DNO_SYSLOG: the SDK has no <syslog.h>. Section flags: for --gc-sections.
 readonly OPENSSL_CONFIGURE_FLAGS="linux-armv4 no-shared no-tests no-dso no-engine no-async -DNO_SYSLOG -O2 -ffunction-sections -fdata-sections"
+
+# libopus, for the voice notes (engine/opus_ogg.cpp). QNX has no runtime CPU detection, so the ARM code
+# paths are fixed at configure time: NEON is presumed, as every BB10 CPU has it.
+readonly OPUS_VERSION="1.6.1"
+readonly OPUS_SHA256="6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1"
+readonly OPUS_CONFIGURE_FLAGS="--enable-static --disable-shared --disable-rtcd --disable-doc --disable-extra-programs"
 
 # td_api's generated translation units take over 1 GB of RAM each.
 readonly JOBS="${JOBS:-4}"
@@ -69,6 +75,18 @@ build_openssl_in_container() {
     cp libcrypto.a libssl.a "$PREFIX/lib/"
     rm -rf "$PREFIX/include/openssl"
     cp -RL include/openssl "$PREFIX/include/"
+}
+
+# libopus: lib/libopus.a and include/opus/opus.h.
+build_opus_in_container() {
+    local dir=$SRC/build/opus-$OPUS_VERSION
+    rm -rf "$dir"
+    tar -xzf "$SRC/third_party/opus-$OPUS_VERSION.tar.gz" -C "$SRC/build"
+    cd "$dir"
+    ./configure --host=arm-unknown-nto-qnx6.5.0eabi CC=bb10-clang CFLAGS="-O2 -mfpu=neon" \
+        $OPUS_CONFIGURE_FLAGS --prefix="$PREFIX" >/dev/null
+    make -s -j"$JOBS"
+    make -s install >/dev/null
 }
 
 # TDLight, two passes: a host build of `prepare_cross_compiling` writes the generated
@@ -203,6 +221,16 @@ fetch_openssl() {
     [ "$(sha256 "$f")" = "$OPENSSL_SHA256" ] || die "SHA256 mismatch for $f (expected $OPENSSL_SHA256)"
 }
 
+fetch_opus() {
+    local f=third_party/opus-$OPUS_VERSION.tar.gz
+    if [ ! -f "$f" ]; then
+        info "Downloading libopus $OPUS_VERSION"
+        curl -fsSL -o "$f.part" "https://downloads.xiph.org/releases/opus/opus-$OPUS_VERSION.tar.gz"
+        mv "$f.part" "$f"
+    fi
+    [ "$(sha256 "$f")" = "$OPUS_SHA256" ] || die "SHA256 mismatch for $f (expected $OPUS_SHA256)"
+}
+
 # Run a build step unless its stamp (a string naming everything that changes the
 # output) is already recorded. The stamp is written only after the step succeeds.
 stamped() { # name stamp fn
@@ -226,6 +254,7 @@ main() {
     fetch_td
     apply_patches
     fetch_openssl
+    fetch_opus
 
     local patches_sha openssl_patches_sha
     patches_sha=$(cat patches/td/*.patch 2>/dev/null | shasum -a 256 | awk '{print $1}')
@@ -236,6 +265,7 @@ main() {
     local base_id
     base_id=$(docker image inspect -f '{{.Id}}' "$BASE_IMAGE")
     stamped openssl "$OPENSSL_VERSION:$OPENSSL_CONFIGURE_FLAGS:$openssl_patches_sha:$base_id" build_openssl_in_container
+    stamped opus "$OPUS_VERSION:$OPUS_CONFIGURE_FLAGS:$base_id" build_opus_in_container
     stamped td "$TD_COMMIT:$patches_sha:$OPENSSL_VERSION:$TD_LTO:$TD_BUILD_TYPE:$base_id" build_td_in_container
 
     info "Verifying"

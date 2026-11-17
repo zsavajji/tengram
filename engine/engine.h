@@ -135,6 +135,30 @@ bool request_chat(std::uint64_t conn, const std::string &id, td::JsonObject &req
 bool parse_i64(const std::string &s, std::int64_t &out);
 // A path a request names for a file to send: absolute and an existing regular file (stat). Its size goes in `size`.
 bool regular_file(const std::string &path, std::int64_t &size);
+// The helpers of a request that sends a message or names one (requests.cpp, voice.cpp):
+void bad_request(std::uint64_t conn, const std::string &id, const std::string &what);
+// A message id in the string field `name`. False after the bad_request reply.
+bool message_id(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::int64_t &out);
+// The optional field "quote", a message id in a string: `reply` becomes the message it replies to, or stays null. False
+// after the bad_request reply.
+bool quote_field(std::uint64_t conn, const std::string &id, td::JsonObject &req,
+                 td_api::object_ptr<td_api::InputMessageReplyTo> &reply);
+// The optional field "topic", a forum topic's id (a whole number from 1; General is 1). `topic` is -1 when the field is
+// missing. False after the bad_request reply.
+bool topic_field(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int32_t &topic);
+// The topic as TDLib takes it, or nullptr for no topic (-1).
+td_api::object_ptr<td_api::MessageTopic> topic_object(std::int32_t topic);
+// Sends the content as a new message of the chat, in the forum topic `topic` unless it is -1: its row is queued
+// (state 0, under a temporary id), the reply is `{id}`.
+void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat, std::int32_t topic,
+                  td_api::object_ptr<td_api::InputMessageReplyTo> reply,
+                  td_api::object_ptr<td_api::InputMessageContent> content);
+std::string path_json(const std::string &path);  // {"path": ...}, the result of media.get and voice.play
+
+// voice.cpp: voice.start, voice.send, voice.cancel and voice.play. The codec is opus_ogg.h's.
+bool voice_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+bool voice_deadline(std::chrono::steady_clock::time_point &due);  // while recording: when "recording" goes out again
+void voice_tick();                                                // that time has come
 
 // profile.cpp: profile.get and profile.set, our own account's name, about, phone and picture. They have no chat.
 bool profile_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);

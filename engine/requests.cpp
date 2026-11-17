@@ -19,22 +19,6 @@ namespace {
 
 using td_api::make_object;
 
-// ---- reading a request
-
-void bad_request(std::uint64_t conn, const std::string &id, const std::string &what) {
-  server.reply_error(conn, id, "bad_request", what);
-}
-
-// A message id in a string field of the request. False after the bad_request reply.
-bool message_id(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::int64_t &out) {
-  auto text = string_field(req, name);
-  if (text.is_error() || !parse_i64(text.ok(), out) || out <= 0) {
-    bad_request(conn, id, std::string("need the field ") + name + ", a string with a message id");
-    return false;
-  }
-  return true;
-}
-
 std::string page_json(const std::string &oldest, const std::string &newest, std::size_t count, bool more) {
   return td::json_encode<std::string>(td::json_object([&](auto &o) {
     o("oldest", oldest);
@@ -376,49 +360,14 @@ std::vector<td_api::object_ptr<td_api::textEntity>> mention_entities(
   return entities;
 }
 
-// The optional field "quote", a message id in a string: `reply` becomes the message it replies to, or stays null.
-// False after the bad_request reply.
-bool quote_field(std::uint64_t conn, const std::string &id, td::JsonObject &req,
-                 td_api::object_ptr<td_api::InputMessageReplyTo> &reply) {
-  std::int64_t quote = 0;
-  td::JsonValue v;
-  const int has_quote = optional_field(req, "quote", td::JsonValue::Type::String, v);
-  if (has_quote < 0 || (has_quote == 1 && (!parse_i64(v.get_string().str(), quote) || quote <= 0))) {
-    bad_request(conn, id, "quote is a string with a message id");
-    return false;
-  }
-  if (has_quote == 1) {
-    reply = make_object<td_api::inputMessageReplyToMessage>(quote, nullptr, 0, "");
-  }
-  return true;
-}
-
-// Sends the content as a new message of the chat. TDLib's answer is the message: its row is queued, state 0 under
-// a temporary id, and `{id}` is that id.
-void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat,
-                  td_api::object_ptr<td_api::InputMessageReplyTo> reply,
-                  td_api::object_ptr<td_api::InputMessageContent> content) {
-  tdlib.send(make_object<td_api::sendMessage>(chat, nullptr, std::move(reply), nullptr, nullptr, std::move(content)),
-             [conn, id](Obj o) {
-               if (auto e = as_error(o)) {
-                 say("td error: %d %s", e->code_, e->message_.c_str());
-                 return reply_td_error(conn, id, *e);
-               }
-               auto &m = static_cast<td_api::message &>(*o);
-               messages_queue(m);  // the row, state 0, under its temporary id
-               queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
-                             r("id", std::to_string(m.id_));
-                           })));
-             });
-}
-
 void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   auto text = string_field(req, "text");
   if (text.is_error() || text.ok().empty()) {
     return bad_request(conn, id, "need the field text, a string that is not empty");
   }
   td_api::object_ptr<td_api::InputMessageReplyTo> reply;
-  if (!quote_field(conn, id, req, reply)) {
+  std::int32_t topic = -1;
+  if (!quote_field(conn, id, req, reply) || !topic_field(conn, id, req, topic)) {
     return;
   }
   std::vector<std::pair<std::string, std::string>> mentions;  // jid, name
@@ -441,7 +390,7 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   }
   auto content = make_object<td_api::inputMessageText>(
       plain_text(text.ok(), mention_entities(text.ok(), mentions)), nullptr, true);
-  send_content(conn, id, chat, std::move(reply), std::move(content));
+  send_content(conn, id, chat, topic, std::move(reply), std::move(content));
 }
 
 // The optional field `name`, a whole number from 0 up, into `out` (which stays as it was when the field is
@@ -492,7 +441,8 @@ void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
     return bad_request(conn, id, "need the field path, the absolute path of a file of at most 2000 MB");
   }
   td_api::object_ptr<td_api::InputMessageReplyTo> reply;
-  if (!quote_field(conn, id, req, reply)) {
+  std::int32_t topic = -1;
+  if (!quote_field(conn, id, req, reply) || !topic_field(conn, id, req, topic)) {
     return;
   }
   td::JsonValue v;
@@ -530,7 +480,7 @@ void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
     content = make_object<td_api::inputMessageDocument>(make_object<td_api::inputDocument>(file(), nullptr, false),
                                                         nullptr);
   }
-  send_content(conn, id, chat, std::move(reply), std::move(content));
+  send_content(conn, id, chat, topic, std::move(reply), std::move(content));
 }
 
 void msg_delete(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
@@ -582,9 +532,6 @@ void msg_edit(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
 
 // ---- media.get
 
-std::string path_json(const std::string &path) {
-  return td::json_encode<std::string>(td::json_object([&](auto &o) { o("path", path); }));
-}
 
 void download_failed(std::uint64_t conn, const std::string &id, const std::string &why) {
   say("media.get: %s", why.c_str());
@@ -640,6 +587,93 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
 }
 
 }  // namespace
+
+
+void bad_request(std::uint64_t conn, const std::string &id, const std::string &what) {
+  server.reply_error(conn, id, "bad_request", what);
+}
+
+// A message id in a string field of the request. False after the bad_request reply.
+bool message_id(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::int64_t &out) {
+  auto text = string_field(req, name);
+  if (text.is_error() || !parse_i64(text.ok(), out) || out <= 0) {
+    bad_request(conn, id, std::string("need the field ") + name + ", a string with a message id");
+    return false;
+  }
+  return true;
+}
+
+// The optional field "quote", a message id in a string: `reply` becomes the message it replies to, or stays null.
+// False after the bad_request reply.
+bool quote_field(std::uint64_t conn, const std::string &id, td::JsonObject &req,
+                 td_api::object_ptr<td_api::InputMessageReplyTo> &reply) {
+  std::int64_t quote = 0;
+  td::JsonValue v;
+  const int has_quote = optional_field(req, "quote", td::JsonValue::Type::String, v);
+  if (has_quote < 0 || (has_quote == 1 && (!parse_i64(v.get_string().str(), quote) || quote <= 0))) {
+    bad_request(conn, id, "quote is a string with a message id");
+    return false;
+  }
+  if (has_quote == 1) {
+    reply = make_object<td_api::inputMessageReplyToMessage>(quote, nullptr, 0, "");
+  }
+  return true;
+}
+
+// Sends the content as a new message of the chat. TDLib's answer is the message: its row is queued, state 0 under
+// a temporary id, and `{id}` is that id.
+void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat, std::int32_t topic,
+                  td_api::object_ptr<td_api::InputMessageReplyTo> reply,
+                  td_api::object_ptr<td_api::InputMessageContent> content) {
+  tdlib.send(make_object<td_api::sendMessage>(chat, topic_object(topic), std::move(reply), nullptr, nullptr,
+                                              std::move(content)),
+             [conn, id](Obj o) {
+               if (auto e = as_error(o)) {
+                 say("td error: %d %s", e->code_, e->message_.c_str());
+                 return reply_td_error(conn, id, *e);
+               }
+               auto &m = static_cast<td_api::message &>(*o);
+               messages_queue(m);  // the row, state 0, under its temporary id
+               queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                             r("id", std::to_string(m.id_));
+                           })));
+             });
+}
+
+bool topic_field(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int32_t &topic) {
+  topic = -1;
+  td::JsonValue v;
+  const int given = optional_field(req, "topic", td::JsonValue::Type::Number, v);
+  if (given == 0) {
+    return true;
+  }
+  long n = 0;
+  if (given == 1) {
+    char *end = nullptr;
+    const std::string number = v.get_number().str();
+    n = std::strtol(number.c_str(), &end, 10);
+    if (*end) {
+      n = 0;
+    }
+  }
+  if (n < 1 || n > INT32_MAX) {
+    bad_request(conn, id, "topic is a whole number, 1 or more");
+    return false;
+  }
+  topic = static_cast<std::int32_t>(n);
+  return true;
+}
+
+td_api::object_ptr<td_api::MessageTopic> topic_object(std::int32_t topic) {
+  if (topic < 1) {
+    return nullptr;
+  }
+  return make_object<td_api::messageTopicForum>(topic);
+}
+
+std::string path_json(const std::string &path) {
+  return td::json_encode<std::string>(td::json_object([&](auto &o) { o("path", path); }));
+}
 
 // A whole decimal int64, as the keys travel: "-1001234567890".
 bool parse_i64(const std::string &s, std::int64_t &out) {

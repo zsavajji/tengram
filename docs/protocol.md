@@ -52,11 +52,15 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.read` | `chat`; optional `upto` (a message id) | — | |
 | `chat.typing` | `chat`, `on` (bool) | — | |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool); at least one | — | |
-| `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional) | `{id}` | |
-| `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored); all but `chat` and `path` optional | `{id}` | |
+| `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` (optional) | `{id}` | |
+| `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`; all but `chat` and `path` optional | `{id}` | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
 | `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`) | `not_found`, `download_failed` |
+| `voice.start` | `chat`, `path` (the `.wav` the recorder is writing, inside the data folder); optional `topic` | — | |
+| `voice.send` | `chat`, `path` (as `voice.start`), `quote` (a message id, optional), `topic` (optional) | `{id}`, the message's id | |
+| `voice.cancel` | `path` (as `voice.start`) | — | |
+| `voice.play` | `chat`, `id` (a voice note's message id) | `{path}`, the absolute path of a WAV (48 kHz, mono) | `not_found`, `download_failed` |
 | `profile.get` | — | `{name, about, phone, picture}` | |
 | `profile.set` | `name`, `about`, `picture` (strings); each optional, at least one | — | |
 | `contact.info` | `chat` (a person: a private or a secret chat) | `{phone, about, groups: [{jid, name}], blocked, picture}` | `bad_chat` |
@@ -155,6 +159,36 @@ file: for a photo its display size (the smallest size whose shorter side is at l
 reaches that: it can be the photo's own file), for a video, GIF or round video its thumbnail when that is a JPEG.
 Anything else, or a video with no JPEG thumbnail, is `not_found`. The row then has `extra.preview` (a `msgs` event
 follows) and the answer is `{path}` of that picture. Without `preview` nothing changes.
+
+**`voice.start`, `voice.send`, `voice.cancel`:**
+- `path` is the WAV the recorder is writing (`AudioRecorder`: 48 kHz stereo 16-bit). The sizes in its header are not
+  trusted (they are 0 or 0xFFFFFFFF until the recorder finishes): the data runs to the end of the file. It must be a
+  `.wav` inside the engine's data folder, with no `..` in it, or the reply is `bad_request`.
+- `voice.start` remembers the chat and the path as the recording and sends Telegram's "recording a voice message"
+  action to the chat, and again every 4 s (Telegram shows it for about 5 s) until `voice.send` or `voice.cancel`; a
+  recording neither ends (the UI died) stops after 30 minutes.
+  One recording runs at a time: a new `voice.start` cancels the old one, as `voice.cancel` would. The reply comes when
+  TDLib has taken the action.
+- `voice.send` reads the finished WAV (16-bit PCM; stereo is mixed down to mono; a rate other than 8, 12, 16, 24 or 48
+  kHz is `bad_request`), encodes all of it then to `data/voice/<ms since the epoch>.ogg` (OGG Opus: voice, 20 kbps,
+  20 ms frames), deletes the WAV and sends the file as a voice note. The encoding runs on the engine's own thread, which
+  answers nothing else meanwhile: about a second per minute of audio on the phone. A recording of under 0.2 s is
+  `bad_request`, and its WAV is deleted. The note has `duration` in whole seconds (rounded, at least 1) and TDLib's
+  waveform (100 samples of 5 bits, the loudest one 31). Then it is `media.send`: the same `quote`, the same row
+  (*sending*, state 0, under a temporary id) and the reply `{id}` with that id. The recording is over: our action is
+  cancelled in the chat.
+- `voice.cancel` deletes the WAV and, when it is the recording, cancels our action in its chat. It is not an error
+  when nothing is recording. A recording the UI never cancels or sends (it died) leaves its WAV in the data folder.
+
+**`voice.play`:**
+- Gives the WAV to play, decoded from the note's OGG Opus into `data/cache/voice/<the file's remote unique id, else
+  the local file's name>.wav` the first time and reused after. The cache is never pruned yet.
+- If the file isn't here it is downloaded first, as `media.get` does, and the reply waits for it (`download_failed`
+  when it does not come). A retry is another `voice.play`.
+- Playing one of *their* notes asks TDLib to open the message's content: the first time `played` becomes 1 and a
+  `msgs` event follows. Ours are never marked by it.
+- `not_found`: no such message, it isn't a voice note, or its file can't be decoded (the `message` says why and the
+  engine logs it).
 
 **`profile.get`:** our own account, as Telegram has it: `name` is the first name, then a space and the last name
 when there is one; `about` the bio; `phone` the number with a "+" in front ("" when Telegram gives none); `picture`
