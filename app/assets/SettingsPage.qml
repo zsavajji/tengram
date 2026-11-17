@@ -133,6 +133,34 @@ Page {
                     onCheckedChanged: settings.startAtBoot = checked
                 }
             }
+            // The engine's delivery mode while the app is closed (prefs.set mode, docs/protocol.md): with the app in
+            // front it is always instant.
+            DropDown {
+                topMargin: ui.du(3)
+                title: qsTr("Background delivery")
+                options: [
+                    Option {
+                        text: qsTr("Automatic")
+                        description: qsTr("Every 5 minutes while Telegram is open on another device, else instant")
+                        selected: settings.deliveryMode == "auto"
+                    },
+                    Option {
+                        text: qsTr("Instant")
+                        description: qsTr("Always connected: messages at once, more battery")
+                        selected: settings.deliveryMode == "instant"
+                    },
+                    Option {
+                        text: qsTr("Every 5 minutes")
+                        description: qsTr("Checks for messages every 5 minutes: less battery")
+                        selected: settings.deliveryMode == "batched"
+                    }
+                ]
+                onSelectedIndexChanged: {
+                    if (selectedIndex >= 0) {
+                        settings.deliveryMode = ["auto", "instant", "batched"][selectedIndex]
+                    }
+                }
+            }
             Container {
                 topMargin: ui.du(3)
                 layout: StackLayout {

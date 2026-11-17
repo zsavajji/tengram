@@ -45,6 +45,7 @@ bool Settings::startAtBoot() const { return m_file.value("startAtBoot", false).t
 bool Settings::mediaOnMobile() const { return m_file.value("mediaOnMobile", true).toBool(); }
 bool Settings::earSensor() const { return m_file.value("earSensor", true).toBool(); }
 int Settings::cacheLimit() const { return qBound(64, m_file.value("cacheLimit", 64).toInt(), 512); }
+QString Settings::deliveryMode() const { return m_file.value("deliveryMode", "auto").toString(); }
 // Larger (3, 140 %) went at the user's word (2026-11-01); a saved 3 reads as Large.
 int Settings::textSize() const { return qBound(0, m_file.value("textSize", 1).toInt(), 2); }
 int Settings::callHints() const { return qMax(0, m_file.value("callHints", 0).toInt()); }
@@ -189,6 +190,21 @@ void Settings::setCacheLimit(int mb)
         m_engine->request("prefs.set", prefs);
     }
     emit cacheLimitChanged();
+}
+
+void Settings::setDeliveryMode(const QString &mode)
+{
+    if (mode == deliveryMode())
+        return;
+    store("deliveryMode", mode);
+    // Not connected: the hello path sends it on the next connect. The engine keeps it in prefs.json and works
+    // by it while the UI is closed.
+    if (m_engine->connected()) {
+        QVariantMap prefs;
+        prefs["mode"] = mode;
+        m_engine->request("prefs.set", prefs);
+    }
+    emit deliveryModeChanged();
 }
 
 void Settings::setTextSize(int size)

@@ -207,6 +207,7 @@ void EngineLink::readLines()
                     prefs["mediaOnMobile"] = file.value("mediaOnMobile", true).toBool();
                     prefs["language"] = m_language;
                     prefs["cacheMB"] = qBound(64, file.value("cacheLimit", 64).toInt(), 512);
+                    prefs["mode"] = file.value("deliveryMode", "auto").toString();
                     request("prefs.set", prefs);
                     qDebug() << "engine: connected, link" << m_link["state"].toString()
                              << ", conn" << m_conn;

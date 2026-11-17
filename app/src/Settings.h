@@ -20,6 +20,8 @@ class Settings : public QObject
     // Off for a phone whose proximity sensor misreads: voice notes stay on the speaker, the call screen never blanks.
     Q_PROPERTY(bool earSensor READ earSensor WRITE setEarSensor NOTIFY earSensorChanged)
     Q_PROPERTY(int cacheLimit READ cacheLimit WRITE setCacheLimit NOTIFY cacheLimitChanged)         // MB
+    // "auto", "instant" or "batched" (every 5 minutes): the engine's prefs.set mode.
+    Q_PROPERTY(QString deliveryMode READ deliveryMode WRITE setDeliveryMode NOTIFY deliveryModeChanged)
     Q_PROPERTY(int textSize READ textSize WRITE setTextSize NOTIFY textSizeChanged) // 0..2
     Q_PROPERTY(qreal textScale READ textScale NOTIFY textSizeChanged)
     // How many group calls showed the people drawer's first-time hint (CallDrawer.qml shows it in the first 2).
@@ -34,6 +36,7 @@ public:
     bool mediaOnMobile() const;
     bool earSensor() const;
     int cacheLimit() const;
+    QString deliveryMode() const;
     int textSize() const;
     qreal textScale() const;
     int callHints() const;
@@ -44,6 +47,7 @@ public:
     void setMediaOnMobile(bool on);
     void setEarSensor(bool on);
     void setCacheLimit(int mb);
+    void setDeliveryMode(const QString &mode);
     void setTextSize(int size);
     void setCallHints(int count);
     Q_INVOKABLE QString cacheSize();
@@ -57,6 +61,7 @@ signals:
     void mediaOnMobileChanged();
     void earSensorChanged();
     void cacheLimitChanged();
+    void deliveryModeChanged();
     void textSizeChanged();
     void callHintsChanged();
 
