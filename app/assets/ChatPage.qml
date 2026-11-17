@@ -70,6 +70,19 @@ Page {
                 ctl.setAtBottom(scrollState.atBeginning)
             }
         },
+        // Aims a scroll again while the cards' heights come in (page.aim).
+        Timer {
+            id: reaim
+            interval: 150
+            singleShot: false
+            onTimeout: {
+                page.aim()
+                page.aims = page.aims + 1
+                if (page.aims >= 3) {
+                    page.endAim()
+                }
+            }
+        },
         // A received photo, video, audio file or document (step 6.1): MediaOpener fetches the file
         // and hands it to the system; a photo opens in our viewer instead (nav.showPhoto).
         MediaOpener {
@@ -371,7 +384,40 @@ Page {
         if (followOwn && indexPath[0] == 0) {
             followOwn = false
             list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
+            startAim("bottom", "")
         }
+    }
+    // A scroll right after rows go in stops short: the list places them by estimated heights until their cards
+    // are made, and a photo's card is far taller than the estimate (HyperBerry's pitfalls; a sent photo was left
+    // half below the screen and a media-heavy chat opened below its divider, Classic 0.1.0.9). So the scroll is
+    // aimed again every 150 ms, 3 times, as the real heights come in; a touch on the list ends it.
+    // aimAt: "bottom" (our sent row), "unread" (the divider), "item" (aimId, a search or pin jump).
+    property string aimAt: ""
+    property string aimId: ""
+    property int aims: 0
+    function startAim(what, id) {
+        aimAt = what
+        aimId = id
+        aims = 0
+        reaim.start()
+    }
+    function aim() {
+        if (aimAt == "bottom") {
+            list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
+        } else {
+            var i = aimAt == "unread" ? ctl.messages.unreadEntry() : ctl.messages.reveal(aimId)
+            if (i >= 0) {
+                list.scrollToItem([i], ScrollAnimation.None)
+            }
+        }
+    }
+    // The settle timer waits for the aim after a chat opens: it reports where the list ended up.
+    function endAim() {
+        reaim.stop()
+        if (aimAt != "" && aimAt != "bottom" && !page.placed) {
+            settle.start()
+        }
+        aimAt = ""
     }
     // A search match (step 5.10): its day is loaded if it wasn't, then it's scrolled to and tinted.
     function jump(id) {
@@ -384,6 +430,7 @@ Page {
         var i = ctl.messages.reveal(id)
         if (i >= 0) {
             list.scrollToItem([i], ScrollAnimation.None)
+            startAim("item", id)
         } else if (ctl.messages.loading) {
             // A window far back that doesn't hold it: the model left it for the regular chat and loads until
             // chat.open answers; loaded() jumps then.
@@ -397,10 +444,9 @@ Page {
     property bool placed: false
     // The first page is in. A search or notification jump comes first; else a chat with unread messages
     // opens at the divider (Telegram's: the first unread message is shown, not the newest), at the top of the
-    // screen (user, 2026-11-17). In this bottom-to-top list scrollToItem leaves an item at the screen's bottom
-    // edge (Classic, 0.1.0.8): the entry above the divider is put there, then the list moves one screen down,
-    // which leaves the divider at the top; a short unread run stops at the bottom instead. The search jump
-    // (HyperBerry 5.10) lands on its item. A chat with nothing unread is left at the bottom.
+    // screen (user, 2026-11-17): scrollToItem puts an item at the top, as its documentation says, once the
+    // heights are real (the aim above); a short unread run stops at the bottom instead, as Telegram's does. The
+    // search jump (HyperBerry 5.10) lands on its item. A chat with nothing unread is left at the bottom.
     function loaded() {
         if (ctl.messages.loading) {
             return
@@ -412,11 +458,14 @@ Page {
         } else {
             var u = ctl.messages.unreadEntry()
             if (u >= 0) {
-                list.scrollToItem([u + 1 < ctl.messages.childCount([]) ? u + 1 : u], ScrollAnimation.None)
-                list.scroll(listFrame.layoutFrame.height, ScrollAnimation.None)
+                list.scrollToItem([u], ScrollAnimation.None)
+                startAim("unread", "")
+                return // settle starts when the aim ends
             }
         }
-        settle.start()
+        if (aimAt == "") {
+            settle.start()
+        }
     }
     // The shape and kind of the video being fetched (openMedia sets them): a newer get replaces an older, so these are
     // the ones that land.
@@ -584,6 +633,12 @@ Page {
                     property string quoteTint: settings.theme == 1 ? "#0D000000" : "#14FFFFFF"
                     property string pressColor: nav.pressColor
                     dataModel: ctl.messages
+                    // The user's own scroll wins over an aim still running (page.aim).
+                    onTouch: {
+                        if (page.aimAt != "") {
+                            page.endAim()
+                        }
+                    }
                     // Bottom to top: the model is newest first, so the list opens at the newest message
                     // with no scroll call, and an older page is appended at the visual top without
                     // moving the rows on screen.
@@ -599,10 +654,6 @@ Page {
                     stickToEdgePolicy: ctl.messages && ctl.messages.window ? ListViewStickToEdgePolicy.None
                                                                           : ListViewStickToEdgePolicy.Beginning
                     attachedObjects: [
-                        // The list's height on screen, for the first unread's scroll (loaded()).
-                        LayoutUpdateHandler {
-                            id: listFrame
-                        },
                         ListScrollStateHandler {
                             id: scrollState
                             // Older pages are appends, so asking on every change can't cascade.
