@@ -13,6 +13,7 @@
 #include <bb/cascades/FontWeight>
 #include <bb/cascades/HorizontalAlignment>
 #include <bb/cascades/ImageView>
+#include <bb/cascades/ImageViewLoadEffect>
 #include <bb/cascades/Label>
 #include <bb/cascades/LabelAutoSizeProperties>
 #include <bb/cascades/ListView>
@@ -55,7 +56,15 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_scale(0)
     , m_body(0)
     , m_small(0)
+    , m_row(0)
+    , m_avatar(0)
+    , m_photo(0)
+    , m_initials(0)
+    , m_nameLine(0)
+    , m_names(0)
     , m_sender(0)
+    , m_tagRoom(0)
+    , m_tag(0)
     , m_fwd(0)
     , m_fwdIcon(0)
     , m_fwdText(0)
@@ -200,23 +209,25 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     body->add(m_frame);
 
     // The card and its foot, as wide as the card's content, and a spacer at the other side: its
-    // quota stretches the row across the list, which the text column's did, and pushes ours right.
-    Container *row = new Container();
-    row->setHorizontalAlignment(HorizontalAlignment::Fill);
-    row->setLayout(Card::across());
+    // quota stretches the row across the list, which the text column's did, and pushes ours right. In a group the
+    // sender's tile comes first (makeTile), and the card sits at the row's bottom, beside the tile's.
+    m_row = new Container();
+    m_row->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_row->setLayout(Card::across());
     m_gapL = new Container();
     Card::quota(m_gapL, 1);
     m_gapR = new Container();
     Card::quota(m_gapR, 1);
     Container *box = new Container();
+    box->setVerticalAlignment(VerticalAlignment::Bottom);
     if (picture)
         box->setMaxWidth(Card::width(m_ui));
     box->add(body);
     box->add(m_foot);
-    row->add(m_gapL);
-    row->add(box);
-    row->add(m_gapR);
-    m_root->add(row);
+    m_row->add(m_gapL);
+    m_row->add(box);
+    m_row->add(m_gapR);
+    m_root->add(m_row);
     setRoot(m_root);
 
     // The long-press menu (step 3.3): the actions are made at the first populating, which comes just
@@ -252,9 +263,15 @@ void MessageCard::show(const QVariantMap &msg)
     const bool out = flag("out");
     const bool deleted = flag("deleted");
 
+    // The sender's tile: a group's incoming message, which has a sender id. The name line only shows on the oldest of
+    // a person's messages in a row, so a card that never shows it never makes it.
+    const bool tiled = !out && !str("senderId").isEmpty();
+
     // The parts this message needs and the card hasn't made yet.
-    if (!str("sender").isEmpty() && !m_sender)
+    if (named() && !m_sender)
         makeSender();
+    if (tiled && !m_avatar)
+        makeTile();
     if (m_msg.value("forwarded").toInt() > 0 && !m_fwd)
         makeForwarded();
     if (!str("quote").isEmpty() && !m_quote)
@@ -274,6 +291,7 @@ void MessageCard::show(const QVariantMap &msg)
     // Theirs at the left and ours at the right. A hidden spacer takes no part in the layout.
     m_gapL->setVisible(out);
     m_gapR->setVisible(!out);
+    fillTile(tiled);
     fillColumn();
     if (m_rich)
         fillBubbles();
@@ -354,6 +372,20 @@ void MessageCard::restyle()
     m_tick = -1;
     if (m_sender)
         Card::style(m_sender, m_list, small);
+    if (m_tag) {
+        // The tag is text a person chose, so the emoji style as the name's, but regular and quiet. Its copy takes the
+        // same room and no colour.
+        Card::style(m_tag, m_list, small);
+        m_tag->textStyle()->setColor(quiet);
+        Card::style(m_tagRoom, m_list, small);
+        m_tagRoom->textStyle()->setColor(Color::Transparent);
+    }
+    if (m_avatar) {
+        // As the chat list's tile and initials (ChatRows.cpp). The height is fillTile's: a spacer has none.
+        m_avatar->setPreferredWidth(m_ui->du(7 * scale));
+        Card::style(m_initials, m_list, qRound(118 * scale));
+        m_initials->textStyle()->setColor(Color::White);
+    }
     if (m_fwd) {
         Card::style(m_fwdText, m_list, small);
         m_fwdText->textStyle()->setFontStyle(FontStyle::Italic);
@@ -378,13 +410,95 @@ void MessageCard::restyle()
     }
 }
 
+// The name line, first in the column (or the picture card's head), where the name alone was. The labels have no quota:
+// in a card as wide as its content one takes the whole row (see m_col). So the line is a dock, the name at its left and
+// the tag at its right, and the name's box ends in a transparent copy of the tag, which keeps the two apart when the
+// line is no wider than both. The index counts below (`m_sender ? 1 : 0`) stand: the line is that one child.
 void MessageCard::makeSender()
 {
+    m_nameLine = new Container();
+    m_nameLine->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_nameLine->setLayout(new DockLayout());
+    m_nameLine->setBottomMargin(m_ui->du(0.5) + m_ui->px(2)); // +2 px (Q10, 0.0.1.212)
+    m_names = new Container();
+    m_names->setHorizontalAlignment(HorizontalAlignment::Left);
+    m_names->setLayout(Card::across());
     m_sender = new Label();
-    m_sender->setBottomMargin(m_ui->du(0.5) + m_ui->px(2)); // +2 px (Q10, 0.0.1.212)
+    m_sender->setBottomMargin(0);
+    m_sender->setRightMargin(0);
     m_sender->textStyle()->setFontWeight(FontWeight::Bold);
-    (m_head ? m_head : m_col)->insert(0, m_sender);
+    m_tagRoom = new Label();
+    m_tagRoom->setTopMargin(0);
+    m_tagRoom->setBottomMargin(0);
+    m_tagRoom->setLeftMargin(m_ui->du(1));
+    m_tagRoom->setRightMargin(0);
+    m_tag = new Label();
+    m_tag->setHorizontalAlignment(HorizontalAlignment::Right);
+    m_tag->setTopMargin(0);
+    m_tag->setBottomMargin(0);
+    m_tag->setRightMargin(0);
+    m_names->add(m_sender);
+    m_names->add(m_tagRoom);
+    m_nameLine->add(m_names);
+    m_nameLine->add(m_tag);
+    (m_head ? m_head : m_col)->insert(0, m_nameLine);
     m_styled = false;
+}
+
+// The sender's tile at the left of their messages in a group: the chat list's, a square of the same size with the
+// picture over the initials (ChatRows.cpp), as a column of the row. Bottom aligned, so a run's tiles line up with the
+// bubbles' bottoms; fillTile says when it has a picture and when it is only room.
+void MessageCard::makeTile()
+{
+    m_avatar = new Container();
+    m_avatar->setVerticalAlignment(VerticalAlignment::Bottom);
+    m_avatar->setRightMargin(m_ui->du(1));
+    m_avatar->setLayout(new DockLayout());
+    m_photo = new ImageView();
+    m_photo->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_photo->setVerticalAlignment(VerticalAlignment::Fill);
+    m_photo->setScalingMethod(ScalingMethod::AspectFill);
+    m_photo->setLoadEffect(ImageViewLoadEffect::None);
+    m_initials = new Label();
+    m_initials->setHorizontalAlignment(HorizontalAlignment::Center);
+    m_initials->setVerticalAlignment(VerticalAlignment::Center);
+    m_avatar->add(m_photo);
+    m_avatar->add(m_initials);
+    m_row->insert(0, m_avatar);
+    m_styled = false;
+}
+
+// What the tile takes of the row's width, and so how far the reactions' chip, under the row, is moved in.
+float MessageCard::tileSpace() const
+{
+    return m_ui->du(7 * m_scale) + m_ui->du(1);
+}
+
+// on: the message has a tile at all (a group's incoming one). Then with the run's newest message it shows the picture
+// or, with none, the initials on the sender's colour, as the chat list's tile does; every other message of the run keeps
+// the column's width and nothing else, an empty spacer. Everything is set on each call: cards are recycled, and a
+// picture left from another sender would show.
+void MessageCard::fillTile(bool on)
+{
+    if (!m_avatar)
+        return;
+    m_avatar->setVisible(on);
+    const bool tile = on && flag("showTile");
+    const QString photo = tile ? str("senderPhoto") : QString();
+    if (photo != m_photoPath) {
+        m_photoPath = photo;
+        m_photo->setImageSource(photo.isEmpty() ? QUrl() : QUrl(QString::fromLatin1("file://") + photo));
+    }
+    m_photo->setVisible(!photo.isEmpty());
+    m_initials->setVisible(tile && photo.isEmpty());
+    m_initials->setText(tile ? str("senderInitials") : QString());
+    if (tile) {
+        m_avatar->setPreferredHeight(m_ui->du(7 * m_scale));
+        m_avatar->setBackground(Card::color(str("senderColor")));
+    } else {
+        m_avatar->resetPreferredHeight(); // the spacer is only as tall as the card
+        m_avatar->resetBackground();
+    }
 }
 
 // A forward's line, as WhatsApp's: under the sender, over the quote.
@@ -522,12 +636,18 @@ void MessageCard::fillColumn()
 {
     const bool deleted = flag("deleted");
     const QString sender = str("sender");
-    if (m_sender) {
-        m_sender->setVisible(!sender.isEmpty());
-        if (!sender.isEmpty()) {
+    const bool hasName = named();
+    if (m_nameLine) {
+        m_nameLine->setVisible(hasName);
+        if (hasName) {
             const QString tint = str("senderColor");
             m_sender->setText(sender);
             m_sender->textStyle()->setColor(Card::color(tint.isEmpty() ? QString("#FFFFFF") : tint));
+            const QString tag = str("senderTag");
+            m_tag->setVisible(!tag.isEmpty());
+            m_tagRoom->setVisible(!tag.isEmpty());
+            m_tag->setText(tag);
+            m_tagRoom->setText(tag);
         }
     }
 
@@ -594,7 +714,7 @@ void MessageCard::fillColumn()
     // The picture card: the head when there's a sender or quote, the card when there's a caption
     // (or no picture: a deleted one).
     if (m_head) {
-        m_head->setVisible(!sender.isEmpty() || fwd > 0 || !quote.isEmpty());
+        m_head->setVisible(hasName || fwd > 0 || !quote.isEmpty());
         m_card->setVisible(!text.isEmpty() || !str("label").isEmpty() || str("media").isEmpty());
     }
 }
@@ -620,7 +740,7 @@ void MessageCard::fillFoot()
     // ponytail: linear in the scale, not measured at 90-140 %.
     // In the picture card the head holds them, so the caption is the card's first line. +2 px for
     // the time at 85 %, whose baseline sits higher (Q10, 0.0.1.212: +3 was 1 px low; 0.0.1.216: 2 more).
-    const bool small = !m_head && (!str("sender").isEmpty() || (!flag("deleted") && m_msg.value("forwarded").toInt() > 0) || !str("quote").isEmpty());
+    const bool small = !m_head && (named() || (!flag("deleted") && m_msg.value("forwarded").toInt() > 0) || !str("quote").isEmpty());
     const bool onPicture = m_head && !m_card->isVisible();
     const int place = onPicture ? 2 : m_words->isVisible() ? 1 : m_voice && flag("voice") ? 3 : 0;
     placeTime(place);
@@ -673,6 +793,8 @@ void MessageCard::fillFoot()
         m_chip->setVisible(count > 0);
         // Under the card's outer corner: ours is at the right now.
         m_chip->setHorizontalAlignment(out ? HorizontalAlignment::Right : HorizontalAlignment::Left);
+        // Under the card, not the tile before it.
+        m_chip->setLeftMargin(m_avatar && m_avatar->isVisible() ? tileSpace() : 0);
         if (count > 0)
             m_reactions->setText(str("reactions") + (count > 1 ? QString(" %1").arg(count) : QString()));
     }

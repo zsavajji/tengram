@@ -25,23 +25,6 @@ void bad_request(std::uint64_t conn, const std::string &id, const std::string &w
   server.reply_error(conn, id, "bad_request", what);
 }
 
-// A whole decimal int64, as the keys travel: "-1001234567890".
-bool parse_i64(const std::string &s, std::int64_t &out) {
-  std::size_t digits = s.size() && s[0] == '-' ? 1 : 0;
-  if (digits == s.size() || s.size() > 20) {
-    return false;
-  }
-  for (std::size_t i = digits; i < s.size(); ++i) {
-    if (s[i] < '0' || s[i] > '9') {
-      return false;
-    }
-  }
-  errno = 0;
-  const long long n = std::strtoll(s.c_str(), nullptr, 10);
-  out = n;
-  return errno == 0;
-}
-
 // A message id in a string field of the request. False after the bad_request reply.
 bool message_id(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::int64_t &out) {
   auto text = string_field(req, name);
@@ -657,6 +640,23 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
 }
 
 }  // namespace
+
+// A whole decimal int64, as the keys travel: "-1001234567890".
+bool parse_i64(const std::string &s, std::int64_t &out) {
+  std::size_t digits = s.size() && s[0] == '-' ? 1 : 0;
+  if (digits == s.size() || s.size() > 20) {
+    return false;
+  }
+  for (std::size_t i = digits; i < s.size(); ++i) {
+    if (s[i] < '0' || s[i] > '9') {
+      return false;
+    }
+  }
+  errno = 0;
+  const long long n = std::strtoll(s.c_str(), nullptr, 10);
+  out = n;
+  return errno == 0;
+}
 
 // The common start: the account is logged in and "chat" is a string holding an int64. False after the reply.
 bool request_chat(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t &chat) {

@@ -92,6 +92,9 @@ const std::string &user_photo(std::int64_t user_id);
 // event (jid: the user id, photo: the path) comes to every connection when it is. False when there is nothing to ask:
 // no photo, it is here, or it was asked for already (its event is still to come).
 bool user_photo_ask(std::int64_t user_id);
+// Telegram's built-in accent colour of a user, 0 red, 1 orange, 2 violet, 3 green, 4 cyan, 5 blue, 6 pink: what colours
+// their name in a group. False when the user is not known (no updateUser came for them).
+bool user_color(std::int64_t user_id, int &color);
 
 // body.cpp: what a message says, as one piece of text, without a sender's name in front. is_service is set for the
 // service messages ("Anna joined") and the calls: their previews take no name either.
@@ -128,14 +131,16 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
 // The common start of a request about a chat: the account is logged in and "chat" is a string holding an int64
 // (`unlinked` or `bad_request` otherwise). False after the reply.
 bool request_chat(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t &chat);
+// A whole decimal int64 as the keys travel ("-1001234567890"); false for anything else, or one that does not fit.
+bool parse_i64(const std::string &s, std::int64_t &out);
 // A path a request names for a file to send: absolute and an existing regular file (stat). Its size goes in `size`.
 bool regular_file(const std::string &path, std::int64_t &size);
 
 // profile.cpp: profile.get and profile.set, our own account's name, about, phone and picture. They have no chat.
 bool profile_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
-// pages.cpp: contact.info, channel.info, group.info, contacts.list, chat.clear, chat.delete and channel.unfollow, the
-// requests behind the info pages.
+// pages.cpp: contact.info, channel.info, group.info, contacts.list, senders.get, chat.clear, chat.delete and
+// channel.unfollow, the requests behind the info pages and the group chat's senders.
 bool pages_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).

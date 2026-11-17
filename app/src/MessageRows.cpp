@@ -139,12 +139,23 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     m.data["html"] = MessageKinds::html(shown, extra);
     m.data["quote"] = q.value(9).toString();
     m.data["sender"] = sender;
+    // Who sent it, by id: the runs of one person's messages are made of it, and so is the tile beside them. Only an
+    // incoming message in a group has one; a service line or a notice (kinds 6, 13) is no one's, so it breaks a run.
+    QString senderId;
+    if (m_group && !out && kind != 6 && kind != 13 && !q.value(5).isNull())
+        senderId = q.value(5).toString();
+    m.data["senderId"] = senderId;
+    m.data["senderInitials"] = initials(sender);
+    // The colour of a name the engine hasn't answered for yet: a hash of the id, over the same seven colours. data()
+    // swaps in the sender's own once senders.get has said it.
     QString color;
-    if (!sender.isEmpty()) {
-        const QString key = q.value(5).isNull() ? sender : q.value(5).toString();
-        color = pickColor(key, kSenders, kSenderCount);
-    }
+    if (!sender.isEmpty() || !senderId.isEmpty())
+        color = pickColor(senderId.isEmpty() ? sender : senderId, kSenders, kSenderCount);
     m.data["senderColor"] = color;
+    // A positive id is a user, which is all senders.get knows: a chat that posts as itself has a negative one.
+    if (!senderId.isEmpty() && !senderId.startsWith('-') && !m_senders.contains(senderId)
+        && !m_sendersAsked.contains(senderId))
+        m_sendersWanted.insert(senderId);
     // In groups a quote says whose message it was, in that person's colour; ours is "You", in
     // the primary colour (quoteColor ""). ponytail: only when the quoted message is in
     // chats.db; store ContextInfo's participant (a quote_sender column) if older quotes need it.

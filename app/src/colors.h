@@ -22,10 +22,12 @@ inline const char *pickColor(const QString &key, const char *const *colors, int 
 static const char *const kColors[] = { "#779933", "#CC3F10", "#087099", "#A30D7E" };
 static const int kColorCount = sizeof kColors / sizeof *kColors;
 
-// Sender name colours; light enough to read on the dark card (tune on the Q10). Shared by the
-// chat's cards and the group info page, so a member has one colour in both.
-static const char *const kSenders[] = { "#4FC3F7", "#FF8A65", "#AED581", "#BA68C8", "#FFD54F",
-                                        "#4DB6AC", "#F06292", "#7986CB" };
+// Sender name colours: Telegram's seven peer colours, in the order of its accent ids (0 red, 1 orange, 2 violet,
+// 3 green, 4 cyan, 5 blue, 6 pink), so the engine's senders.get names one by its index. Until it answers, a sender
+// has the one pickColor gives their id. Shared by the chat's cards and the group info page, so a member has one
+// colour in both.
+static const char *const kSenders[] = { "#E17076", "#FAA774", "#A695E7", "#7BC862", "#6EC9CB", "#65AADD",
+                                        "#EE7AAE" };
 static const int kSenderCount = sizeof kSenders / sizeof *kSenders;
 
 // The first character of a word, a whole surrogate pair when it's one.

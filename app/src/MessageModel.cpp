@@ -3,6 +3,7 @@
 #include "Albums.h"
 #include "EngineLink.h"
 #include "Moves.h"
+#include "colors.h"
 #include "dates.h"
 
 #include <bb/utility/i18n/Formatting>
@@ -41,6 +42,8 @@ static const qint64 kNoFloor = 0x7fffffffffffffffLL;
 static const int kWindowGiveUpMs = 15000;
 // m_low before the list says where it is: far from the bottom, so nothing loads newer by a stale guess.
 static const int kFar = 0x7fffffff;
+// The most users one senders.get names (docs/protocol.md).
+static const int kSenderBatch = 100;
 
 bool MessageModel::lessThan(const Msg &a, const Msg &b)
 {
@@ -77,6 +80,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     connect(engine, SIGNAL(connectedChanged()), this, SLOT(onConnected()));
     connect(engine, SIGNAL(replied(QString, QString, QVariant)), this,
             SLOT(onReplied(QString, QString, QVariant)));
+    connect(engine, SIGNAL(photo(QString, QString)), this, SLOT(onPhoto(QString, QString)));
     m_historyAt.invalidate(); // QElapsedTimer has no constructor
     m_bridgeAt.invalidate();
     m_newerAt.invalidate();
@@ -148,7 +152,22 @@ QVariant MessageModel::data(const QVariantList &indexPath)
     const Entry e = m_entries.value(indexPath.value(0).toInt());
     if (e.msg < 0)
         return e.title;
-    return e.members.isEmpty() ? QVariant(m_all[e.msg].data) : QVariant(albumData(e));
+    QVariantMap d = e.members.isEmpty() ? m_all[e.msg].data : albumData(e);
+    if (!m_group)
+        return d;
+    // A group's cards: the runs' flags, and what the engine said of the sender. Set on every row that has a sender id,
+    // "" and all, so a recycled card never keeps another sender's picture.
+    d["showName"] = e.showName;
+    d["showTile"] = e.showTile;
+    const QString who = d.value("senderId").toString();
+    if (!who.isEmpty()) {
+        const QHash<QString, Sender>::const_iterator it = m_senders.constFind(who);
+        if (it != m_senders.constEnd() && it->color >= 0 && it->color < kSenderCount)
+            d["senderColor"] = QString::fromLatin1(kSenders[it->color]);
+        d["senderTag"] = it != m_senders.constEnd() ? it->tag : QString();
+        d["senderPhoto"] = it != m_senders.constEnd() ? it->photo : QString();
+    }
+    return d;
 }
 
 // An album's card: the first member's map (so its menu, reactions and search tint are the first
@@ -276,6 +295,83 @@ void MessageModel::onReplied(const QString &id, const QString &cmd, const QVaria
         takeHistory(result.toMap());
     else if (id == m_bridgeId)
         takeBridge(result.toMap());
+    else if (m_senderAsks.contains(id))
+        takeSenders(id, result.toMap());
+}
+
+// Asks senders.get for the senders of the rows just read, in batches of 100: the colour of their names, an admin's tag
+// and their picture (docs/protocol.md). Not before the engine is there; the ids stay wanted, and the rows read again on
+// connecting collect them again.
+void MessageModel::askSenders()
+{
+    if (!m_group || m_sendersWanted.isEmpty() || !m_engine || !m_engine->connected())
+        return;
+    const QStringList wanted = m_sendersWanted.toList();
+    for (int from = 0; from < wanted.size(); from += kSenderBatch) {
+        const QStringList part = wanted.mid(from, kSenderBatch);
+        QVariantList users;
+        foreach (const QString &id, part)
+            users << id; // strings: ids exceed 2^53
+        QVariantMap ask;
+        ask["chat"] = m_chat;
+        ask["users"] = users;
+        const QString request = m_engine->requestQuiet("senders.get", ask);
+        if (request.isEmpty())
+            return;
+        m_senderAsks.insert(request, part);
+        foreach (const QString &id, part) {
+            m_sendersAsked.insert(id);
+            m_sendersWanted.remove(id);
+        }
+    }
+}
+
+// The answer: an entry for each sender the engine knows. The ones it left out (TDLib hasn't told it of them yet) are
+// forgotten, so the next row of theirs that is read asks again; their names keep the hash colour meanwhile.
+void MessageModel::takeSenders(const QString &id, const QVariantMap &r)
+{
+    const QStringList asked = m_senderAsks.take(id);
+    QSet<QString> got;
+    foreach (const QString &who, asked) {
+        if (!r.contains(who)) {
+            m_sendersAsked.remove(who);
+            continue;
+        }
+        const QVariantMap one = r.value(who).toMap();
+        Sender s;
+        s.color = one.value("color").toInt();
+        s.tag = one.value("tag").toString();
+        s.photo = one.value("photo").toString();
+        m_senders.insert(who, s);
+        got.insert(who);
+    }
+    updateSenders(got, false);
+}
+
+// A sender's small picture came after senders.get answered (the engine's photo event, for every connection): only the
+// senders this chat knows, and only their pictures change.
+void MessageModel::onPhoto(const QString &jid, const QString &path)
+{
+    QHash<QString, Sender>::iterator it = m_senders.find(jid);
+    if (it == m_senders.end() || it->photo == path)
+        return;
+    it->photo = path;
+    updateSenders(QSet<QString>() << jid, true);
+}
+
+// The cards of these senders are drawn again: every entry of theirs that shows something of them, a name, a tag or a
+// picture (tilesOnly: just the pictures). itemUpdated doesn't move the list.
+void MessageModel::updateSenders(const QSet<QString> &senders, bool tilesOnly)
+{
+    if (senders.isEmpty())
+        return;
+    for (int i = 0; i < m_entries.size(); ++i) {
+        const Entry &e = m_entries[i];
+        if (e.msg < 0 || !(e.showTile || (e.showName && !tilesOnly)))
+            continue;
+        if (senders.contains(m_all[e.msg].data.value("senderId").toString()))
+            emit itemUpdated(QVariantList() << i);
+    }
 }
 
 // chat.open verified the newest 50 and says where they start and end.
@@ -716,6 +812,8 @@ void MessageModel::onConnected()
     m_historyId.clear(); // so is a chat.history
     m_bridgeId.clear(); // and a bridge: the chat.open that follows checks the gap again
     m_newerId.clear(); // and a chat.newer
+    m_senderAsks.clear(); // and a senders.get: the rows read again below collect the senders still unknown
+    m_sendersAsked = QSet<QString>::fromList(m_senders.keys());
     if (m_all.isEmpty()) {
         loadPage();
         return;
@@ -790,6 +888,7 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
     const QStringList old = keys();
     m_all = all;
     refresh(old, updated);
+    askSenders(); // the senders of the rows read, now that they are in
     if (incoming)
         emit this->incoming();
 }
@@ -823,9 +922,12 @@ static bool isSubsequence(const QStringList &a, const QStringList &b)
 void MessageModel::refresh(const QStringList &old, const QSet<QString> &updated)
 {
     QHash<QString, QString> sigs; // the albums as they were: m_entries is still the old list
+    QHash<QString, int> drawn;    // and how a group's entries were drawn: showName and showTile
     foreach (const Entry &e, m_entries) {
         if (!e.sig.isEmpty())
             sigs.insert(e.key, e.sig);
+        if (m_group)
+            drawn.insert(e.key, (e.showName ? 1 : 0) | (e.showTile ? 2 : 0));
     }
     rebuild();
     const QStringList now = keys();
@@ -868,6 +970,11 @@ void MessageModel::refresh(const QStringList &old, const QSet<QString> &updated)
     for (int j = 0; j < m_entries.size(); ++j) {
         const Entry &e = m_entries[j];
         if (!e.sig.isEmpty() && sigs.contains(e.key) && sigs.value(e.key) != e.sig)
+            touched.insert(j);
+        // A new message from the same person ended the run the entry above it was the newest of: it loses its picture
+        // (and an older page can take the name off the oldest one).
+        const QHash<QString, int>::const_iterator was = drawn.constFind(e.key);
+        if (was != drawn.constEnd() && was.value() != ((e.showName ? 1 : 0) | (e.showTile ? 2 : 0)))
             touched.insert(j);
     }
     touched.remove(-1);
@@ -992,7 +1099,31 @@ void MessageModel::rebuild()
             m_entries.append(h);
         }
     }
+    if (m_group)
+        markRuns();
     // m_entries changes only here, so this is the one place that tells `empty` changed.
     if (wasEmpty != m_entries.isEmpty())
         emit emptyChanged();
+}
+
+// Whose message entry i is, for the runs: the sender's id of an incoming message in a group. "" for what is no one's: a
+// day's header, the unread divider, a service line, our own message, and what is past either end of the list. Each of
+// those breaks a run.
+QString MessageModel::runOf(int i) const
+{
+    if (i < 0 || i >= m_entries.size() || m_entries[i].msg < 0)
+        return QString();
+    return m_all[m_entries[i].msg].data.value("senderId").toString(); // an album's is its first member's
+}
+
+// A group's runs, as Telegram draws them: one person's consecutive messages share a single name, above the oldest, and a
+// single picture, beside the newest. The list is newest first, so the older neighbour is the next index. A message with
+// no sender id (nothing to tell it apart by) keeps its name and takes no picture.
+void MessageModel::markRuns()
+{
+    for (int i = 0; i < m_entries.size(); ++i) {
+        const QString who = runOf(i);
+        m_entries[i].showName = who.isEmpty() || runOf(i + 1) != who;
+        m_entries[i].showTile = !who.isEmpty() && runOf(i - 1) != who;
+    }
 }

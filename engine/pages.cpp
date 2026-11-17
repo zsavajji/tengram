@@ -1,13 +1,14 @@
-// The requests behind the info pages: contact.info, channel.info, group.info, contacts.list, chat.clear, chat.delete
-// and channel.unfollow (docs/protocol.md). Each is a chain of TDLib calls with one reply at the end; what the pages
-// show of people and chats comes from the mirror in chats.cpp (user_name, chat_title) where TDLib guarantees it is
-// there already: an updateUser or updateNewChat comes before any answer names the user or the chat.
+// The requests behind the info pages: contact.info, channel.info, group.info, contacts.list, senders.get, chat.clear,
+// chat.delete and channel.unfollow (docs/protocol.md). Each is a chain of TDLib calls with one reply at the end;
+// what the pages show of people and chats comes from the mirror in chats.cpp (user_name, chat_title) where TDLib
+// guarantees it is there already: an updateUser or updateNewChat comes before any answer names the user or the chat.
 
 #include "engine.h"
 
 #include <algorithm>
 #include <cctype>
 #include <memory>
+#include <unordered_map>
 
 namespace {
 
@@ -16,6 +17,8 @@ using td_api::make_object;
 constexpr int kMembers = 200;        // the most members group.info lists (TDLib gives 200 a call)
 constexpr int kMemberPhotos = 50;    // the most member photos one group.info asks for in the background
 constexpr int kContactPhotos = 100;  // the same for contacts.list
+constexpr std::size_t kSenders = 100;  // the most users one senders.get names
+constexpr int kSenderPhotos = 50;      // the most sender photos one senders.get asks for in the background
 
 void td_failed(std::uint64_t conn, const std::string &id, const td_api::error &e) {
   say("td error: %d %s", e.code_, e.message_.c_str());
@@ -345,6 +348,80 @@ void contacts_list(std::uint64_t conn, const std::string &id) {
   });
 }
 
+// ---- senders.get
+
+// What a group chat's cards show of each sender: the colour of the name, an admin's tag, the small photo. Everything
+// comes from the mirror in chats.cpp except the tags, which TDLib gives for the chat as a whole.
+struct Senders {
+  std::vector<std::int64_t> users;
+  std::unordered_map<std::int64_t, std::string> tags;  // an administrator's tag; the others have none
+};
+
+void senders_reply(std::uint64_t conn, const std::string &id, const Senders &s) {
+  std::vector<std::int64_t> missing;  // the senders whose photo is not here
+  server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&](auto &o) {
+                    for (std::int64_t user : s.users) {
+                      int color = 0;
+                      if (!user_color(user, color)) {  // not known: left out, the UI keeps its own colour for them
+                        continue;
+                      }
+                      const auto tag = s.tags.find(user);
+                      const std::string &photo = user_photo(user);
+                      if (photo.empty()) {
+                        missing.push_back(user);
+                      }
+                      o(std::to_string(user), td::json_object([&](auto &one) {
+                          one("color", color);
+                          one("tag", tag == s.tags.end() ? std::string() : tag->second);
+                          if (!photo.empty()) {
+                            one("photo", photo);
+                          }
+                        }));
+                    }
+                  })));
+  ask_photos(missing, kSenderPhotos);
+}
+
+void senders_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  td::JsonValue list;
+  if (optional_field(req, "users", td::JsonValue::Type::Array, list) != 1) {
+    return server.reply_error(conn, id, "bad_request", "need users, an array of user ids");
+  }
+  if (list.get_array().size() > kSenders) {  // before the walk below, which looks for duplicates in what it has
+    return server.reply_error(conn, id, "bad_request", "users holds 1 to 100 user ids");
+  }
+  auto s = std::make_shared<Senders>();
+  for (const td::JsonValue &item : list.get_array()) {
+    std::int64_t user = 0;
+    if (item.type() != td::JsonValue::Type::String || !parse_i64(item.get_string().str(), user)) {
+      return server.reply_error(conn, id, "bad_request", "users are strings with user ids");
+    }
+    if (std::find(s->users.begin(), s->users.end(), user) == s->users.end()) {
+      s->users.push_back(user);
+    }
+  }
+  if (s->users.empty() || s->users.size() > kSenders) {
+    return server.reply_error(conn, id, "bad_request", "users holds 1 to 100 user ids");
+  }
+  with_chat(conn, id, chat, [conn, id, chat, s](const td_api::chat &c) {
+    if (!basic_group_of(c) && !supergroup_of(c, false)) {
+      return bad_chat(conn, id, "not a group");
+    }
+    tdlib.send(make_object<td_api::getChatAdministrators>(chat), [conn, id, s](Obj o) {
+      if (auto e = as_error(o)) {  // no tags then, and the colours and photos still go
+        say("senders.get: administrators: %d %s", e->code_, e->message_.c_str());
+      } else {
+        for (const auto &a : static_cast<const td_api::chatAdministrators &>(*o).administrators_) {
+          if (a) {
+            s->tags[a->user_id_] = !a->custom_title_.empty() ? a->custom_title_ : a->is_owner_ ? "owner" : "admin";
+          }
+        }
+      }
+      senders_reply(conn, id, *s);
+    });
+  });
+}
+
 // ---- chat.clear, chat.delete, channel.unfollow
 
 // What deleteChatHistory's revoke has to be for TDLib to take it. The history goes for us alone (revoke false), which
@@ -398,7 +475,7 @@ void channel_unfollow(std::uint64_t conn, const std::string &id, std::int64_t ch
 
 bool pages_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"contact.info", "channel.info", "group.info", "contacts.list",
-                                     "chat.clear",   "chat.delete",  "channel.unfollow"};
+                                     "senders.get",  "chat.clear",   "chat.delete", "channel.unfollow"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -420,6 +497,8 @@ bool pages_handle(std::uint64_t conn, const std::string &id, const std::string &
     channel_info(conn, id, chat);
   } else if (cmd == "group.info") {
     group_info(conn, id, chat);
+  } else if (cmd == "senders.get") {
+    senders_get(conn, id, req, chat);
   } else if (cmd == "chat.clear") {
     chat_clear(conn, id, chat);
   } else if (cmd == "chat.delete") {

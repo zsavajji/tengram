@@ -63,6 +63,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `channel.info` | `chat` (a channel) | `{followers, description, picture}` | `bad_chat` |
 | `group.info` | `chat` (a basic group, or a supergroup that is not a channel) | `{subject, description, participants: [{jid, name, admin, me, photo}], count, picture, membersAdd}`; `photo` is absent when not downloaded yet | `bad_chat` |
 | `contacts.list` | — | `[{jid, name, photo}]`, an array: the account's contacts by name; `photo` is absent when not downloaded yet | |
+| `senders.get` | `chat` (a basic group, or a supergroup that is not a channel), `users` [user ids, 1 to 100] | `{"<user id>": {color, tag, photo}, …}`, `photo` is absent when not downloaded yet; a user the engine does not know is left out | `bad_chat` |
 | `chat.clear` | `chat` | — | |
 | `chat.delete` | `chat` | — | |
 | `channel.unfollow` | `chat` (a channel) | — | `bad_chat` |
@@ -195,6 +196,20 @@ the reply, and each one that comes arrives as a `photo` event.
 `name` the full name, and they are sorted by `name` ignoring case (only for the ASCII letters: a name in another
 script sorts by its UTF-8 bytes). `photo` is as a `group.info` participant's, for at most 100 contacts a request.
 
+**`senders.get`:** what a group chat's cards show of the people who wrote in it. `chat` is a basic group or a supergroup
+that is not a channel, any other is `bad_chat`; `users` holds 1 to 100 user ids (strings; duplicates count once), anything
+else is `bad_request`. The result is an object keyed by user id, with one entry for each user the engine knows (it has had
+an `updateUser` for them: TDLib sends one before it hands over a message of theirs, so the senders of a page `chat.open`
+or `chat.history` made are known, but after an engine restart the sender of an older cached row may not be yet) and none
+for the others, which can be asked again later. `color` is the
+user's Telegram accent colour as one of the seven built-in ones: 0 red, 1 orange, 2 violet, 3 green, 4 cyan, 5 blue, 6
+pink. A user whose `accent_color_id` is above 6 has a server colour, which maps to its `built_in_accent_color_id` from
+TDLib's `updateAccentColors`; one that list does not name gets the id modulo 7. `tag` is what Telegram shows after the
+name of an administrator: their custom title when they have one, else `owner` for the creator, else `admin`; "" for
+everyone else, and for everyone when TDLib refuses `getChatAdministrators` (logged; the reply still goes). `photo` is the
+path of the user's small profile photo, absent when it is not downloaded yet: the engine then asks TDLib for it in the
+background (for at most 50 users a request), after the reply, and each one that comes arrives as a `photo` event.
+
 **`chat.clear`:** deletes the chat's messages for us alone (TDLib's `deleteChatHistory`, the chat staying in the
 list); an active secret chat is the one exception, TDLib deletes its history only for both sides. The rows go with
 TDLib's delete updates, as `msg.delete`'s do (`msgs` events). The chat's `last_preview` stays as it was until its
@@ -225,7 +240,7 @@ not pruned). Defaults: `auto`, 300, true, true, "", 64.
 | `msgs` | `chat`, `ids`: [message ids] | these rows of `messages` changed or disappeared: re-read them |
 | `typing` | `chat`, `who` (first name in a group, "" in a 1:1 chat), `on`, `voice` (recording a voice note) | someone started or stopped typing; only for chats between their `chat.open` and `chat.close` |
 | `presence` | `chat`, `online`, `lastSeen` (unix seconds, 0 when hidden) | the other person's online status in a 1:1 chat, once after `chat.open` and at every change until `chat.close` |
-| `photo` | `jid` (a user id), `photo` (the absolute path of the user's small profile photo) | a photo that `group.info` or `contacts.list` left out is downloaded: put it on that person's row |
+| `photo` | `jid` (a user id), `photo` (the absolute path of the user's small profile photo) | a photo that `group.info`, `contacts.list` or `senders.get` left out is downloaded: put it on that person's row |
 
 `chats` and `msgs` come after the engine commits, at most every 50 ms. `photo` does not wait for that: it comes when
 TDLib has downloaded the photo, which is always after the reply that left it out.

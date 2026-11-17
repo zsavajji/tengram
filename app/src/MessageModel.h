@@ -26,12 +26,19 @@ class EngineLink;
 // older page is appended at the model's end (the visual top) without moving the rows on
 // screen. itemType: "header" (data: the title), "msg", or "service" for kinds 6 and 13 (MessageKinds
 // words it). A "msg" is a map of id, out, state, edited, starred, deleted, revocable, time, label, text, quote,
-// sender and senderColor, and media ("photo", "video", "doc", "sticker", "audio" or "") with the keys
+// sender (the name), senderId, senderColor, senderTag, senderPhoto, senderInitials, showName, showTile (see "Group
+// chats" below), and media ("photo", "video", "doc", "sticker", "audio" or "") with the keys
 // MediaData.h lists. Reading a sticker row that is still on the server asks the engine for its file,
 // once per page. Every "msg" has album, a list: empty, or for an album (step 6.5g, Albums.h's rule) the
 // members' maps oldest first. An album is ONE entry, keyed "album:" and its first member's id, whose
 // map is that first member's plus album, albumCount, media "" (so MediaBubble isn't built) and the
 // last member's time and state, since the card shows when it ended.
+// Group chats show each sender's square picture beside their messages, in Telegram's colours, with an admin's tag
+// after the name. What the engine knows of a sender (senders.get: colour, tag, photo) is kept in m_senders, asked
+// once per sender for the senders of the rows just read, and applied by data(), not baked into the rows: an answer,
+// or a photo event, is an itemUpdated of that sender's entries. Whose messages make a run is decided in rebuild
+// (markRuns): the name shows on the oldest message of a run, the picture on the newest, and refresh tells the entries
+// whose flags changed (a new message from the same person takes the picture off the one above) with itemUpdated.
 // The newest 50 load at once, older pages as the list nears its top. Only rows from the verified
 // floor up are shown: chat.open and chat.history (docs/protocol.md) say the oldest id the engine
 // made exactly Telegram's, and older rows may have gaps. A page can end inside a day, so the
@@ -126,6 +133,7 @@ private slots:
     void onMsgs(const QString &chat, const QStringList &ids);
     void onConnected();
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
+    void onPhoto(const QString &jid, const QString &path);
     void giveUp();
 
 private:
@@ -147,6 +155,18 @@ private:
         int msg;           // index into m_all; -1 for a header, an album's first member
         QList<int> members; // an album's, in m_all; empty for a message
         QString sig;       // an album's member ids joined: refresh tells a changed album by it
+        // A group's runs of one person's messages (markRuns): the name shows on the run's oldest message, the picture
+        // on its newest. Both are for the card to read; a header has no use for them.
+        bool showName;
+        bool showTile;
+        Entry() : msg(-1), showName(true), showTile(false) {}
+    };
+    // What the engine said of a sender (senders.get, then a photo event).
+    struct Sender
+    {
+        int color;       // 0 to 6: an index into kSenders
+        QString tag;     // an admin's tag, "" for none
+        QString photo;   // the small picture's path, "" for none yet
     };
 
     static bool lessThan(const Msg &a, const Msg &b);
@@ -173,6 +193,11 @@ private:
     bool atStart() const;
     void merge(const QStringList &asked, const QList<Msg> &fresh, bool older);
     void rebuild();
+    QString runOf(int entry) const;
+    void markRuns();
+    void askSenders();
+    void takeSenders(const QString &id, const QVariantMap &r);
+    void updateSenders(const QSet<QString> &senders, bool tilesOnly);
     QStringList keys() const;
     int entryOf(const QString &id) const;
     QVariantMap albumData(const Entry &e) const;
@@ -214,6 +239,10 @@ private:
     QSet<QString> m_hidden;
     QSet<QString> m_revealed; // the spoilers tapped open (unspoil)
     QSet<QString> m_asked; // the ids of the stickers, photos and videos asked for from the engine (Sticker::fetch)
+    QHash<QString, Sender> m_senders; // a group's senders by user id, as senders.get answered
+    QSet<QString> m_sendersAsked; // the user ids senders.get was sent for, and the ones it answered: asked once
+    QSet<QString> m_sendersWanted; // the user ids of the rows read that nothing was asked for yet (askSenders)
+    QHash<QString, QStringList> m_senderAsks; // the senders.get requests in flight, by request id: the user ids in each
     QList<Entry> m_entries;
     bb::system::LocaleHandler m_region;
     QLocale m_locale; // the region's locale, read once per select()

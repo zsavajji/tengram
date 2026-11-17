@@ -74,12 +74,14 @@ struct UserNames {
   std::string first, full;
   int photo_file = 0;  // the small profile photo's file id, 0 for none
   std::string photo_path;  // "" until it is downloaded
+  int accent = 0;      // accent_color_id_: 0 to 6 are the built-in colours, a higher one is a server colour (accent_colors)
 };
 
 std::unordered_map<std::int64_t, Chat> chats;
 std::unordered_map<std::int64_t, UserNames> users;
 std::unordered_map<int, std::int64_t> downloads;  // photo file id -> chat id, for each download asked for
 std::unordered_map<int, std::int64_t> user_downloads;  // the same for the users' small profile photos
+std::unordered_map<int, int> accent_colors;       // a server accent colour's id -> the built-in one (0 to 6) to use for it
 std::unordered_set<std::int64_t> unknown_chats;   // chats an update named that we have no record of (logged once)
 std::vector<std::int64_t> dirty_ids;              // the chats with dirty set
 std::vector<std::int64_t> changed;                // written or deleted, their event is still to come
@@ -267,6 +269,17 @@ void set_user(const td_api::user &u) {
   const td_api::file *small = u.profile_photo_ ? u.profile_photo_->small_.get() : nullptr;
   n.photo_file = small ? small->id_ : 0;
   n.photo_path = small && small->local_ && small->local_->is_downloading_completed_ ? small->local_->path_ : "";
+  n.accent = u.accent_color_id_;
+}
+
+// updateAccentColors: TDLib lists only the server colours, the built-in 0 to 6 always exist and are not in it.
+void set_accent_colors(const td_api::updateAccentColors &u) {
+  accent_colors.clear();
+  for (const auto &c : u.colors_) {
+    if (c) {
+      accent_colors[c->id_] = c->built_in_accent_color_id_;
+    }
+  }
 }
 
 // A user's small photo is here: the UI is told, to every connection (a page that listed the user without it).
@@ -500,6 +513,22 @@ const std::string &user_photo(std::int64_t user_id) {
   return it == users.end() ? none : it->second.photo_path;
 }
 
+bool user_color(std::int64_t user_id, int &color) {
+  auto it = users.find(user_id);
+  if (it == users.end()) {
+    return false;
+  }
+  color = it->second.accent;
+  if (color > 6 || color < 0) {  // a server colour: its built-in one, else a guess that at least spreads them
+    auto server_color = accent_colors.find(color);
+    color = server_color != accent_colors.end() ? server_color->second : color % 7;
+  }
+  if (color > 6 || color < 0) {  // TDLib promises 0 to 6; never hand the UI anything else
+    color = 0;
+  }
+  return true;
+}
+
 bool user_photo_ask(std::int64_t user_id) {
   auto it = users.find(user_id);
   if (it == users.end() || it->second.photo_file == 0 || !it->second.photo_path.empty()) {
@@ -636,6 +665,9 @@ void chats_update(td_api::Object &update) {
       }
       break;
     }
+    case td_api::updateAccentColors::ID:
+      set_accent_colors(static_cast<td_api::updateAccentColors &>(update));
+      break;
     case td_api::updateFile::ID: {
       auto &f = *static_cast<td_api::updateFile &>(update).file_;
       if (!f.local_ || !f.local_->is_downloading_completed_) {

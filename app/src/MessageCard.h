@@ -38,7 +38,11 @@ class VoiceBubble;
 // ticks, and filled by show() on each recycle. Every other part is made the first time a message
 // needs it, then kept and hidden when the next one doesn't, since rows are recycled; each goes into
 // the card's column at its QML place. The column holds, in order: sender, quote, [the voice, media
-// and album bubbles], label, text, [link preview], invite button, [poll]. The picture card (a photo
+// and album bubbles], label, text, [link preview], invite button, [poll]. The sender is a line: the name, which only
+// the oldest message of a person's run shows, and at its right end the person's tag (an admin's). In a group, an
+// incoming message also has a tile before the card, the chat list's square, bottom aligned: the sender's picture over
+// their initials on their colour for the run's newest message, an empty spacer of the same width for the others,
+// so the run's cards line up. The picture card (a photo
 // or video) is a frame instead: a head with the sender and quote, the picture across the card's
 // width, and the card with the caption; with no caption the time sits on the picture. Elsewhere the time is
 // at the end of the text's last line, under a voice note's waveform, or else beside the column.
@@ -78,6 +82,11 @@ private:
     Invites *joiner() const;
 
     void makeSender();
+    void makeTile();
+    void fillTile(bool on);
+    float tileSpace() const;
+    // The name line shows: a group's incoming message that is the oldest of its run (MessageModel's showName).
+    bool named() const { return !str("sender").isEmpty() && flag("showName"); }
     void makeForwarded();
     void makeQuote();
     void makeLabel();
@@ -135,7 +144,19 @@ private:
     bb::cascades::Container *m_head;
     bb::cascades::Container *m_card;
     bb::cascades::Container *m_col;
+    // The row: the tile, the spacers and the card. The tile is made the first time a group's incoming message needs it.
+    bb::cascades::Container *m_row;
+    bb::cascades::Container *m_avatar;
+    bb::cascades::ImageView *m_photo;
+    bb::cascades::Label *m_initials;
+    QString m_photoPath; // what m_photo was last given, "" for none
+    // The name line: the name and, docked at its right end, the tag. m_tagRoom is a transparent copy of the tag after
+    // the name, which keeps the two apart when the line is as narrow as both.
+    bb::cascades::Container *m_nameLine;
+    bb::cascades::Container *m_names;
     bb::cascades::Label *m_sender;
+    bb::cascades::Label *m_tagRoom;
+    bb::cascades::Label *m_tag;
     // "Forwarded", or "Forwarded many times", under the sender: an arrow and a grey italic word.
     bb::cascades::Container *m_fwd;
     bb::cascades::ImageView *m_fwdIcon;
