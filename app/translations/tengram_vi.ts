@@ -1001,6 +1001,69 @@
     </message>
 </context>
 <context>
+    <name>DevicesPage</name>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="17"/>
+        <source>Devices</source>
+        <translation>Thiết bị</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="56"/>
+        <source>Link desktop device</source>
+        <translation>Liên kết thiết bị máy tính</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="63"/>
+        <source>Terminate all other sessions</source>
+        <translation>Chấm dứt tất cả phiên khác</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="133"/>
+        <source>New login</source>
+        <translation>Đăng nhập mới</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="149"/>
+        <source>Terminate this session?</source>
+        <translation>Chấm dứt phiên này?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="150"/>
+        <source>Terminate</source>
+        <translation>Chấm dứt</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="151"/>
+        <source>Cancel</source>
+        <translation>Hủy</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="161"/>
+        <source>Are you sure you want to terminate all other sessions?</source>
+        <translation>Bạn có chắc chắn muốn chấm dứt tất cả các phiên khác không?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="181"/>
+        <source>Loading…</source>
+        <translation>Đang tải…</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="190"/>
+        <source>Couldn&apos;t load the devices. Check the connection and try again.</source>
+        <translation>Không tải được danh sách thiết bị. Hãy kiểm tra kết nối và thử lại.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="194"/>
+        <source>This device</source>
+        <translation>Thiết bị này</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="202"/>
+        <source>Active sessions</source>
+        <translation>Phiên hoạt động</translation>
+    </message>
+</context>
+<context>
     <name>EmojiModel</name>
     <message>
         <location filename="../src/EmojiModel.cpp" line="28"/>
@@ -2090,6 +2153,34 @@
     </message>
 </context>
 <context>
+    <name>QrScanPage</name>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="17"/>
+        <source>Link desktop device</source>
+        <translation>Liên kết thiết bị máy tính</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="70"/>
+        <source>Device linked</source>
+        <translation>Đã liên kết thiết bị</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="74"/>
+        <source>Not a Telegram login code</source>
+        <translation>Đây không phải mã đăng nhập Telegram</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="81"/>
+        <source>Couldn&apos;t open the camera</source>
+        <translation>Không mở được camera</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="110"/>
+        <source>Scan the QR code shown by Telegram Desktop (Settings → Devices → Link Desktop Device)</source>
+        <translation>Quét mã QR do Telegram Desktop hiển thị (Cài đặt → Thiết bị → Liên kết thiết bị máy tính)</translation>
+    </message>
+</context>
+<context>
     <name>ReactBar</name>
     <message>
         <location filename="../assets/ReactBar.qml" line="58"/>
@@ -2160,6 +2251,14 @@
     </message>
 </context>
 <context>
+    <name>Sessions</name>
+    <message>
+        <location filename="../src/Sessions.cpp" line="115"/>
+        <source>online</source>
+        <translation>trực tuyến</translation>
+    </message>
+</context>
+<context>
     <name>SettingsPage</name>
     <message>
         <source>Proximity sensor</source>
@@ -2183,6 +2282,16 @@
         <location filename="../assets/SettingsPage.qml" line="36"/>
         <source>Name, bio, picture, log out</source>
         <translation>Tên, tiểu sử, ảnh, đăng xuất</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="41"/>
+        <source>Devices</source>
+        <translation>Thiết bị</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="41"/>
+        <source>Active sessions, link a desktop device</source>
+        <translation>Phiên hoạt động, liên kết thiết bị máy tính</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38"/>

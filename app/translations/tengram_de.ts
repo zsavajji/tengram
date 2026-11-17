@@ -1003,6 +1003,69 @@
     </message>
 </context>
 <context>
+    <name>DevicesPage</name>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="17"/>
+        <source>Devices</source>
+        <translation>Geräte</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="56"/>
+        <source>Link desktop device</source>
+        <translation>Desktop-Gerät verbinden</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="63"/>
+        <source>Terminate all other sessions</source>
+        <translation>Alle anderen Sitzungen beenden</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="133"/>
+        <source>New login</source>
+        <translation>Neue Anmeldung</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="149"/>
+        <source>Terminate this session?</source>
+        <translation>Diese Sitzung beenden?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="150"/>
+        <source>Terminate</source>
+        <translation>Beenden</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="151"/>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="161"/>
+        <source>Are you sure you want to terminate all other sessions?</source>
+        <translation>Möchtest du wirklich alle anderen Sitzungen beenden?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="181"/>
+        <source>Loading…</source>
+        <translation>Wird geladen…</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="190"/>
+        <source>Couldn&apos;t load the devices. Check the connection and try again.</source>
+        <translation>Die Geräte konnten nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="194"/>
+        <source>This device</source>
+        <translation>Dieses Gerät</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="202"/>
+        <source>Active sessions</source>
+        <translation>Aktive Sitzungen</translation>
+    </message>
+</context>
+<context>
     <name>EmojiModel</name>
     <message>
         <location filename="../src/EmojiModel.cpp" line="28"/>
@@ -2093,6 +2156,34 @@
     </message>
 </context>
 <context>
+    <name>QrScanPage</name>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="17"/>
+        <source>Link desktop device</source>
+        <translation>Desktop-Gerät verbinden</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="70"/>
+        <source>Device linked</source>
+        <translation>Gerät verbunden</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="74"/>
+        <source>Not a Telegram login code</source>
+        <translation>Kein Telegram-Anmeldecode</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="81"/>
+        <source>Couldn&apos;t open the camera</source>
+        <translation>Die Kamera konnte nicht geöffnet werden</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="110"/>
+        <source>Scan the QR code shown by Telegram Desktop (Settings → Devices → Link Desktop Device)</source>
+        <translation>Scanne den QR-Code, den Telegram Desktop anzeigt (Einstellungen → Geräte → Desktop-Gerät verbinden)</translation>
+    </message>
+</context>
+<context>
     <name>ReactBar</name>
     <message>
         <location filename="../assets/ReactBar.qml" line="58"/>
@@ -2163,6 +2254,14 @@
     </message>
 </context>
 <context>
+    <name>Sessions</name>
+    <message>
+        <location filename="../src/Sessions.cpp" line="115"/>
+        <source>online</source>
+        <translation>online</translation>
+    </message>
+</context>
+<context>
     <name>SettingsPage</name>
     <message>
         <source>Proximity sensor</source>
@@ -2186,6 +2285,16 @@
         <location filename="../assets/SettingsPage.qml" line="36"/>
         <source>Name, bio, picture, log out</source>
         <translation>Name, Bio, Foto, Abmelden</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="41"/>
+        <source>Devices</source>
+        <translation>Geräte</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="41"/>
+        <source>Active sessions, link a desktop device</source>
+        <translation>Aktive Sitzungen, Desktop-Gerät verbinden</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38"/>

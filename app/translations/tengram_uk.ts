@@ -1005,6 +1005,69 @@
     </message>
 </context>
 <context>
+    <name>DevicesPage</name>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="17"/>
+        <source>Devices</source>
+        <translation>Пристрої</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="56"/>
+        <source>Link desktop device</source>
+        <translation>Підключити пристрій</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="63"/>
+        <source>Terminate all other sessions</source>
+        <translation>Завершити всі інші сеанси</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="133"/>
+        <source>New login</source>
+        <translation>Новий вхід</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="149"/>
+        <source>Terminate this session?</source>
+        <translation>Завершити цей сеанс?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="150"/>
+        <source>Terminate</source>
+        <translation>Завершити</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="151"/>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="161"/>
+        <source>Are you sure you want to terminate all other sessions?</source>
+        <translation>Ви впевнені, що хочете завершити всі інші сеанси?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="181"/>
+        <source>Loading…</source>
+        <translation>Завантаження…</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="190"/>
+        <source>Couldn&apos;t load the devices. Check the connection and try again.</source>
+        <translation>Не вдалося завантажити пристрої. Перевірте з’єднання та повторіть спробу.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="194"/>
+        <source>This device</source>
+        <translation>Цей пристрій</translation>
+    </message>
+    <message>
+        <location filename="../assets/DevicesPage.qml" line="202"/>
+        <source>Active sessions</source>
+        <translation>Активні сеанси</translation>
+    </message>
+</context>
+<context>
     <name>EmojiModel</name>
     <message>
         <location filename="../src/EmojiModel.cpp" line="28"/>
@@ -2096,6 +2159,34 @@
     </message>
 </context>
 <context>
+    <name>QrScanPage</name>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="17"/>
+        <source>Link desktop device</source>
+        <translation>Підключити пристрій</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="70"/>
+        <source>Device linked</source>
+        <translation>Пристрій підключено</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="74"/>
+        <source>Not a Telegram login code</source>
+        <translation>Це не код входу Telegram</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="81"/>
+        <source>Couldn&apos;t open the camera</source>
+        <translation>Не вдалося відкрити камеру</translation>
+    </message>
+    <message>
+        <location filename="../assets/QrScanPage.qml" line="110"/>
+        <source>Scan the QR code shown by Telegram Desktop (Settings → Devices → Link Desktop Device)</source>
+        <translation>Скануйте QR-код, який показує Telegram Desktop (Налаштування → Пристрої → Підключити пристрій)</translation>
+    </message>
+</context>
+<context>
     <name>ReactBar</name>
     <message>
         <location filename="../assets/ReactBar.qml" line="58"/>
@@ -2166,6 +2257,14 @@
     </message>
 </context>
 <context>
+    <name>Sessions</name>
+    <message>
+        <location filename="../src/Sessions.cpp" line="115"/>
+        <source>online</source>
+        <translation>у мережі</translation>
+    </message>
+</context>
+<context>
     <name>SettingsPage</name>
     <message>
         <source>Proximity sensor</source>
@@ -2189,6 +2288,16 @@
         <location filename="../assets/SettingsPage.qml" line="36"/>
         <source>Name, bio, picture, log out</source>
         <translation>Ім’я, про себе, фото, вихід</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="41"/>
+        <source>Devices</source>
+        <translation>Пристрої</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="41"/>
+        <source>Active sessions, link a desktop device</source>
+        <translation>Активні сеанси, підключити комп’ютер</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38"/>

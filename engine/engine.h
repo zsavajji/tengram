@@ -190,6 +190,10 @@ bool topics_read(std::int64_t chat, std::int32_t topic, std::function<void(const
 // profile.cpp: profile.get and profile.set, our own account's name, about, phone and picture. They have no chat.
 bool profile_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
+// sessions.cpp: sessions.list, sessions.terminate, sessions.terminateOthers and sessions.confirmQr, the devices the
+// account is signed in on and the QR code that signs a new one in. They have no chat.
+bool sessions_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+
 // pages.cpp: contact.info, channel.info, group.info, contacts.list, senders.get, chat.clear, chat.delete and
 // channel.unfollow, the requests behind the info pages and the group chat's senders.
 bool pages_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);

@@ -13,6 +13,10 @@ Page {
             source: "ProfilePage.qml"
         },
         ComponentDefinition {
+            id: devicesDef
+            source: "DevicesPage.qml"
+        },
+        ComponentDefinition {
             id: appearanceDef
             source: "AppearanceSettingsPage.qml"
         },
@@ -34,6 +38,7 @@ Page {
         // Off while unlinked, as the menu's Profile entry is: there is no account to show.
         if (engine.linked) {
             items.push({ title: qsTr("Account"), description: qsTr("Name, bio, picture, log out"), target: "account" })
+            items.push({ title: qsTr("Devices"), description: qsTr("Active sessions, link a desktop device"), target: "devices" })
         }
         items.push({ title: qsTr("Appearance"), description: qsTr("Theme, text size"), target: "appearance" })
         items.push({ title: qsTr("Chats"), description: qsTr("Enter key, proximity sensor"), target: "chats" })
@@ -48,6 +53,8 @@ Page {
     function openPage(target) {
         if (target == "account") {
             nav.push(profileDef.createObject())
+        } else if (target == "devices") {
+            nav.push(devicesDef.createObject())
         } else if (target == "appearance") {
             nav.push(appearanceDef.createObject())
         } else if (target == "chats") {

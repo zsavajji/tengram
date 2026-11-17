@@ -67,6 +67,10 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `voice.play` | `chat`, `id` (a voice note's message id) | `{path}`, the absolute path of a WAV (48 kHz, mono) | `not_found`, `download_failed` |
 | `profile.get` | — | `{name, about, phone, picture}` | |
 | `profile.set` | `name`, `about`, `picture` (strings); each optional, at least one | — | |
+| `sessions.list` | — | `{sessions: [{id, current, app, version, official, device, platform, system, ip, location, active, login, unconfirmed, passwordPending}]}` | |
+| `sessions.terminate` | `id` (a session's id) | — | |
+| `sessions.terminateOthers` | — | — | |
+| `sessions.confirmQr` | `link` (the `tg://login?token=` link of a QR code) | the new session, as a `sessions.list` entry | |
 | `contact.info` | `chat` (a person: a private or a secret chat) | `{phone, about, groups: [{jid, name}], blocked, picture}` | `bad_chat` |
 | `channel.info` | `chat` (a channel) | `{followers, description, picture}` | `bad_chat` |
 | `group.info` | `chat` (a basic group, or a supergroup that is not a channel) | `{subject, description, participants: [{jid, name, admin, me, photo}], count, picture, membersAdd}`; `photo` is absent when not downloaded yet | `bad_chat` |
@@ -231,6 +235,18 @@ is checked first: a field that is not a string, none of the three, or a value ou
 and nothing changes. The changes then go to Telegram one after another, in the order name, about, picture; the first
 TDLib error is the reply (`td`) and the ones after it are not sent, while those before it stay done. The reply
 comes after the last.
+
+**`sessions.*`:** the devices our account is signed in on (`getActiveSessions`), all `unlinked` before the login.
+`sessions.list` gives the current session (this device) first, then the others by `active`, the newest first. A
+session has `id` (a string), `current`, `app` and `version` (the application's name and version), `official` (an
+official application), `device`, `platform` and `system` (the device model, its OS and the OS version), `ip` and
+`location` (where it was created, as TDLib words them; either may be ""), `active` and `login` (unix seconds of the
+last use and of the login), `unconfirmed` (a login nobody confirmed from another session) and `passwordPending` (it
+still needs the 2-step password). `sessions.terminate` ends the session `id`, `sessions.terminateOthers` every one but
+this; neither changes the list the UI holds, which asks again. `sessions.confirmQr` signs a device in: `link` is what
+the QR code of Telegram Desktop (or another app's login screen) holds, and anything that does not start with
+`tg://login?token=` is `bad_request`. The reply is the session just created; TDLib's refusal (an expired or used code)
+is the `td` reply.
 
 **`contact.info`:** a person's page. `chat` is a private or a secret chat, any other is `bad_chat`. `phone` is the
 number with a "+" in front, "" when the user hides it or Telegram has none; `about` the bio; `blocked` whether the
