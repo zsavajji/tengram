@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Tengram icon: the Telegram paper plane as a real 7-piece tangram.
 
-Writes assets/icon.svg, and the Hub's monochrome glyphs of the plane alone (needs Pillow): hub_read.png
-(grey), hub_unread.png (yellow) and hub_account.png (white, also the lock screen's). The app icon's PNGs:
-see the commands at the bottom of this file.
+Writes assets/icon.svg (the design, to look at), and into app/assets/images, with Pillow: the app icon in
+every size (icon-<px>.png), the launch screens (splash-<w>x<h>.png), and the Hub's glyphs of the plane alone in
+one colour: hub_read.png (grey), hub_unread.png (yellow) and hub_account.png (white, also the lock screen's).
 """
 import math
 import pathlib
@@ -125,6 +125,41 @@ def glyph(px, top, foot=None, fill=0.62, gap=0.04, out=None):
     return box
 
 
+def icon(px):
+    """The app icon as an RGBA image px square: what assets/icon.svg draws, by Pillow (so no browser is needed
+    to rasterise it), at four times the size and scaled down."""
+    from PIL import Image, ImageDraw
+    k = 4
+    n = SIZE * k
+    top, foot = (0x2A, 0xAB, 0xEE, 255), (0x22, 0x9E, 0xD9, 255)
+    fade = Image.linear_gradient("L").resize((n, n))
+    disc = Image.composite(Image.new("RGBA", (n, n), foot), Image.new("RGBA", (n, n), top), fade)
+    mask = Image.new("L", (n, n), 0)
+    ImageDraw.Draw(mask).ellipse((4 * k, 4 * k, n - 4 * k - 1, n - 4 * k - 1), 255)
+    disc.putalpha(mask)
+    d = ImageDraw.Draw(disc)
+    for fill, p in placed():
+        pts = [(x * k, y * k) for x, y in inset(p, GAP / 2 + ROUND)]
+        d.polygon(pts, fill)
+        d.line(pts + pts[:2], fill, 2 * ROUND * k, joint="curve")
+    return disc.resize((px, px), Image.LANCZOS)
+
+
+def app_images(folder):
+    """The home screen's icon in every size BB10 picks from (the Q10 takes 90), and the launch screen for each
+    screen a portrait app can meet (Q10 and Classic, Z30, Z10, Passport): the icon on black, 30 % of the width,
+    as HyperBerry's (../hyperberry/scripts/gen-icons.py)."""
+    from PIL import Image
+    for px in (86, 90, 96, 110, 144):
+        icon(px).save(folder / f"icon-{px}.png")
+    for w, h in ((720, 720), (720, 1280), (768, 1280), (1440, 1440)):
+        splash = Image.new("RGB", (w, h), (0, 0, 0))
+        side = round(0.3 * w)
+        tile = icon(side)
+        splash.paste(tile, ((w - side) // 2, (h - side) // 2), tile)
+        splash.save(folder / f"splash-{w}x{h}.png")
+
+
 def hub_glyphs(folder):
     """What the engine's Hub account names (engine/hub_qnx.cpp), 81 px as the Hub draws them. The Hub tints
     nothing: the engine swaps the file. Colours as HyperBerry sampled them from the Q10's own glyphs."""
@@ -157,15 +192,11 @@ def main():
     out.parent.mkdir(exist_ok=True)
     out.write_text(svg)
     print(out)
-    hub_glyphs(out.parent)
-    print(out.parent / "hub_read.png", "hub_unread.png", "hub_account.png")
+    images = out.parent.parent / "app" / "assets" / "images"
+    app_images(images)
+    hub_glyphs(images)
+    print(images, "icon-*.png splash-*.png hub_read.png hub_unread.png hub_account.png")
 
 
 if __name__ == "__main__":
     main()
-
-# PNGs (Passport 144, Z10/Z30 114, Q10 96, Z3 90). ImageMagick's own SVG
-# renderer drops the gradient and the rounded joins, so rasterise with Chrome:
-#   chrome --headless --default-background-color=00000000 --window-size=512,512 \
-#     --screenshot=/tmp/icon.png file://$PWD/assets/icon.svg
-#   for s in 144 114 96 90; do magick /tmp/icon.png -resize ${s}x${s} assets/icon-$s.png; done
