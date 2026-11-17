@@ -493,3 +493,27 @@ Decisions taken for it, with the reasons:
   media download, text entities, reactions, the passcode lock, pruning old message rows.
 - **Testing on the real account, safely:** sends, reads and chat settings are only tried on
   Saved Messages; `link.logout` is never run (it would end the session).
+
+### Engine progress, 2026-11-17 night (each step is one commit; all tested on the phone)
+
+- **Step 1** (`079d989`): loop, TDLib thread, login, socket, encrypted `chats.db`. Ready 0.34 s
+  after start on the existing session; clean stop on SIGTERM.
+- **Step 2** (`37712c3`): chat list. 468 listed chats (TDLib announces 577: the rest are in
+  no list). Finding: TDLib announces a chat it is still loading without its last message and
+  sends it about 60 ms later; the engine keeps the known preview, or every start rewrote those
+  rows and the list would flicker.
+- **Step 3** (`cfa437a`): messages. `chat.open` on Saved Messages: 50 verified messages in
+  `chats.db` 0.44 s after the request (first time, over the network). `getChatHistory` with
+  offset 0 does not return `from_message_id` itself, and its first answer is often one message.
+- **Step 4** (`2ff0ca0`): delivery modes. Batched on the phone: a sync exactly 60 s after going
+  offline, 2.3 s long (ready after 0.2 s, then the 2 s of quiet). UI to the front while offline:
+  TDLib starts connecting after 50 ms (2 of 4 tries) or 1.8 s (2 of 4); not yet understood.
+- **Memory:** 13–15 MB of data (`pidin mem`) with the chat list loaded or not. The probe's 47 MB
+  was not the chat list; TDLib announces nearly every chat at start even with one page asked for,
+  so "one page at later starts" saves little. The engine is well inside a 30 MB cap.
+- **A quiet account at night:** 7 new messages in 13 minutes at 01:50, so the night's idle
+  figures are a floor, not a typical hour.
+- **Unverified:** auto mode's detection of another active session (needs the user on another
+  device: the log line `own status:` shows it); `link.logout` (never run, it would end the
+  session); timers in deep standby with the phone unplugged.
+- **Left on the account by the tests:** two messages in Saved Messages ("Tengram engine test…").
