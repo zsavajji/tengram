@@ -478,11 +478,12 @@ Decisions taken for it, with the reasons:
   headers, tied to the pinned commit.
 - **`chats.db` is a cache**, unlike HyperBerry's (TDLib and Telegram hold the data). A failed
   open or another `user_version` deletes and rebuilds it. No migrations.
-- **The whole chat list is loaded at every engine start**, in the background. TDLib reports a
-  chat's position only inside the part of the list that is loaded, and reports order 0 for a
-  chat that drops below it, so a first-page-only engine could not tell "left the list" from
-  "below the loaded part". The cost is the 6–8 s of CPU measured, once per engine start (per
-  boot), never per UI open. After the load, rows the session did not see are swept.
+- **The whole chat list is loaded once, at the first start after a login; later starts load one
+  page.** Measured on the phone (step 1, 2026-11-17): TDLib with no list loaded holds 9 MB of
+  data, against 47 MB with all 576 chats loaded. Which chats are in the main or archived list
+  comes from `chat.chat_lists_` and `updateChatAddedToList`/`RemovedFromList`, not from position
+  orders: TDLib reports order 0 for every chat below the loaded part. A chat below the first page
+  still gets its `updateNewChat` and updates when something happens in it, so its row stays right.
 - **History is verified page by page.** Live messages are written for every chat so a cold
   open paints from `chats.db` at once, but a channel can lose messages silently after a long
   offline gap (TDLib skips them). So `chat.open` and `chat.history` make each page exactly
