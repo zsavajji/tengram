@@ -619,3 +619,17 @@ and started again with `orbctl` (it had no containers). About three hours were l
   in the whole run, one five-minute batched period. No notification was logged (`hub: item`
   0 times), so the notifier is still untested on real traffic. Nothing of Tengram's is running
   on the phone now.
+
+### Decisions, 2026-11-17 morning (user)
+
+- **Always encrypted, no toggle, no passcode.** One key, 32 bytes from `/dev/random` at the first
+  launch, kept in `data/db.key` (mode 0600), for `chats.db` and for TDLib's database
+  (`database_encryption_key`). Patch 0007 and the probe's `--plain` are gone. A TDLib database
+  made before the engine had its own key opens under TDLib's default key and is moved to ours
+  at once (`setDatabaseEncryptionKey`). This supersedes the toggle and the passcode lock
+  (option C) recorded above. What the key protects: the files alone are useless without
+  `db.key`; someone with both, or with root on the phone, reads everything.
+- **UI:** fork HyperBerry's as it is, accent `#24A1DE`, no tabs for now (Calls comes back later).
+- **Packaging** comes later.
+- **Icons:** a monochrome glyph of the app icon, grey for the Hub and white for the lock screen,
+  made the way HyperBerry makes its own.
