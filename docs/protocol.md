@@ -45,8 +45,8 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `link.password` | `password` | — (then `ready`) | `bad_state`, `bad_password` |
 | `link.logout` | — | — | — |
 | `ui.state` | `fullscreen` (bool), `openChat` (key or "") | — | — |
-| `chat.open` | `chat` | `{oldest, count, more}` | |
-| `chat.history` | `chat`, `before` (a message id), `limit` (1 to 100, default 50) | `{oldest, count, more}` | |
+| `chat.open` | `chat` | `{oldest, newest, count, more}` | |
+| `chat.history` | `chat`, `before` (a message id), `limit` (1 to 100, default 50) | `{oldest, newest, count, more}` | |
 | `chat.close` | `chat` | — | |
 | `chat.read` | `chat` | — | |
 | `chat.typing` | `chat`, `on` (bool) | — | |
@@ -74,12 +74,14 @@ drives the delivery mode (below). A connection that closes counts as `fullscreen
 **`chat.open`:** the UI paints the chat from `chats.db` first and sends this at the same time.
 The engine opens the chat in TDLib and makes the newest 50 messages in `chats.db` exactly
 TDLib's (rows added, changed and removed, each with `msgs` events). The reply comes after that
-commit: `oldest` is the oldest id of that verified page ("" for an empty chat), `count` how many
+commit: `oldest` is the oldest id of that verified page ("" for an empty chat), `newest` its
+newest id ("" for an empty chat; the page is exactly Telegram's from `oldest` to `newest`, which
+lets the UI tell whether a later page reaches the rows it verified before), `count` how many
 it holds, `more` whether older messages exist. Rows older than `oldest` may be stale or have
 gaps: the UI shows them only after a `chat.history` covered them.
 
-**`chat.history`:** the same for the page of `limit` messages older than `before`. Served from
-TDLib's local database when it has them, from Telegram otherwise.
+**`chat.history`:** the same (`newest` included) for the page of `limit` messages older than
+`before`. Served from TDLib's local database when it has them, from Telegram otherwise.
 
 **`chat.read`:** marks the chat read up to its newest message. `unread` changes with the
 `chats` event that follows.

@@ -195,7 +195,7 @@ number. The least change: select `CAST(id AS INTEGER)` where `rowid` is selected
 keep `Msg::rowid` (a `qint64`), and replace `rowid` in the six SQL fragments.
 
 And the history is not all there: `chat.open` verifies the newest 50 and answers `{oldest,
-count, more}`; `chat.history {chat, before, limit}` verifies the next older page. Rows older
+newest, count, more}`; `chat.history {chat, before, limit}` verifies the next older page. Rows older
 than the oldest verified id may have gaps and are not shown.
 
 **Traps:**
@@ -406,9 +406,11 @@ Three commits (`809fe98`, `b954fe0`, `1a2c5ea`); all compile in the SDK image, n
   To test: a phone login with a real code (the code goes to the other devices: `codeType`
   `app`), a wrong code, the password step, QR → phone → QR. Telegram rate-limits tries.
 - **History (§3.6).** The floor from `chat.open`, `chat.history` one page ahead, the oldest day's
-  header held back. To test: a busy group scrolled back several pages (no jump, no gap, headers
-  appearing above their day), a chat opened for the first time (empty cache), a sent message (the
-  id changes: does the card flicker?), the pinned-message jump.
+  header held back. A later `chat.open` that does not reach the verified run asks up to 3 pages
+  of 100 back to bridge it; past that the run restarts at the bridge and older rows go. To test: a
+  busy group scrolled back several pages (no jump, no gap, headers appearing above their day), a
+  chat opened for the first time (empty cache), a sent message (the id changes: does the card
+  flicker?), the pinned-message jump, a gap after a long time minimised in a busy group.
 - **Chat list (§3.8).** Nothing read while not fullscreen; rows that keep their place are patched.
   Moves still reload: look for `chat list: reload, … ms` in the log to decide whether moves need
   a patch too. `fullscreen()` firing twice is harmless (the second finds nothing stale).

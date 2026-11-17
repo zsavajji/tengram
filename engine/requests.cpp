@@ -52,9 +52,10 @@ bool start(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::
   return true;
 }
 
-std::string page_json(const std::string &oldest, std::size_t count, bool more) {
+std::string page_json(const std::string &oldest, const std::string &newest, std::size_t count, bool more) {
   return td::json_encode<std::string>(td::json_object([&](auto &o) {
     o("oldest", oldest);
+    o("newest", newest);
     o("count", static_cast<std::int32_t>(count));
     o("more", td::JsonBool(more));
   }));
@@ -75,12 +76,13 @@ struct Page {
 
 void finish(const std::shared_ptr<Page> &p) {
   if (p->got.empty()) {  // nothing to compare with, nothing written, so nothing to wait for
-    server.reply_ok(p->conn, p->id, page_json("", 0, false));
+    server.reply_ok(p->conn, p->id, page_json("", "", 0, false));
     return;
   }
   const std::int64_t oldest = p->got.back()->id_;
+  const std::int64_t newest = p->got.front()->id_;
   messages_reconcile(p->chat, p->got, oldest, p->upper);
-  queue_reply(p->conn, p->id, page_json(std::to_string(oldest), p->got.size(), p->more));
+  queue_reply(p->conn, p->id, page_json(std::to_string(oldest), std::to_string(newest), p->got.size(), p->more));
 }
 
 // TDLib may answer with fewer messages than asked (often one, the first time), so this asks again from the

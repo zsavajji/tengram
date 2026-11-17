@@ -120,6 +120,9 @@ private:
     void askOlder();
     void takeOpen(const QVariantMap &r);
     void takeHistory(const QVariantMap &r);
+    void askBridge(const QString &before);
+    void takeBridge(const QVariantMap &r);
+    void dropBelowFloor();
     bool atStart() const;
     void merge(const QStringList &asked, const QList<Msg> &fresh, bool older);
     void rebuild();
@@ -136,12 +139,20 @@ private:
     bool m_channel; // a channel (kind 3): read-only for us
     qint64 m_floor; // the oldest verified message id: older rows are not shown
     bool m_floorKnown; // false until the first chat.open reply
+    // The newest id of the continuous verified run that starts at m_floor (0 for none): a later chat.open
+    // page that reaches it extends the run, one that does not is a gap (takeOpen).
+    qint64 m_top;
     bool m_more; // older verified pages can still come (chat.history)
     bool m_starved; // the last loadPage found no row
     bool m_loading;
     QString m_openId; // the chat.open request the reply of which sets the floor
     QString m_historyId; // the chat.history request in flight, "" for none
     QElapsedTimer m_historyAt; // when it was sent; invalid until the first
+    QString m_bridgeId; // the chat.history request that bridges a gap, "" for none
+    QElapsedTimer m_bridgeAt; // when it was sent; invalid until the first
+    int m_bridgePages; // the bridge's requests so far
+    qint64 m_bridgeNewest; // the newest id of the chat.open page that started the bridge
+    qint64 m_bridgeBefore; // the before of the bridge's last request
     QList<Msg> m_all;
     QSet<QString> m_hidden;
     QSet<QString> m_revealed; // the spoilers tapped open (unspoil)

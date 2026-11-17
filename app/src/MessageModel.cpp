@@ -28,6 +28,10 @@ static const int kNearTop = 8;
 static const int kFirstLoadMs = 50;
 // How long a chat.history request is waited for before one that failed quietly is asked again.
 static const int kHistoryMs = 15000;
+// The most chat.history pages (of kBridgeLimit) a gap is bridged with: 300 messages at most. Past that the
+// old rows are dropped rather than fetched.
+static const int kBridgePages = 3;
+static const int kBridgeLimit = 100;
 // The floor of an empty chat: no row is old enough to show.
 static const qint64 kNoFloor = 0x7fffffffffffffffLL;
 
@@ -44,9 +48,13 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_channel(channel)
     , m_floor(0)
     , m_floorKnown(false)
+    , m_top(0)
     , m_more(false)
     , m_starved(false)
     , m_loading(true)
+    , m_bridgePages(0)
+    , m_bridgeNewest(0)
+    , m_bridgeBefore(0)
     , m_region(bb::system::LocaleType::Region)
     , m_now(0)
     , m_titlesDay(0)
@@ -57,6 +65,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     connect(engine, SIGNAL(replied(QString, QString, QVariant)), this,
             SLOT(onReplied(QString, QString, QVariant)));
     m_historyAt.invalidate(); // QElapsedTimer has no constructor
+    m_bridgeAt.invalidate();
     QTimer::singleShot(kFirstLoadMs, this, SLOT(loadFirst()));
 }
 
@@ -221,28 +230,53 @@ void MessageModel::onReplied(const QString &id, const QString &cmd, const QVaria
         takeOpen(result.toMap());
     else if (id == m_historyId)
         takeHistory(result.toMap());
+    else if (id == m_bridgeId)
+        takeBridge(result.toMap());
 }
 
-// chat.open verified the newest 50 and says where they start.
+// chat.open verified the newest 50 and says where they start and end.
 void MessageModel::takeOpen(const QVariantMap &r)
 {
     const QString oldest = r["oldest"].toString();
+    const qint64 newest = r["newest"].toString().toLongLong(); // 0 for an empty reply
     if (m_floorKnown) {
-        // ponytail: a later chat.open (the app back in front, the engine reconnected) only lowers the
-        // floor. A gap that opens below the newest 50 while the chat stays open (long minimised in a
-        // busy group, Telegram's "too long" difference) is not detected; drop the rows below a later
-        // reply's oldest when its page does not reach the loaded rows, if it shows.
-        if (!oldest.isEmpty())
+        // A later chat.open (the app back in front, the engine reconnected) verified the newest 50 again.
+        // The rows from m_floor to m_top are one verified run: a page that reaches m_top joins it (the run
+        // grows to the page's newest). One that does not means a gap opened below the newest 50 while the
+        // chat stayed open (long minimised in a busy group, Telegram's "too long" difference), and rows
+        // that came live sit next to older verified ones, which chats.db alone cannot tell apart. Then
+        // chat.history pages back from the page's oldest until one reaches m_top (askBridge, takeBridge).
+        if (oldest.isEmpty())
+            return;
+        // A bridge that failed quietly is started again, like askOlder's request.
+        if (!m_bridgeId.isEmpty() && m_bridgeAt.isValid() && m_bridgeAt.elapsed() < kHistoryMs) {
+            m_bridgeNewest = qMax(m_bridgeNewest, newest);
+            return;
+        }
+        if (oldest.toLongLong() <= m_top) {
             m_floor = qMin(m_floor, oldest.toLongLong());
+            m_top = qMax(m_top, newest);
+        } else {
+            m_bridgeNewest = newest;
+            m_bridgePages = 0;
+            askBridge(oldest);
+        }
         return;
     }
     m_floorKnown = true;
     m_floor = oldest.isEmpty() ? kNoFloor : oldest.toLongLong();
+    m_top = newest;
     m_more = r["more"].toBool() && !oldest.isEmpty();
     if (m_loading) // the first page reads from the floor up
         return;
-    // The first paint came from the cache: what is older than the verified page goes, and comes
-    // back verified with the next page. Those rows are at the model's end, so this is safe.
+    dropBelowFloor();
+    askOlder();
+}
+
+// The first paint came from the cache: what is older than the verified page goes, and comes back
+// verified with the next page. Those rows are at the model's end, so this is safe.
+void MessageModel::dropBelowFloor()
+{
     const QStringList old = keys();
     QList<Msg> kept;
     foreach (const Msg &m, m_all) {
@@ -251,6 +285,48 @@ void MessageModel::takeOpen(const QVariantMap &r)
     }
     m_all = kept;
     refresh(old, QSet<QString>());
+}
+
+// One page of the bridge: the messages older than before. A reply that never comes (the request fails
+// quietly) leaves m_bridgeId set until takeOpen's timeout or a reconnect; the next chat.open starts it again.
+void MessageModel::askBridge(const QString &before)
+{
+    if (!m_engine)
+        return;
+    QVariantMap ask;
+    ask["chat"] = m_chat;
+    ask["before"] = before; // a string: ids exceed 2^53
+    ask["limit"] = kBridgeLimit;
+    m_bridgeBefore = before.toLongLong();
+    m_bridgeId = m_engine->requestQuiet("chat.history", ask);
+    m_bridgeAt.start();
+    ++m_bridgePages;
+}
+
+// A bridge page. The engine's reconcile wrote the rows it covers and their msgs events put them in the
+// model, so reaching the run is all that is left to know.
+void MessageModel::takeBridge(const QVariantMap &r)
+{
+    m_bridgeId.clear();
+    const QString oldest = r["oldest"].toString();
+    if (!oldest.isEmpty() && oldest.toLongLong() <= m_top) {
+        m_top = qMax(m_top, m_bridgeNewest); // bridged: the run reaches the newest page
+        return;
+    }
+    if (!oldest.isEmpty() && m_bridgePages < kBridgePages) {
+        askBridge(oldest);
+        return;
+    }
+    // The cap, or nothing older at all (the run's rows are gone): the run restarts at what the bridge
+    // verified. A paging reply asked from the old floor would lower the floor below the gap: it is
+    // ignored.
+    m_floor = oldest.isEmpty() ? m_bridgeBefore : oldest.toLongLong();
+    m_top = m_bridgeNewest;
+    m_more = r["more"].toBool() && !oldest.isEmpty();
+    m_historyId.clear();
+    if (m_loading) // the first page reads from the floor up
+        return;
+    dropBelowFloor();
     askOlder();
 }
 
@@ -338,6 +414,7 @@ void MessageModel::onConnected()
         return;
     m_asked.clear(); // a fetch the engine lost with its restart is asked again
     m_historyId.clear(); // so is a chat.history
+    m_bridgeId.clear(); // and a bridge: the chat.open that follows checks the gap again
     if (m_all.isEmpty()) {
         loadPage();
         return;
