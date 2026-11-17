@@ -100,6 +100,8 @@ Page {
             Container {
                 id: row
                 property variant group
+                // The group's picture from the chat list (chats.db), over its initials; none when we left it.
+                property string photo: row.group ? chats.chat(row.group.jid).photo || "" : ""
                 property bool pressed: false
                 horizontalAlignment: HorizontalAlignment.Fill
                 background: pressed ? Color.create(nav.pressColor) : Color.Transparent
@@ -131,6 +133,14 @@ Page {
                             textStyle.fontSize: FontSize.PercentageValue
                             textStyle.fontSizeValue: 118
                             textStyle.color: Color.White
+                        }
+                        ImageView {
+                            horizontalAlignment: HorizontalAlignment.Fill
+                            verticalAlignment: VerticalAlignment.Fill
+                            visible: row.photo != ""
+                            imageSource: row.photo != "" ? "file://" + row.photo : ""
+                            scalingMethod: ScalingMethod.AspectFill
+                            loadEffect: ImageViewLoadEffect.None
                         }
                     }
                     Label {
