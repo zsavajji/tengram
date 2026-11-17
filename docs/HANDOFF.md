@@ -153,6 +153,9 @@ A daytime hour on battery is still to be measured.
 
 `docs/ui-fork.md` is the reference; its section 8 lists what to test first on a phone.
 
+- **Step 2 (compiles, never run):** the login pages for Telegram's states, history paging
+  against `chat.open`/`chat.history`, the chat list read only in front and patched in place
+  (`docs/ui-fork.md` §8b).
 - **Done (step 1, compiles, never run):** Tengram's identity, accent `#24A1DE`, no tabs (Calls,
   Stories, Starred removed; Calls returns later), channels in the main list, `chats.db` opened
   through `ChatsDb` (the SQLCipher driver and `db.key`), Telegram's chat keys and Hub item
@@ -165,16 +168,12 @@ A daytime hour on battery is still to be measured.
 
 ## 8. What to do next, in order
 
-The user had asked for a stop and a report at this point; **ask before starting.**
+UI step 2 is done (2026-11-17, `809fe98`, `b954fe0`, `1a2c5ea`: login pages, history paging,
+the chat list in front only), compiled and never run; `docs/ui-fork.md` §8b says what to test.
+**Ask before starting the next one.**
 
-1. **UI step 2** (`docs/ui-fork.md` §3.5, §3.6, §3.8):
-   - the login pages for Telegram's states: phone (reuse `LinkNumberPage`), a code field that
-     says where the code went by `codeType`, a password field, the QR as it is;
-   - history paging against `chat.open` / `chat.history`, with the rule that keeps rows
-     arriving only at an end of the list: the oldest loaded day has no date header until an
-     older day or the start of the history is loaded; `rowid` replaced by the message id as a
-     number;
-   - the chat list reading only the changed rows, and nothing while the screen is off.
+1. **A first run of the UI on the phone** is now worth more than more code: every step so far
+   only compiles. It needs packaging (item 5) or a way to start the binary by hand.
 2. **Engine, the pages around the chat** (`docs/ui-fork.md` §4): `contact.info`, `group.info`
    (paged: a supergroup can have 200,000 members) and the `photo` event, `profile.get`,
    `contacts.list`, `channel.info`, `chat.clear`, `chat.delete`, `channel.unfollow`.

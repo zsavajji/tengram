@@ -393,6 +393,26 @@ QML and JS file. Nothing of it has run. In order of doubt:
 6. **`Nv12Rotate.h` is back** (the video window includes it); twenty imports of the module were
    ten once the call and story pages were gone.
 
+## 8b. State after step 2 (2026-11-17), and what to test on the phone
+
+Three commits (`809fe98`, `b954fe0`, `1a2c5ea`); all compile in the SDK image, none has run.
+
+- **Login (§3.5).** Found while doing it: TDLib refuses both `setAuthenticationPhoneNumber`
+  and `requestQrCodeAuthentication` in WaitOtherDeviceConfirmation (our `qr`) and takes both in
+  WaitCode and WaitPassword (`AuthManager.cpp`). The engine's checks were the other way round;
+  they follow TDLib now. From the QR, "Link with phone number" sends `link.logout` first (no
+  session exists yet) and the number page waits for `unlinked`. A failed step now answers before
+  the state goes back, so a refused number asked from `code` shows its error.
+  To test: a phone login with a real code (the code goes to the other devices: `codeType`
+  `app`), a wrong code, the password step, QR → phone → QR. Telegram rate-limits tries.
+- **History (§3.6).** The floor from `chat.open`, `chat.history` one page ahead, the oldest day's
+  header held back. To test: a busy group scrolled back several pages (no jump, no gap, headers
+  appearing above their day), a chat opened for the first time (empty cache), a sent message (the
+  id changes: does the card flicker?), the pinned-message jump.
+- **Chat list (§3.8).** Nothing read while not fullscreen; rows that keep their place are patched.
+  Moves still reload: look for `chat list: reload, … ms` in the log to decide whether moves need
+  a patch too. `fullscreen()` firing twice is harmless (the second finds nothing stale).
+
 ## 9. Open points
 
 - **The address book** (§4, New chat).
