@@ -51,11 +51,11 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.read` | `chat` | — | |
 | `chat.typing` | `chat`, `on` (bool) | — | |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool); at least one | — | |
-| `msg.send` | `chat`, `text`, `quote` (a message id, optional) | `{id}` | |
+| `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional) | `{id}` | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
 | `media.get` | `chat`, `id` (a message with a file) | `{path}`, the absolute path of the file | `not_found`, `download_failed` |
-| `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool); each optional, at least one | — | |
+| `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `mediaOnMobile` (bool), `language` (string), `cacheMB` (64 to 512); each optional, at least one | — | |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
 (`requestQrCodeAuthentication`); `link.phone`, `link.code` and `link.password` are the phone
@@ -83,7 +83,9 @@ TDLib's local database when it has them, from Telegram otherwise.
 **`chat.set`:** `pin`, `archive`, `unread` and `mute` as HyperBerry's. The row changes when
 Telegram's echo arrives (a `chats` event), not before.
 
-**`msg.send`:** a text. The row is in `chats.db` as *sending* (state 0) under a temporary id
+**`msg.send`:** a text. `mentions` are the people the text's "@name"s point at: `jid` the
+user id, `name` what the text reads after the "@". Each "@name" found in the text becomes a
+mention of that user; one that is not in the text, or whose `jid` is not a user id, is skipped. The row is in `chats.db` as *sending* (state 0) under a temporary id
 before the reply comes, and `{id}` is that id. When Telegram takes the message the row is
 replaced by one with the final id; a `msgs` event names both ids. On failure the row stays,
 state 4.
@@ -100,9 +102,12 @@ and answers when it is complete, after the row has `media_state` 2 and `path` (a
 A file that is already here answers at once. Nothing downloads by itself: the UI asks for what it
 shows. `not_found` is a message TDLib doesn't have or one without a file.
 
-**`prefs.set`:** kept in `prefs.json` in the data folder. `mode` and `batchSecs` are the
-delivery mode's settings (below), `notifyPreview` whether a notification shows the message's
-text. Defaults: `auto`, 300, true.
+**`prefs.set`:** the fields given are merged into the stored ones, kept in `prefs.json` in the
+data folder. `mode` and `batchSecs` are the delivery mode's settings (below), `notifyPreview`
+whether a notification shows the message's text. `mediaOnMobile`, `language` and `cacheMB` are
+HyperBerry's (the UI sends them on every connect): the engine keeps them and does nothing with
+them yet (nothing downloads by itself, previews are worded in English, TDLib's file cache is
+not pruned). Defaults: `auto`, 300, true, true, "", 64.
 
 ## Events
 
@@ -112,6 +117,8 @@ text. Defaults: `auto`, 300, true.
 | `conn` | `state`: `offline`, `connecting`, `ready` | the connection to Telegram changed |
 | `chats` | `jids`: [chat keys] | these rows of `chats` changed or disappeared: re-read them |
 | `msgs` | `chat`, `ids`: [message ids] | these rows of `messages` changed or disappeared: re-read them |
+| `typing` | `chat`, `who` (first name in a group, "" in a 1:1 chat), `on`, `voice` (recording a voice note) | someone started or stopped typing; only for chats between their `chat.open` and `chat.close` |
+| `presence` | `chat`, `online`, `lastSeen` (unix seconds, 0 when hidden) | the other person's online status in a 1:1 chat, once after `chat.open` and at every change until `chat.close` |
 
 `chats` and `msgs` come after the engine commits, at most every 50 ms.
 
@@ -125,6 +132,9 @@ text. Defaults: `auto`, 300, true.
 | `code` | waiting for the code | `phone`, `codeType` (`app`, `sms`, `call`, `other`), `length` (0 unknown) |
 | `password` | waiting for the two-step password | `hint` |
 | `ready` | logged in | `me` (our user id), `name` |
+
+`syncing: true` goes with `ready` from a login until the whole chat list is in `chats.db` for
+the first time (a `link` event without it follows). The UI waits on the linking page meanwhile.
 
 ## Delivery mode
 
@@ -195,6 +205,9 @@ it*), with these meanings for Telegram. `user_version` is 2.
 | `played` | voice notes and round videos: 1 once listened to |
 | `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
 | `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs` |
+
+Any kind's `extra` can also carry `forwarded: true` (the message is a forward) and, on a photo or
+video, `spoiler: true` (Telegram covers it until tapped).
 
 Any kind's `extra` can also carry `ent`, the formatting of `text` (or of a document's
 `extra.caption`): a list of `[offset, length, type]` or `[offset, length, type, argument]`, in
