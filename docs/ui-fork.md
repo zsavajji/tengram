@@ -495,8 +495,9 @@ Three commits (`809fe98`, `b954fe0`, `1a2c5ea`); all compile in the SDK image, n
   restarted engine and `memMB` 128 in the link body (`engine: connected` in `ui.log`); closing Tengram right after
   Install does not stop the install (`[HMEM]` lines in `/var/log/installer.log`, the engine still gets restarted);
   a failed install (take the zip away: it says so) toasts and brings the dialog back; a phone **with** the addon
-  shows nothing, also right after a reboot, when the engine reports 30 for the first 4 minutes; a phone with no
-  root (no `/base/bin/__root` or `u_root`) shows the no-root dialog once.
+  shows nothing, also right after a reboot, when the engine reports 30 for the first 4 minutes. The no-root dialog
+  (no `/base/bin/__root` or `u_root`) is a fallback only: an unsigned app runs only on a rooted phone (the
+  user), so no phone can show it.
 
 ## 9. Open points
 

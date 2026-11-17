@@ -153,7 +153,8 @@ the user.
    logged `rlimit DATA: soft 134217728`. The **navigator keeps an app's memory limit from its first launch until
    every process of the app has ended**, hence the close step (`MemoryPatch::closeAll`). While the dialog is up
    a logged-in engine still runs at 30 MB and may die once at the first sync; the UI restarts it. Not yet seen:
-   the login page's gate (a phone that isn't logged in), and the no-root dialog.
+   the login page's gate (a phone that isn't logged in). The no-root dialog can't be reached: an unsigned app
+   runs only on a rooted phone (the user), so it stays as a fallback and is not a test.
 
 1. **The memory patch in the app (done 2026-11-17, never run):** `MemoryPatch` (`app/src/`), the dialog in
    `main.qml`, `app/helper/tg-install-patcher.c`, the bar bundling `headless-mem.zip`, the engine's `memMB` in
