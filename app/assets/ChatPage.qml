@@ -58,6 +58,18 @@ Page {
             id: ctl
             link: engine
         },
+        // 300 ms after the list is positioned (loaded()): the list's own state goes to the controller, which
+        // doesn't mark the chat read before. An atBeginningChanged alone isn't enough: a chat whose rows all fit
+        // on screen never fires one.
+        Timer {
+            id: settle
+            interval: 300
+            singleShot: true
+            onTimeout: {
+                page.placed = true
+                ctl.setAtBottom(scrollState.atBeginning)
+            }
+        },
         // A received photo, video, audio file or document (step 6.1): MediaOpener fetches the file
         // and hands it to the system; a photo opens in our viewer instead (nav.showPhoto).
         MediaOpener {
@@ -372,12 +384,29 @@ Page {
         }
     }
     property string jumpPending: ""
+    // True once the settle timer has reported where the list is: until then the list's own atBeginningChanged
+    // is ignored, since it may fire for the first layout, before the scroll below has taken effect, and the
+    // chat would be read at once.
+    property bool placed: false
+    // The first page is in. A search or notification jump comes first; else a chat with unread messages
+    // opens at the divider (Telegram's: the first unread message is shown, not the newest). Which edge of
+    // the screen scrollToItem leaves the divider at, in a bottom-to-top list, is to check on the Q10; the
+    // search jump (HyperBerry 5.10) lands on its item. A chat with nothing unread is left at the bottom.
     function loaded() {
-        if (!ctl.messages.loading && page.jumpPending != "") {
+        if (ctl.messages.loading) {
+            return
+        }
+        if (page.jumpPending != "") {
             var id = page.jumpPending
             page.jumpPending = ""
             page.jump(id)
+        } else {
+            var u = ctl.messages.unreadEntry()
+            if (u >= 0) {
+                list.scrollToItem([u], ScrollAnimation.None)
+            }
         }
+        settle.start()
     }
     // The shape and kind of the video being fetched (openMedia sets them): a newer get replaces an older, so these are
     // the ones that land.
@@ -558,10 +587,16 @@ Page {
                     stickToEdgePolicy: ListViewStickToEdgePolicy.Beginning
                     attachedObjects: [
                         ListScrollStateHandler {
+                            id: scrollState
                             // Older pages are appends, so asking on every change can't cascade.
                             onFirstVisibleItemChanged: ctl.nearTop(firstVisibleItem)
-                            // The list runs bottom to top, so its beginning is the bottom.
-                            onAtBeginningChanged: ctl.setAtBottom(atBeginning)
+                            // The list runs bottom to top, so its beginning is the bottom. Once placed (see the
+                            // settle timer): the controller starts out not at the bottom.
+                            onAtBeginningChanged: {
+                                if (page.placed) {
+                                    ctl.setAtBottom(atBeginning)
+                                }
+                            }
                         }
                     ]
                     // The cards are C++ (MessageCards.cpp, step 8.6): they reach the page through these functions and properties.

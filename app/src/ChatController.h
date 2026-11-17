@@ -59,7 +59,8 @@ public:
     Q_INVOKABLE bool send(const QString &text, const QVariantList &mentions = QVariantList());
     // Called on every change of the composer's text; sends our typing on and off.
     Q_INVOKABLE void composing(const QString &text);
-    // Whether the list shows the newest message; QML reports it on scrolling.
+    // Whether the list shows the newest message; QML reports it on scrolling, and once after it has
+    // positioned the list (a chat with unread messages opens at the first one): open() starts it false.
     Q_INVOKABLE void setAtBottom(bool atBottom);
 
     // Voice notes (step 4.4b). startVoice returns the absolute path of the WAV to record into, "" when
@@ -137,7 +138,7 @@ private:
     QStringList m_pending;
     bool m_group;
     bool m_unseen;   // a message arrived that no one has seen yet
-    bool m_atBottom; // the list shows the newest message
+    bool m_atBottom; // the list shows the newest message; false from open() until the page says
     QString m_typing;
     QString m_presence;
     QTimer m_idle;

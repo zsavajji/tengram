@@ -27,6 +27,7 @@ class Db {
  private:
   bool try_open(const std::string &raw_key);
   bool create_schema();
+  bool migrate_2_to_3();
 
   td::SqliteDb db_;
   std::string path_;

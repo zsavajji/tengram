@@ -436,6 +436,15 @@ Three commits (`809fe98`, `b954fe0`, `1a2c5ea`); all compile in the SDK image, n
   busy group scrolled back several pages (no jump, no gap, headers appearing above their day), a
   chat opened for the first time (empty cache), a sent message (the id changes: does the card
   flicker?), the pinned-message jump, a gap after a long time minimised in a busy group.
+- **Opening at the first unread (user, 2026-11-17: Telegram's way).** `chats.read_inbox` (schema 3,
+  migrated in place from 2; a migrated row stays 0, which opens at the newest, until the engine
+  writes it again); the model loads back to the oldest incoming message after it when the cache
+  holds all `unread` of them within 150 rows, puts an "Unread messages" header above it, and
+  `chat.open` verifies that far (`limit`, back to 50 after the first reply). The chat is no longer
+  read on opening: a settle timer 300 ms after positioning reports whether the list's bottom shows.
+  More than 150 unread opens at the newest, as before (ponytail in `MessageRows.cpp`).
+  To test: where `scrollToItem` leaves the divider (top or bottom of the screen); a chat whose
+  unread fit on one screen is read at once; one scrolled to the bottom is read then, not before.
 - **Chat list (§3.8).** Nothing read while not fullscreen; rows that keep their place are patched.
   Moves still reload: look for `chat list: reload, … ms` in the log to decide whether moves need
   a patch too. `fullscreen()` firing twice is harmless (the second finds nothing stale).

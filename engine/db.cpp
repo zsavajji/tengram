@@ -33,8 +33,8 @@ std::string read_key(const std::string &path) {
   return n == 64 && raw.is_ok() ? raw.move_as_ok() : "";
 }
 
-// The version-2 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
-// with the engine's own messages.sig.
+// The version-3 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
+// with the engine's own messages.sig and chats.read_inbox.
 // Column order is theirs, in case the UI reads by position. The first line removes the table that
 // SqliteDb::change_key leaves in a database it has just encrypted.
 const char *const kSchema = R"(
@@ -48,7 +48,8 @@ CREATE TABLE chats(
   unread INTEGER NOT NULL DEFAULT 0,
   muted_until INTEGER NOT NULL DEFAULT 0,
   pinned INTEGER NOT NULL DEFAULT 0,
-  archived INTEGER NOT NULL DEFAULT 0);
+  archived INTEGER NOT NULL DEFAULT 0,
+  read_inbox INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE messages(
   chat TEXT NOT NULL, id TEXT NOT NULL,
   ts INTEGER NOT NULL,
@@ -138,12 +139,12 @@ bool Db::try_open(const std::string &raw_key) {
     return false;
   }
   auto v = db_.user_version();
-  if (v.is_error() || (v.ok() != 0 && v.ok() != 2)) {
+  if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3)) {
     say("chats.db: user_version %d is not ours", v.is_ok() ? v.ok() : -1);
     db_.close();
     return false;
   }
-  if (v.ok() == 0 && !create_schema()) {
+  if ((v.ok() == 0 && !create_schema()) || (v.ok() == 2 && !migrate_2_to_3())) {
     db_.close();
     return false;
   }
@@ -153,7 +154,16 @@ bool Db::try_open(const std::string &raw_key) {
 bool Db::create_schema() {
   // One transaction, user_version inside it: a crash leaves either nothing or all of it.
   return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) &&
-         ok(db_.set_user_version(2), "user_version") && ok(db_.commit_transaction(), "commit");
+         ok(db_.set_user_version(3), "user_version") && ok(db_.commit_transaction(), "commit");
+}
+
+// Version 2 had no chats.read_inbox. One transaction with user_version inside it, as create_schema: a crash
+// leaves version 2 or version 3. The rows keep 0 until the engine writes them again (chats.cpp). A failure
+// closes the file and open() deletes it and starts again.
+bool Db::migrate_2_to_3() {
+  return ok(db_.begin_write_transaction(), "begin") &&
+         exec("ALTER TABLE chats ADD COLUMN read_inbox INTEGER NOT NULL DEFAULT 0") &&
+         ok(db_.set_user_version(3), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 void Db::close() {

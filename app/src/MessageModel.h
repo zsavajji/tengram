@@ -37,6 +37,9 @@ class EngineLink;
 // oldest loaded day has no header until an older day's message, or the start of the history, is
 // loaded (docs/ui-fork.md 3.6): older rows of that day append at the model's end and the header
 // appends after them, so a page never lands inside the loaded rows.
+// A chat with unread messages opens at the first one, as Telegram does: the constructor finds it from
+// chats.read_inbox and loadFirst loads back to it, and an "Unread messages" header ("unread", a "header"
+// entry like a day's) sits above it for the life of the model; unreadEntry says where it is.
 class MessageModel : public bb::cascades::DataModel
 {
     Q_OBJECT
@@ -60,6 +63,8 @@ public:
     // The entry index of the message for a jump, after loading older messages back to its day;
     // -1 when it isn't shown (hidden by a pending delete, say).
     Q_INVOKABLE int reveal(const QString &id);
+    // The entry index of the "Unread messages" divider, -1 when the chat opened at its newest message.
+    Q_INVOKABLE int unreadEntry() const;
     // A tap on a spoiler (step 6.6d): reads its row again, now uncovered.
     Q_INVOKABLE void unspoil(const QString &id);
 
@@ -71,6 +76,9 @@ public:
 
     // The chat's unread count as chats.db has it now.
     int unread() const;
+
+    // How many of the newest messages chat.open verifies: 50, more when the unread ones reach back further.
+    int openLimit() const { return m_openLimit; }
 
     // Messages the page deleted for me and may still take back: they leave the list at once,
     // before the engine's msgs event, and unhide brings them back.
@@ -115,6 +123,7 @@ private:
     Msg read(QSqlQuery &q);
     QList<Msg> select(const QString &where, const QVariantList &args, int limit);
     QList<qint64> pageTimes(const QString &where, const QVariantList &args, int limit);
+    void findUnread();
     void loadPage();
     void olderWhere(QString &where, QVariantList &args) const;
     void askOlder();
@@ -145,6 +154,8 @@ private:
     bool m_more; // older verified pages can still come (chat.history)
     bool m_starved; // the last loadPage found no row
     bool m_loading;
+    int m_openLimit; // openLimit()
+    QString m_unreadId; // the first unread message, "" for none: the chat opens at it (findUnread)
     QString m_openId; // the chat.open request the reply of which sets the floor
     QString m_historyId; // the chat.history request in flight, "" for none
     QElapsedTimer m_historyAt; // when it was sent; invalid until the first

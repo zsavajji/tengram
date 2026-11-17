@@ -28,6 +28,7 @@ struct Row {
   std::string preview;
   int last_out = 0, last_state = 0, unread = 0, pinned = 0, archived = 0;
   std::int64_t muted_until = 0;
+  std::int64_t read_inbox = 0;
 };
 
 // muted_until is the time the mute was learned plus what was left of it, so the same mute learned again a
@@ -38,6 +39,7 @@ bool same(const Row &a, const Row &b) {
   return a.kind == b.kind && a.name == b.name && a.photo == b.photo && a.last_ts == b.last_ts &&
          a.has_last == b.has_last && a.preview == b.preview && a.last_out == b.last_out &&
          a.last_state == b.last_state && a.unread == b.unread && a.pinned == b.pinned && a.archived == b.archived &&
+         a.read_inbox == b.read_inbox &&
          (timed ? gap <= 2 : a.muted_until == b.muted_until);
 }
 
@@ -61,6 +63,7 @@ struct Chat {
   int mute_for = 0;
   std::int64_t mute_learned = 0;
   bool in_main = false, in_archive = false, pinned = false;  // pinned: in the main list
+  std::int64_t read_inbox = 0;   // last_read_inbox_message_id_
   std::int64_t read_outbox = 0;
   bool dirty = false;
   enum class Stored { Unknown, Present, Absent } stored = Stored::Unknown;  // is there a row, and what is in it
@@ -212,6 +215,7 @@ void new_chat(const td_api::chat &t) {
   c.title = t.title_;
   c.unread = t.unread_count_;
   c.marked_unread = t.is_marked_as_unread_;
+  c.read_inbox = t.last_read_inbox_message_id_;
   c.read_outbox = t.last_read_outbox_message_id_;
   if (t.notification_settings_) {
     set_mute(c, *t.notification_settings_);
@@ -287,6 +291,7 @@ Row row_of(const Chat &c) {
   r.muted_until = muted_until(c);
   r.pinned = c.pinned;
   r.archived = c.in_archive && !c.in_main;
+  r.read_inbox = c.read_inbox;
   return r;
 }
 
@@ -294,7 +299,7 @@ bool prepare() {
   if (insert_row.empty()) {
     insert_row = db.prepare(
         "INSERT OR REPLACE INTO chats(jid, kind, name, photo, last_ts, last_preview, last_out, last_state, unread, "
-        "muted_until, pinned, archived) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)");
+        "muted_until, pinned, archived, read_inbox) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)");
   }
   if (delete_row.empty()) {
     delete_row = db.prepare("DELETE FROM chats WHERE jid = ?1");
@@ -302,7 +307,7 @@ bool prepare() {
   if (select_row.empty()) {
     select_row = db.prepare(
         "SELECT kind, name, photo, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, "
-        "archived FROM chats WHERE jid = ?1");
+        "archived, read_inbox FROM chats WHERE jid = ?1");
   }
   return !insert_row.empty() && !delete_row.empty() && !select_row.empty();
 }
@@ -330,6 +335,7 @@ td::Status load_row(Chat &c) {
     r.muted_until = s.view_int64(8);
     r.pinned = s.view_int32(9);
     r.archived = s.view_int32(10);
+    r.read_inbox = s.view_int64(11);
     c.stored = Chat::Stored::Present;
   }
   select_row.reset();
@@ -352,6 +358,7 @@ td::Status write_row(const Chat &c, const Row &r) {
   TRY_STATUS(s.bind_int64(10, r.muted_until));
   TRY_STATUS(s.bind_int32(11, r.pinned));
   TRY_STATUS(s.bind_int32(12, r.archived));
+  TRY_STATUS(s.bind_int64(13, r.read_inbox));
   auto status = s.step();
   s.reset();
   return status;
@@ -536,6 +543,7 @@ void chats_update(td_api::Object &update) {
       auto &u = static_cast<td_api::updateChatReadInbox &>(update);
       if (Chat *c = find(u.chat_id_)) {
         c->unread = u.unread_count_;
+        c->read_inbox = u.last_read_inbox_message_id_;
         touch(*c);
       }
       break;

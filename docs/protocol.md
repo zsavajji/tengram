@@ -10,7 +10,7 @@ When the code changes, this file changes with it.
 | file | what |
 |---|---|
 | `db/`, `files/` | TDLib's own database and files. Only the engine touches them. |
-| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's, or `db.key` is new. |
+| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (version 2 is migrated in place to 3), or `db.key` is new. |
 | `db.key` | The key of both databases: 64 hex characters (32 bytes read from `/dev/random` at the first launch), mode 0600. The engine hands it to TDLib as its database key; the UI opens `chats.db` with `PRAGMA key = "x'<the 64 characters>'"` (a raw key: no key derivation). There is no setting to turn encryption off and no passcode. |
 | `engine.json` | `{"port": 41234, "token": "<32 hex characters>"}`, mode 0600, written as a temporary file and renamed, new at every start, removed at a clean stop. |
 
@@ -45,7 +45,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `link.password` | `password` | — (then `ready`) | `bad_state`, `bad_password` |
 | `link.logout` | — | — | — |
 | `ui.state` | `fullscreen` (bool), `openChat` (key or "") | — | — |
-| `chat.open` | `chat` | `{oldest, newest, count, more}` | |
+| `chat.open` | `chat`, `limit` (1 to 200, default 50) | `{oldest, newest, count, more}` | |
 | `chat.history` | `chat`, `before` (a message id), `limit` (1 to 100, default 50) | `{oldest, newest, count, more}` | |
 | `chat.close` | `chat` | — | |
 | `chat.read` | `chat` | — | |
@@ -72,8 +72,10 @@ that went) and starts a fresh TDLib client.
 drives the delivery mode (below). A connection that closes counts as `fullscreen: false`.
 
 **`chat.open`:** the UI paints the chat from `chats.db` first and sends this at the same time.
-The engine opens the chat in TDLib and makes the newest 50 messages in `chats.db` exactly
-TDLib's (rows added, changed and removed, each with `msgs` events). The reply comes after that
+The engine opens the chat in TDLib and makes the newest `limit` messages (default 50) in `chats.db` exactly
+TDLib's (rows added, changed and removed, each with `msgs` events). The UI asks for more when the
+chat has more unread messages than 50, so the verified page reaches the first unread (a `limit` out
+of range is `bad_request`). The reply comes after that
 commit: `oldest` is the oldest id of that verified page ("" for an empty chat), `newest` its
 newest id ("" for an empty chat; the page is exactly Telegram's from `oldest` to `newest`, which
 lets the UI tell whether a later page reaches the rows it verified before), `count` how many
@@ -172,7 +174,7 @@ read on another device, and the delay while another device is in use are all Tel
 ## chats.db, as the UI reads it
 
 HyperBerry's tables and columns (`../hyperberry/docs/protocol.md`, *chats.db, as the UI reads
-it*), with these meanings for Telegram. `user_version` is 2.
+it*), with these meanings for Telegram. `user_version` is 3.
 
 **`chats`:** one row per chat in Telegram's main or archived chat list, and no others.
 
@@ -187,6 +189,7 @@ it*), with these meanings for Telegram. `user_version` is 2.
 | `muted_until` | unix seconds; 0 not muted; 2^40 muted forever |
 | `pinned` | 1 when pinned in the main list |
 | `archived` | 1 when in the archive |
+| `read_inbox` | the id of the newest message read here or on another device; 0 when unknown (a database that was at `user_version` 2 has 0 until the engine next writes the chat's row) |
 
 **`messages`**, primary key `(chat, id)`. Order by `ts`, then `CAST(id AS INTEGER)` (not
 `rowid`: older pages are inserted later).

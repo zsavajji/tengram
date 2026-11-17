@@ -163,6 +163,9 @@ void ChatController::open(const QVariantMap &chat)
     m_engine->setOpenChat(m_jid);
     sendOpen();
     askGroupInfo();
+    // A chat with unread messages opens at the first one, not at the newest, and is read once the list's
+    // bottom is on screen: the page says so (setAtBottom) when it has positioned the list. Not before.
+    m_atBottom = false;
     markRead();
 }
 
@@ -426,6 +429,7 @@ void ChatController::sendOpen()
 {
     QVariantMap args;
     args["chat"] = m_jid;
+    args["limit"] = m_messages ? m_messages->openLimit() : 50; // the unread ones are verified too
     const QString id = m_engine->request("chat.open", args);
     if (m_messages)
         m_messages->expectOpen(id);

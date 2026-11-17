@@ -52,6 +52,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_more(false)
     , m_starved(false)
     , m_loading(true)
+    , m_openLimit(50)
     , m_bridgePages(0)
     , m_bridgeNewest(0)
     , m_bridgeBefore(0)
@@ -66,6 +67,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
             SLOT(onReplied(QString, QString, QVariant)));
     m_historyAt.invalidate(); // QElapsedTimer has no constructor
     m_bridgeAt.invalidate();
+    findUnread();
     QTimer::singleShot(kFirstLoadMs, this, SLOT(loadFirst()));
 }
 
@@ -77,10 +79,17 @@ void MessageModel::loadFirst()
     QElapsedTimer took;
     took.start();
     loadPage();
+    // A chat that opens at its first unread message needs the rows back to it before the list shows: up to
+    // four more pages, stopping when one adds nothing.
+    for (int more = 0; more < 4 && !m_unreadId.isEmpty() && entryOf(m_unreadId) < 0 && !m_starved; ++more)
+        loadPage();
+    if (!m_unreadId.isEmpty() && entryOf(m_unreadId) < 0)
+        m_unreadId.clear(); // not reached: the chat opens at the newest, as before
     m_loading = false;
     emit loadingChanged();
     askOlder(); // loadPage's own call came while loading; a chat.open reply may already be in
-    qDebug() << "chat: first page," << m_all.size() << "messages in" << took.elapsed() << "ms";
+    qDebug() << "chat: first page," << m_all.size() << "messages in" << took.elapsed() << "ms"
+             << (m_unreadId.isEmpty() ? "" : "(opens at the first unread)");
 }
 
 int MessageModel::childCount(const QVariantList &indexPath)
@@ -135,6 +144,16 @@ QVariantMap MessageModel::albumData(const Entry &e) const
     d["stamp"] = last["stamp"];
     d["state"] = last["state"];
     return d;
+}
+
+// The "Unread messages" divider's entry, -1 when there is none.
+int MessageModel::unreadEntry() const
+{
+    for (int i = 0; i < m_entries.size(); ++i) {
+        if (m_entries[i].key == "unread")
+            return i;
+    }
+    return -1;
 }
 
 // The entry that shows message id (an album's, for one of its members), -1 when none does.
@@ -264,6 +283,7 @@ void MessageModel::takeOpen(const QVariantMap &r)
         return;
     }
     m_floorKnown = true;
+    m_openLimit = 50; // the unread ones are verified now: a later chat.open checks the newest page only
     m_floor = oldest.isEmpty() ? kNoFloor : oldest.toLongLong();
     m_top = newest;
     m_more = r["more"].toBool() && !oldest.isEmpty();
@@ -645,6 +665,22 @@ void MessageModel::rebuild()
     for (int u = units.size() - 1; u >= 0; --u) {
         const Msg &m = m_all[units[u].msg];
         m_entries.append(units[u]);
+        // Telegram's divider: the entry after a unit is drawn above it, and before that day's header
+        // when the unit is the day's oldest, so the order on screen is date, divider, message.
+        if (!m_unreadId.isEmpty()) {
+            bool first = units[u].key == m_unreadId;
+            foreach (int j, units[u].members) {
+                if (m_all[j].id == m_unreadId)
+                    first = true;
+            }
+            if (first) {
+                Entry h;
+                h.key = "unread";
+                h.title = tr("Unread messages");
+                h.msg = -1;
+                m_entries.append(h);
+            }
+        }
         // An album is inside one day, so its first member's date is the unit's.
         // docs/ui-fork.md 3.6: the oldest loaded day has no header until an older day's message or the
         // start of the history is loaded, so older rows of the same day append at the model's end and

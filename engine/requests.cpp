@@ -119,29 +119,9 @@ void fetch(const std::shared_ptr<Page> &p, std::int64_t from) {
   });
 }
 
-void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat) {
-  tdlib.send(make_object<td_api::getChat>(chat), [=](Obj o) {
-    if (as_error(o)) {
-      return server.reply_error(conn, id, "bad_chat", "no such chat");
-    }
-    tdlib.send(make_object<td_api::openChat>(chat), [=](Obj o2) {
-      if (auto e = as_error(o2)) {
-        say("td error: %d %s", e->code_, e->message_.c_str());
-        return reply_td_error(conn, id, *e);
-      }
-      live_open(conn, chat);  // typing and presence now flow for it
-      fetch(std::make_shared<Page>(Page{conn, id, chat, 50, INT64_MAX, {}}), 0);
-    });
-  });
-}
-
-void chat_history(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
-  std::int64_t before = 0;
-  auto text = string_field(req, "before");
-  if (text.is_error() || !parse_i64(text.ok(), before) || before <= 0) {
-    return bad_request(conn, id, "need the field before, a string with a message id");
-  }
-  long limit = 50;
+// The optional number field "limit", a whole number from 1 to `most`, else 50. False after the reply.
+bool parse_limit(std::uint64_t conn, const std::string &id, td::JsonObject &req, long most, long &limit) {
+  limit = 50;
   td::JsonValue v;
   const int given = optional_field(req, "limit", td::JsonValue::Type::Number, v);
   if (given == 1) {
@@ -152,8 +132,38 @@ void chat_history(std::uint64_t conn, const std::string &id, td::JsonObject &req
       limit = 0;
     }
   }
-  if (given < 0 || limit < 1 || limit > 100) {
-    return bad_request(conn, id, "limit is a number from 1 to 100");
+  if (given < 0 || limit < 1 || limit > most) {
+    bad_request(conn, id, "limit is a number from 1 to " + std::to_string(most));
+    return false;
+  }
+  return true;
+}
+
+void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat, std::size_t want) {
+  tdlib.send(make_object<td_api::getChat>(chat), [=](Obj o) {
+    if (as_error(o)) {
+      return server.reply_error(conn, id, "bad_chat", "no such chat");
+    }
+    tdlib.send(make_object<td_api::openChat>(chat), [=](Obj o2) {
+      if (auto e = as_error(o2)) {
+        say("td error: %d %s", e->code_, e->message_.c_str());
+        return reply_td_error(conn, id, *e);
+      }
+      live_open(conn, chat);  // typing and presence now flow for it
+      fetch(std::make_shared<Page>(Page{conn, id, chat, want, INT64_MAX, {}}), 0);
+    });
+  });
+}
+
+void chat_history(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t before = 0;
+  auto text = string_field(req, "before");
+  if (text.is_error() || !parse_i64(text.ok(), before) || before <= 0) {
+    return bad_request(conn, id, "need the field before, a string with a message id");
+  }
+  long limit = 0;
+  if (!parse_limit(conn, id, req, 100, limit)) {
+    return;
   }
   fetch(std::make_shared<Page>(Page{conn, id, chat, static_cast<std::size_t>(limit), before, {}}), before);
 }
@@ -490,7 +500,10 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
   }
 
   if (cmd == "chat.open") {
-    chat_open(conn, id, chat);
+    long limit = 0;
+    if (parse_limit(conn, id, req, 200, limit)) {
+      chat_open(conn, id, chat, static_cast<std::size_t>(limit));
+    }
   } else if (cmd == "chat.history") {
     chat_history(conn, id, req, chat);
   } else if (cmd == "chat.close") {

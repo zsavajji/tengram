@@ -203,6 +203,50 @@ int MessageModel::unread() const
     return q.exec() && q.next() ? q.value(0).toInt() : 0;
 }
 
+// More unread messages than this open at the newest, as before: loading every row back to the first one
+// would hold the UI thread too long (about 3 ms a row).
+// ponytail: a window around the first unread, with its own floor, if long-unread groups need it.
+static const int kUnreadMax = 150;
+
+// Where the chat opens. A chat with unread messages (chats.unread) opens at the first one that came after
+// chats.read_inbox, if the rows from it to the newest are no more than kUnreadMax; chat.open then verifies
+// that far (openLimit). Run once, by the constructor: chats.db is not open at the first launch, and then
+// none of this applies. read_inbox is 0 when unknown (an old database, until the engine next writes the row).
+void MessageModel::findUnread()
+{
+    QSqlDatabase db = database();
+    if (!db.isOpen())
+        return;
+    QSqlQuery q(db);
+    q.prepare("SELECT read_inbox, unread FROM chats WHERE jid = ?");
+    q.addBindValue(m_chat);
+    if (!q.exec() || !q.next())
+        return;
+    const qint64 readInbox = q.value(0).toLongLong();
+    const int unread = q.value(1).toInt();
+    if (unread <= 0 || readInbox <= 0)
+        return;
+    // The cache must hold every unread message: one that TDLib announced only by its last message has
+    // the newest alone, and the divider would sit above that one while `unread` says 20.
+    QSqlQuery have(db);
+    have.prepare("SELECT count(*), min(CAST(id AS INTEGER)) FROM messages WHERE chat = ? AND out = 0 "
+                 "AND CAST(id AS INTEGER) > ?");
+    have.addBindValue(m_chat);
+    have.addBindValue(readInbox);
+    if (!have.exec() || !have.next() || have.value(0).toInt() < unread)
+        return;
+    const qint64 first = have.value(1).toLongLong();
+    // Every row from it to the newest, ours included: what loadFirst reads and chat.open must verify.
+    QSqlQuery count(db);
+    count.prepare("SELECT count(*) FROM messages WHERE chat = ? AND CAST(id AS INTEGER) >= ?");
+    count.addBindValue(m_chat);
+    count.addBindValue(first);
+    if (!count.exec() || !count.next() || count.value(0).toInt() > kUnreadMax)
+        return;
+    m_unreadId = QString::number(first);
+    m_openLimit = qMax(50, count.value(0).toInt() + 10);
+}
+
 // The times select would read, with no row built: what deciding a page's size needs.
 QList<qint64> MessageModel::pageTimes(const QString &where, const QVariantList &args, int limit)
 {
