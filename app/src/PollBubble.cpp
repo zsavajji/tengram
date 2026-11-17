@@ -231,5 +231,5 @@ void PollBubble::onWho()
     if (i < 0 || i >= options.size())
         return;
     const QString voters = options.at(i).toMap().value("voters").toString();
-    Card::call(m_list, "showVoters", voters.isEmpty() ? Card::tr("PollBubble", "Nobody yet") : voters);
+    Card::call(m_list, "showVoters", voters.isEmpty() ? QCoreApplication::translate("PollBubble", "Nobody yet") : voters);
 }

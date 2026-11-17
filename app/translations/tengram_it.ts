@@ -5,14 +5,22 @@
 <context>
     <name>AboutPage</name>
     <message>
+        <location filename="../assets/AboutPage.qml" line="9"/>
+        <location filename="../assets/AboutPage.qml" line="46"/>
         <source>About</source>
         <translation>Informazioni</translation>
     </message>
     <message>
-        <source>Thanks</source>
-        <translation>Ringraziamenti</translation>
+        <location filename="../assets/AboutPage.qml" line="58"/>
+        <source>Telegram for BlackBerry 10.</source>
+        <translation>Telegram per BlackBerry 10.</translation>
     </message>
     <message>
+        <source>Thanks</source>
+        <translation type="obsolete">Ringraziamenti</translation>
+    </message>
+    <message>
+        <location filename="../assets/AboutPage.qml" line="65"/>
         <source>Developer</source>
         <translation>Sviluppatore</translation>
     </message>
@@ -26,6 +34,60 @@
     </message>
 </context>
 <context>
+    <name>AppearanceSettingsPage</name>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="7"/>
+        <source>Appearance</source>
+        <translation>Aspetto</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="16"/>
+        <source>Theme</source>
+        <translation>Tema</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="18"/>
+        <source>Dark</source>
+        <translation>Scuro</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="19"/>
+        <source>Bright</source>
+        <translation>Chiaro</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="24"/>
+        <source>Text size</source>
+        <translation>Dimensione del testo</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="26"/>
+        <source>Small</source>
+        <translation>Piccola</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="27"/>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="35"/>
+        <source>Normal</source>
+        <translation>Normale</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="28"/>
+        <source>Large</source>
+        <translation>Grande</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="33"/>
+        <source>Interface</source>
+        <translation>Interfaccia</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml" line="36"/>
+        <source>Compact</source>
+        <translation>Compatta</translation>
+    </message>
+</context>
+<context>
     <name>ArchivedPage</name>
     <message>
         <location filename="../assets/ArchivedPage.qml" line="14"/>
@@ -33,17 +95,237 @@
         <translation>Archiviate</translation>
     </message>
     <message>
-        <location filename="../assets/ArchivedPage.qml" line="40"/>
+        <location filename="../assets/ArchivedPage.qml" line="44"/>
         <source>No archived chats</source>
         <translation>Nessuna chat archiviata</translation>
     </message>
 </context>
 <context>
-    <name>SharePage</name>
+    <name>CallDrawer</name>
     <message>
-        <location filename="../assets/SharePage.qml" line="11"/>
-        <source>Send to</source>
-        <translation>Invia a</translation>
+        <source>Swipe from the left edge to see who is in the call</source>
+        <translation type="obsolete">Scorri dal bordo sinistro per vedere chi è nella chiamata</translation>
+    </message>
+</context>
+<context>
+    <name>CallPanel</name>
+    <message>
+        <source>Speaker</source>
+        <translation type="obsolete">Altoparl.</translation>
+    </message>
+    <message>
+        <source>Mute</source>
+        <translation type="obsolete">Disattiva audio</translation>
+    </message>
+    <message>
+        <source>End call</source>
+        <translation type="obsolete">Termina chiamata</translation>
+    </message>
+    <message>
+        <source>Unmute</source>
+        <translation type="obsolete">Attiva audio</translation>
+    </message>
+    <message>
+        <source>Stop video</source>
+        <translation type="obsolete">Ferma video</translation>
+    </message>
+    <message>
+        <source>Start video</source>
+        <translation type="obsolete">Avvia video</translation>
+    </message>
+    <message>
+        <source>Switch camera</source>
+        <translation type="obsolete">Cambia fotocamera</translation>
+    </message>
+    <message>
+        <source>Hide preview</source>
+        <translation type="obsolete">Nascondi anteprima</translation>
+    </message>
+    <message>
+        <source>Show preview</source>
+        <translation type="obsolete">Mostra anteprima</translation>
+    </message>
+</context>
+<context>
+    <name>CallPickPage</name>
+    <message>
+        <source>Call</source>
+        <translation type="obsolete">Chiama</translation>
+    </message>
+    <message>
+        <source>At most 31 people in a call</source>
+        <translation type="obsolete">Al massimo 31 persone in una chiamata</translation>
+    </message>
+    <message>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation type="obsolete">Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
+    </message>
+    <message>
+        <source>Call %1 people?</source>
+        <translation type="obsolete">Chiamare %1 persone?</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="obsolete">Annulla</translation>
+    </message>
+    <message>
+        <source>Search members</source>
+        <translation type="obsolete">Cerca membri</translation>
+    </message>
+    <message>
+        <source>%1 chosen</source>
+        <translation type="obsolete">%1 scelti</translation>
+    </message>
+    <message>
+        <source>Loading…</source>
+        <translation type="obsolete">Caricamento…</translation>
+    </message>
+    <message>
+        <source>Voice call</source>
+        <translation type="obsolete">Chiamata vocale</translation>
+    </message>
+    <message>
+        <source>Video call</source>
+        <translation type="obsolete">Videochiamata</translation>
+    </message>
+</context>
+<context>
+    <name>CallRow</name>
+    <message>
+        <source>Call</source>
+        <translation type="obsolete">Chiama</translation>
+    </message>
+    <message>
+        <source>Open chat</source>
+        <translation type="obsolete">Apri chat</translation>
+    </message>
+</context>
+<context>
+    <name>CallSheet</name>
+    <message>
+        <source>Calling…</source>
+        <translation type="obsolete">Chiamata in corso…</translation>
+    </message>
+    <message>
+        <source>Incoming voice call</source>
+        <translation type="obsolete">Chiamata vocale in arrivo</translation>
+    </message>
+    <message>
+        <source>Incoming video call</source>
+        <translation type="obsolete">Videochiamata in arrivo</translation>
+    </message>
+    <message>
+        <source>Incoming group voice call</source>
+        <translation type="obsolete">Chiamata vocale di gruppo in arrivo</translation>
+    </message>
+    <message>
+        <source>Incoming group voice call · %1</source>
+        <translation type="obsolete">Chiamata vocale di gruppo in arrivo · %1</translation>
+    </message>
+    <message>
+        <source>Connecting…</source>
+        <translation type="obsolete">Connessione…</translation>
+    </message>
+    <message>
+        <source>Reconnecting…</source>
+        <translation type="obsolete">Riconnessione…</translation>
+    </message>
+    <message>
+        <source>Call ended</source>
+        <translation type="obsolete">Chiamata terminata</translation>
+    </message>
+    <message>
+        <source>Declined</source>
+        <translation type="obsolete">Rifiutata</translation>
+    </message>
+    <message>
+        <source>Busy</source>
+        <translation type="obsolete">Occupato</translation>
+    </message>
+    <message>
+        <source>No answer</source>
+        <translation type="obsolete">Nessuna risposta</translation>
+    </message>
+    <message>
+        <source>Call failed</source>
+        <translation type="obsolete">Chiamata non riuscita</translation>
+    </message>
+    <message>
+        <source>Offline</source>
+        <translation type="obsolete">Offline</translation>
+    </message>
+    <message>
+        <source>Telegram: voice call</source>
+        <translation type="obsolete">Telegram: chiamata vocale</translation>
+    </message>
+    <message>
+        <source>Telegram: video call</source>
+        <translation type="obsolete">Telegram: videochiamata</translation>
+    </message>
+    <message>
+        <source>%1 and %2</source>
+        <translation type="obsolete">%1 e %2</translation>
+    </message>
+    <message>
+        <source>%1, %2 and %3 more</source>
+        <translation type="obsolete">%1, %2 e altri %3</translation>
+    </message>
+    <message>
+        <source>Incoming group video call</source>
+        <translation type="obsolete">Videochiamata di gruppo in arrivo</translation>
+    </message>
+    <message>
+        <source>Incoming group video call · %1</source>
+        <translation type="obsolete">Videochiamata di gruppo in arrivo · %1</translation>
+    </message>
+</context>
+<context>
+    <name>CallVideoView</name>
+    <message>
+        <source>Wants to turn on video</source>
+        <translation type="obsolete">Vuole attivare il video</translation>
+    </message>
+</context>
+<context>
+    <name>CallsModel</name>
+    <message>
+        <source>Unknown</source>
+        <translation type="obsolete">Sconosciuto</translation>
+    </message>
+    <message>
+        <source>Missed voice call</source>
+        <translation type="obsolete">Chiamata vocale persa</translation>
+    </message>
+    <message>
+        <source>Outgoing, %1</source>
+        <translation type="obsolete">In uscita, %1</translation>
+    </message>
+    <message>
+        <source>Incoming, %1</source>
+        <translation type="obsolete">In arrivo, %1</translation>
+    </message>
+    <message>
+        <source>Outgoing</source>
+        <translation type="obsolete">In uscita</translation>
+    </message>
+    <message>
+        <source>Incoming</source>
+        <translation type="obsolete">In arrivo</translation>
+    </message>
+</context>
+<context>
+    <name>CallsPage</name>
+    <message>
+        <source>Calls</source>
+        <translation type="obsolete">Chiamate</translation>
+    </message>
+    <message>
+        <source>No calls yet</source>
+        <translation type="obsolete">Nessuna chiamata</translation>
+    </message>
+    <message>
+        <source>New call</source>
+        <translation type="obsolete">Nuova chiamata</translation>
     </message>
 </context>
 <context>
@@ -70,7 +352,7 @@
         <translation>Annulla</translation>
     </message>
     <message numerus="yes">
-        <location filename="../assets/ChannelInfoPage.qml" line="106"/>
+        <location filename="../assets/ChannelInfoPage.qml" line="108"/>
         <source>%Ln followers</source>
         <translation>
             <numerusform>%Ln follower</numerusform>
@@ -78,17 +360,17 @@
         </translation>
     </message>
     <message>
-        <location filename="../assets/ChannelInfoPage.qml" line="116"/>
+        <location filename="../assets/ChannelInfoPage.qml" line="118"/>
         <source>Loading…</source>
         <translation>Caricamento…</translation>
     </message>
     <message>
-        <location filename="../assets/ChannelInfoPage.qml" line="125"/>
+        <location filename="../assets/ChannelInfoPage.qml" line="127"/>
         <source>Couldn&apos;t load the channel&apos;s info. Check the connection and try again.</source>
         <translation>Impossibile caricare le info del canale. Controlla la connessione e riprova.</translation>
     </message>
     <message>
-        <location filename="../assets/ChannelInfoPage.qml" line="129"/>
+        <location filename="../assets/ChannelInfoPage.qml" line="131"/>
         <source>Description</source>
         <translation>Descrizione</translation>
     </message>
@@ -96,100 +378,93 @@
 <context>
     <name>ChannelsPage</name>
     <message>
-        <location filename="../assets/ChannelsPage.qml" line="12"/>
         <source>Channels</source>
-        <translation>Canali</translation>
+        <translation type="obsolete">Canali</translation>
     </message>
     <message>
-        <location filename="../assets/ChannelsPage.qml" line="40"/>
         <source>Follow</source>
-        <translation>Segui</translation>
+        <translation type="obsolete">Segui</translation>
     </message>
     <message>
-        <location filename="../assets/ChannelsPage.qml" line="13"/>
         <source>Follow a channel</source>
-        <translation>Segui un canale</translation>
+        <translation type="obsolete">Segui un canale</translation>
     </message>
     <message>
-        <location filename="../assets/ChannelsPage.qml" line="14"/>
-        <source>Paste the channel's link</source>
-        <translation>Incolla il link del canale</translation>
+        <source>Paste the channel&apos;s link</source>
+        <translation type="obsolete">Incolla il link del canale</translation>
     </message>
     <message>
-        <location filename="../assets/ChannelsPage.qml" line="16"/>
         <source>Next</source>
-        <translation>Avanti</translation>
+        <translation type="obsolete">Avanti</translation>
     </message>
     <message>
-        <location filename="../assets/ChannelsPage.qml" line="17"/>
         <source>Cancel</source>
-        <translation>Annulla</translation>
+        <translation type="obsolete">Annulla</translation>
     </message>
     <message>
-        <location filename="../assets/ChannelsPage.qml" line="15"/>
-        <source>That isn't a channel link</source>
-        <translation>Questo non è un link a un canale</translation>
+        <source>That isn&apos;t a channel link</source>
+        <translation type="obsolete">Questo non è un link a un canale</translation>
     </message>
     <message>
-        <location filename="../assets/ChannelsPage.qml" line="70"/>
         <source>No channels. Follow one by its link, or on your phone.</source>
-        <translation>Nessun canale. Seguine uno dal suo link o sul telefono.</translation>
+        <translation type="obsolete">Nessun canale. Seguine uno dal suo link o sul telefono.</translation>
     </message>
 </context>
 <context>
     <name>ChatController</name>
     <message>
-        <location filename="../src/ChatControllerGroup.cpp" line="23"/>
+        <location filename="../src/ChatControllerGroup.cpp" line="24"/>
         <source>1 participant</source>
         <translation>1 partecipante</translation>
     </message>
     <message>
-        <location filename="../src/ChatControllerGroup.cpp" line="23"/>
+        <location filename="../src/ChatControllerGroup.cpp" line="24"/>
         <source>%1 participants</source>
         <translation>%1 partecipanti</translation>
     </message>
     <message>
-        <location filename="../src/ChatController.cpp" line="270"/>
+        <location filename="../src/ChatController.cpp" line="385"/>
+        <location filename="../src/ChatController.cpp" line="400"/>
         <source>You</source>
         <translation>Tu</translation>
     </message>
     <message>
-        <location filename="../src/ChatController.cpp" line="424"/>
+        <location filename="../src/ChatController.cpp" line="562"/>
         <source>%1 is recording audio…</source>
         <translation>%1 sta registrando un audio…</translation>
     </message>
     <message>
-        <location filename="../src/ChatController.cpp" line="424"/>
+        <location filename="../src/ChatController.cpp" line="562"/>
         <source>%1 is typing…</source>
         <translation>%1 sta scrivendo…</translation>
     </message>
     <message>
-        <location filename="../src/ChatController.cpp" line="426"/>
+        <location filename="../src/ChatController.cpp" line="564"/>
         <source>recording audio…</source>
         <translation>sta registrando un audio…</translation>
     </message>
     <message>
-        <location filename="../src/ChatController.cpp" line="426"/>
+        <location filename="../src/ChatController.cpp" line="564"/>
         <source>typing…</source>
         <translation>sta scrivendo…</translation>
     </message>
     <message>
-        <location filename="../src/ChatController.cpp" line="441"/>
+        <location filename="../src/ChatController.cpp" line="579"/>
         <source>online</source>
         <translation>online</translation>
     </message>
     <message>
-        <location filename="../src/ChatController.cpp" line="448"/>
+        <location filename="../src/ChatController.cpp" line="586"/>
         <source>last seen today at %1</source>
         <translation>ultimo accesso oggi alle %1</translation>
     </message>
     <message>
-        <location filename="../src/ChatController.cpp" line="450"/>
+        <location filename="../src/ChatController.cpp" line="588"/>
         <source>last seen yesterday at %1</source>
         <translation>ultimo accesso ieri alle %1</translation>
     </message>
     <message>
-        <location filename="../src/ChatController.cpp" line="452"/>
+        <location filename="../src/ChatController.cpp" line="590"/>
         <source>last seen %1 at %2</source>
         <translation>ultimo accesso %1 alle %2</translation>
     </message>
@@ -197,42 +472,43 @@
 <context>
     <name>ChatList</name>
     <message>
-        <location filename="../assets/ChatList.qml" line="41"/>
+        <location filename="../assets/ChatList.qml" line="78"/>
         <source>Mute for…</source>
         <translation>Silenzia per…</translation>
     </message>
     <message>
-        <location filename="../assets/ChatList.qml" line="42"/>
+        <location filename="../assets/ChatList.qml" line="79"/>
         <source>Mute</source>
         <translation>Silenzia</translation>
     </message>
     <message>
-        <location filename="../assets/ChatList.qml" line="43"/>
+        <location filename="../assets/ChatList.qml" line="67"/>
+        <location filename="../assets/ChatList.qml" line="80"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../assets/ChatList.qml" line="45"/>
+        <location filename="../assets/ChatList.qml" line="53"/>
         <source>8 hours</source>
         <translation>8 ore</translation>
     </message>
     <message>
-        <location filename="../assets/ChatList.qml" line="46"/>
+        <location filename="../assets/ChatList.qml" line="54"/>
         <source>1 week</source>
         <translation>1 settimana</translation>
     </message>
     <message>
-        <location filename="../assets/ChatList.qml" line="47"/>
+        <location filename="../assets/ChatList.qml" line="55"/>
         <source>Always</source>
         <translation>Sempre</translation>
     </message>
     <message>
-        <location filename="../assets/ChatList.qml" line="58"/>
+        <location filename="../assets/ChatList.qml" line="65"/>
         <source>Unfollow this channel?</source>
         <translation>Non seguire più questo canale?</translation>
     </message>
     <message>
-        <location filename="../assets/ChatList.qml" line="60"/>
+        <location filename="../assets/ChatList.qml" line="66"/>
         <source>Unfollow</source>
         <translation>Non seguire più</translation>
     </message>
@@ -240,37 +516,37 @@
 <context>
     <name>ChatListModel</name>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="31"/>
+        <location filename="../src/ChatListModel.cpp" line="34"/>
         <source>Unnamed group</source>
         <translation>Gruppo senza nome</translation>
     </message>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="33"/>
+        <location filename="../src/ChatListModel.cpp" line="36"/>
         <source>Broadcast list</source>
         <translation>Lista broadcast</translation>
     </message>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="35"/>
+        <location filename="../src/ChatListModel.cpp" line="38"/>
         <source>Channel</source>
         <translation>Canale</translation>
     </message>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="39"/>
+        <location filename="../src/ChatListModel.cpp" line="40"/>
         <source>Unknown</source>
         <translation>Sconosciuto</translation>
     </message>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="190"/>
+        <location filename="../src/ChatListModel.cpp" line="255"/>
         <source>You</source>
         <translation>Tu</translation>
     </message>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="278"/>
+        <location filename="../src/ChatListModel.cpp" line="124"/>
         <source>Pinned</source>
         <translation>Fissate</translation>
     </message>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="278"/>
+        <location filename="../src/ChatListModel.cpp" line="124"/>
         <source>No messages</source>
         <translation>Nessun messaggio</translation>
     </message>
@@ -278,82 +554,83 @@
 <context>
     <name>ChatPage</name>
     <message>
-        <location filename="../assets/ChatPage.qml" line="45"/>
+        <location filename="../assets/ChatPage.qml" line="208"/>
+        <source>Couldn&apos;t forward this message</source>
+        <translation>Impossibile inoltrare questo messaggio</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="62"/>
         <source>Attach</source>
         <translation>Allega</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="73"/>
+        <location filename="../assets/ChatPage.qml" line="117"/>
         <source>Contact info</source>
         <translation>Info contatto</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="73"/>
+        <location filename="../assets/ChatPage.qml" line="117"/>
         <source>Channel info</source>
         <translation>Info canale</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="73"/>
+        <location filename="../assets/ChatPage.qml" line="117"/>
         <source>Group info</source>
         <translation>Info gruppo</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="79"/>
+        <location filename="../assets/ChatPage.qml" line="124"/>
         <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
         <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="93"/>
+        <location filename="../assets/ChatPage.qml" line="192"/>
         <source>Couldn&apos;t open this file</source>
         <translation>Impossibile aprire questo file</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="97"/>
+        <location filename="../assets/ChatPage.qml" line="196"/>
         <source>Couldn&apos;t play this voice note</source>
         <translation>Impossibile riprodurre questo messaggio vocale</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="101"/>
+        <location filename="../assets/ChatPage.qml" line="200"/>
         <source>Not deleted: Tengram is reconnecting. Try again in a moment.</source>
         <translation>Non eliminato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="108"/>
+        <location filename="../assets/ChatPage.qml" line="215"/>
         <source>Message deleted</source>
         <translation>Messaggio eliminato</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="109"/>
+        <location filename="../assets/ChatPage.qml" line="216"/>
         <source>Undo</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="122"/>
         <source>Delete for everyone?</source>
-        <translation>Eliminare per tutti?</translation>
+        <translation type="obsolete">Eliminare per tutti?</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="123"/>
         <source>It will be deleted for everyone in this chat.</source>
-        <translation>Verrà eliminato per tutti i partecipanti di questa chat.</translation>
+        <translation type="obsolete">Verrà eliminato per tutti i partecipanti di questa chat.</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="124"/>
         <source>Delete</source>
-        <translation>Elimina</translation>
+        <translation type="obsolete">Elimina</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="125"/>
         <source>Cancel</source>
-        <translation>Annulla</translation>
+        <translation type="obsolete">Annulla</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="173"/>
+        <location filename="../assets/ChatPage.qml" line="234"/>
         <source>Search</source>
         <translation>Cerca</translation>
     </message>
     <message>
-        <location filename="../assets/ChatPage.qml" line="108"/>
+        <location filename="../assets/ChatPage.qml" line="204"/>
         <source>Couldn&apos;t edit this message</source>
         <translation>Impossibile modificare questo messaggio</translation>
     </message>
@@ -361,153 +638,172 @@
 <context>
     <name>ChatRow</name>
     <message>
-        <location filename="../assets/ChatRow.qml" line="20"/>
         <source>Mark as read</source>
         <translation>Segna come letta</translation>
     </message>
     <message>
-        <location filename="../assets/ChatRow.qml" line="20"/>
         <source>Mark as unread</source>
         <translation>Segna come da leggere</translation>
     </message>
     <message>
-        <location filename="../assets/ChatRow.qml" line="25"/>
         <source>Unpin</source>
         <translation>Non fissare</translation>
     </message>
     <message>
-        <location filename="../assets/ChatRow.qml" line="25"/>
         <source>Pin</source>
         <translation>Fissa</translation>
     </message>
     <message>
-        <location filename="../assets/ChatRow.qml" line="30"/>
         <source>Unmute</source>
         <translation>Riattiva audio</translation>
     </message>
     <message>
-        <location filename="../assets/ChatRow.qml" line="30"/>
         <source>Mute…</source>
         <translation>Silenzia…</translation>
     </message>
     <message>
-        <location filename="../assets/ChatRow.qml" line="35"/>
         <source>Unarchive</source>
-        <translation>Rimuovi dall'archivio</translation>
+        <translation>Rimuovi dall&apos;archivio</translation>
     </message>
     <message>
-        <location filename="../assets/ChatRow.qml" line="35"/>
         <source>Archive</source>
         <translation>Archivia</translation>
     </message>
     <message>
-        <location filename="../assets/ChatRow.qml" line="38"/>
         <source>Unfollow</source>
         <translation>Non seguire più</translation>
     </message>
     <message>
-        <location filename="../assets/ChatRow.qml" line="1"/>
         <source>Call</source>
-        <translation>Chiama</translation>
+        <translation type="obsolete">Chiama</translation>
+    </message>
+</context>
+<context>
+    <name>ChatSettingsPage</name>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="7"/>
+        <source>Chats</source>
+        <translation>Chat</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="25"/>
+        <source>Enter sends</source>
+        <translation>Invio invia il messaggio</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="29"/>
+        <source>Off, Enter starts a new line; the Send action still sends.</source>
+        <translation>Se disattivato, Invio va a capo; l&apos;azione Invia continua a inviare.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="53"/>
+        <source>Proximity sensor</source>
+        <translation>Sensore di prossimità</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="57"/>
+        <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
+        <translation>Se disattivato, i vocali restano sull&apos;altoparlante e lo schermo resta acceso nelle chiamate. Per un sensore guasto.</translation>
     </message>
 </context>
 <context>
     <name>ChatTitleBar</name>
     <message>
-        <location filename="../assets/ChatTitleBar.qml" line="1"/>
         <source>Call</source>
-        <translation>Chiama</translation>
+        <translation type="obsolete">Chiama</translation>
     </message>
     <message>
-        <location filename="../assets/ChatTitleBar.qml" line="1"/>
         <source>Audio only</source>
-        <translation>Solo audio</translation>
+        <translation type="obsolete">Solo audio</translation>
     </message>
     <message>
-        <location filename="../assets/ChatTitleBar.qml" line="1"/>
         <source>Video</source>
-        <translation>Video</translation>
+        <translation type="obsolete">Video</translation>
     </message>
     <message>
-        <location filename="../assets/ChatTitleBar.qml" line="1"/>
         <source>Cancel</source>
-        <translation>Annulla</translation>
+        <translation type="obsolete">Annulla</translation>
     </message>
 </context>
 <context>
     <name>ChatsPage</name>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="28"/>
+        <location filename="../assets/ChatsPage.qml" line="54"/>
         <source>New chat</source>
         <translation>Nuova chat</translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="50"/>
+        <location filename="../assets/ChatsPage.qml" line="65"/>
         <source>New group</source>
         <translation>Nuovo gruppo</translation>
     </message>
     <message numerus="yes">
-        <location filename="../assets/ChatsPage.qml" line="150"/>
-        <source>%n couldn't be added: their privacy settings don't allow it. Invite them with the group's link from your main phone.</source>
+        <location filename="../assets/ChatsPage.qml" line="176"/>
+        <source>%n couldn&apos;t be added: their privacy settings don&apos;t allow it. Invite them with the group&apos;s link from your main phone.</source>
         <translation>
             <numerusform>%n non è stato aggiunto: le sue impostazioni sulla privacy non lo consentono. Invitalo con il link del gruppo dal telefono principale.</numerusform>
             <numerusform>%n non sono stati aggiunti: le loro impostazioni sulla privacy non lo consentono. Invitali con il link del gruppo dal telefono principale.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="39"/>
+        <location filename="../assets/ChatsPage.qml" line="71"/>
         <source>Top</source>
         <translation>In alto</translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="48"/>
+        <location filename="../assets/ChatsPage.qml" line="81"/>
         <source>Bottom</source>
         <translation>In basso</translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="57"/>
+        <location filename="../assets/ChatsPage.qml" line="44"/>
         <source>Search</source>
         <translation>Cerca</translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="67"/>
+        <location filename="../assets/ChatsPage.qml" line="91"/>
         <source>Archived</source>
         <translation>Archiviate</translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="112"/>
+        <location filename="../assets/ChatsPage.qml" line="99"/>
+        <location filename="../assets/ChatsPage.qml" line="110"/>
+        <source>Saved Messages</source>
+        <translation>Messaggi salvati</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatsPage.qml" line="204"/>
         <source>Chats</source>
         <translation>Chat</translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="112"/>
+        <location filename="../assets/ChatsPage.qml" line="204"/>
         <source>Connecting…</source>
         <translation>Connessione…</translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="124"/>
+        <location filename="../assets/ChatsPage.qml" line="234"/>
         <source>Search chats</source>
         <translation>Cerca chat</translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="156"/>
+        <location filename="../assets/ChatsPage.qml" line="283"/>
         <source>No chat matches.</source>
         <translation>Nessuna chat corrisponde.</translation>
     </message>
     <message>
-        <location filename="../assets/ChatsPage.qml" line="80"/>
         <source>Channels</source>
-        <translation>Canali</translation>
+        <translation type="obsolete">Canali</translation>
     </message>
     <message>
         <source>Starred messages</source>
-        <translation>Messaggi con stella</translation>
+        <translation type="obsolete">Messaggi con stella</translation>
     </message>
 </context>
 <context>
     <name>Composer</name>
     <message>
-        <location filename="../assets/Composer.qml" line="73"/>
+        <location filename="../assets/Composer.qml" line="89"/>
         <source>Message</source>
         <translation>Messaggio</translation>
     </message>
@@ -515,7 +811,7 @@
 <context>
     <name>ContactInfo</name>
     <message>
-        <location filename="../src/ContactInfo.cpp" line="77"/>
+        <location filename="../src/ContactInfo.cpp" line="104"/>
         <source>Unnamed group</source>
         <translation>Gruppo senza nome</translation>
     </message>
@@ -523,133 +819,131 @@
 <context>
     <name>ContactInfoPage</name>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="39"/>
+        <location filename="../assets/ContactInfoPage.qml" line="41"/>
         <source>Contact info</source>
         <translation>Info contatto</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="44"/>
+        <location filename="../assets/ContactInfoPage.qml" line="46"/>
         <source>Message</source>
         <translation>Messaggio</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="50"/>
+        <location filename="../assets/ContactInfoPage.qml" line="52"/>
         <source>Export chat</source>
         <translation>Esporta chat</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="58"/>
+        <location filename="../assets/ContactInfoPage.qml" line="61"/>
         <source>Clear chat</source>
         <translation>Svuota chat</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="67"/>
+        <location filename="../assets/ContactInfoPage.qml" line="71"/>
         <source>Unblock</source>
         <translation>Sblocca</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="67"/>
-        <location filename="../assets/ContactInfoPage.qml" line="163"/>
+        <location filename="../assets/ContactInfoPage.qml" line="71"/>
+        <location filename="../assets/ContactInfoPage.qml" line="182"/>
         <source>Block</source>
         <translation>Blocca</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="79"/>
+        <location filename="../assets/ContactInfoPage.qml" line="84"/>
         <source>Delete chat</source>
         <translation>Elimina chat</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="149"/>
+        <location filename="../assets/ContactInfoPage.qml" line="168"/>
         <source>Clear this chat?</source>
         <translation>Svuotare questa chat?</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="150"/>
-        <location filename="../assets/ContactInfoPage.qml" line="174"/>
+        <location filename="../assets/ContactInfoPage.qml" line="169"/>
+        <location filename="../assets/ContactInfoPage.qml" line="193"/>
         <source>Its messages will be deleted from this phone.</source>
         <translation>I suoi messaggi saranno eliminati da questo telefono.</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="151"/>
+        <location filename="../assets/ContactInfoPage.qml" line="170"/>
         <source>Clear</source>
         <translation>Svuota</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="152"/>
-        <location filename="../assets/ContactInfoPage.qml" line="164"/>
-        <location filename="../assets/ContactInfoPage.qml" line="176"/>
+        <location filename="../assets/ContactInfoPage.qml" line="171"/>
+        <location filename="../assets/ContactInfoPage.qml" line="183"/>
+        <location filename="../assets/ContactInfoPage.qml" line="195"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="161"/>
+        <location filename="../assets/ContactInfoPage.qml" line="180"/>
         <source>Block %1?</source>
         <translation>Bloccare %1?</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="162"/>
+        <location filename="../assets/ContactInfoPage.qml" line="181"/>
         <source>Blocked contacts can&apos;t call you or send you messages.</source>
         <translation>I contatti bloccati non possono chiamarti né inviarti messaggi.</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="173"/>
+        <location filename="../assets/ContactInfoPage.qml" line="192"/>
         <source>Delete this chat?</source>
         <translation>Eliminare questa chat?</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="175"/>
+        <location filename="../assets/ContactInfoPage.qml" line="194"/>
         <source>Delete</source>
         <translation>Elimina</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="190"/>
+        <location filename="../assets/ContactInfoPage.qml" line="209"/>
         <source>Couldn&apos;t do that. Check the connection and try again.</source>
         <translation>Non è stato possibile. Controlla la connessione e riprova.</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="203"/>
+        <location filename="../assets/ContactInfoPage.qml" line="222"/>
         <source>Saved to Downloads: %1</source>
         <translation>Salvato in Download: %1</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="271"/>
+        <location filename="../assets/ContactInfoPage.qml" line="303"/>
         <source>Loading…</source>
         <translation>Caricamento…</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="280"/>
+        <location filename="../assets/ContactInfoPage.qml" line="312"/>
         <source>Couldn&apos;t load the contact&apos;s info. Check the connection and try again.</source>
         <translation>Impossibile caricare le info del contatto. Controlla la connessione e riprova.</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="284"/>
+        <location filename="../assets/ContactInfoPage.qml" line="316"/>
         <source>About</source>
         <translation>Info</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="319"/>
+        <location filename="../assets/ContactInfoPage.qml" line="351"/>
         <source>Mute notifications</source>
         <translation>Disattiva notifiche</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="329"/>
+        <location filename="../assets/ContactInfoPage.qml" line="361"/>
         <source>1 group in common</source>
         <translation>1 gruppo in comune</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="329"/>
+        <location filename="../assets/ContactInfoPage.qml" line="361"/>
         <source>%1 groups in common</source>
         <translation>%1 gruppi in comune</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="1"/>
         <source>Voice call</source>
-        <translation>Chiamata vocale</translation>
+        <translation type="obsolete">Chiamata vocale</translation>
     </message>
     <message>
-        <location filename="../assets/ContactInfoPage.qml" line="1"/>
         <source>Video call</source>
-        <translation>Videochiamata</translation>
+        <translation type="obsolete">Videochiamata</translation>
     </message>
 </context>
 <context>
@@ -666,6 +960,49 @@
     </message>
 </context>
 <context>
+    <name>DataSettingsPage</name>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="9"/>
+        <source>Data and storage</source>
+        <translation>Dati e archiviazione</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="34"/>
+        <source>Download on mobile data</source>
+        <translation>Scarica su rete mobile</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="38"/>
+        <source>Off, photos and voice notes wait for a tap unless you&apos;re on Wi-Fi.</source>
+        <translation>Se disattivato, foto e messaggi vocali attendono un tocco, tranne che in Wi-Fi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="54"/>
+        <source>Cache limit</source>
+        <translation>Limite della cache</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="77"/>
+        <source>Cache: %1</source>
+        <translation>Cache: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="81"/>
+        <source>Clear cache</source>
+        <translation>Svuota la cache</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="86"/>
+        <source>Cache cleared: %1 freed</source>
+        <translation>Cache svuotata: %1 liberati</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="94"/>
+        <source>Voice notes&apos; decoded audio and photo previews; they&apos;re made again when needed.</source>
+        <translation>L&apos;audio decodificato dei vocali e le anteprime delle foto; si rifanno quando servono.</translation>
+    </message>
+</context>
+<context>
     <name>EmojiModel</name>
     <message>
         <location filename="../src/EmojiModel.cpp" line="28"/>
@@ -676,7 +1013,7 @@
 <context>
     <name>EmptyNote</name>
     <message>
-        <location filename="../assets/EmptyNote.qml" line="8"/>
+        <location filename="../assets/EmptyNote.qml" line="22"/>
         <source>No messages here</source>
         <translation>Nessun messaggio qui</translation>
     </message>
@@ -684,8 +1021,8 @@
 <context>
     <name>EngineLink</name>
     <message>
-        <location filename="../src/EngineLink.cpp" line="260"/>
-        <location filename="../src/EngineLink.cpp" line="284"/>
+        <location filename="../src/EngineLink.cpp" line="317"/>
+        <location filename="../src/EngineLink.cpp" line="344"/>
         <source>The engine isn&apos;t running.</source>
         <translation>Il motore non è in esecuzione.</translation>
     </message>
@@ -693,97 +1030,100 @@
 <context>
     <name>GroupInfoPage</name>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="15"/>
+        <location filename="../assets/GroupInfoPage.qml" line="44"/>
         <source>Group info</source>
         <translation>Info gruppo</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="98"/>
+        <location filename="../assets/GroupInfoPage.qml" line="236"/>
         <source>1 participant</source>
         <translation>1 partecipante</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="98"/>
+        <location filename="../assets/GroupInfoPage.qml" line="236"/>
         <source>%1 participants</source>
         <translation>%1 partecipanti</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="142"/>
+        <location filename="../assets/GroupInfoPage.qml" line="323"/>
         <source>You</source>
         <translation>Tu</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="142"/>
+        <location filename="../assets/GroupInfoPage.qml" line="66"/>
+        <location filename="../assets/GroupInfoPage.qml" line="272"/>
+        <location filename="../assets/GroupInfoPage.qml" line="323"/>
         <source>Unknown</source>
         <translation>Sconosciuto</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="152"/>
+        <location filename="../assets/GroupInfoPage.qml" line="333"/>
         <source>Admin</source>
         <translation>Amministratore</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="170"/>
+        <location filename="../assets/GroupInfoPage.qml" line="351"/>
         <source>Loading…</source>
         <translation>Caricamento…</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="179"/>
+        <location filename="../assets/GroupInfoPage.qml" line="360"/>
         <source>Couldn&apos;t load the group&apos;s info. Check the connection and try again.</source>
         <translation>Impossibile caricare le info del gruppo. Controlla la connessione e riprova.</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="56"/>
+        <location filename="../assets/GroupInfoPage.qml" line="60"/>
+        <location filename="../assets/GroupInfoPage.qml" line="96"/>
         <source>Add participant</source>
         <translation>Aggiungi partecipante</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="62"/>
+        <location filename="../assets/GroupInfoPage.qml" line="66"/>
         <source>Remove %1 from the group?</source>
         <translation>Rimuovere %1 dal gruppo?</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="63"/>
+        <location filename="../assets/GroupInfoPage.qml" line="67"/>
         <source>Remove</source>
         <translation>Rimuovi</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="64"/>
+        <location filename="../assets/GroupInfoPage.qml" line="68"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="79"/>
+        <location filename="../assets/GroupInfoPage.qml" line="83"/>
         <source>Their privacy settings don&apos;t let you add them. Invite them with the group&apos;s link from your main phone.</source>
         <translation>Le sue impostazioni della privacy non permettono di aggiungerlo. Invitalo con il link del gruppo dal telefono principale.</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="82"/>
+        <location filename="../assets/GroupInfoPage.qml" line="86"/>
         <source>They&apos;re already in the group.</source>
         <translation>È già nel gruppo.</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="85"/>
+        <location filename="../assets/GroupInfoPage.qml" line="89"/>
         <source>Telegram refused that (%1).</source>
         <translation>Telegram ha rifiutato (%1).</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="87"/>
+        <location filename="../assets/GroupInfoPage.qml" line="91"/>
         <source>Couldn&apos;t do that. Check the connection and try again.</source>
         <translation>Non è stato possibile. Controlla la connessione e riprova.</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="251"/>
+        <location filename="../assets/GroupInfoPage.qml" line="274"/>
         <source>Dismiss as admin</source>
         <translation>Rimuovi come amministratore</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="251"/>
+        <location filename="../assets/GroupInfoPage.qml" line="274"/>
         <source>Make group admin</source>
         <translation>Nomina amministratore</translation>
     </message>
     <message>
-        <location filename="../assets/GroupInfoPage.qml" line="256"/>
+        <location filename="../assets/GroupInfoPage.qml" line="279"/>
         <source>Remove from group</source>
         <translation>Rimuovi dal gruppo</translation>
     </message>
@@ -791,32 +1131,32 @@
 <context>
     <name>LinkNumberPage</name>
     <message>
-        <location filename="../assets/LinkNumberPage.qml" line="20"/>
+        <location filename="../assets/LinkNumberPage.qml" line="22"/>
         <source>Link with phone number</source>
         <translation>Collega con numero di telefono</translation>
     </message>
     <message>
-        <location filename="../assets/LinkNumberPage.qml" line="24"/>
+        <location filename="../assets/LinkNumberPage.qml" line="26"/>
         <source>Get code</source>
         <translation>Ottieni codice</translation>
     </message>
     <message>
-        <location filename="../assets/LinkNumberPage.qml" line="85"/>
+        <location filename="../assets/LinkNumberPage.qml" line="88"/>
         <source>Type the number of the phone that has Telegram.</source>
         <translation>Digita il numero del telefono su cui hai Telegram.</translation>
     </message>
     <message>
-        <location filename="../assets/LinkNumberPage.qml" line="116"/>
+        <location filename="../assets/LinkNumberPage.qml" line="119"/>
         <source>Country</source>
         <translation>Paese</translation>
     </message>
     <message>
-        <location filename="../assets/LinkNumberPage.qml" line="127"/>
+        <location filename="../assets/LinkNumberPage.qml" line="130"/>
         <source>Phone number</source>
         <translation>Numero di telefono</translation>
     </message>
     <message>
-        <location filename="../assets/LinkNumberPage.qml" line="152"/>
+        <location filename="../assets/LinkNumberPage.qml" line="155"/>
         <source>Asking Telegram for a code…</source>
         <translation>Richiesta del codice a Telegram…</translation>
     </message>
@@ -824,54 +1164,131 @@
 <context>
     <name>LinkPage</name>
     <message>
-        <location filename="../assets/LinkPage.qml" line="15"/>
+        <location filename="../assets/LinkPage.qml" line="20"/>
         <source>Link to Telegram</source>
         <translation>Collega a Telegram</translation>
     </message>
     <message>
-        <location filename="../assets/LinkPage.qml" line="19"/>
+        <location filename="../assets/LinkPage.qml" line="26"/>
         <source>Link with phone number</source>
         <translation>Collega con numero di telefono</translation>
     </message>
     <message>
-        <location filename="../assets/LinkPage.qml" line="69"/>
         <source>On your phone, open Telegram, go to Linked devices, tap Link a device, and scan this code.</source>
-        <translation>Sul telefono apri Telegram, vai su Dispositivi collegati, tocca Collega un dispositivo e inquadra questo codice.</translation>
+        <translation type="obsolete">Sul telefono apri Telegram, vai su Dispositivi collegati, tocca Collega un dispositivo e inquadra questo codice.</translation>
     </message>
     <message>
-        <location filename="../assets/LinkPage.qml" line="83"/>
         <source>On your phone, open Telegram, go to Linked devices, tap Link a device, then Link with phone number instead, and type this code:</source>
-        <translation>Sul telefono apri Telegram, vai su Dispositivi collegati, tocca Collega un dispositivo, poi Collega con numero di telefono e digita questo codice:</translation>
+        <translation type="obsolete">Sul telefono apri Telegram, vai su Dispositivi collegati, tocca Collega un dispositivo, poi Collega con numero di telefono e digita questo codice:</translation>
     </message>
     <message>
-        <location filename="../assets/LinkPage.qml" line="97"/>
+        <location filename="../assets/LinkPage.qml" line="60"/>
+        <source>Telegram sent the code to the Telegram app on your other devices, not by SMS. Look in the chat named Telegram.</source>
+        <translation>Telegram ha inviato il codice all&apos;app Telegram sugli altri tuoi dispositivi, non via SMS. Cerca nella chat chiamata Telegram.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="62"/>
+        <source>Telegram sent the code by SMS to %1.</source>
+        <translation>Telegram ha inviato il codice via SMS al numero %1.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="64"/>
+        <source>Telegram will call %1 and tell you the code.</source>
+        <translation>Telegram chiamerà il numero %1 e ti dirà il codice.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="65"/>
+        <source>Type the code Telegram sent to %1.</source>
+        <translation>Digita il codice che Telegram ha inviato a %1.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="119"/>
+        <source>Tengram&apos;s engine has 30 MB of memory, too little to sign in and load your chats. Install the memory addon first.</source>
+        <translation>Il motore di Tengram ha 30 MB di memoria, troppo pochi per accedere e caricare le chat. Installa prima il componente aggiuntivo per la memoria.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="126"/>
+        <source>Installing…</source>
+        <translation>Installazione…</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="126"/>
+        <source>Install the memory addon</source>
+        <translation>Installa il componente aggiuntivo per la memoria</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="135"/>
+        <source>On your phone, open Telegram, go to Settings, then Devices, tap Link Desktop Device, and scan this code.</source>
+        <translation>Sul telefono apri Telegram, vai in Impostazioni, poi Dispositivi, tocca Collega dispositivo desktop e inquadra questo codice.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="154"/>
+        <source>Code</source>
+        <translation>Codice</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="160"/>
+        <location filename="../assets/LinkPage.qml" line="196"/>
+        <source>Log in</source>
+        <translation>Accedi</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="165"/>
+        <source>Show a QR code instead</source>
+        <translation>Mostra invece un codice QR</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="179"/>
+        <source>Your account has a two-step verification password.</source>
+        <translation>Il tuo account ha una password di verifica in due passaggi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="185"/>
+        <source>Hint: %1</source>
+        <translation>Suggerimento: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="190"/>
+        <source>Password</source>
+        <translation>Password</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="211"/>
         <source>The code expired.</source>
         <translation>Il codice è scaduto.</translation>
     </message>
     <message>
-        <location filename="../assets/LinkPage.qml" line="101"/>
+        <location filename="../assets/LinkPage.qml" line="215"/>
         <source>Show a new code</source>
         <translation>Mostra un nuovo codice</translation>
     </message>
     <message>
-        <location filename="../assets/LinkPage.qml" line="101"/>
+        <location filename="../assets/LinkPage.qml" line="215"/>
         <source>Show the code</source>
         <translation>Mostra il codice</translation>
     </message>
     <message>
-        <location filename="../assets/LinkPage.qml" line="114"/>
+        <location filename="../assets/LinkPage.qml" line="228"/>
         <source>Starting…</source>
         <translation>Avvio…</translation>
     </message>
     <message>
-        <location filename="../assets/LinkPage.qml" line="114"/>
-        <source>Linking… Keep Telegram open on your phone.</source>
-        <translation>Collegamento in corso… Tieni Telegram aperto sul telefono.</translation>
+        <location filename="../assets/LinkPage.qml" line="229"/>
+        <source>Getting your chats… This can take a minute.</source>
+        <translation>Recupero delle chat… Può volerci un minuto.</translation>
     </message>
     <message>
-        <location filename="../assets/LinkPage.qml" line="117"/>
+        <location filename="../assets/LinkPage.qml" line="230"/>
+        <source>Checking…</source>
+        <translation>Verifica…</translation>
+    </message>
+    <message>
+        <source>Linking… Keep Telegram open on your phone.</source>
+        <translation type="obsolete">Collegamento in corso… Tieni Telegram aperto sul telefono.</translation>
+    </message>
+    <message>
         <source>Getting your chats from your phone… This can take a few minutes.</source>
-        <translation>Scarico le chat dal telefono… Può richiedere qualche minuto.</translation>
+        <translation type="obsolete">Scarico le chat dal telefono… Può richiedere qualche minuto.</translation>
     </message>
 </context>
 <context>
@@ -890,37 +1307,30 @@
 <context>
     <name>MediaBubble</name>
     <message>
-        <location filename="../assets/MediaBubble.qml" line="46"/>
         <source>Video</source>
         <translation>Video</translation>
     </message>
     <message>
-        <location filename="../assets/MediaBubble.qml" line="46"/>
         <source>Photo</source>
         <translation>Foto</translation>
     </message>
     <message>
-        <location filename="../assets/MediaBubble.qml" line="106"/>
         <source>Sticker</source>
         <translation>Sticker</translation>
     </message>
     <message>
-        <location filename="../assets/MediaBubble.qml" line="106"/>
         <source>Audio file</source>
         <translation>File audio</translation>
     </message>
     <message>
-        <location filename="../assets/MediaBubble.qml" line="106"/>
         <source>Document</source>
         <translation>Documento</translation>
     </message>
     <message>
-        <location filename="../assets/MediaBubble.qml" line="152"/>
         <source>Show on map</source>
         <translation>Mostra sulla mappa</translation>
     </message>
     <message>
-        <location filename="../assets/MediaBubble.qml" line="75"/>
         <source>Spoiler</source>
         <translation>Spoiler</translation>
     </message>
@@ -928,43 +1338,85 @@
 <context>
     <name>MediaData</name>
     <message>
-        <location filename="../src/MediaData.cpp" line="49"/>
+        <location filename="../src/MediaData.cpp" line="86"/>
         <source>Photo</source>
         <translation>Foto</translation>
     </message>
     <message>
-        <location filename="../src/MediaData.cpp" line="50"/>
+        <location filename="../src/MediaData.cpp" line="87"/>
         <source>Video</source>
         <translation>Video</translation>
     </message>
     <message>
-        <location filename="../src/MediaData.cpp" line="50"/>
+        <location filename="../src/MediaData.cpp" line="87"/>
         <source>Document</source>
         <translation>Documento</translation>
     </message>
     <message>
-        <location filename="../src/MediaData.cpp" line="91"/>
+        <location filename="../src/MediaData.cpp" line="88"/>
         <source>Sticker</source>
         <translation>Sticker</translation>
     </message>
     <message>
-        <location filename="../src/MediaData.cpp" line="51"/>
+        <location filename="../src/MediaData.cpp" line="88"/>
         <source>Audio file</source>
         <translation>File audio</translation>
     </message>
     <message>
-        <location filename="../src/MediaData.cpp" line="103"/>
+        <location filename="../src/MediaData.cpp" line="89"/>
         <source>Location</source>
         <translation>Posizione</translation>
     </message>
     <message>
-        <location filename="../src/MediaData.cpp" line="105"/>
+        <location filename="../src/MediaData.cpp" line="90"/>
         <source>Contact</source>
         <translation>Contatto</translation>
     </message>
 </context>
 <context>
+    <name>MemoryPatch</name>
+    <message>
+        <location filename="../src/MemoryPatch.cpp" line="24"/>
+        <source>Root is not available: Tengram needs AutoRoot v4 with root enabled (/var/rootdata/use.root).</source>
+        <translation>Root non disponibile: Tengram richiede AutoRoot v4 con root attivato (/var/rootdata/use.root).</translation>
+    </message>
+    <message>
+        <location filename="../src/MemoryPatch.cpp" line="51"/>
+        <source>The memory addon (headless-mem.zip) is missing from this app.</source>
+        <translation>Il componente aggiuntivo per la memoria (headless-mem.zip) manca in questa app.</translation>
+    </message>
+    <message>
+        <location filename="../src/MemoryPatch.cpp" line="80"/>
+        <source>The helper tg-install-patcher is missing from this app.</source>
+        <translation>L&apos;helper tg-install-patcher manca in questa app.</translation>
+    </message>
+    <message>
+        <location filename="../src/MemoryPatch.cpp" line="155"/>
+        <source>The root helper gave no output. Is root enabled in AutoRoot (/var/rootdata/use.root)?</source>
+        <translation>L&apos;helper root non ha dato alcun output. Il root è attivato in AutoRoot (/var/rootdata/use.root)?</translation>
+    </message>
+    <message>
+        <location filename="../src/MemoryPatch.cpp" line="157"/>
+        <source>Installed. Tengram has to close once to use the new memory limit: open it again afterwards.</source>
+        <translation>Installato. Tengram deve chiudersi una volta per usare il nuovo limite di memoria: riaprilo dopo.</translation>
+    </message>
+    <message>
+        <location filename="../src/MemoryPatch.cpp" line="159"/>
+        <source>The install did not finish. The output is in Documents, tengram-memory-patch.txt.</source>
+        <translation>L&apos;installazione non è terminata. L&apos;output è in Documenti, tengram-memory-patch.txt.</translation>
+    </message>
+    <message>
+        <location filename="../src/MemoryPatch.cpp" line="173"/>
+        <source>Could not start the root helper %1.</source>
+        <translation>Impossibile avviare l&apos;helper root %1.</translation>
+    </message>
+</context>
+<context>
     <name>MessageItem</name>
+    <message>
+        <source>Forward</source>
+        <translation>Inoltra</translation>
+    </message>
     <message>
         <source>Forwarded</source>
         <translation>Inoltrato</translation>
@@ -974,183 +1426,168 @@
         <translation>Inoltrato molte volte</translation>
     </message>
     <message>
-        <location filename="../assets/MessageItem.qml" line="30"/>
         <source>Reply</source>
         <translation>Rispondi</translation>
     </message>
     <message>
-        <location filename="../assets/MessageItem.qml" line="45"/>
         <source>View votes</source>
         <translation>Vedi voti</translation>
     </message>
     <message>
-        <location filename="../assets/MessageItem.qml" line="37"/>
         <source>React</source>
         <translation>Reagisci</translation>
     </message>
     <message>
-        <location filename="../assets/MessageItem.qml" line="44"/>
         <source>Copy</source>
         <translation>Copia</translation>
     </message>
     <message>
-        <location filename="../assets/MessageItem.qml" line="50"/>
         <source>Delete for everyone</source>
         <translation>Elimina per tutti</translation>
     </message>
     <message>
-        <location filename="../assets/MessageItem.qml" line="56"/>
         <source>Delete for me</source>
         <translation>Elimina per me</translation>
     </message>
     <message>
-        <location filename="../assets/MessageItem.qml" line="194"/>
         <source>edited</source>
         <translation>modificato</translation>
     </message>
     <message>
-        <location filename="../assets/MessageItem.qml" line="1"/>
         <source>Join group</source>
         <translation>Unisciti al gruppo</translation>
     </message>
     <message>
-        <location filename="../src/MessageCardActions.cpp" line="24"/>
         <source>Sending</source>
         <translation>Invio in corso</translation>
     </message>
     <message>
-        <location filename="../src/MessageCardActions.cpp" line="24"/>
         <source>Sent</source>
         <translation>Inviato</translation>
     </message>
     <message>
-        <location filename="../src/MessageCardActions.cpp" line="24"/>
         <source>Delivered</source>
         <translation>Consegnato</translation>
     </message>
     <message>
-        <location filename="../src/MessageCardActions.cpp" line="24"/>
         <source>Read</source>
         <translation>Letto</translation>
     </message>
     <message>
-        <location filename="../src/MessageCardActions.cpp" line="24"/>
         <source>Not sent</source>
         <translation>Non inviato</translation>
     </message>
     <message>
-        <location filename="../src/MessageCardActions.cpp" line="24"/>
         <source>Edited</source>
         <translation>Modificato</translation>
     </message>
     <message>
-        <location filename="../src/MessageCard.cpp" line="1"/>
         <source>Story</source>
         <translation>Stato</translation>
     </message>
     <message>
-        <location filename="../assets/MessageItem.qml" line="44"/>
         <source>Edit</source>
         <translation>Modifica</translation>
     </message>
     <message>
         <source>Star</source>
-        <translation>Aggiungi stella</translation>
+        <translation type="obsolete">Aggiungi stella</translation>
     </message>
     <message>
         <source>Unstar</source>
-        <translation>Rimuovi stella</translation>
+        <translation type="obsolete">Rimuovi stella</translation>
     </message>
 </context>
 <context>
     <name>MessageKinds</name>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="23"/>
+        <location filename="../src/MessageKinds.cpp" line="27"/>
         <source>Voice call, %1</source>
         <translation>Chiamata vocale, %1</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="24"/>
+        <location filename="../src/MessageKinds.cpp" line="28"/>
         <source>Voice call</source>
         <translation>Chiamata vocale</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="26"/>
+        <location filename="../src/MessageKinds.cpp" line="30"/>
         <source>Video call, %1</source>
         <translation>Videochiamata, %1</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="27"/>
+        <location filename="../src/MessageKinds.cpp" line="31"/>
         <source>Video call</source>
         <translation>Videochiamata</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="29"/>
+        <location filename="../src/MessageKinds.cpp" line="33"/>
         <source>Missed voice call</source>
         <translation>Chiamata vocale persa</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="31"/>
+        <location filename="../src/MessageKinds.cpp" line="35"/>
         <source>Missed video call</source>
         <translation>Videochiamata persa</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="36"/>
+        <location filename="../src/MessageKinds.cpp" line="40"/>
         <source>You pinned a message</source>
         <translation>Hai fissato un messaggio</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="37"/>
+        <location filename="../src/MessageKinds.cpp" line="41"/>
         <source>%1 pinned a message</source>
         <translation>%1 ha fissato un messaggio</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="38"/>
+        <location filename="../src/MessageKinds.cpp" line="42"/>
         <source>A message was pinned</source>
         <translation>È stato fissato un messaggio</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="41"/>
+        <location filename="../src/MessageKinds.cpp" line="45"/>
         <source>You unpinned a message</source>
         <translation>Hai tolto un messaggio fissato</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="42"/>
+        <location filename="../src/MessageKinds.cpp" line="46"/>
         <source>%1 unpinned a message</source>
         <translation>%1 ha tolto un messaggio fissato</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="43"/>
+        <location filename="../src/MessageKinds.cpp" line="47"/>
         <source>A message was unpinned</source>
         <translation>È stato tolto un messaggio fissato</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="46"/>
+        <location filename="../src/MessageKinds.cpp" line="50"/>
         <source>View once message. Open it on your phone.</source>
         <translation>Messaggio da visualizzare una volta. Aprilo sul telefono.</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="48"/>
+        <location filename="../src/MessageKinds.cpp" line="52"/>
         <source>This message can only be seen on your phone.</source>
         <translation>Questo messaggio si può vedere solo sul telefono.</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="49"/>
+        <location filename="../src/MessageKinds.cpp" line="53"/>
+        <location filename="../src/Pins.cpp" line="21"/>
         <source>Message</source>
         <translation>Messaggio</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="78"/>
+        <location filename="../src/MessageKinds.cpp" line="149"/>
         <source>Live location</source>
         <translation>Posizione in tempo reale</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="79"/>
+        <location filename="../src/MessageKinds.cpp" line="150"/>
         <source>Location</source>
         <translation>Posizione</translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/MessageKinds.cpp" line="99"/>
+        <location filename="../src/MessageKinds.cpp" line="173"/>
         <source>%n contacts</source>
         <translation>
             <numerusform>%n contatto</numerusform>
@@ -1158,27 +1595,27 @@
         </translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="110"/>
+        <location filename="../src/MessageKinds.cpp" line="182"/>
         <source>Poll</source>
         <translation>Sondaggio</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="111"/>
+        <location filename="../src/MessageKinds.cpp" line="183"/>
         <source>Poll, choose several</source>
         <translation>Sondaggio, scelta multipla</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="103"/>
+        <location filename="../src/MessageKinds.cpp" line="188"/>
         <source>Event canceled</source>
         <translation>Evento annullato</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="104"/>
+        <location filename="../src/MessageKinds.cpp" line="189"/>
         <source>Event</source>
         <translation>Evento</translation>
     </message>
     <message>
-        <location filename="../src/MessageKinds.cpp" line="122"/>
+        <location filename="../src/MessageKinds.cpp" line="207"/>
         <source>Group invite</source>
         <translation>Invito al gruppo</translation>
     </message>
@@ -1186,14 +1623,20 @@
 <context>
     <name>MessageModel</name>
     <message>
-        <location filename="../src/MessageModel.cpp" line="117"/>
+        <location filename="../src/MessageRows.cpp" line="90"/>
+        <location filename="../src/Pins.cpp" line="40"/>
         <source>This message was deleted</source>
         <translation>Questo messaggio è stato eliminato</translation>
     </message>
     <message>
-        <location filename="../src/MessageModel.cpp" line="173"/>
+        <location filename="../src/MessageRows.cpp" line="170"/>
         <source>You</source>
         <translation>Tu</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="1123"/>
+        <source>Unread messages</source>
+        <translation>Messaggi non letti</translation>
     </message>
 </context>
 <context>
@@ -1204,22 +1647,22 @@
         <translation>Nuova chat</translation>
     </message>
     <message>
-        <location filename="../assets/NewChatPage.qml" line="38"/>
+        <location filename="../assets/NewChatPage.qml" line="40"/>
         <source>Search contacts</source>
         <translation>Cerca contatti</translation>
     </message>
     <message>
-        <location filename="../assets/NewChatPage.qml" line="109"/>
+        <location filename="../assets/NewChatPage.qml" line="68"/>
         <source>Loading…</source>
         <translation>Caricamento…</translation>
     </message>
     <message>
-        <location filename="../assets/NewChatPage.qml" line="118"/>
+        <location filename="../assets/NewChatPage.qml" line="77"/>
         <source>No contacts yet. Your phone sends them shortly after linking.</source>
         <translation>Ancora nessun contatto. Il telefono li invia poco dopo il collegamento.</translation>
     </message>
     <message>
-        <location filename="../assets/NewChatPage.qml" line="118"/>
+        <location filename="../assets/NewChatPage.qml" line="77"/>
         <source>No contact matches.</source>
         <translation>Nessun contatto corrisponde.</translation>
     </message>
@@ -1227,47 +1670,47 @@
 <context>
     <name>NewGroupPage</name>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="8"/>
+        <location filename="../assets/NewGroupPage.qml" line="20"/>
         <source>New group</source>
         <translation>Nuovo gruppo</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="16"/>
+        <location filename="../assets/NewGroupPage.qml" line="23"/>
         <source>Create</source>
         <translation>Crea</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="38"/>
+        <location filename="../assets/NewGroupPage.qml" line="37"/>
         <source>A group needs a name and someone in it</source>
         <translation>Un gruppo richiede un nome e almeno un partecipante.</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="42"/>
+        <location filename="../assets/NewGroupPage.qml" line="41"/>
         <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
         <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="14"/>
-        <source>Telegram won't take a name that long</source>
+        <location filename="../assets/NewGroupPage.qml" line="15"/>
+        <source>Telegram won&apos;t take a name that long</source>
         <translation>Telegram non accetta un nome così lungo.</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="14"/>
-        <source>Couldn't create the group. Check the connection and try again.</source>
+        <location filename="../assets/NewGroupPage.qml" line="15"/>
+        <source>Couldn&apos;t create the group. Check the connection and try again.</source>
         <translation>Impossibile creare il gruppo. Controlla la connessione e riprova.</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="76"/>
+        <location filename="../assets/NewGroupPage.qml" line="79"/>
         <source>Group name</source>
         <translation>Nome del gruppo</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="80"/>
+        <location filename="../assets/NewGroupPage.qml" line="83"/>
         <source>Search contacts</source>
         <translation>Cerca contatti</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="85"/>
+        <location filename="../assets/NewGroupPage.qml" line="90"/>
         <source>%1 chosen</source>
         <translation>%1 scelti</translation>
     </message>
@@ -1282,14 +1725,77 @@
         <translation>Creazione del gruppo…</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="118"/>
+        <location filename="../assets/NewGroupPage.qml" line="124"/>
         <source>No contacts yet. Your phone sends them shortly after linking.</source>
         <translation>Ancora nessun contatto. Il telefono li invia poco dopo il collegamento.</translation>
     </message>
     <message>
-        <location filename="../assets/NewGroupPage.qml" line="118"/>
+        <location filename="../assets/NewGroupPage.qml" line="124"/>
         <source>No contact matches.</source>
         <translation>Nessun contatto corrisponde.</translation>
+    </message>
+</context>
+<context>
+    <name>NotificationSettingsPage</name>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="7"/>
+        <source>Notifications</source>
+        <translation>Notifiche</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="25"/>
+        <source>Notification preview</source>
+        <translation>Anteprima notifiche</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="29"/>
+        <source>Off, a notification says &quot;New message&quot; instead of the text.</source>
+        <translation>Se disattivato, la notifica mostra &quot;Nuovo messaggio&quot; invece del testo.</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="46"/>
+        <source>Background delivery</source>
+        <translation>Consegna in background</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="49"/>
+        <source>Automatic</source>
+        <translation>Automatica</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="50"/>
+        <source>Every 5 minutes while Telegram is open on another device, else instant</source>
+        <translation>Ogni 5 minuti se Telegram è aperto su un altro dispositivo, altrimenti istantanea</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="54"/>
+        <source>Instant</source>
+        <translation>Istantanea</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="55"/>
+        <source>Always connected: messages at once, more battery</source>
+        <translation>Sempre connesso: messaggi subito, più batteria</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="59"/>
+        <source>Every 5 minutes</source>
+        <translation>Ogni 5 minuti</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="60"/>
+        <source>Checks for messages every 5 minutes: less battery</source>
+        <translation>Controlla i messaggi ogni 5 minuti: meno batteria</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="81"/>
+        <source>Start at boot</source>
+        <translation>Avvia all&apos;accensione</translation>
+    </message>
+    <message>
+        <location filename="../assets/NotificationSettingsPage.qml" line="85"/>
+        <source>Brings Tengram back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
+        <translation>Riporta Tengram in funzione entro 6 minuti da un riavvio o da un arresto, ad app chiusa.</translation>
     </message>
 </context>
 <context>
@@ -1300,17 +1806,17 @@
         <translation>Salva</translation>
     </message>
     <message>
-        <location filename="../assets/PhotoViewer.qml" line="24"/>
+        <location filename="../assets/PhotoViewer.qml" line="25"/>
         <source>Saved to Pictures</source>
         <translation>Salvata in Immagini</translation>
     </message>
     <message>
-        <location filename="../assets/PhotoViewer.qml" line="25"/>
+        <location filename="../assets/PhotoViewer.qml" line="26"/>
         <source>Couldn&apos;t save the photo</source>
         <translation>Impossibile salvare la foto</translation>
     </message>
     <message>
-        <location filename="../assets/PhotoViewer.qml" line="13"/>
+        <location filename="../assets/PhotoViewer.qml" line="33"/>
         <source>Share</source>
         <translation>Condividi</translation>
     </message>
@@ -1323,22 +1829,27 @@
         <translation>Messaggio fissato</translation>
     </message>
     <message>
-        <location filename="../assets/PinnedAction.qml" line="45"/>
+        <location filename="../assets/PinnedAction.qml" line="56"/>
         <source>No pinned messages</source>
         <translation>Nessun messaggio fissato</translation>
     </message>
     <message>
-        <location filename="../assets/PinnedAction.qml" line="49"/>
+        <location filename="../assets/PinnedAction.qml" line="60"/>
+        <source>Couldn&apos;t load the pinned messages</source>
+        <translation>Impossibile caricare i messaggi fissati</translation>
+    </message>
+    <message>
+        <location filename="../assets/PinnedAction.qml" line="64"/>
         <source>This pinned message isn&apos;t on this phone</source>
         <translation>Questo messaggio fissato non è su questo telefono</translation>
     </message>
     <message>
-        <location filename="../assets/PinnedAction.qml" line="55"/>
+        <location filename="../assets/PinnedAction.qml" line="70"/>
         <source>Pinned messages</source>
         <translation>Messaggi fissati</translation>
     </message>
     <message>
-        <location filename="../assets/PinnedAction.qml" line="57"/>
+        <location filename="../assets/PinnedAction.qml" line="72"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
@@ -1346,76 +1857,76 @@
 <context>
     <name>Pins</name>
     <message>
-        <location filename="../src/Pins.cpp" line="42"/>
+        <location filename="../src/Pins.cpp" line="19"/>
         <source>Voice message</source>
         <translation>Messaggio vocale</translation>
     </message>
 </context>
 <context>
+    <name>PollAction</name>
+    <message>
+        <location filename="../assets/PollAction.qml" line="7"/>
+        <source>Create poll</source>
+        <translation>Crea sondaggio</translation>
+    </message>
+</context>
+<context>
     <name>PollBubble</name>
     <message>
-        <location filename="../assets/PollBubble.qml" line="79"/>
+        <location filename="../src/PollBubble.cpp" line="234"/>
         <source>Nobody yet</source>
         <translation>Ancora nessuno</translation>
     </message>
 </context>
 <context>
-    <name>PollAction</name>
-    <message>
-        <location filename="../assets/PollAction.qml" line="6"/>
-        <source>Create poll</source>
-        <translation>Crea sondaggio</translation>
-    </message>
-</context>
-<context>
     <name>PollPage</name>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="11"/>
         <source>Create poll</source>
         <translation>Crea sondaggio</translation>
     </message>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="21"/>
         <source>Question</source>
         <translation>Domanda</translation>
     </message>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="25"/>
         <source>Ask something</source>
         <translation>Fai una domanda</translation>
     </message>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="30"/>
         <source>Options</source>
         <translation>Opzioni</translation>
     </message>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="39"/>
         <source>Add option</source>
         <translation>Aggiungi opzione</translation>
     </message>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="50"/>
         <source>Allow several answers</source>
         <translation>Consenti più risposte</translation>
     </message>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="65"/>
         <source>Send</source>
         <translation>Invia</translation>
     </message>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="83"/>
         <source>A poll needs a question and two options</source>
         <translation>Un sondaggio richiede una domanda e due opzioni</translation>
     </message>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="87"/>
         <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
         <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
     <message>
-        <location filename="../assets/PollPage.qml" line="10"/>
+        <location filename="../assets/PollPage.qml" line="101"/>
         <source>Option %1</source>
         <translation>Opzione %1</translation>
     </message>
@@ -1423,7 +1934,7 @@
 <context>
     <name>Polls</name>
     <message>
-        <location filename="../src/Polls.cpp" line="40"/>
+        <location filename="../src/Polls.cpp" line="42"/>
         <source>You</source>
         <translation>Tu</translation>
     </message>
@@ -1437,6 +1948,7 @@
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="35"/>
+        <location filename="../assets/ProfilePage.qml" line="60"/>
         <source>Change photo</source>
         <translation>Cambia foto</translation>
     </message>
@@ -1452,6 +1964,9 @@
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="70"/>
+        <location filename="../assets/ProfilePage.qml" line="86"/>
+        <location filename="../assets/ProfilePage.qml" line="97"/>
+        <location filename="../assets/ProfilePage.qml" line="117"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
@@ -1462,33 +1977,119 @@
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="95"/>
+        <location filename="../assets/ProfilePage.qml" line="222"/>
         <source>About</source>
         <translation>Info</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="106"/>
-        <source>Couldn't update your profile. Check the connection and try again.</source>
+        <source>Couldn&apos;t update your profile. Check the connection and try again.</source>
         <translation>Impossibile aggiornare il profilo. Controlla la connessione e riprova.</translation>
     </message>
     <message>
         <location filename="../assets/ProfilePage.qml" line="110"/>
-        <source>Couldn't read that picture.</source>
+        <source>Couldn&apos;t read that picture.</source>
         <translation>Impossibile leggere questa immagine.</translation>
     </message>
     <message>
-        <location filename="../assets/ProfilePage.qml" line="169"/>
+        <location filename="../assets/ProfilePage.qml" line="114"/>
+        <source>Log out?</source>
+        <translation>Uscire?</translation>
+    </message>
+    <message>
+        <location filename="../assets/ProfilePage.qml" line="115"/>
+        <source>Tengram logs out of Telegram on this phone and deletes its chats here. Your chats stay on Telegram.</source>
+        <translation>Tengram esce da Telegram su questo telefono ed elimina qui le sue chat. Le tue chat restano su Telegram.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ProfilePage.qml" line="116"/>
+        <location filename="../assets/ProfilePage.qml" line="267"/>
+        <source>Log out</source>
+        <translation>Esci</translation>
+    </message>
+    <message>
+        <location filename="../assets/ProfilePage.qml" line="183"/>
+        <location filename="../assets/ProfilePage.qml" line="247"/>
         <source>Tap to edit</source>
         <translation>Tocca per modificare</translation>
     </message>
     <message>
-        <location filename="../assets/ProfilePage.qml" line="192"/>
+        <location filename="../assets/ProfilePage.qml" line="208"/>
         <source>Loading…</source>
         <translation>Caricamento…</translation>
     </message>
     <message>
-        <location filename="../assets/ProfilePage.qml" line="201"/>
-        <source>Couldn't load your profile. Check the connection and try again.</source>
+        <location filename="../assets/ProfilePage.qml" line="217"/>
+        <source>Couldn&apos;t load your profile. Check the connection and try again.</source>
         <translation>Impossibile caricare il profilo. Controlla la connessione e riprova.</translation>
+    </message>
+</context>
+<context>
+    <name>QSQLCipherDriver</name>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="576"/>
+        <source>Error opening database</source>
+        <translation>Errore nell&apos;apertura del database</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="590"/>
+        <source>Error closing database</source>
+        <translation>Errore nella chiusura del database</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="610"/>
+        <source>Unable to begin transaction</source>
+        <translation>Impossibile avviare la transazione</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="625"/>
+        <source>Unable to commit transaction</source>
+        <translation>Impossibile confermare la transazione</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="640"/>
+        <source>Unable to rollback transaction</source>
+        <translation>Impossibile annullare la transazione</translation>
+    </message>
+</context>
+<context>
+    <name>QSQLCipherResult</name>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="230"/>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="293"/>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="301"/>
+        <source>Unable to fetch row</source>
+        <translation>Impossibile leggere la riga</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="231"/>
+        <source>No query</source>
+        <translation>Nessuna query</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="366"/>
+        <source>Unable to execute statement</source>
+        <translation>Impossibile eseguire l&apos;istruzione</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="371"/>
+        <source>Unable to execute multiple statements at a time</source>
+        <translation>Impossibile eseguire più istruzioni alla volta</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="391"/>
+        <source>Unable to reset statement</source>
+        <translation>Impossibile reimpostare l&apos;istruzione</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="436"/>
+        <source>Unable to bind parameters</source>
+        <translation>Impossibile associare i parametri</translation>
+    </message>
+    <message>
+        <location filename="../../lib/qtsqlcipher/qsql_sqlcipher.cpp" line="443"/>
+        <source>Parameter count mismatch</source>
+        <translation>Numero di parametri non corrispondente</translation>
     </message>
 </context>
 <context>
@@ -1504,7 +2105,7 @@
         <translation>Sondaggio non inviato</translation>
     </message>
     <message>
-        <location filename="../assets/ReactBar.qml" line="123"/>
+        <location filename="../assets/ReactBar.qml" line="125"/>
         <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
         <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
     </message>
@@ -1520,7 +2121,7 @@
 <context>
     <name>ReplyBar</name>
     <message>
-        <location filename="../assets/ReplyBar.qml" line="35"/>
+        <location filename="../assets/ReplyBar.qml" line="36"/>
         <source>Replying to %1</source>
         <translation>In risposta a %1</translation>
     </message>
@@ -1531,9 +2132,32 @@
     </message>
 </context>
 <context>
+    <name>RevokeDialog</name>
+    <message>
+        <location filename="../assets/RevokeDialog.qml" line="9"/>
+        <source>Delete for everyone?</source>
+        <translation>Eliminare per tutti?</translation>
+    </message>
+    <message>
+        <location filename="../assets/RevokeDialog.qml" line="10"/>
+        <source>It will be deleted for everyone in this chat.</source>
+        <translation>Verrà eliminato per tutti i partecipanti di questa chat.</translation>
+    </message>
+    <message>
+        <location filename="../assets/RevokeDialog.qml" line="11"/>
+        <source>Delete</source>
+        <translation>Elimina</translation>
+    </message>
+    <message>
+        <location filename="../assets/RevokeDialog.qml" line="12"/>
+        <source>Cancel</source>
+        <translation>Annulla</translation>
+    </message>
+</context>
+<context>
     <name>SearchBar</name>
     <message>
-        <location filename="../assets/SearchBar.qml" line="65"/>
+        <location filename="../assets/SearchBar.qml" line="75"/>
         <source>Search in chat</source>
         <translation>Cerca nella chat</translation>
     </message>
@@ -1542,436 +2166,420 @@
     <name>SettingsPage</name>
     <message>
         <source>Proximity sensor</source>
-        <translation>Sensore di prossimità</translation>
+        <translation type="obsolete">Sensore di prossimità</translation>
     </message>
     <message>
         <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
-        <translation>Se disattivato, i vocali restano sull'altoparlante e lo schermo resta acceso nelle chiamate. Per un sensore guasto.</translation>
+        <translation type="obsolete">Se disattivato, i vocali restano sull&apos;altoparlante e lo schermo resta acceso nelle chiamate. Per un sensore guasto.</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="9"/>
+        <location filename="../assets/SettingsPage.qml" line="8"/>
         <source>Settings</source>
         <translation>Impostazioni</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="16"/>
-        <source>Unlink this device?</source>
-        <translation>Scollegare questo dispositivo?</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="17"/>
-        <source>This device is removed from your linked devices and its chats are deleted here.</source>
-        <translation>Il dispositivo viene rimosso dai dispositivi collegati e le sue chat vengono eliminate qui.</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="18"/>
-        <source>Unlink</source>
-        <translation>Scollega</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="19"/>
-        <source>Cancel</source>
-        <translation>Annulla</translation>
+        <location filename="../assets/SettingsPage.qml" line="36"/>
+        <source>Account</source>
+        <translation>Account</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="36"/>
-        <source>Theme</source>
-        <translation>Tema</translation>
+        <source>Name, bio, picture, log out</source>
+        <translation>Nome, bio, foto, esci</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38"/>
-        <source>Dark</source>
-        <translation>Scuro</translation>
+        <source>Appearance</source>
+        <translation>Aspetto</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="38"/>
+        <source>Theme, text size</source>
+        <translation>Tema, dimensione del testo</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="39"/>
-        <source>Bright</source>
-        <translation>Chiaro</translation>
+        <source>Chats</source>
+        <translation>Chat</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="44"/>
-        <source>Text size</source>
-        <translation>Dimensione del testo</translation>
+        <location filename="../assets/SettingsPage.qml" line="39"/>
+        <source>Enter key, proximity sensor</source>
+        <translation>Tasto Invio, sensore di prossimità</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="46"/>
-        <source>Small</source>
-        <translation>Piccola</translation>
+        <location filename="../assets/SettingsPage.qml" line="41"/>
+        <source>Notifications</source>
+        <translation>Notifiche</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="47"/>
-        <source>Normal</source>
-        <translation>Normale</translation>
+        <location filename="../assets/SettingsPage.qml" line="42"/>
+        <source>Preview, background delivery, start at boot</source>
+        <translation>Anteprima, consegna in background, avvio all&apos;accensione</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="48"/>
-        <source>Large</source>
-        <translation>Grande</translation>
+        <location filename="../assets/SettingsPage.qml" line="45"/>
+        <source>Data and storage</source>
+        <translation>Dati e archiviazione</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="63"/>
-        <source>Enter sends</source>
-        <translation>Invio invia il messaggio</translation>
+        <location filename="../assets/SettingsPage.qml" line="45"/>
+        <source>Mobile data, cache</source>
+        <translation>Rete mobile, cache</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="67"/>
-        <source>Off, Enter starts a new line; the Send action still sends.</source>
-        <translation>Se disattivato, Invio va a capo; l'azione Invia continua a inviare.</translation>
+        <source>Unlink this device?</source>
+        <translation type="obsolete">Scollegare questo dispositivo?</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="91"/>
-        <source>Notification preview</source>
-        <translation>Anteprima notifiche</translation>
+        <source>This device is removed from your linked devices and its chats are deleted here.</source>
+        <translation type="obsolete">Il dispositivo viene rimosso dai dispositivi collegati e le sue chat vengono eliminate qui.</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="95"/>
-        <source>Off, a notification says &quot;New message&quot; instead of the text.</source>
-        <translation>Se disattivato, la notifica mostra &quot;Nuovo messaggio&quot; invece del testo.</translation>
+        <source>Unlink</source>
+        <translation type="obsolete">Scollega</translation>
     </message>
     <message>
-        <location filename="../assets/SettingsPage.qml" line="116"/>
-        <source>Start at boot</source>
-        <translation>Avvia all&apos;accensione</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="120"/>
-        <source>Brings Tengram back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
-        <translation>Riporta Tengram in funzione entro 6 minuti da un riavvio o da un arresto, ad app chiusa.</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="110"/>
-        <source>Storage</source>
-        <translation>Spazio</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="119"/>
-        <source>Download on mobile data</source>
-        <translation>Scarica su rete mobile</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="170"/>
-        <source>Cache limit</source>
-        <translation>Limite della cache</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="123"/>
-        <source>Off, photos and voice notes wait for a tap unless you&apos;re on Wi-Fi.</source>
-        <translation>Se disattivato, foto e messaggi vocali attendono un tocco, tranne che in Wi-Fi.</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="122"/>
-        <source>Cache: %1</source>
-        <translation>Cache: %1</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="126"/>
-        <source>Clear cache</source>
-        <translation>Svuota la cache</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="131"/>
-        <source>Cache cleared: %1 freed</source>
-        <translation>Cache svuotata: %1 liberati</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="139"/>
-        <source>Voice notes' decoded audio and photo previews; they're made again when needed.</source>
-        <translation>L'audio decodificato dei vocali e le anteprime delle foto; si rifanno quando servono.</translation>
-    </message>
-    <message>
-        <location filename="../assets/SettingsPage.qml" line="147"/>
-        <source>Unlink this device</source>
-        <translation>Scollega questo dispositivo</translation>
-    </message>
-</context>
-<context>
-    <name>CallsModel</name>
-    <message>
-        <location filename="../src/CallsModel.cpp" line="1"/>
-        <source>Unknown</source>
-        <translation>Sconosciuto</translation>
-    </message>
-    <message>
-        <location filename="../src/CallsModel.cpp" line="1"/>
-        <source>Missed voice call</source>
-        <translation>Chiamata vocale persa</translation>
-    </message>
-    <message>
-        <location filename="../src/CallsModel.cpp" line="1"/>
-        <source>Outgoing, %1</source>
-        <translation>In uscita, %1</translation>
-    </message>
-    <message>
-        <location filename="../src/CallsModel.cpp" line="1"/>
-        <source>Incoming, %1</source>
-        <translation>In arrivo, %1</translation>
-    </message>
-    <message>
-        <location filename="../src/CallsModel.cpp" line="1"/>
-        <source>Outgoing</source>
-        <translation>In uscita</translation>
-    </message>
-    <message>
-        <location filename="../src/CallsModel.cpp" line="1"/>
-        <source>Incoming</source>
-        <translation>In arrivo</translation>
-    </message>
-</context>
-<context>
-    <name>CallsPage</name>
-    <message>
-        <location filename="../assets/CallsPage.qml" line="1"/>
-        <source>Calls</source>
-        <translation>Chiamate</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallsPage.qml" line="1"/>
-        <source>No calls yet</source>
-        <translation>Nessuna chiamata</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallsPage.qml" line="1"/>
-        <source>New call</source>
-        <translation>Nuova chiamata</translation>
-    </message>
-</context>
-<context>
-    <name>CallRow</name>
-    <message>
-        <location filename="../assets/CallRow.qml" line="1"/>
-        <source>Call</source>
-        <translation>Chiama</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallRow.qml" line="1"/>
-        <source>Open chat</source>
-        <translation>Apri chat</translation>
-    </message>
-</context>
-<context>
-    <name>CallSheet</name>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Calling…</source>
-        <translation>Chiamata in corso…</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Incoming voice call</source>
-        <translation>Chiamata vocale in arrivo</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Incoming video call</source>
-        <translation>Videochiamata in arrivo</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Incoming group voice call</source>
-        <translation>Chiamata vocale di gruppo in arrivo</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Incoming group voice call · %1</source>
-        <translation>Chiamata vocale di gruppo in arrivo · %1</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Connecting…</source>
-        <translation>Connessione…</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Reconnecting…</source>
-        <translation>Riconnessione…</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Call ended</source>
-        <translation>Chiamata terminata</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Declined</source>
-        <translation>Rifiutata</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Busy</source>
-        <translation>Occupato</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>No answer</source>
-        <translation>Nessuna risposta</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Call failed</source>
-        <translation>Chiamata non riuscita</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Offline</source>
-        <translation>Offline</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Telegram: voice call</source>
-        <translation>Telegram: chiamata vocale</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Telegram: video call</source>
-        <translation>Telegram: videochiamata</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>%1 and %2</source>
-        <translation>%1 e %2</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>%1, %2 and %3 more</source>
-        <translation>%1, %2 e altri %3</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Incoming group video call</source>
-        <translation>Videochiamata di gruppo in arrivo</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallSheet.qml" line="1"/>
-        <source>Incoming group video call · %1</source>
-        <translation>Videochiamata di gruppo in arrivo · %1</translation>
-    </message>
-</context>
-<context>
-    <name>CallDrawer</name>
-    <message>
-        <location filename="../assets/CallDrawer.qml" line="1"/>
-        <source>Swipe from the left edge to see who is in the call</source>
-        <translation>Scorri dal bordo sinistro per vedere chi è nella chiamata</translation>
-    </message>
-</context>
-<context>
-    <name>CallPanel</name>
-    <message>
-        <location filename="../assets/CallPanel.qml" line="1"/>
-        <source>Speaker</source>
-        <translation>Altoparl.</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPanel.qml" line="1"/>
-        <source>Mute</source>
-        <translation>Disattiva audio</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPanel.qml" line="1"/>
-        <source>End call</source>
-        <translation>Termina chiamata</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPanel.qml" line="1"/>
-        <source>Unmute</source>
-        <translation>Attiva audio</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPanel.qml" line="1"/>
-        <source>Stop video</source>
-        <translation>Ferma video</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPanel.qml" line="1"/>
-        <source>Start video</source>
-        <translation>Avvia video</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPanel.qml" line="1"/>
-        <source>Switch camera</source>
-        <translation>Cambia fotocamera</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPanel.qml" line="1"/>
-        <source>Hide preview</source>
-        <translation>Nascondi anteprima</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPanel.qml" line="1"/>
-        <source>Show preview</source>
-        <translation>Mostra anteprima</translation>
-    </message>
-</context>
-<context>
-    <name>CallPickPage</name>
-    <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>Call</source>
-        <translation>Chiama</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>At most 31 people in a call</source>
-        <translation>Al massimo 31 persone in una chiamata</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
-        <translation>Non inviato: Tengram si sta riconnettendo. Riprova tra un attimo.</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>Call %1 people?</source>
-        <translation>Chiamare %1 persone?</translation>
-    </message>
-    <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
         <source>Cancel</source>
-        <translation>Annulla</translation>
+        <translation type="obsolete">Annulla</translation>
     </message>
     <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>Search members</source>
-        <translation>Cerca membri</translation>
+        <source>Theme</source>
+        <translation type="obsolete">Tema</translation>
     </message>
     <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>%1 chosen</source>
-        <translation>%1 scelti</translation>
+        <source>Dark</source>
+        <translation type="obsolete">Scuro</translation>
     </message>
     <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>Loading…</source>
-        <translation>Caricamento…</translation>
+        <source>Bright</source>
+        <translation type="obsolete">Chiaro</translation>
     </message>
     <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>Voice call</source>
-        <translation>Chiamata vocale</translation>
+        <source>Text size</source>
+        <translation type="obsolete">Dimensione del testo</translation>
     </message>
     <message>
-        <location filename="../assets/CallPickPage.qml" line="1"/>
-        <source>Video call</source>
-        <translation>Videochiamata</translation>
+        <source>Small</source>
+        <translation type="obsolete">Piccola</translation>
+    </message>
+    <message>
+        <source>Normal</source>
+        <translation type="obsolete">Normale</translation>
+    </message>
+    <message>
+        <source>Large</source>
+        <translation type="obsolete">Grande</translation>
+    </message>
+    <message>
+        <source>Enter sends</source>
+        <translation type="obsolete">Invio invia il messaggio</translation>
+    </message>
+    <message>
+        <source>Off, Enter starts a new line; the Send action still sends.</source>
+        <translation type="obsolete">Se disattivato, Invio va a capo; l&apos;azione Invia continua a inviare.</translation>
+    </message>
+    <message>
+        <source>Notification preview</source>
+        <translation type="obsolete">Anteprima notifiche</translation>
+    </message>
+    <message>
+        <source>Off, a notification says &quot;New message&quot; instead of the text.</source>
+        <translation type="obsolete">Se disattivato, la notifica mostra &quot;Nuovo messaggio&quot; invece del testo.</translation>
+    </message>
+    <message>
+        <source>Start at boot</source>
+        <translation type="obsolete">Avvia all&apos;accensione</translation>
+    </message>
+    <message>
+        <source>Brings Tengram back within 6 minutes of a reboot, or if it stops, with the app closed.</source>
+        <translation type="obsolete">Riporta Tengram in funzione entro 6 minuti da un riavvio o da un arresto, ad app chiusa.</translation>
+    </message>
+    <message>
+        <source>Storage</source>
+        <translation type="obsolete">Spazio</translation>
+    </message>
+    <message>
+        <source>Download on mobile data</source>
+        <translation type="obsolete">Scarica su rete mobile</translation>
+    </message>
+    <message>
+        <source>Cache limit</source>
+        <translation type="obsolete">Limite della cache</translation>
+    </message>
+    <message>
+        <source>Off, photos and voice notes wait for a tap unless you&apos;re on Wi-Fi.</source>
+        <translation type="obsolete">Se disattivato, foto e messaggi vocali attendono un tocco, tranne che in Wi-Fi.</translation>
+    </message>
+    <message>
+        <source>Cache: %1</source>
+        <translation type="obsolete">Cache: %1</translation>
+    </message>
+    <message>
+        <source>Clear cache</source>
+        <translation type="obsolete">Svuota la cache</translation>
+    </message>
+    <message>
+        <source>Cache cleared: %1 freed</source>
+        <translation type="obsolete">Cache svuotata: %1 liberati</translation>
+    </message>
+    <message>
+        <source>Voice notes&apos; decoded audio and photo previews; they&apos;re made again when needed.</source>
+        <translation type="obsolete">L&apos;audio decodificato dei vocali e le anteprime delle foto; si rifanno quando servono.</translation>
+    </message>
+    <message>
+        <source>Unlink this device</source>
+        <translation type="obsolete">Scollega questo dispositivo</translation>
     </message>
 </context>
 <context>
-    <name>CallVideoView</name>
+    <name>SharePage</name>
     <message>
-        <location filename="../assets/CallVideoView.qml" line="1"/>
-        <source>Wants to turn on video</source>
-        <translation>Vuole attivare il video</translation>
+        <location filename="../assets/SharePage.qml" line="12"/>
+        <source>Forward to</source>
+        <translation>Inoltra a</translation>
+    </message>
+    <message>
+        <location filename="../assets/SharePage.qml" line="12"/>
+        <source>Send to</source>
+        <translation>Invia a</translation>
+    </message>
+</context>
+<context>
+    <name>StagedBar</name>
+    <message>
+        <location filename="../assets/StagedBar.qml" line="80"/>
+        <source>Send as file</source>
+        <translation>Invia come file</translation>
+    </message>
+</context>
+<context>
+    <name>StarredPage</name>
+    <message>
+        <source>Starred messages</source>
+        <translation type="obsolete">Messaggi con stella</translation>
+    </message>
+    <message>
+        <source>No starred messages</source>
+        <translation type="obsolete">Nessun messaggio con stella</translation>
+    </message>
+</context>
+<context>
+    <name>StoriesModel</name>
+    <message>
+        <source>Unknown</source>
+        <translation type="obsolete">Sconosciuto</translation>
+    </message>
+    <message>
+        <source>My story</source>
+        <translation type="obsolete">Il mio stato</translation>
+    </message>
+</context>
+<context>
+    <name>StoriesPage</name>
+    <message>
+        <source>Stories</source>
+        <translation type="obsolete">Stato</translation>
+    </message>
+    <message>
+        <source>No stories yet</source>
+        <translation type="obsolete">Nessuno stato per ora</translation>
+    </message>
+    <message>
+        <source>New story</source>
+        <translation type="obsolete">Nuovo stato</translation>
+    </message>
+    <message>
+        <source>Text story</source>
+        <translation type="obsolete">Stato di testo</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t post the story</source>
+        <translation type="obsolete">Impossibile pubblicare lo stato</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t delete the story</source>
+        <translation type="obsolete">Impossibile eliminare lo stato</translation>
+    </message>
+    <message>
+        <source>Pick a JPEG photo or an MP4 video</source>
+        <translation type="obsolete">Scegli una foto JPEG o un video MP4</translation>
+    </message>
+    <message>
+        <source>This story is no longer available</source>
+        <translation type="obsolete">Questo stato non è più disponibile</translation>
+    </message>
+</context>
+<context>
+    <name>StoryAudienceSheet</name>
+    <message>
+        <source>Share with</source>
+        <translation type="obsolete">Condividi con</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="obsolete">Annulla</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation type="obsolete">Fine</translation>
+    </message>
+    <message>
+        <source>Search contacts</source>
+        <translation type="obsolete">Cerca contatti</translation>
+    </message>
+    <message>
+        <source>%1 chosen</source>
+        <translation type="obsolete">%1 scelti</translation>
+    </message>
+    <message>
+        <source>Everyone</source>
+        <translation type="obsolete">Tutti</translation>
+    </message>
+    <message>
+        <source>Loading…</source>
+        <translation type="obsolete">Caricamento…</translation>
+    </message>
+</context>
+<context>
+    <name>StoryComposer</name>
+    <message>
+        <source>Couldn&apos;t post the story</source>
+        <translation type="obsolete">Impossibile pubblicare lo stato</translation>
+    </message>
+    <message>
+        <source>New story</source>
+        <translation type="obsolete">Nuovo stato</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="obsolete">Annulla</translation>
+    </message>
+    <message>
+        <source>Post</source>
+        <translation type="obsolete">Pubblica</translation>
+    </message>
+    <message>
+        <source>Write something</source>
+        <translation type="obsolete">Scrivi qualcosa</translation>
+    </message>
+    <message>
+        <source>Add a caption</source>
+        <translation type="obsolete">Aggiungi una didascalia</translation>
+    </message>
+    <message>
+        <source>Share with</source>
+        <translation type="obsolete">Condividi con</translation>
+    </message>
+    <message>
+        <source>Everyone</source>
+        <translation type="obsolete">Tutti</translation>
+    </message>
+    <message>
+        <source>%1 chosen</source>
+        <translation type="obsolete">%1 scelti</translation>
+    </message>
+</context>
+<context>
+    <name>StoryViewer</name>
+    <message>
+        <source>Couldn&apos;t load the story</source>
+        <translation type="obsolete">Impossibile caricare lo stato</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t send the reply</source>
+        <translation type="obsolete">Impossibile inviare la risposta</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t send the heart</source>
+        <translation type="obsolete">Impossibile inviare il cuore</translation>
+    </message>
+    <message>
+        <source>Reply</source>
+        <translation type="obsolete">Rispondi</translation>
+    </message>
+    <message>
+        <source>Delete this story?</source>
+        <translation type="obsolete">Eliminare questo stato?</translation>
+    </message>
+    <message>
+        <source>It is taken back from everyone who saw it.</source>
+        <translation type="obsolete">Verrà ritirato per tutti quelli che lo hanno visto.</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation type="obsolete">Elimina</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="obsolete">Annulla</translation>
+    </message>
+</context>
+<context>
+    <name>StoryViewersPage</name>
+    <message>
+        <source>Viewed by</source>
+        <translation type="obsolete">Visto da</translation>
+    </message>
+    <message>
+        <source>No views yet</source>
+        <translation type="obsolete">Ancora nessuna visualizzazione</translation>
+    </message>
+</context>
+<context>
+    <name>TextCard</name>
+    <message>
+        <source>Reply</source>
+        <translation type="obsolete">Rispondi</translation>
+    </message>
+    <message>
+        <source>React</source>
+        <translation type="obsolete">Reagisci</translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="obsolete">Copia</translation>
+    </message>
+    <message>
+        <source>Delete for everyone</source>
+        <translation type="obsolete">Elimina per tutti</translation>
+    </message>
+    <message>
+        <source>Delete for me</source>
+        <translation type="obsolete">Elimina per me</translation>
+    </message>
+    <message>
+        <source>edited</source>
+        <translation type="obsolete">modificato</translation>
+    </message>
+</context>
+<context>
+    <name>TopicsPage</name>
+    <message>
+        <location filename="../assets/TopicsPage.qml" line="63"/>
+        <source>Couldn&apos;t load the topics</source>
+        <translation>Impossibile caricare gli argomenti</translation>
+    </message>
+    <message>
+        <location filename="../assets/TopicsPage.qml" line="68"/>
+        <source>Mark all read</source>
+        <translation>Segna tutto come letto</translation>
+    </message>
+    <message>
+        <location filename="../assets/TopicsPage.qml" line="123"/>
+        <source>No topics</source>
+        <translation>Nessun argomento</translation>
     </message>
 </context>
 <context>
     <name>cover</name>
     <message>
-        <location filename="../assets/cover.qml" line="25"/>
+        <location filename="../assets/cover.qml" line="43"/>
         <source>unread</source>
         <translation>da leggere</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="25"/>
+        <location filename="../assets/cover.qml" line="83"/>
         <source>Nothing new to see</source>
         <translation>Niente di nuovo</translation>
     </message>
@@ -2005,389 +2613,154 @@
     </message>
     <message>
         <location filename="../assets/errors.js" line="13"/>
+        <source>That code isn&apos;t right. Check it and type it again.</source>
+        <translation>Il codice non è corretto. Controllalo e digitalo di nuovo.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="15"/>
+        <source>That password isn&apos;t right.</source>
+        <translation>La password non è corretta.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="17"/>
+        <source>Telegram is still busy with the last step. Try again in a moment.</source>
+        <translation>Telegram è ancora occupato con l&apos;ultimo passaggio. Riprova tra un attimo.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="22"/>
+        <source>Telegram asks you to wait %1 minutes before trying again.</source>
+        <translation>Telegram ti chiede di attendere %1 min prima di riprovare.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="26"/>
         <source>That didn&apos;t work: %1</source>
         <translation>Operazione non riuscita: %1</translation>
     </message>
     <message>
-        <location filename="../assets/errors.js" line="1"/>
         <source>You&apos;re already on a call.</source>
-        <translation>Sei già in una chiamata.</translation>
+        <translation type="obsolete">Sei già in una chiamata.</translation>
     </message>
     <message>
-        <location filename="../assets/errors.js" line="1"/>
         <source>You&apos;re offline. Connect to call.</source>
-        <translation>Sei offline. Connettiti per chiamare.</translation>
+        <translation type="obsolete">Sei offline. Connettiti per chiamare.</translation>
     </message>
     <message>
-        <location filename="../assets/errors.js" line="1"/>
         <source>Link this BlackBerry to Telegram to call.</source>
-        <translation>Collega questo BlackBerry a Telegram per chiamare.</translation>
+        <translation type="obsolete">Collega questo BlackBerry a Telegram per chiamare.</translation>
     </message>
     <message>
-        <location filename="../assets/errors.js" line="1"/>
         <source>The simulator can&apos;t place calls.</source>
-        <translation>Il simulatore non può fare chiamate.</translation>
+        <translation type="obsolete">Il simulatore non può fare chiamate.</translation>
     </message>
     <message>
-        <location filename="../assets/errors.js" line="1"/>
         <source>You can only call a person, not a group.</source>
-        <translation>Puoi chiamare solo una persona, non un gruppo.</translation>
+        <translation type="obsolete">Puoi chiamare solo una persona, non un gruppo.</translation>
     </message>
     <message>
-        <location filename="../assets/errors.js" line="1"/>
         <source>Couldn&apos;t place the call: %1</source>
-        <translation>Impossibile chiamare: %1</translation>
+        <translation type="obsolete">Impossibile chiamare: %1</translation>
     </message>
 </context>
 <context>
     <name>main</name>
     <message>
-        <location filename="../assets/main.qml" line="29"/>
+        <location filename="../assets/main.qml" line="16"/>
         <source>Profile</source>
         <translation>Profilo</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="34"/>
+        <location filename="../assets/main.qml" line="23"/>
         <source>About</source>
         <translation>Informazioni</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
+        <location filename="../assets/main.qml" line="120"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
-        <source>This invite doesn't work any more</source>
+        <location filename="../assets/main.qml" line="136"/>
+        <location filename="../assets/main.qml" line="154"/>
+        <location filename="../assets/main.qml" line="162"/>
+        <source>More memory for Tengram</source>
+        <translation>Più memoria per Tengram</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="137"/>
+        <source>Tengram needs to install a root patch that runs at every boot and lets every app use more memory in the background. Only the patch runs as root, and it changes just one value, the same for every app. Install it, and Tengram closes once: open it again. Without it, Tengram can&apos;t be used.</source>
+        <translation>Tengram deve installare una patch root che si avvia a ogni accensione e permette a ogni app di usare più memoria in background. Solo la patch gira come root e modifica un solo valore, uguale per tutte le app. Installala e Tengram si chiude una volta: riaprilo. Senza la patch, Tengram non si può usare.</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="138"/>
+        <source>Install</source>
+        <translation>Installa</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="143"/>
+        <source>Installing the memory addon…</source>
+        <translation>Installazione del componente aggiuntivo per la memoria…</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="164"/>
+        <source>Close Tengram</source>
+        <translation>Chiudi Tengram</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="228"/>
+        <source>This invite doesn&apos;t work any more</source>
         <translation>Questo invito non è più valido</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
-        <source>Couldn't open this invite. Try again in a moment.</source>
+        <location filename="../assets/main.qml" line="230"/>
+        <source>Couldn&apos;t open this invite. Try again in a moment.</source>
         <translation>Impossibile aprire questo invito. Riprova tra poco.</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
+        <location filename="../assets/main.qml" line="237"/>
         <source>Follow this channel?</source>
         <translation>Seguire questo canale?</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
+        <location filename="../assets/main.qml" line="237"/>
         <source>Join this group?</source>
         <translation>Unirsi a questo gruppo?</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
+        <location filename="../assets/main.qml" line="238"/>
         <source>%1 followers</source>
         <translation>%1 follower</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
+        <location filename="../assets/main.qml" line="238"/>
         <source>%1 members</source>
         <translation>%1 membri</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
+        <location filename="../assets/main.qml" line="240"/>
         <source>Follow</source>
         <translation>Segui</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
+        <location filename="../assets/main.qml" line="240"/>
         <source>Join</source>
         <translation>Unisciti</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="110"/>
-        <source>Telegram won't let this number join by link. If an admin removed it, an admin has to add it back.</source>
+        <location filename="../assets/main.qml" line="229"/>
+        <source>Telegram won&apos;t let this number join by link. If an admin removed it, an admin has to add it back.</source>
         <translation>Telegram non consente a questo numero di unirsi tramite link. Se un amministratore lo ha rimosso, deve essere un amministratore ad aggiungerlo di nuovo.</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
         <source>Chats</source>
-        <translation>Chat</translation>
+        <translation type="obsolete">Chat</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
         <source>Calls</source>
-        <translation>Chiamate</translation>
+        <translation type="obsolete">Chiamate</translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="1"/>
         <source>Stories</source>
-        <translation>Stato</translation>
-    </message>
-</context>
-<context>
-    <name>TextCard</name>
-    <message>
-        <location filename="../assets/TextCard.qml" line="1"/>
-        <source>Reply</source>
-        <translation>Rispondi</translation>
-    </message>
-    <message>
-        <location filename="../assets/TextCard.qml" line="1"/>
-        <source>React</source>
-        <translation>Reagisci</translation>
-    </message>
-    <message>
-        <location filename="../assets/TextCard.qml" line="1"/>
-        <source>Copy</source>
-        <translation>Copia</translation>
-    </message>
-    <message>
-        <location filename="../assets/TextCard.qml" line="1"/>
-        <source>Delete for everyone</source>
-        <translation>Elimina per tutti</translation>
-    </message>
-    <message>
-        <location filename="../assets/TextCard.qml" line="1"/>
-        <source>Delete for me</source>
-        <translation>Elimina per me</translation>
-    </message>
-    <message>
-        <location filename="../assets/TextCard.qml" line="1"/>
-        <source>edited</source>
-        <translation>modificato</translation>
-    </message>
-</context>
-<context>
-    <name>RevokeDialog</name>
-    <message>
-        <location filename="../assets/RevokeDialog.qml" line="1"/>
-        <source>Delete for everyone?</source>
-        <translation>Eliminare per tutti?</translation>
-    </message>
-    <message>
-        <location filename="../assets/RevokeDialog.qml" line="1"/>
-        <source>It will be deleted for everyone in this chat.</source>
-        <translation>Verrà eliminato per tutti i partecipanti di questa chat.</translation>
-    </message>
-    <message>
-        <location filename="../assets/RevokeDialog.qml" line="1"/>
-        <source>Delete</source>
-        <translation>Elimina</translation>
-    </message>
-    <message>
-        <location filename="../assets/RevokeDialog.qml" line="1"/>
-        <source>Cancel</source>
-        <translation>Annulla</translation>
-    </message>
-</context>
-<context>
-    <name>StagedBar</name>
-    <message>
-        <location filename="../assets/StagedBar.qml" line="78"/>
-        <source>Send as file</source>
-        <translation>Invia come file</translation>
-    </message>
-</context>
-<context>
-    <name>StoriesModel</name>
-    <message>
-        <location filename="../src/StoriesModel.cpp" line="1"/>
-        <source>Unknown</source>
-        <translation>Sconosciuto</translation>
-    </message>
-    <message>
-        <location filename="../src/StoriesModel.cpp" line="1"/>
-        <source>My story</source>
-        <translation>Il mio stato</translation>
-    </message>
-</context>
-<context>
-    <name>StoriesPage</name>
-    <message>
-        <location filename="../assets/StoriesPage.qml" line="1"/>
-        <source>Stories</source>
-        <translation>Stato</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoriesPage.qml" line="1"/>
-        <source>No stories yet</source>
-        <translation>Nessuno stato per ora</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoriesPage.qml" line="1"/>
-        <source>New story</source>
-        <translation>Nuovo stato</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoriesPage.qml" line="1"/>
-        <source>Text story</source>
-        <translation>Stato di testo</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoriesPage.qml" line="1"/>
-        <source>Couldn't post the story</source>
-        <translation>Impossibile pubblicare lo stato</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoriesPage.qml" line="1"/>
-        <source>Couldn't delete the story</source>
-        <translation>Impossibile eliminare lo stato</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoriesPage.qml" line="1"/>
-        <source>Pick a JPEG photo or an MP4 video</source>
-        <translation>Scegli una foto JPEG o un video MP4</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoriesPage.qml" line="1"/>
-        <source>This story is no longer available</source>
-        <translation>Questo stato non è più disponibile</translation>
-    </message>
-</context>
-<context>
-    <name>StoryViewer</name>
-    <message>
-        <location filename="../assets/StoryViewer.qml" line="1"/>
-        <source>Couldn't load the story</source>
-        <translation>Impossibile caricare lo stato</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryViewer.qml" line="1"/>
-        <source>Couldn't send the reply</source>
-        <translation>Impossibile inviare la risposta</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryViewer.qml" line="1"/>
-        <source>Couldn't send the heart</source>
-        <translation>Impossibile inviare il cuore</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryViewer.qml" line="1"/>
-        <source>Reply</source>
-        <translation>Rispondi</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryViewer.qml" line="1"/>
-        <source>Delete this story?</source>
-        <translation>Eliminare questo stato?</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryViewer.qml" line="1"/>
-        <source>It is taken back from everyone who saw it.</source>
-        <translation>Verrà ritirato per tutti quelli che lo hanno visto.</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryViewer.qml" line="1"/>
-        <source>Delete</source>
-        <translation>Elimina</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryViewer.qml" line="1"/>
-        <source>Cancel</source>
-        <translation>Annulla</translation>
-    </message>
-</context>
-<context>
-    <name>StoryViewersPage</name>
-    <message>
-        <location filename="../assets/StoryViewersPage.qml" line="1"/>
-        <source>Viewed by</source>
-        <translation>Visto da</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryViewersPage.qml" line="1"/>
-        <source>No views yet</source>
-        <translation>Ancora nessuna visualizzazione</translation>
-    </message>
-</context>
-<context>
-    <name>StoryComposer</name>
-    <message>
-        <location filename="../assets/StoryComposer.qml" line="1"/>
-        <source>Couldn't post the story</source>
-        <translation>Impossibile pubblicare lo stato</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryComposer.qml" line="1"/>
-        <source>New story</source>
-        <translation>Nuovo stato</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryComposer.qml" line="1"/>
-        <source>Cancel</source>
-        <translation>Annulla</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryComposer.qml" line="1"/>
-        <source>Post</source>
-        <translation>Pubblica</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryComposer.qml" line="1"/>
-        <source>Write something</source>
-        <translation>Scrivi qualcosa</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryComposer.qml" line="1"/>
-        <source>Add a caption</source>
-        <translation>Aggiungi una didascalia</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryComposer.qml" line="1"/>
-        <source>Share with</source>
-        <translation>Condividi con</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryComposer.qml" line="1"/>
-        <source>Everyone</source>
-        <translation>Tutti</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryComposer.qml" line="1"/>
-        <source>%1 chosen</source>
-        <translation>%1 scelti</translation>
-    </message>
-</context>
-<context>
-    <name>StoryAudienceSheet</name>
-    <message>
-        <location filename="../assets/StoryAudienceSheet.qml" line="1"/>
-        <source>Share with</source>
-        <translation>Condividi con</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryAudienceSheet.qml" line="1"/>
-        <source>Cancel</source>
-        <translation>Annulla</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryAudienceSheet.qml" line="1"/>
-        <source>Done</source>
-        <translation>Fine</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryAudienceSheet.qml" line="1"/>
-        <source>Search contacts</source>
-        <translation>Cerca contatti</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryAudienceSheet.qml" line="1"/>
-        <source>%1 chosen</source>
-        <translation>%1 scelti</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryAudienceSheet.qml" line="1"/>
-        <source>Everyone</source>
-        <translation>Tutti</translation>
-    </message>
-    <message>
-        <location filename="../assets/StoryAudienceSheet.qml" line="1"/>
-        <source>Loading…</source>
-        <translation>Caricamento…</translation>
-    </message>
-</context>
-<context>
-    <name>StarredPage</name>
-    <message>
-        <source>Starred messages</source>
-        <translation>Messaggi con stella</translation>
-    </message>
-    <message>
-        <source>No starred messages</source>
-        <translation>Nessun messaggio con stella</translation>
+        <translation type="obsolete">Stato</translation>
     </message>
 </context>
 </TS>
