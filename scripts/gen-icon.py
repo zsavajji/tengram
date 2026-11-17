@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Tengram icon: the Telegram paper plane as a real 7-piece tangram.
 
-Writes assets/icon.svg. PNGs: see the commands at the bottom of this file.
+Writes assets/icon.svg, and the Hub's monochrome glyphs of the plane alone (needs Pillow): hub_read.png
+(grey), hub_unread.png (yellow) and hub_account.png (white, also the lock screen's). The app icon's PNGs:
+see the commands at the bottom of this file.
 """
 import math
 import pathlib
@@ -78,8 +80,8 @@ def inset(p, d):
     return out
 
 
-def main():
-    check_tangram()
+def placed():
+    """The pieces on the 512 px icon, turned and centred: [(fill, points)], before the gap is cut."""
     c, s = math.cos(math.radians(ANGLE)), math.sin(math.radians(ANGLE))
     total = sum(area(p) for _, p in PIECES)
     cx = sum(area(p) * centroid(p)[0] for _, p in PIECES) / total
@@ -89,9 +91,54 @@ def main():
         x, y = (q[0] - cx) * SCALE, (q[1] - cy) * SCALE
         return (SIZE / 2 + OFFSET[0] + x * c - y * s, SIZE / 2 + OFFSET[1] + x * s + y * c)
 
+    return [(fill, [place(q) for q in p]) for fill, p in PIECES]
+
+
+def glyph(px, top, foot=None, fill=0.62, gap=0.04, out=None):
+    """The plane alone, in one colour, for the Hub: an RGBA image px square, the plane `fill` of the box
+    (0.62 is 50 px of 81, as the Hub's own glyphs). `top` is its colour, fading straight down to `foot`
+    when given, as the system's glyphs do. `gap` is the cut between the pieces as a share of the plane's
+    width: wider than the app icon's, or it closes up at this size. HyperBerry's recipe
+    (../hyperberry/scripts/gen-icons.py, app_icon with mono): drawn large, scaled down, painted flat over
+    the shape and pasted with no mask, since a masked paste darkens the edges."""
+    from PIL import Image, ImageDraw
+    k = 4  # 512 * 4: drawn large
+    polys = [p for _, p in placed()]
+    xs = [x for p in polys for x, _ in p]
+    cut = gap * (max(xs) - min(xs)) / 2
+    mask = Image.new("L", (SIZE * k, SIZE * k), 0)
+    d = ImageDraw.Draw(mask)
+    for p in polys:
+        pts = [(x * k, y * k) for x, y in inset(p, cut + ROUND)]
+        d.polygon(pts, 255)
+        d.line(pts + pts[:2], 255, 2 * ROUND * k, joint="curve")  # the icon's rounded corners
+    mask = mask.crop(mask.getbbox())
+    r = fill * px / max(mask.size)
+    mask = mask.resize((round(mask.width * r), round(mask.height * r)), Image.LANCZOS)
+    fade = Image.linear_gradient("L").resize(mask.size)
+    paint = Image.composite(Image.new("RGBA", mask.size, foot or top), Image.new("RGBA", mask.size, top), fade)
+    paint.putalpha(mask)
+    box = Image.new("RGBA", (px, px), (0, 0, 0, 0))
+    box.paste(paint, ((px - paint.width) // 2, (px - paint.height) // 2))
+    if out:
+        box.save(out)
+    return box
+
+
+def hub_glyphs(folder):
+    """What the engine's Hub account names (engine/hub_qnx.cpp), 81 px as the Hub draws them. The Hub tints
+    nothing: the engine swaps the file. Colours as HyperBerry sampled them from the Q10's own glyphs."""
+    glyph(81, (0x9E, 0x9E, 0x9E, 255), (0x81, 0x81, 0x81, 255), out=folder / "hub_read.png")     # a read item
+    glyph(81, (0xFF, 0xD9, 0x1C, 255), (0xE0, 0xB2, 0x17, 255), out=folder / "hub_unread.png")   # an unread one
+    # The account's own, which the lock screen and the instant preview draw: white, larger, no fade.
+    glyph(81, (255, 255, 255, 255), fill=0.84, out=folder / "hub_account.png")
+
+
+def main():
+    check_tangram()
     polys = []
-    for fill, p in PIECES:
-        pts = inset([place(q) for q in p], GAP / 2 + ROUND)
+    for fill, p in placed():
+        pts = inset(p, GAP / 2 + ROUND)
         d = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
         polys.append(f'  <polygon points="{d}" fill="{fill}" stroke="{fill}" '
                      f'stroke-width="{2 * ROUND}" stroke-linejoin="round"/>')
@@ -110,6 +157,8 @@ def main():
     out.parent.mkdir(exist_ok=True)
     out.write_text(svg)
     print(out)
+    hub_glyphs(out.parent)
+    print(out.parent / "hub_read.png", "hub_unread.png", "hub_account.png")
 
 
 if __name__ == "__main__":
