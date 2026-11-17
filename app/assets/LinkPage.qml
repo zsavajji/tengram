@@ -11,6 +11,10 @@ Page {
     // asked: this page already requested a code for this engine run. shown: a code was on screen.
     property bool asked: false
     property bool shown: false
+    // No login on an engine under the stock 30 MB headless cap (the user, 2026-11-17): the first sync would
+    // die against it. memMB is the engine's limit at its start (0: none); the memory addon raises it to 128,
+    // and the engine it restarts reports that. Until then nothing here asks Telegram for anything.
+    property bool memBlocked: (engine.link.memMB || 0) > 0 && engine.link.memMB < 128
 
     titleBar: TitleBar {
         title: qsTr("Link to Telegram")
@@ -21,7 +25,7 @@ Page {
         ActionItem {
             title: qsTr("Link with phone number")
             ActionBar.placement: ActionBarPlacement.OnBar
-            enabled: page.linkState != "linking" && page.linkState != "ready"
+            enabled: !page.memBlocked && page.linkState != "linking" && page.linkState != "ready"
             onTriggered: page.openNumber()
         }
     ]
@@ -32,7 +36,7 @@ Page {
 
     // The engine makes codes only on request; ask once per run, and again after a restart.
     function ask() {
-        if (up && linkState == "unlinked" && !asked) {
+        if (up && !memBlocked && linkState == "unlinked" && !asked) {
             asked = true
             engine.request("link.qr", {})
         }
@@ -75,6 +79,7 @@ Page {
             asked = false
         ask()
     }
+    onMemBlockedChanged: ask()
     onLinkStateChanged: {
         if (linkState == "qr")
             shown = true
@@ -102,8 +107,28 @@ Page {
                 rightPadding: ui.du(2)
                 horizontalAlignment: HorizontalAlignment.Fill
 
+                // The engine under the 30 MB cap: install the memory addon first (main.qml asks too). The same
+                // install also helps when the addon is there but hasn't patched yet (about 4 minutes after a
+                // restart): it patches now and restarts the engine.
                 Container {
-                    visible: page.up && page.linkState == "qr"
+                    visible: page.up && page.memBlocked
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    Label {
+                        multiline: true
+                        text: memPatch.rootAvailable
+                              ? qsTr("Tengram's engine has 30 MB of memory, too little to sign in and load your chats. Install the memory addon first.")
+                              : memPatch.headline
+                    }
+                    Button {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        visible: memPatch.rootAvailable
+                        enabled: !memPatch.busy
+                        text: memPatch.busy ? qsTr("Installing…") : qsTr("Install the memory addon")
+                        onClicked: memPatch.install()
+                    }
+                }
+                Container {
+                    visible: page.up && !page.memBlocked && page.linkState == "qr"
                     horizontalAlignment: HorizontalAlignment.Fill
                     Label {
                         multiline: true
@@ -117,7 +142,7 @@ Page {
                     }
                 }
                 Container {
-                    visible: page.up && page.linkState == "code"
+                    visible: page.up && !page.memBlocked && page.linkState == "code"
                     horizontalAlignment: HorizontalAlignment.Fill
                     Label {
                         multiline: true
@@ -147,7 +172,7 @@ Page {
                     }
                 }
                 Container {
-                    visible: page.up && page.linkState == "password"
+                    visible: page.up && !page.memBlocked && page.linkState == "password"
                     horizontalAlignment: HorizontalAlignment.Fill
                     Label {
                         multiline: true
@@ -178,7 +203,7 @@ Page {
                     }
                 }
                 Container {
-                    visible: page.up && page.linkState == "unlinked"
+                    visible: page.up && !page.memBlocked && page.linkState == "unlinked"
                     horizontalAlignment: HorizontalAlignment.Fill
                     Label {
                         visible: page.shown
