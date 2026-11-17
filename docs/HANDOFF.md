@@ -65,7 +65,7 @@ Host `bb10rootx` in `~/.ssh/config`, **USB only** (169.254.0.1), a root shell.
   (`TG_API_ID=… TG_API_HASH=… scripts/build-app.sh`). Never write them into the repo, notes or memory.
 
 **On the phone now:**
-- **Tengram 0.1.0.4 is installed** (`com.zsavajji.tengram.testRel_jji_tengram30796029`), logged in by QR to the
+- **Tengram is installed** (`com.zsavajji.tengram.testRel_jji_tengram30796029`), logged in by QR to the
   user's real account (listed as "BlackBerry Classic"). Sandbox data:
   `/accounts/1000/appdata/com.zsavajji.tengram.testRel_jji_tengram30796029/data/` — `logs/tengramd.log` (the
   engine), `logs/ui.log` (the UI), `chats.db`, `db.key`, `db/`, `files/`, `engine.json`, `hub.json`.
@@ -74,7 +74,8 @@ Host `bb10rootx` in `~/.ssh/config`, **USB only** (169.254.0.1), a root shell.
 - **The `headless-mem` addon** (`../rlimit-patch`) is installed in `/var/addons`; authman's
   `_sys_headless_xlarge` is patched to 128 MiB in memory since the 11:22 boot. Authman also still holds a
   harmless `hmem` prefix from a failed experiment, until the next reboot.
-- `build/buildid.txt` is at 4: the next package is 0.1.0.5.
+- **Installed: Tengram 0.1.0.5.** `build/tengram.bar` is 0.1.0.7 (the memory-patch close step, the login gate, the
+  dialog text), built and not installed; `build/buildid.txt` is at 7.
 
 ## 4. Build and install
 
