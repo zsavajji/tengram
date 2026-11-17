@@ -24,7 +24,8 @@ class UIConfig;
 // The rows of the chat lists, in C++ as the message cards are (MessageCards.h): a row is built once,
 // in createItem, and filled on each recycle, in updateItem, with setters in place of QML's bindings.
 // ChatList.qml sets it as the list's listItemProvider; the rows reach the work through the list's
-// functions and properties. Types: "header" and "item".
+// functions and properties. Types: "header" and "item". A forum's topics (TopicModel) are items of the same rows,
+// in a list with topicList set.
 class ChatRows : public bb::cascades::ListItemProvider
 {
     Q_OBJECT
@@ -84,6 +85,7 @@ private:
     bool m_styled;
     float m_scale; // the text scale the sizes below were last set for
     bool m_compact; // and the interface
+    bool m_topics; // the list is a forum's topics (TopicModel): no long-press menu, the name bold while unread
 
     bb::cascades::Container *m_root; // carries the press colour, the separator included
     bb::cascades::Container *m_row;
@@ -92,6 +94,7 @@ private:
     bb::cascades::ImageView *m_photo;
     bb::cascades::Label *m_initials;
     bb::cascades::Label *m_name;
+    bb::cascades::ImageView *m_lock;
     bb::cascades::ImageView *m_pin;
     bb::cascades::ImageView *m_mute;
     bb::cascades::Label *m_time;

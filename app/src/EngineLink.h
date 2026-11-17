@@ -86,8 +86,11 @@ signals:
     void storyViewsChanged();
     // A storyop event: story.post or story.delete (cmd "post" or "delete") of this story ended, ok or not.
     void storyOp(const QString &cmd, const QString &id, bool ok);
-    // A typing event: who ("" in 1:1) started or stopped typing in the chat; voice while recording.
-    void typing(const QString &chat, const QString &who, bool on, bool voice);
+    // A topics event: these rows of the chat's topics changed or disappeared (the ids are not kept: the page reads them all).
+    void topicsChanged(const QString &chat);
+    // A typing event: who ("" in 1:1) started or stopped typing in the chat; voice while recording; topic the forum
+    // topic it happens in, 0 when it is not in one.
+    void typing(const QString &chat, const QString &who, bool on, bool voice, int topic);
     // A presence event; lastSeen in unix seconds, 0 when hidden.
     void presence(const QString &chat, bool online, qint64 lastSeen);
     // A media.progress event: the file of message id of the chat has done of size bytes (size 0 when unknown).

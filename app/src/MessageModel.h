@@ -71,7 +71,10 @@ class MessageModel : public bb::cascades::DataModel
     // newer pages are still to come. The page's stick-to-edge policy follows it.
     Q_PROPERTY(bool window READ window NOTIFY windowChanged)
 public:
-    MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, QObject *parent = 0);
+    // topic: a forum topic's id (docs/protocol.md, Forum topics) when the model is one topic's messages, 0 for the chat's:
+    // every read of messages then has `AND topic = ?`, the requests carry it, and the unread count and read_inbox are the
+    // topic's own (the topics table's).
+    MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, int topic, QObject *parent = 0);
 
     int childCount(const QVariantList &indexPath);
     bool hasChildren(const QVariantList &indexPath);
@@ -110,7 +113,7 @@ public:
     // The id of the chat.open request the controller just sent: its reply sets the verified floor.
     void expectOpen(const QString &requestId);
 
-    // The chat's unread count as chats.db has it now.
+    // The chat's (or topic's) unread count as chats.db has it now.
     int unread() const;
 
     // How many of the newest messages chat.open verifies: 50, more when the unread ones reach back further.
@@ -173,6 +176,9 @@ private:
     };
 
     static bool lessThan(const Msg &a, const Msg &b);
+    // " AND topic = ?" in a topic's model, "": bindChat binds what chat = ? and it want.
+    const char *topicSql() const { return m_topic ? " AND topic = ?" : ""; }
+    void bindChat(QSqlQuery &q) const;
     Msg read(QSqlQuery &q);
     // oldestFirst: the oldest `limit` rows that match instead of the newest (still returned oldest first).
     QList<Msg> select(const QString &where, const QVariantList &args, int limit, bool oldestFirst = false);
@@ -213,6 +219,7 @@ private:
     QString m_chat;
     bool m_group;
     bool m_channel; // a channel (kind 3): read-only for us
+    int m_topic; // the forum topic shown, 0 for the whole chat
     qint64 m_floor; // the oldest verified message id: older rows are not shown
     bool m_floorKnown; // false until the first chat.open reply
     // The newest id of the continuous verified run that starts at m_floor (0 for none): a later chat.open

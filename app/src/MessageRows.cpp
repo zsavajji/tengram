@@ -212,15 +212,23 @@ static QSqlDatabase database()
     return ChatsDb::open(kDb);
 }
 
-// The chat's unread count in chats.db, 0 when it has no row (a contact with no chat yet).
+// Binds the chat of a query that has `chat = ?` and topicSql() after it.
+void MessageModel::bindChat(QSqlQuery &q) const
+{
+    q.addBindValue(m_chat);
+    if (m_topic)
+        q.addBindValue(m_topic);
+}
+
+// The chat's unread count in chats.db, 0 when it has no row (a contact with no chat yet). A topic's is its row's in topics.
 int MessageModel::unread() const
 {
     QSqlDatabase db = database();
     if (!db.isOpen())
         return 0;
     QSqlQuery q(db);
-    q.prepare("SELECT unread FROM chats WHERE jid = ?");
-    q.addBindValue(m_chat);
+    q.prepare(m_topic ? "SELECT unread FROM topics WHERE chat = ? AND topic = ?" : "SELECT unread FROM chats WHERE jid = ?");
+    bindChat(q);
     return q.exec() && q.next() ? q.value(0).toInt() : 0;
 }
 
@@ -242,8 +250,9 @@ void MessageModel::findUnread()
     if (!db.isOpen())
         return;
     QSqlQuery q(db);
-    q.prepare("SELECT read_inbox, unread FROM chats WHERE jid = ?");
-    q.addBindValue(m_chat);
+    q.prepare(m_topic ? "SELECT read_inbox, unread FROM topics WHERE chat = ? AND topic = ?"
+                      : "SELECT read_inbox, unread FROM chats WHERE jid = ?");
+    bindChat(q);
     if (!q.exec() || !q.next())
         return;
     const qint64 readInbox = q.value(0).toLongLong();
@@ -253,9 +262,9 @@ void MessageModel::findUnread()
     // The cache must hold every unread message: one that TDLib announced only by its last message has
     // the newest alone, and the divider would sit above that one while `unread` says 20.
     QSqlQuery have(db);
-    have.prepare("SELECT count(*), min(CAST(id AS INTEGER)) FROM messages WHERE chat = ? AND out = 0 "
-                 "AND CAST(id AS INTEGER) > ?");
-    have.addBindValue(m_chat);
+    have.prepare(QString("SELECT count(*), min(CAST(id AS INTEGER)) FROM messages WHERE chat = ?%1 AND out = 0 "
+                         "AND CAST(id AS INTEGER) > ?").arg(topicSql()));
+    bindChat(have);
     have.addBindValue(readInbox);
     if (!have.exec() || !have.next())
         return;
@@ -267,8 +276,8 @@ void MessageModel::findUnread()
     const qint64 first = have.value(1).toLongLong();
     // Every row from it to the newest, ours included: what loadFirst reads and chat.open must verify.
     QSqlQuery count(db);
-    count.prepare("SELECT count(*) FROM messages WHERE chat = ? AND CAST(id AS INTEGER) >= ?");
-    count.addBindValue(m_chat);
+    count.prepare(QString("SELECT count(*) FROM messages WHERE chat = ?%1 AND CAST(id AS INTEGER) >= ?").arg(topicSql()));
+    bindChat(count);
     count.addBindValue(first);
     if (!count.exec() || !count.next())
         return;
@@ -289,9 +298,9 @@ QList<qint64> MessageModel::pageTimes(const QString &where, const QVariantList &
     if (!db.isOpen())
         return times;
     QSqlQuery q(db);
-    q.prepare(QString("SELECT ts FROM messages WHERE chat = ? %1 ORDER BY ts DESC, CAST(id AS INTEGER) DESC LIMIT %2")
-                  .arg(where).arg(limit));
-    q.addBindValue(m_chat);
+    q.prepare(QString("SELECT ts FROM messages WHERE chat = ?%3 %1 ORDER BY ts DESC, CAST(id AS INTEGER) DESC LIMIT %2")
+                  .arg(where).arg(limit).arg(topicSql()));
+    bindChat(q);
     foreach (const QVariant &a, args)
         q.addBindValue(a);
     if (q.exec()) {
@@ -315,9 +324,9 @@ QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVaria
     m_clock = timeFormat(m_locale, DateFormat::Short);
     m_now = QDateTime::currentDateTime().toTime_t();
     QSqlQuery q(db);
-    q.prepare(QString("SELECT %1 FROM messages WHERE chat = ? %2 ORDER BY ts %3, CAST(id AS INTEGER) %3 "
-                      "LIMIT %4").arg(kColumns, where, oldestFirst ? "ASC" : "DESC").arg(limit));
-    q.addBindValue(m_chat);
+    q.prepare(QString("SELECT %1 FROM messages WHERE chat = ?%5 %2 ORDER BY ts %3, CAST(id AS INTEGER) %3 "
+                      "LIMIT %4").arg(kColumns, where, oldestFirst ? "ASC" : "DESC").arg(limit).arg(topicSql()));
+    bindChat(q);
     foreach (const QVariant &a, args)
         q.addBindValue(a);
     if (!q.exec()) {

@@ -2,7 +2,7 @@ import bb.cascades 1.4
 import bb.system 1.2
 import tengram 1.0
 
-// The rows of a chat list, for ChatsPage and ArchivedPage: the model is set by the page, which
+// The rows of a chat list, for ChatsPage and ArchivedPage (and, as topicList, a forum's topics): the model is set by the page, which
 // takes chatTapped. The rows are C++ (ChatRows.cpp): they reach the work through the list's
 // functions and properties, and the long-press menu calls the functions.
 ListView {
@@ -19,6 +19,8 @@ ListView {
     // True on a list of channels only: the row's menu has Unfollow for Archive, and no pin or mute. No page sets it
     // since the channels moved into the main list.
     property bool channelList: false
+    // True on a forum's topics (TopicsPage): a flat model with no headers and no long-press menu, its rows the same.
+    property bool topicList: false
     signal chatTapped(variant chat)
 
     function set(jid, args) {
@@ -87,7 +89,7 @@ ListView {
         }
     ]
     onTriggered: {
-        if (indexPath.length < 2) {
+        if (indexPath.length < 2 && !topicList) {
             return
         }
         chatTapped(dataModel.data(indexPath))

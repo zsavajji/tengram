@@ -8,6 +8,10 @@ import tengram 1.0
 Page {
     id: page
     property variant chat
+    // A forum topic's id and name, set before chat: the page is that topic's messages only (ChatController.open). 0
+    // for any other chat.
+    property int topic: 0
+    property string topicName: ""
     // The composer's TextArea (Composer.qml): text, editor and requestFocus() are used all over this page.
     property variant composer: composerBar.field
     // Back is in the title bar and the composer is ours: nothing left for the bar. openActionMenu()
@@ -41,7 +45,7 @@ Page {
         }
     }
     onChatChanged: {
-        ctl.open(chat)
+        ctl.open(chat, topic)
         if (chat.kind != 2) addAction(infoAction, ActionBarPlacement.InOverflow)
         if (chat.kind <= 1) addAction(pollAction, ActionBarPlacement.InOverflow)
         ctl.messages.itemAdded.connect(page.added)
@@ -337,6 +341,9 @@ Page {
         var asFile = page.stagedBar().asFile && stagedPng != ""
         var picture = stagedInfo.picture && !asFile
         var args = {"chat": chat.jid, "path": asFile ? stagedPng : staged}
+        if (topic) {
+            args.topic = topic
+        }
         if (ctl.quoteId()) {
             args.quote = ctl.quoteId()
         }
@@ -557,6 +564,7 @@ Page {
     titleBar: ChatTitleBar {
         visibility: page.atEar ? ChromeVisibility.Hidden : ChromeVisibility.Visible
         chat: page.chat
+        topicName: page.topicName
         status: ctl.status
         members: ctl.groupInfo.participants ? ctl.groupInfo.participants.length : 0
         onTapped: infoAction.showInfo()

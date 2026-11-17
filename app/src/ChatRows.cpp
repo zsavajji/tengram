@@ -72,6 +72,8 @@ ChatRow::ChatRow(ListView *list)
     , m_styled(false)
     , m_scale(0)
     , m_compact(false)
+    , m_topics(list->property("topicList").toBool())
+    , m_menu(0)
     , m_readItem(0)
     , m_pinItem(0)
     , m_muteItem(0)
@@ -114,6 +116,10 @@ ChatRow::ChatRow(ListView *list)
     m_name = new Label();
     m_name->setVerticalAlignment(VerticalAlignment::Center);
     Card::quota(m_name, 1);
+    // A closed topic's.
+    m_lock = new ImageView();
+    m_lock->setVerticalAlignment(VerticalAlignment::Center);
+    m_lock->setImageSource(Card::url("asset:///images/lock.png"));
     m_pin = new ImageView();
     m_pin->setVerticalAlignment(VerticalAlignment::Center);
     m_pin->setImageSource(Card::url("asset:///images/pin.png"));
@@ -127,6 +133,7 @@ ChatRow::ChatRow(ListView *list)
     m_time->textStyle()->setBase(SystemDefaults::TextStyles::smallText());
     m_time->textStyle()->setFontSize(FontSize::PercentageValue);
     top->add(m_name);
+    top->add(m_lock);
     top->add(m_pin);
     top->add(m_mute);
     top->add(m_time);
@@ -184,7 +191,9 @@ ChatRow::ChatRow(ListView *list)
 
     // The long-press menu (step 5.3): the work is the list's. The actions are made at the first
     // populating, which comes just before it opens, and their titles set at each: ActionItem has no
-    // visible, so each follows the row's state.
+    // visible, so each follows the row's state. A topic has none.
+    if (m_topics)
+        return;
     m_menu = new ActionSet();
     addActionSet(m_menu);
     ContextMenuHandler *handler = new ContextMenuHandler(this);
@@ -230,9 +239,9 @@ void ChatRow::show(const QVariantMap &chat)
 
     paintBackground();
 
-    // The tile: the picture, or the initials on the chat's colour. Given the picture again only
-    // when it changed, as a binding would.
-    m_tile->setBackground(Card::color(str("color")));
+    // The tile: the picture, or the initials on the chat's colour (a topic with none: the accent). Given the
+    // picture again only when it changed, as a binding would.
+    m_tile->setBackground(str("color").isEmpty() ? primary : Card::color(str("color")));
     const QString photo = str("photo");
     if (photo != m_photoPath) {
         m_photoPath = photo;
@@ -243,6 +252,10 @@ void ChatRow::show(const QVariantMap &chat)
     m_initials->setText(str("initials"));
 
     m_name->setText(str("name"));
+    if (m_topics)
+        m_name->textStyle()->setFontWeight(unread != 0 ? FontWeight::Bold : FontWeight::Normal);
+    m_lock->setVisible(flag("closed"));
+    m_lock->setFilterColor(quiet);
     m_pin->setVisible(flag("pinned"));
     m_pin->setFilterColor(quiet);
     m_mute->setVisible(muted);

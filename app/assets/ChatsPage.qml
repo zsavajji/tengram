@@ -18,6 +18,10 @@ Page {
             source: "ChatPage.qml"
         },
         ComponentDefinition {
+            id: topicsDef
+            source: "TopicsPage.qml"
+        },
+        ComponentDefinition {
             id: newChatDef
             source: "NewChatPage.qml"
         },
@@ -107,7 +111,15 @@ Page {
         }
         openChat(chat)
     }
+    // A group with topics opens its list of topics first (TopicsPage), which opens the chat in one; every way into
+    // a chat comes here (main.qml), so a notification, a search and the Share menu land there too.
     function openChat(chat) {
+        if (chat.forum) {
+            var topicsPage = topicsDef.createObject()
+            topicsPage.chat = chat
+            nav.push(topicsPage)
+            return topicsPage
+        }
         var chatPage = chatDef.createObject()
         chatPage.chat = chat
         nav.push(chatPage)

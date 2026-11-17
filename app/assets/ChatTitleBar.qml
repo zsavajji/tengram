@@ -8,6 +8,8 @@ TitleBar {
     id: bar
     property variant chat
     property string status
+    // A forum topic's name, "" for a chat: the page is that topic's, and the status line is the group's name.
+    property string topicName
     // Fetched while open: the chat keeps the row it opened with, so the picture is read from the table as the name is.
     property string photo: bar.chat ? (chats.revision >= 0 && chats.chat(bar.chat.jid).photo) || bar.chat.photo || "" : ""
     property bool hasPhoto: photo != ""
@@ -64,7 +66,8 @@ TitleBar {
                 Label {
                     bottomMargin: 0
                     // Saved in the address book while open: the chat keeps the row it opened with.
-                    text: bar.chat ? (chats.revision >= 0 && chats.chat(bar.chat.jid).name) || bar.chat.name : ""
+                    text: bar.topicName != "" ? bar.topicName
+                        : bar.chat ? (chats.revision >= 0 && chats.chat(bar.chat.jid).name) || bar.chat.name : ""
                     textFormat: TextFormat.Plain
                     textStyle.base: nav.emojiStyle
                     textStyle.fontSize: FontSize.PercentageValue

@@ -29,6 +29,7 @@ static void keepAwake(bool on)
 ChatController::ChatController(QObject *parent)
     : QObject(parent)
     , m_messages(0)
+    , m_topic(0)
     , m_group(false)
     , m_unseen(false)
     , m_atBottom(true)
@@ -64,6 +65,7 @@ ChatController::~ChatController()
         args["chat"] = m_jid;
         if (m_composing) {
             QVariantMap off = args;
+            addTopic(off);
             off["on"] = false;
             m_engine->request("chat.typing", off);
         }
@@ -93,6 +95,8 @@ QString ChatController::status() const
 {
     if (!m_typing.isEmpty())
         return m_typing;
+    if (m_topic)
+        return m_name;
     return m_group ? m_participants : m_presence;
 }
 
@@ -144,17 +148,25 @@ void ChatController::onReplied(const QString &id, const QString &cmd, const QVar
     takeGroupInfo(result.toMap());
 }
 
-void ChatController::open(const QVariantMap &chat)
+// The topic's own requests carry it (docs/protocol.md, Forum topics).
+void ChatController::addTopic(QVariantMap &args) const
+{
+    if (m_topic)
+        args["topic"] = m_topic;
+}
+
+void ChatController::open(const QVariantMap &chat, int topic)
 {
     if (m_messages || !m_engine)
         return;
     m_jid = chat["jid"].toString();
+    m_topic = topic;
     m_name = chat["name"].toString();
     m_group = chat["kind"].toInt() == 1;
-    m_messages = new MessageModel(m_engine, m_jid, m_group, chat["kind"].toInt() == 3, this);
+    m_messages = new MessageModel(m_engine, m_jid, m_group, chat["kind"].toInt() == 3, m_topic, this);
     emit messagesChanged();
-    connect(m_engine, SIGNAL(typing(QString, QString, bool, bool)), this,
-            SLOT(onTyping(QString, QString, bool, bool)));
+    connect(m_engine, SIGNAL(typing(QString, QString, bool, bool, int)), this,
+            SLOT(onTyping(QString, QString, bool, bool, int)));
     connect(m_engine, SIGNAL(presence(QString, bool, qint64)), this,
             SLOT(onPresence(QString, bool, qint64)));
     connect(m_engine, SIGNAL(photo(QString, QString)), this, SLOT(onPhoto(QString, QString)));
@@ -198,6 +210,7 @@ void ChatController::markRead()
         return;
     QVariantMap args;
     args["chat"] = m_jid;
+    addTopic(args);
     // In window mode the list's bottom is the newest loaded message, not the chat's: reading it reads up to it
     // and no further (the messages below haven't been shown), and m_unseen is left for the live end.
     if (m_messages && m_messages->window()) {
@@ -261,6 +274,7 @@ void ChatController::sendReadUpto()
     m_readUpto = m_pendingUpto.toLongLong();
     QVariantMap args;
     args["chat"] = m_jid;
+    addTopic(args);
     args["upto"] = m_pendingUpto; // a string: ids exceed 2^53
     m_pendingUpto.clear();
     m_engine->request("chat.read", args);
@@ -280,7 +294,9 @@ bool ChatController::send(const QString &text, const QVariantList &mentions)
     args["text"] = text;
     if (!m_quoteId.isEmpty())
         args["quote"] = m_quoteId;
-    if (!m_editId.isEmpty())
+    if (m_editId.isEmpty())
+        addTopic(args); // an edit names its message
+    else
         args["id"] = m_editId;
     if (!mentions.isEmpty())
         args["mentions"] = mentions;
@@ -301,6 +317,7 @@ QString ChatController::startVoice()
     QVariantMap args;
     args["chat"] = m_jid;
     args["path"] = m_voicePath;
+    addTopic(args);
     m_engine->request("voice.start", args);
     keepAwake(true);
     return m_voicePath;
@@ -317,6 +334,7 @@ void ChatController::sendVoice()
     args["path"] = m_voicePath;
     if (!m_quoteId.isEmpty())
         args["quote"] = m_quoteId;
+    addTopic(args);
     m_engine->request("voice.send", args);
     m_voicePath.clear();
     keepAwake(false);
@@ -459,6 +477,7 @@ void ChatController::setComposing(bool on)
 {
     QVariantMap args;
     args["chat"] = m_jid;
+    addTopic(args);
     args["on"] = on;
     if (on) {
         if (m_engine && m_engine->connected())
@@ -480,6 +499,7 @@ void ChatController::sendOpen()
 {
     QVariantMap args;
     args["chat"] = m_jid;
+    addTopic(args);
     args["limit"] = m_messages ? m_messages->openLimit() : 50; // the unread ones are verified too
     const QString id = m_engine->request("chat.open", args);
     if (m_messages)
@@ -514,9 +534,9 @@ void ChatController::setTyping(const QString &text)
 }
 
 // ponytail: in a group only the last one typing shows; keep a set of names if it matters.
-void ChatController::onTyping(const QString &chat, const QString &who, bool on, bool voice)
+void ChatController::onTyping(const QString &chat, const QString &who, bool on, bool voice, int topic)
 {
-    if (chat != m_jid)
+    if (chat != m_jid || topic != m_topic) // a topic's page shows only its own
         return;
     if (!on) {
         m_idle.stop();

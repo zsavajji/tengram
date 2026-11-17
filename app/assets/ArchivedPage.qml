@@ -15,6 +15,10 @@ Page {
         scrollBehavior: TitleBarScrollBehavior.Sticky
     }
     function openChat(chat) {
+        if (chat.forum) {
+            nav.at(0).openChat(chat) // the chat list's page makes the topics page
+            return
+        }
         var chatPage = chatDef.createObject()
         chatPage.chat = chat
         nav.push(chatPage)

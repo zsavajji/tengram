@@ -19,8 +19,8 @@ class EngineLink;
 // The chat list (PLAN.md §7, step 2.4): chats.db's chats that aren't archived (or, for the Archived page, only those), pinned first,
 // then newest first. Headers ("Pinned", "Today", "Yesterday", "Monday", "Jan 20") are the top
 // level ([g]), and the chats are their children ([g, i]): a map of jid, kind, name, initials,
-// color, preview, time, out, state, unread, muted, pinned, ts (last_ts, -1 for none) and photo (a
-// file path, or "").
+// color, preview, time, out, state, unread, muted, pinned, ts (last_ts, -1 for none), photo (a
+// file path, or "") and forum (a group with topics).
 class ChatListModel : public bb::cascades::DataModel
 {
     Q_OBJECT

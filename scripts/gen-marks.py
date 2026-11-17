@@ -1,4 +1,4 @@
-"""Draws the chat list's small marks into app/assets/images/: ticks, clock, mute, pin and mic,
+"""Draws the chat list's small marks into app/assets/images/: ticks, clock, mute, lock, pin and mic,
 the action bar's record icon, the row menu's pin and mute, the voice bubble's play, pause and
 retry discs, and the Hub item menu's tick_action, unread_action and delete_action.
 The phone has only the trash can among the info page's and chat menu's icons (user's choice,
@@ -97,6 +97,14 @@ def main(out):
     d.line(pts((0.6, 0.64), (0.9, 0.36)), white, x)
     save(img, out, "mute")
     action(img, out, "mute")
+
+    # A padlock: a body with a shackle over it. A closed forum topic's mark in the topics list.
+    img, d = canvas(H)
+    d.rectangle(pts((0.2, 0.46), (0.8, 0.9)), white)
+    d.arc(pts((0.3, 0.12), (0.7, 0.56)), 180, 360, white, round(0.09 * H * S))
+    d.line(pts((0.3, 0.34), (0.3, 0.5)), white, round(0.09 * H * S))
+    d.line(pts((0.7, 0.34), (0.7, 0.5)), white, round(0.09 * H * S))
+    save(img, out, "lock")
 
     # A filled disc: the Hub item menu's Mark as unread, as the unread dot of a chat.
     img, d = canvas(H)

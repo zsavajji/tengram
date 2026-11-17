@@ -27,7 +27,8 @@ class ChatController : public QObject
     // `engine: engine` QML would read the controller's own property, not the context's.
     Q_PROPERTY(QObject *link READ link WRITE setLink)
     Q_PROPERTY(bb::cascades::DataModel *messages READ messages NOTIFY messagesChanged)
-    // The title bar's status line: "typing…", "online", "last seen …", a group's "N participants" or "".
+    // The title bar's status line: "typing…", "online", "last seen …", a group's "N participants" or "". A topic's
+    // page has the group's name under the topic's.
     Q_PROPERTY(QString status READ status NOTIFY statusChanged)
     // The message the composer is replying to (step 3.3): who wrote it and a line of it; "" when
     // not replying.
@@ -51,8 +52,10 @@ public:
     bool editing() const { return !m_editId.isEmpty(); }
     QVariantMap groupInfo() const;
 
-    // chat is a ChatListModel row (jid, kind). Once; later calls do nothing.
-    Q_INVOKABLE void open(const QVariantMap &chat);
+    // chat is a ChatListModel row (jid, kind). Once; later calls do nothing. topic is a forum topic's id (docs/protocol.md,
+    // Forum topics) when the page shows one topic of the chat, 0 for the whole chat: everything the page asks for and
+    // sends then carries it.
+    Q_INVOKABLE void open(const QVariantMap &chat, int topic = 0);
     Q_INVOKABLE void nearTop(const QVariantList &firstVisible);
     // False when the engine isn't connected: nothing was sent, so QML keeps the text. mentions are
     // the {jid, name} of the people the text's "@name"s name (msg.send's, docs/protocol.md).
@@ -105,7 +108,7 @@ signals:
 
 private slots:
     void sendReadUpto();
-    void onTyping(const QString &chat, const QString &who, bool on, bool voice);
+    void onTyping(const QString &chat, const QString &who, bool on, bool voice, int topic);
     void onPresence(const QString &chat, bool online, qint64 lastSeen);
     void onConnected();
     void typingIdle();
@@ -118,6 +121,7 @@ private slots:
 
 private:
     void takeGroupInfo(QVariantMap info);
+    void addTopic(QVariantMap &args) const;
     void sendOpen();
     void askGroupInfo();
     void markRead();
@@ -127,6 +131,7 @@ private:
     QPointer<EngineLink> m_engine;
     MessageModel *m_messages;
     QString m_jid;
+    int m_topic; // the forum topic the page shows, 0 for none
     QString m_name;
     QString m_quoteId;
     QString m_editId;

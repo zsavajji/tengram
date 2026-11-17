@@ -42,6 +42,7 @@
 #include "Proximity.h"
 #include "QrImage.h"
 #include "Settings.h"
+#include "TopicModel.h"
 
 using namespace bb::cascades;
 
@@ -180,6 +181,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     qmlRegisterType<MediaOpener>("tengram", 1, 0, "MediaOpener");
     qmlRegisterType<MessageCards>("tengram", 1, 0, "MessageCards");
     qmlRegisterType<Profile>("tengram", 1, 0, "Profile");
+    qmlRegisterType<TopicModel>("tengram", 1, 0, "TopicModel");
     QmlDocument *document = QmlDocument::create("asset:///main.qml").parent(&app);
     if (!loaded(document, "main.qml"))
         return 1;

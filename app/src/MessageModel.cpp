@@ -50,12 +50,13 @@ bool MessageModel::lessThan(const Msg &a, const Msg &b)
     return a.ts < b.ts || (a.ts == b.ts && a.rowid < b.rowid);
 }
 
-MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, QObject *parent)
+MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, int topic, QObject *parent)
     : DataModel(parent)
     , m_engine(engine)
     , m_chat(chat)
     , m_group(group)
     , m_channel(channel)
+    , m_topic(topic)
     , m_floor(0)
     , m_floorKnown(false)
     , m_top(0)
@@ -277,6 +278,8 @@ void MessageModel::askOlder()
         return;
     QVariantMap ask;
     ask["chat"] = m_chat;
+    if (m_topic)
+        ask["topic"] = m_topic;
     ask["before"] = QString::number(m_floor); // a string: ids exceed 2^53
     ask["limit"] = kPage;
     m_historyId = m_engine->requestQuiet("chat.history", ask);
@@ -467,6 +470,8 @@ void MessageModel::askBridge(const QString &before)
         return;
     QVariantMap ask;
     ask["chat"] = m_chat;
+    if (m_topic)
+        ask["topic"] = m_topic;
     ask["before"] = before; // a string: ids exceed 2^53
     ask["limit"] = kBridgeLimit;
     m_bridgeBefore = before.toLongLong();
@@ -526,6 +531,8 @@ void MessageModel::askWindow()
         return;
     QVariantMap ask;
     ask["chat"] = m_chat;
+    if (m_topic)
+        ask["topic"] = m_topic;
     ask["after"] = QString::number(m_readInbox); // a string: ids exceed 2^53
     ask["limit"] = kPage;
     m_newerId = m_engine->requestQuiet("chat.newer", ask);
@@ -606,6 +613,8 @@ void MessageModel::askNewer()
         return;
     QVariantMap ask;
     ask["chat"] = m_chat;
+    if (m_topic)
+        ask["topic"] = m_topic;
     ask["after"] = QString::number(m_top); // a string: ids exceed 2^53
     ask["limit"] = kPage;
     m_newerId = m_engine->requestQuiet("chat.newer", ask);

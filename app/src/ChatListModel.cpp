@@ -42,7 +42,7 @@ static QString placeholder(int kind)
 
 // The row's fields from a SELECT of kRowColumns, all but the time, which depends on the list.
 static const char *const kRowColumns =
-    "jid, kind, name, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, photo";
+    "jid, kind, name, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, photo, forum";
 
 static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
 {
@@ -63,6 +63,7 @@ static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
     row["pinned"] = q.value(9).toInt() != 0;
     row["ts"] = q.value(3).isNull() ? qint64(-1) : q.value(3).toLongLong(); // the sort key, with pinned
     row["photo"] = q.value(10).toString(); // the engine's preview file's path, "" when none
+    row["forum"] = q.value(11).toInt() != 0; // a group with topics: a tap opens its TopicsPage
     return row;
 }
 
@@ -352,7 +353,7 @@ bool ChatListModel::patch()
         // Does the chat belong in this list now?
         QVariantMap row;
         bool here = false;
-        if (q.next() && (q.value(11).toInt() != 0) == (m_mode == Archived)) {
+        if (q.next() && (q.value(12).toInt() != 0) == (m_mode == Archived)) {
             row = baseRow(q, clock.now);
             here = matches(row["name"].toString());
         }
