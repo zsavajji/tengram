@@ -613,22 +613,31 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
   if (!message_id(conn, id, req, "id", message)) {
     return;
   }
+  // preview: the picture a bubble shows before the file is opened (message_preview_file) instead of the file itself.
+  td::JsonValue want;
+  const int has_preview = optional_field(req, "preview", td::JsonValue::Type::Boolean, want);
+  if (has_preview < 0) {
+    return bad_request(conn, id, "preview is true or false");
+  }
+  const bool preview = has_preview == 1 && want.get_boolean();
   tdlib.send(make_object<td_api::getMessage>(chat, message), [=](Obj o) {
     if (as_error(o)) {
       return server.reply_error(conn, id, "not_found", "no such message");
     }
     auto &m = static_cast<td_api::message &>(*o);
-    const td_api::file *file = message_file(m);
+    const td_api::file *file = preview ? message_preview_file(m) : message_file(m);
     if (!file) {
-      return server.reply_error(conn, id, "not_found", "the message has no file");
+      return server.reply_error(conn, id, "not_found",
+                                preview ? "the message has no preview picture" : "the message has no file");
     }
     if (file->local_ && file->local_->is_downloading_completed_) {
-      messages_queue(m);  // its row may still say the file is on the server
+      messages_queue(m);  // its row may still say the file is on the server (or have no extra.preview)
       return queue_reply(conn, id, path_json(file->local_->path_));
     }
     // Synchronous: the answer is the file once the download is over. Another media.get for the same message
     // may be waiting on its own downloadFile at the same time: nothing here is shared between them.
-    tdlib.send(make_object<td_api::downloadFile>(file->id_, 16, 0, 0, true), [=](Obj o2) {
+    // A preview is asked for every picture a page shows: below a tap's priority, so the photo opened comes first.
+    tdlib.send(make_object<td_api::downloadFile>(file->id_, preview ? 8 : 16, 0, 0, true), [=](Obj o2) {
       if (auto e = as_error(o2)) {
         return download_failed(conn, id, std::to_string(e->code_) + " " + e->message_);
       }
@@ -639,7 +648,7 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
       const std::string path = got.local_->path_;
       tdlib.send(make_object<td_api::getMessage>(chat, message), [=](Obj o3) {
         if (!as_error(o3)) {
-          messages_queue(static_cast<td_api::message &>(*o3));  // now with media_state 2 and the path
+          messages_queue(static_cast<td_api::message &>(*o3));  // now with media_state 2 and the path, or extra.preview
         }
         queue_reply(conn, id, path_json(path));
       });

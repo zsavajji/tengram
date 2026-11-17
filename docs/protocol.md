@@ -56,7 +56,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored); all but `chat` and `path` optional | `{id}` | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
-| `media.get` | `chat`, `id` (a message with a file) | `{path}`, the absolute path of the file | `not_found`, `download_failed` |
+| `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`) | `not_found`, `download_failed` |
 | `profile.get` | — | `{name, about, phone, picture}` | |
 | `profile.set` | `name`, `about`, `picture` (strings); each optional, at least one | — | |
 | `contact.info` | `chat` (a person: a private or a secret chat) | `{phone, about, groups: [{jid, name}], blocked, picture}` | `bad_chat` |
@@ -148,6 +148,12 @@ changes when Telegram's echo arrives.
 and answers when it is complete, after the row has `media_state` 2 and `path` (a `msgs` event).
 A file that is already here answers at once. Nothing downloads by itself: the UI asks for what it
 shows. `not_found` is a message TDLib doesn't have or one without a file.
+
+With `preview: true` it downloads, in the same way, the picture a bubble shows before the file is opened, not the
+file: for a photo its display size (the smallest size whose shorter side is at least 400 px, the largest when none
+reaches that: it can be the photo's own file), for a video, GIF or round video its thumbnail when that is a JPEG.
+Anything else, or a video with no JPEG thumbnail, is `not_found`. The row then has `extra.preview` (a `msgs` event
+follows) and the answer is `{path}` of that picture. Without `preview` nothing changes.
 
 **`profile.get`:** our own account, as Telegram has it: `name` is the first name, then a space and the last name
 when there is one; `about` the bio; `phone` the number with a "+" in front ("" when Telegram gives none); `picture`
@@ -316,6 +322,11 @@ it*), with these meanings for Telegram. `user_version` is 3.
 
 Any kind's `extra` can also carry `forwarded: true` (the message is a forward) and, on a photo or
 video, `spoiler: true` (Telegram covers it until tapped).
+
+A photo's or video's `extra` can carry `preview`, the absolute path of the picture the bubble shows before the file
+is opened, once `media.get` with `preview` has downloaded it (or it is here for another reason): a photo's display
+size (see `media.get`), only while the photo itself is not here (`media_state` is not 2); a video's (also a GIF's or
+a round video's) thumbnail, only when it is a JPEG. The row is written again when it appears.
 
 Any kind's `extra` can also carry `ent`, the formatting of `text` (or of a document's
 `extra.caption`): a list of `[offset, length, type]` or `[offset, length, type, argument]`, in

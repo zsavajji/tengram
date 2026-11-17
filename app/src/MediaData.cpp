@@ -20,16 +20,18 @@ QString MediaData::clock(int seconds)
 
 // The bubble's picture for a downloaded photo (step 6.3): a JPEG whose short side is at most 640 px
 // (long side 1280), made the first time from the file and kept in data/cache/previews/ as
-// <id>-640.jpg (the engine wipes data/cache/ on unlink). The
+// <id><suffix> (the engine wipes data/cache/ on unlink). The suffix tells the picture's source apart: "-640.jpg"
+// for the photo itself, "-p640.jpg" for the display-size file the engine fetches before the photo is opened, so
+// the photo's own, sharper preview is made when it arrives instead of reusing the small one. The
 // engine decodes no picture, and Qt's reader decodes straight to the smaller size. Fills width and
 // height from the file when the row has none. Returns the preview's path, "" when the photo can't be
 // read: the bubble's Image is made from the path, so Cascades reads and decodes the file off the UI
 // thread and the model holds no bytes of it (they were read here for every row, and kept).
 // ponytail: made on the UI thread, tens of ms on the Q10; a worker thread if scrolling stutters.
 static const int PreviewSide = 640; // the knob: the preview's short side, in px
-static QString preview(const QString &id, const QString &path, int &width, int &height)
+static QString preview(const QString &id, const QString &path, const char *suffix, int &width, int &height)
 {
-    const QString file = QDir::homePath() + "/cache/previews/" + id + "-640.jpg";
+    const QString file = QDir::homePath() + "/cache/previews/" + id + suffix;
     const bool have = QFile::exists(file);
     if (!have || width <= 0 || height <= 0) {
         QImageReader reader(path);
@@ -93,7 +95,8 @@ QString MediaData::kindName(int kind)
 
 bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QString &text,
                      const QByteArray &thumb, int width, int height, qint64 size, int duration,
-                     int mediaState, const QString &path, const QLocale &locale, bool blur)
+                     int mediaState, const QString &path, const QString &previewPath,
+                     const QLocale &locale, bool blur)
 {
     QString media;
     switch (kind) {
@@ -120,7 +123,14 @@ bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QStri
     QByteArray shown = thumb;
     QString file;
     if (kind == 1 && mediaState == 2 && !path.isEmpty()) {
-        file = preview(id, path, width, height);
+        file = preview(id, path, "-640.jpg", width, height);
+    } else if (kind == 1 && !previewPath.isEmpty()) {
+        // Not downloaded yet, but the engine has fetched a display-size file (it has the photo's aspect ratio, so
+        // the row's width and height stand).
+        file = preview(id, previewPath, "-p640.jpg", width, height);
+    } else if (kind == 2 && !previewPath.isEmpty() && QFile::exists(previewPath)) {
+        // A video's own JPEG thumbnail, drawn as it is; a file TDLib has since dropped leaves the minithumbnail.
+        file = previewPath;
     } else if (kind == 5 && mediaState == 2 && !path.isEmpty()) {
         const QByteArray p = Sticker::picture(id, path);
         if (!p.isEmpty())

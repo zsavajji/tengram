@@ -16,8 +16,10 @@ QByteArray picture(const QString &id, const QString &path);
 
 // Asks the engine, quietly (EngineLink::requestQuiet), for the file of a sticker still on the server, the
 // first time only: asked holds the ids already asked for, and takes id when the request went out (not
-// while the engine is down). The engine's msgs event then makes the chat re-read the row.
-void fetch(EngineLink *engine, const QString &chat, const QString &id, QSet<QString> &asked);
+// while the engine is down). The engine's msgs event then makes the chat re-read the row. preview asks
+// for the display-size picture of a photo or the thumbnail of a video instead (media.get's preview), which
+// the row then carries as extra.preview.
+void fetch(EngineLink *engine, const QString &chat, const QString &id, QSet<QString> &asked, bool preview = false);
 }
 
 #endif

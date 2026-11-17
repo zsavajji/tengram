@@ -61,13 +61,15 @@ QByteArray Sticker::picture(const QString &id, const QString &path)
     return f.open(QIODevice::ReadOnly) ? f.readAll() : QByteArray();
 }
 
-void Sticker::fetch(EngineLink *engine, const QString &chat, const QString &id, QSet<QString> &asked)
+void Sticker::fetch(EngineLink *engine, const QString &chat, const QString &id, QSet<QString> &asked, bool preview)
 {
     if (!engine || asked.contains(id))
         return;
     QVariantMap args;
     args["chat"] = chat;
     args["id"] = id;
+    if (preview)
+        args["preview"] = true;
     if (!engine->requestQuiet("media.get", args).isEmpty())
         asked.insert(id);
 }

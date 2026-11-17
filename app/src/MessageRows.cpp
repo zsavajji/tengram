@@ -71,13 +71,18 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     // document's text (its name) is the bubble's. A caption stays in the text.
     if (kind == 5 && !deleted && q.value(17).toInt() == 1)
         Sticker::fetch(m_engine, m_chat, m.id, m_asked); // a history sticker, asked once per page
+    // A photo not downloaded and a video show Telegram's tiny blurred thumbnail until they are opened: ask once for
+    // a display-size picture, which comes back as extra.preview. Not for our own message still sending.
+    if (((kind == 1 && q.value(17).toInt() != 2) || kind == 2) && !deleted
+        && extra.value("preview").toString().isEmpty() && !(out && q.value(4).toInt() == 0))
+        Sticker::fetch(m_engine, m_chat, m.id, m_asked, true);
     // Covered until a tap takes the cover off (unspoil), for as long as this chat stays open.
     const bool covered = m.data["spoiler"].toBool() && !deleted && !m_revealed.contains(m.id);
     m.data["spoiler"] = covered;
     if (MediaData::fill(m.data, m.id, deleted ? 0 : kind, text, q.value(19).toByteArray(),
                         q.value(20).toInt(), q.value(21).toInt(), q.value(22).toLongLong(),
-                        q.value(15).toInt(), q.value(17).toInt(), q.value(23).toString(), locale,
-                        covered)
+                        q.value(15).toInt(), q.value(17).toInt(), q.value(23).toString(),
+                        extra.value("preview").toString(), locale, covered)
         && (kind == 4 || kind == 8))
         shown = QString();
     if (deleted) {

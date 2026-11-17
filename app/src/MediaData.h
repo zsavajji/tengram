@@ -17,7 +17,7 @@ QString clock(int seconds);
 QString kindName(int kind);
 
 // Sets data's media keys from the row's columns; id is the message's, kind is messages.kind, 0 for a
-// deleted row. A downloaded photo's thumb is its 320 px preview, made here from the file (step 6.3), a
+// deleted row. A downloaded photo's thumb is its 640 px preview, made here from the file (step 6.3), a
 // sticker's its 180 px picture (Sticker.h, step 6.5b), else the row's thumbnail; a location's is its map
 // picture, its ratio from the JPEG's own size (step 6.5c). A contact (step 6.5d) is media too, drawn as
 // a row; its summary is the names, and MessageKinds adds its vcard and contactInfo. A text (kind 0, also
@@ -26,10 +26,13 @@ QString kindName(int kind);
 // media: "photo", "video", "doc", "sticker", "audio", "location" or "contact", "" for any other kind
 // (always set, so QML never reads undefined); the rest (thumb, hasThumb, ratio, mediaState, path,
 // sizeText, durationText, fileName) only for media. Returns whether it is media. blur (step 6.6d) shows
-// the picture blurred, for a spoiler under its cover.
+// the picture blurred, for a spoiler under its cover. previewPath is the row's extra.preview ("" when it has
+// none): the display-size file the engine fetched for a photo not downloaded yet (the thumb is made from it, as
+// from the photo, under another cache name), or a video's JPEG thumbnail (the thumb is that file).
 bool fill(QVariantMap &data, const QString &id, int kind, const QString &text,
           const QByteArray &thumb, int width, int height, qint64 size, int duration,
-          int mediaState, const QString &path, const QLocale &locale, bool blur);
+          int mediaState, const QString &path, const QString &previewPath, const QLocale &locale,
+          bool blur);
 }
 
 #endif

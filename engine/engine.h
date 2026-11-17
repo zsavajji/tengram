@@ -110,6 +110,9 @@ void messages_close();                         // before db.close(): finalizes t
 int message_kind(std::int64_t chat, std::int64_t id);
 // The file of a message that has one (a photo's largest size, a video, a voice note...), or nullptr.
 const td_api::file *message_file(const td_api::message &m);
+// The file a bubble shows before the message's own is opened: a photo's display size (the smallest size whose shorter
+// side is at least 400 px, else the largest), the JPEG thumbnail of a video, animation or video note. Or nullptr.
+const td_api::file *message_preview_file(const td_api::message &m);
 // A message TDLib just gave us (the answer to msg.send): its row is written at the next flush.
 void messages_queue(const td_api::message &m);
 // A page of history, newest first, that must become the table's content for the chat from `oldest` up to but

@@ -213,7 +213,7 @@ private:
     QList<Msg> m_all;
     QSet<QString> m_hidden;
     QSet<QString> m_revealed; // the spoilers tapped open (unspoil)
-    QSet<QString> m_asked; // the sticker ids asked for from the engine (Sticker::fetch)
+    QSet<QString> m_asked; // the ids of the stickers, photos and videos asked for from the engine (Sticker::fetch)
     QList<Entry> m_entries;
     bb::system::LocaleHandler m_region;
     QLocale m_locale; // the region's locale, read once per select()

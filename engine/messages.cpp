@@ -52,6 +52,10 @@ const std::string &caption(const object_ptr<td_api::formattedText> &t) {
   return t ? t->text_ : none;
 }
 
+bool downloaded(const td_api::file *f) {
+  return f && f->local_ && f->local_->is_downloading_completed_;
+}
+
 void set_file(Row &r, const td_api::file *f) {
   if (!f) {
     return;
@@ -59,7 +63,7 @@ void set_file(Row &r, const td_api::file *f) {
   if (f->expected_size_ > 0) {
     r.v[kSize] = f->expected_size_;
   }
-  if (f->local_ && f->local_->is_downloading_completed_) {
+  if (downloaded(f)) {
     r.v[kMediaState] = 2;
     r.v[kPath] = f->local_->path_;
   } else {
@@ -219,6 +223,23 @@ const td_api::photoSize *largest(const td_api::photo &p) {
     }
   }
   return best;
+}
+
+// The shorter side, in px, a photo's display size reaches at least. 400, not 480: a 16:9 photo's 800 px size is
+// 450 high, and missing it meant downloading the whole photo for the bubble.
+constexpr int kDisplaySide = 400;
+
+// The size of a photo a bubble shows before the photo is opened: the smallest whose shorter side is at least
+// kDisplaySide px, or the largest when none reaches that (a small photo).
+const td_api::photoSize *display_size(const td_api::photo &p) {
+  const td_api::photoSize *fit = nullptr;
+  for (const auto &s : p.sizes_) {
+    if (s && std::min(s->width_, s->height_) >= kDisplaySide &&
+        (!fit || std::min(s->width_, s->height_) < std::min(fit->width_, fit->height_))) {
+      fit = s.get();
+    }
+  }
+  return fit ? fit : largest(p);
 }
 
 // TDLib's waveform is 5-bit samples packed least significant bit first (sample i is bits 5i to 5i+4 of the
@@ -475,7 +496,14 @@ void content(Row &r, const td_api::message &m) {
       break;
     }
   }
-  set_file(r, message_file(m));
+  const td_api::file *full = message_file(m);
+  set_file(r, full);
+  // extra.preview: the picture a bubble shows before its file is opened, when it is here. A photo's goes away once
+  // the photo itself is here: the UI makes a sharper one from that.
+  const td_api::file *preview = message_preview_file(m);
+  if (downloaded(preview) && !(c.get_id() == td_api::messagePhoto::ID && downloaded(full))) {
+    append_extra(r, "\"preview\":" + td::json_encode<std::string>(td::JsonString(preview->local_->path_)));
+  }
   if (m.forward_info_) {
     append_extra(r, "\"forwarded\":true");
   }
@@ -830,6 +858,46 @@ const td_api::file *message_file(const td_api::message &m) {
     default:
       return nullptr;
   }
+}
+
+// The file a bubble shows before the message's own file is opened (`extra.preview`, `media.get` with `preview`): a
+// photo's display size, the JPEG thumbnail of a video, animation or video note. nullptr for the rest, and when
+// there is none.
+const td_api::file *message_preview_file(const td_api::message &m) {
+  if (!m.content_) {
+    return nullptr;
+  }
+  const td_api::MessageContent &c = *m.content_;
+  const td_api::thumbnail *thumb = nullptr;
+  switch (c.get_id()) {
+    case td_api::messagePhoto::ID: {
+      const auto &p = static_cast<const td_api::messagePhoto &>(c).photo_;
+      const td_api::photoSize *size = p ? display_size(*p) : nullptr;
+      return size ? size->photo_.get() : nullptr;
+    }
+    case td_api::messageVideo::ID: {
+      const auto &v = static_cast<const td_api::messageVideo &>(c).video_;
+      thumb = v ? v->thumbnail_.get() : nullptr;
+      break;
+    }
+    case td_api::messageAnimation::ID: {
+      const auto &a = static_cast<const td_api::messageAnimation &>(c).animation_;
+      thumb = a ? a->thumbnail_.get() : nullptr;
+      break;
+    }
+    case td_api::messageVideoNote::ID: {
+      const auto &v = static_cast<const td_api::messageVideoNote &>(c).video_note_;
+      thumb = v ? v->thumbnail_.get() : nullptr;
+      break;
+    }
+    default:
+      return nullptr;
+  }
+  // Only a JPEG is a picture the UI's Image reads; any other format is left to the minithumbnail.
+  if (!thumb || !thumb->format_ || thumb->format_->get_id() != td_api::thumbnailFormatJpeg::ID) {
+    return nullptr;
+  }
+  return thumb->file_.get();
 }
 
 int message_kind(std::int64_t chat, std::int64_t id) {
