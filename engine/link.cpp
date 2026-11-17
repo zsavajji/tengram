@@ -30,6 +30,7 @@ bool tdlib_ready = false;  // authorizationStateReady is TDLib's current state
 void fields(td::JsonObjectScope &o) {
   o("state", kStates[static_cast<int>(cur.state)]);
   o("conn", cur.conn);
+  o("memMB", mem_mb);
   switch (cur.state) {
     case State::Qr:
       o("qr", cur.qr);

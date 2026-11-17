@@ -475,6 +475,25 @@ Three commits (`809fe98`, `b954fe0`, `1a2c5ea`); all compile in the SDK image, n
   Moves still reload: look for `chat list: reload, … ms` in the log to decide whether moves need
   a patch too. `fullscreen()` firing twice is harmless (the second finds nothing stale).
 
+- **Memory patch (in-app) (2026-11-17, not run).** The engine runs under 30 MiB unless `../rlimit-patch`'s
+  `headless-mem` addon has patched authman (`docs/headless-cap.md`). The engine reports its `RLIMIT_DATA` as
+  `memMB` in every link body; `main.qml`'s `checkMemory()` (on `engine.linkChanged` and at start) shows a
+  `SystemDialog`, once per run, with one button, Install, when it is connected, `0 < memMB < 128`, the addon is
+  not in `/var/addons/headless-mem`, and no install is running. Install calls `MemoryPatch::install()`: the
+  UI runs the root installer through AutoRoot's `__root`, started as a new application by the bundled
+  `tg-install-patcher` (the way VoLTE Manager's `AddonSetup` does), then `slay -f tengramd`, so that the UI's
+  START brings the engine back under the new limit. A toast says the result; the output is saved as
+  `tengram-memory-patch.txt` in Documents. Without root a dialog says so, once per run.
+  To test, on a phone **without the addon** (the user's has it: delete `/var/addons/headless-mem`, reboot, and
+  wait the 4 minutes for root before opening Tengram, or the `installed` check is what is under test, not the
+  dialog): the dialog shows at first launch, before login, with no Cancel; Back or a tap outside shows it
+  again at the next link event; Install, then `rlimit DATA: soft 134217728` in `logs/tengramd.log` for the
+  restarted engine and `memMB` 128 in the link body (`engine: connected` in `ui.log`); closing Tengram right after
+  Install does not stop the install (`[HMEM]` lines in `/var/log/installer.log`, the engine still gets restarted);
+  a failed install (take the zip away: it says so) toasts and brings the dialog back; a phone **with** the addon
+  shows nothing, also right after a reboot, when the engine reports 30 for the first 4 minutes; a phone with no
+  root (no `/base/bin/__root` or `u_root`) shows the no-root dialog once.
+
 ## 9. Open points
 
 - **The address book** (§4, New chat).

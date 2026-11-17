@@ -39,6 +39,7 @@ int api_id = 0;
 std::string api_hash;
 bool done = false;
 bool service = false;
+int mem_mb = 0;
 
 namespace {
 
@@ -197,6 +198,11 @@ void limits(bool raise) {
       done = setrlimit(l.id, &up) == 0 ? ", raised to the hard limit" : std::string(", raise: ") + std::strerror(errno);
     }
     say("rlimit %s: soft %s, hard %s%s", l.name, show(r.rlim_cur).c_str(), show(r.rlim_max).c_str(), done.c_str());
+    // The UI reads this (the link body's memMB): the limit the engine really runs under, after the raise.
+    if (raise && l.id == RLIMIT_DATA) {
+      struct rlimit now;
+      mem_mb = getrlimit(RLIMIT_DATA, &now) == 0 && now.rlim_cur != RLIM_INFINITY ? static_cast<int>(now.rlim_cur >> 20) : 0;
+    }
   }
 }
 

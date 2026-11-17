@@ -142,23 +142,29 @@ sticker sets; with the patched 128 MiB it ran through.
 
 **Ask the user before each item that installs, reboots or touches the account.**
 
-1. **Reboot test of `headless-mem`:** after a reboot, `[HMEM]` in `/var/log/installer.log` about 4 minutes in;
+1. **The memory patch in the app (done 2026-11-17, never run):** `MemoryPatch` (`app/src/`), the dialog in
+   `main.qml`, `app/helper/tg-install-patcher.c`, the bar bundling `headless-mem.zip`, the engine's `memMB` in
+   the link body. A phone with no addon and an engine at 30 MB gets one "Install" dialog; Install runs the addon's
+   installer as root through AutoRoot's `__root` (output in Documents, `tengram-memory-patch.txt`) and ends
+   `tengramd`. The test list is `docs/ui-fork.md` §8b, "Memory patch (in-app)". The user's phone already has the
+   addon, so the install path needs it undone first (delete `/var/addons/headless-mem`, reboot): ask.
+2. **Reboot test of `headless-mem`:** after a reboot, `[HMEM]` in `/var/log/installer.log` about 4 minutes in;
    then restart the engine (or reopen the app) and check `rlimit DATA: soft 134217728`.
-2. **Walk `docs/ui-fork.md` §8b on the phone with the user,** now that the UI runs: the code login path (wrong
+3. **Walk `docs/ui-fork.md` §8b on the phone with the user,** now that the UI runs: the code login path (wrong
    code, password), opening chats (first unread, divider position, a long-unread group's window), paging up and
    down, gaps, sent-message flicker, read state as you scroll, search and pin jumps, the chat list's moves.
    Each finding is a fix, then a new package (0.1.0.5, …).
-3. **The chat list's moves:** the log already answered §3.8's question: a full reload costs 125–277 ms for
+4. **The chat list's moves:** the log already answered §3.8's question: a full reload costs 125–277 ms for
    200–467 chats. Patch moves too (`itemMoved`, or remove + insert at the ends), not only in-place rows.
-4. **`contacts.book`:** the UI sends the phone's address book (429 contacts) at every connect and the engine
+5. **`contacts.book`:** the UI sends the phone's address book (429 contacts) at every connect and the engine
    answers `unknown_cmd`. Decided: uploading contacts to Telegram is a setting the user turns on, never a
    default. Make the UI not send it unless that setting is on; the engine command comes later.
-5. **The engine's memory peak**, even with 128 MiB: measure a fresh login's first sync (the user must log in
+6. **The engine's memory peak**, even with 128 MiB: measure a fresh login's first sync (the user must log in
    again), then patch 0006's 8 MB SQLite cache and the sticker-set loads TDLib does at the first sync.
-6. **The `--service` list in `NOTES.md`** ("To verify on the phone once the app is packaged"): the Hub account
+7. **The `--service` list in `NOTES.md`** ("To verify on the phone once the app is packaged"): the Hub account
    (every engine start logged "new to the Hub: true, hub.json is forgotten" — check for duplicate accounts),
    navigator exit, Hub actions, network status, notifications on real traffic.
-7. Then the older list: **engine pages around the chat** (`docs/ui-fork.md` §4: `contact.info`, `group.info`
+8. Then the older list: **engine pages around the chat** (`docs/ui-fork.md` §4: `contact.info`, `group.info`
    paged, `photo`, `profile.get`, `contacts.list`, `channel.info`, `chat.clear`, `chat.delete`,
    `channel.unfollow`); **reactions and poll votes** (proposed, **not yet answered**: a row per emoji with a
    count); **sending and managing** (`media.send`, `poll.create`, groups, invites, `contact.block`,

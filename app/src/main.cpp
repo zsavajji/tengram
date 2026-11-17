@@ -35,6 +35,7 @@
 #include "Invites.h"
 #include "MapChooser.h"
 #include "MediaOpener.h"
+#include "MemoryPatch.h"
 #include "MessageCards.h"
 #include "OpenRequests.h"
 #include "Profile.h"
@@ -166,6 +167,8 @@ Q_DECL_EXPORT int main(int argc, char **argv)
         qWarning() << "notification defaults refused";
     OpenRequests openRequests(engine.invoker(), &app);
     Invites invites(&engine, &app);
+    // The headless-mem addon's install (docs/headless-cap.md), offered by main.qml when the engine runs under 30 MB.
+    MemoryPatch memPatch(&app);
 
     // bb.cascades has no Timer: QTimer stands in (Hint.qml, VideoViewer.qml).
     qmlRegisterType<QTimer>("tengram", 1, 0, "Timer");
@@ -195,6 +198,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     document->setContextProperty("settings", &settings);
     document->setContextProperty("openRequests", &openRequests);
     document->setContextProperty("invites", &invites);
+    document->setContextProperty("memPatch", &memPatch);
     // The phone's region and language ("IT", "it"): the linking page's first country, and the
     // language of country names.
     QVariantMap phoneLocale;

@@ -126,6 +126,37 @@ NavigationPane {
         },
         SystemToast {
             id: inviteFailed
+        },
+        // The engine runs under the stock 30 MB headless cap (memMB in the link body): offer the headless-mem
+        // addon (MemoryPatch.cpp, docs/headless-cap.md). One button: the engine does not fit without it, so no
+        // cancel (an empty label leaves a SystemDialog button out). A dialog closed any other way (Back, a tap
+        // outside) comes back at the next link event.
+        SystemDialog {
+            id: memDialog
+            title: qsTr("More memory for Tengram")
+            body: qsTr("BlackBerry 10 gives background apps 30 MB, and Tengram's engine needs more. Tengram will install a small root addon that raises the limit to 128 MB, for Tengram and every other app that asks for the largest class (BBTelega, HyperBerry). It is undone by deleting /var/addons/headless-mem and restarting the phone.")
+            confirmButton.label: qsTr("Install")
+            cancelButton.label: ""
+            onFinished: {
+                if (value == SystemUiResult.ConfirmButtonSelection) {
+                    // Nothing else shows while the root shell works (about 5 s, up to 25).
+                    memToast.body = qsTr("Installing the memory addon…")
+                    memToast.show()
+                    memPatch.install()
+                } else {
+                    nav.memAsked = false
+                }
+            }
+        },
+        // Without root the addon can't be installed: say so, once. memPatch.headline holds the words from the start.
+        SystemDialog {
+            id: rootDialog
+            title: qsTr("More memory for Tengram")
+            body: memPatch.headline
+            cancelButton.label: ""
+        },
+        SystemToast {
+            id: memToast
         }
     ]
     onPopTransitionEnded: page.destroy()
@@ -136,9 +167,42 @@ NavigationPane {
         openRequests.shared.connect(nav.shareRequested)
         invites.offered.connect(nav.askToJoin)
         invites.joined.connect(nav.openRequested)
+        engine.linkChanged.connect(nav.checkMemory)
+        memPatch.finished.connect(nav.memFinished)
         // setCover, as the skills have it: cover belongs to Application, not to a page.
         Application.setCover(coverDef.createObject())
         show()
+        checkMemory()
+    }
+
+    // The memory dialog and the no-root one are each shown once per run (a failed or dismissed memDialog is asked again).
+    property bool memAsked: false
+    property bool rootAsked: false
+    // Every link event carries memMB, the engine's RLIMIT_DATA at its start: 30 is the stock headless cap. Nothing for
+    // 0 (no limit, or unread), for 128 and up, or while the addon is installed: after a reboot it patches authman
+    // about 4 minutes in, and an engine started before then reports 30 with the addon already there.
+    function checkMemory() {
+        var mb = engine.link.memMB
+        if (!engine.connected || !(mb > 0 && mb < 128) || memPatch.installed || memPatch.busy) {
+            return
+        }
+        if (!memPatch.rootAvailable) {
+            if (!rootAsked) {
+                rootAsked = true
+                rootDialog.show()
+            }
+        } else if (!memAsked) {
+            memAsked = true
+            memDialog.show()
+        }
+    }
+
+    function memFinished(ok) {
+        memToast.body = memPatch.headline
+        memToast.show()
+        if (!ok) {
+            memAsked = false
+        }
     }
 
     property string failedCmd: engine.failure.cmd || ""

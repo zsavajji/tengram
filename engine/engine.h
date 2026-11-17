@@ -26,6 +26,7 @@ extern int api_id;
 extern std::string api_hash;
 extern bool done;     // the stop is complete: the main loop ends
 extern bool service;  // --service: the packaged app's headless service (the Hub, the navigator, the network status)
+extern int mem_mb;    // the soft RLIMIT_DATA in MiB (rounded down) at start, after the raise; 0 for none or unreadable (limits() sets it)
 
 bool write_file(const std::string &path, const std::string &data);  // mode 0600
 bool set_nonblock(int fd);

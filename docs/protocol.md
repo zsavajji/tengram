@@ -147,7 +147,7 @@ not pruned). Defaults: `auto`, 300, true, true, "", 64.
 
 `chats` and `msgs` come after the engine commits, at most every 50 ms.
 
-**The link body** (the `hello` result and every `link` event): `state` and `conn`, plus:
+**The link body** (the `hello` result and every `link` event): `state`, `conn` and `memMB`, plus:
 
 | `state` | TDLib's state | also |
 |---|---|---|
@@ -157,6 +157,11 @@ not pruned). Defaults: `auto`, 300, true, true, "", 64.
 | `code` | waiting for the code | `phone`, `codeType` (`app`, `sms`, `call`, `other`), `length` (0 unknown) |
 | `password` | waiting for the two-step password | `hint` |
 | `ready` | logged in | `me` (our user id), `name` |
+
+`memMB` goes with every state: the engine's `RLIMIT_DATA` in MiB as it was at start, after the engine raised
+its soft limit to the hard one (0 for none, or when it could not be read). **30 means the `headless-mem` addon
+(`../rlimit-patch`) has not patched authman since boot**: the engine runs under the stock headless cap and
+cannot get through a first sync. The UI offers the addon when it sees less than 128.
 
 `syncing: true` goes with `ready` from a login until the whole chat list is in `chats.db` for
 the first time (a `link` event without it follows). The UI waits on the linking page meanwhile.
