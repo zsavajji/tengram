@@ -171,6 +171,9 @@ NavigationPane {
     ]
     onPopTransitionEnded: {
         if (page) {
+            if (page.filtersChats) {
+                at(0).closeSearch() // the share page's field filtered the chat list's model
+            }
             page.destroy()
         }
     }
@@ -287,6 +290,7 @@ NavigationPane {
             pendingShare = {}
             backToList()
             push(picker)
+            picker.focusSearch()
         }
         if (pendingChat == "")
             return
@@ -317,6 +321,7 @@ NavigationPane {
         var picker = shareDef.createObject()
         picker.forward = fwd
         push(picker)
+        picker.focusSearch()
     }
 
     // SharePage's pick for a forward: the engine sends the message, and the chat opens as after a share. A forum has
@@ -371,6 +376,9 @@ NavigationPane {
         while (count() > 1) {
             var old = at(count() - 1)
             remove(old)
+            if (old.filtersChats) {
+                at(0).closeSearch()
+            }
             old.destroy()
         }
     }

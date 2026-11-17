@@ -2335,6 +2335,11 @@
 <context>
     <name>SharePage</name>
     <message>
+        <location filename="../assets/SharePage.qml" line="22"/>
+        <source>Search chats</source>
+        <translation>Buscar chats</translation>
+    </message>
+    <message>
         <location filename="../assets/SharePage.qml" line="12"/>
         <source>Forward to</source>
         <translation>Reenviar a</translation>

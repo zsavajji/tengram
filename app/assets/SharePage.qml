@@ -12,11 +12,24 @@ Page {
         title: page.forward ? qsTr("Forward to") : qsTr("Send to")
         scrollBehavior: TitleBarScrollBehavior.Sticky
     }
-    ChatList {
-        dataModel: chats
-        emojiStyle: nav.emojiStyle
-        bodySize: nav.bodySize
-        smallSize: nav.smallSize
-        onChatTapped: page.forward ? nav.forwardTo(chat, page.forward) : nav.shareTo(chat, page.share)
+    // The field filters the chat list's own model (the user's ask, 2026-11-17): main.qml clears it when this page goes.
+    property bool filtersChats: true
+    function focusSearch() {
+        search.requestFocus()
+    }
+    Container {
+        TextField {
+            id: search
+            hintText: qsTr("Search chats")
+            input.submitKey: SubmitKey.Search
+            onTextChanging: chats.setFilter(text)
+        }
+        ChatList {
+            dataModel: chats
+            emojiStyle: nav.emojiStyle
+            bodySize: nav.bodySize
+            smallSize: nav.smallSize
+            onChatTapped: page.forward ? nav.forwardTo(chat, page.forward) : nav.shareTo(chat, page.share)
+        }
     }
 }
