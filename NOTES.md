@@ -517,3 +517,18 @@ Decisions taken for it, with the reasons:
   device: the log line `own status:` shows it); `link.logout` (never run, it would end the
   session); timers in deep standby with the phone unplugged.
 - **Left on the account by the tests:** two messages in Saved Messages ("Tengram engine test…").
+
+### The UI can read the encrypted `chats.db` through QtSql (spike, 2026-11-17)
+
+`scripts/build-qtsqlcipher-test.sh` builds, in the Native SDK image the UI is built with (qcc),
+Qt 4.8.6's own SQLite driver (two LGPL files fetched from Qt's repository, class renamed to
+`QSQLCipherDriver`) on TDLib's SQLCipher amalgamation and our static `libcrypto.a`.
+`ui/sqlcipher/` holds the pieces: the name mapping (TDLib prefixes SQLite's names with "td"),
+the ARM `__aeabi_mem*` helpers clang-built objects need under qcc, and a test program.
+- On the phone, on a copy of the engine's database, in a fresh process each time: open and key
+  5 ms; the chat list's first 30 rows 52 ms; a chat's newest 20 messages 38 ms; counts right.
+- HyperBerry's models keep their `QSqlQuery` code: the fork registers the driver
+  (`QSqlDatabase::addDatabase(new QSQLCipherDriver, name)`) and runs `PRAGMA key = "x'<key>'"`
+  as the first statement of each connection.
+- To do when the UI is forked: time the same queries on a warm connection, and against the
+  unencrypted figure HyperBerry has.
