@@ -149,6 +149,7 @@ void handle_update(Obj update) {
       chats_update(*update);
       messages_update(*update);
       mode_update(*update);
+      notifier_update(*update);
       break;
   }
 }
@@ -215,6 +216,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   mode_init();
+  notifier_init();
 
   // A socketpair, not a pipe: pipes are not reliable with poll here. Both ends never block.
   int wake[2];

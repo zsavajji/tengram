@@ -62,6 +62,10 @@ void Td::set_bool_option(const char *name, bool value) {
   send(td_api::make_object<td_api::setOption>(name, td_api::make_object<td_api::optionValueBoolean>(value)));
 }
 
+void Td::set_int_option(const char *name, std::int64_t value) {
+  send(td_api::make_object<td_api::setOption>(name, td_api::make_object<td_api::optionValueInteger>(value)));
+}
+
 void Td::run() {
   for (;;) {
     auto r = mgr_->receive(300.0);

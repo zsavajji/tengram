@@ -111,6 +111,10 @@ void on_ready() {
   // What the probe's --no-files and --background do, always: nothing downloads by itself, and the
   // account is offline until the UI says it is in the foreground.
   tdlib.set_bool_option("disable_auto_download", true);  // "online" is set by mode_ready, once we know who we are
+  if (notifier_active()) {  // TDLib's own notification logic, for the Hub: 20 groups (chats) of one notification
+    tdlib.set_int_option("notification_group_count_max", 20);
+    tdlib.set_int_option("notification_group_size_max", 1);
+  }
   tdlib.send(td_api::make_object<td_api::getMe>(), [](Obj o) {
     if (!tdlib_ready) {  // the state moved on while getMe was out
       return;
@@ -139,6 +143,7 @@ void on_closed() {
       db.wipe();  // the logout was under way when the stop came
       chats_reset();
       messages_reset();
+      notifier_reset();
     }
     done = true;
     return;
@@ -147,6 +152,7 @@ void on_closed() {
   db.wipe();
   chats_reset();
   messages_reset();
+  notifier_reset();
   mode_reset();
   logging_out = false;
   cur = Link{};

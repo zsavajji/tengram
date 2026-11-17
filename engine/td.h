@@ -33,6 +33,7 @@ class Td {
   // Main thread only. The callback gets the response, on the main thread.
   void send(td_api::object_ptr<td_api::Function> f, Callback cb = nullptr);
   void set_bool_option(const char *name, bool value);
+  void set_int_option(const char *name, std::int64_t value);
 
   // Main thread only: runs the callbacks and handle_update() for everything queued so far.
   void drain();

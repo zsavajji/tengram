@@ -36,11 +36,12 @@ constexpr int kBatchMax = 3600;
 struct Prefs {
   std::string mode = "auto";  // auto, instant or batched
   int batch_secs = 300;
+  bool notify_preview = true;  // the Hub's items say what the message says
 } prefs;
 
 struct Ui {
   bool fullscreen = false;
-  std::string open_chat;  // kept, not used yet
+  std::string open_chat;  // the chat the UI has open, "" for none
 };
 std::map<std::uint64_t, Ui> ui;  // by connection: the authenticated ones that sent ui.state
 bool front_seen = false;         // whether the UI was in front at the last look
@@ -140,6 +141,7 @@ void save_prefs() {
   const std::string json = td::json_encode<std::string>(td::json_object([](auto &o) {
     o("mode", prefs.mode);
     o("batchSecs", prefs.batch_secs);
+    o("notifyPreview", td::JsonBool(prefs.notify_preview));
   }));
   const std::string tmp = prefs_path() + ".tmp";
   if (!write_file(tmp, json) || rename(tmp.c_str(), prefs_path().c_str()) < 0) {
@@ -177,15 +179,16 @@ void ui_state(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
 }
 
 void prefs_set(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
-  td::JsonValue mode, secs;
+  td::JsonValue mode, secs, preview;
   const int has_mode = optional_field(req, "mode", td::JsonValue::Type::String, mode);
   const int has_secs = optional_field(req, "batchSecs", td::JsonValue::Type::Number, secs);
+  const int has_preview = optional_field(req, "notifyPreview", td::JsonValue::Type::Boolean, preview);
   int batch = 0;
-  if (has_mode < 0 || has_secs < 0 || has_mode + has_secs == 0 ||
+  if (has_mode < 0 || has_secs < 0 || has_preview < 0 || has_mode + has_secs + has_preview == 0 ||
       (has_mode == 1 && !valid_mode(mode.get_string().str())) || (has_secs == 1 && !valid_secs(secs, batch))) {
     server.reply_error(conn, id, "bad_request",
                        "mode is auto, instant or batched, batchSecs a whole number from " + std::to_string(kBatchMin) +
-                           " to " + std::to_string(kBatchMax) + "; at least one");
+                           " to " + std::to_string(kBatchMax) + ", notifyPreview true or false; at least one");
     return;
   }
   if (has_mode == 1) {
@@ -197,9 +200,13 @@ void prefs_set(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
       next_sync = std::min(next_sync, Clock::now() + std::chrono::seconds(batch));
     }
   }
+  if (has_preview == 1) {
+    prefs.notify_preview = preview.get_boolean();
+  }
   save_prefs();
   server.reply_ok(conn, id);
-  say("prefs: mode %s, every %d s", prefs.mode.c_str(), prefs.batch_secs);
+  say("prefs: mode %s, every %d s, preview %s", prefs.mode.c_str(), prefs.batch_secs,
+      prefs.notify_preview ? "on" : "off");
   evaluate();
 }
 
@@ -214,7 +221,7 @@ void mode_init() {
   if (parsed.is_error() || parsed.ok_ref().type() != td::JsonValue::Type::Object) {
     return;  // missing or unreadable: the defaults
   }
-  td::JsonValue mode, secs;
+  td::JsonValue mode, secs, preview;
   auto &obj = parsed.ok_ref().get_object();
   int batch = 0;
   if (optional_field(obj, "mode", td::JsonValue::Type::String, mode) == 1 && valid_mode(mode.get_string().str())) {
@@ -223,7 +230,11 @@ void mode_init() {
   if (optional_field(obj, "batchSecs", td::JsonValue::Type::Number, secs) == 1 && valid_secs(secs, batch)) {
     prefs.batch_secs = batch;
   }
-  say("prefs: mode %s, every %d s", prefs.mode.c_str(), prefs.batch_secs);
+  if (optional_field(obj, "notifyPreview", td::JsonValue::Type::Boolean, preview) == 1) {
+    prefs.notify_preview = preview.get_boolean();
+  }
+  say("prefs: mode %s, every %d s, preview %s", prefs.mode.c_str(), prefs.batch_secs,
+      prefs.notify_preview ? "on" : "off");
 }
 
 bool mode_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
@@ -235,6 +246,19 @@ bool mode_request(std::uint64_t conn, const std::string &id, const std::string &
     return false;
   }
   return true;
+}
+
+bool mode_notify_preview() {
+  return prefs.notify_preview;
+}
+
+bool mode_ui_shows(std::int64_t chat) {
+  for (const auto &entry : ui) {
+    if (entry.second.fullscreen && entry.second.open_chat == std::to_string(chat)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void mode_conn_closed(std::uint64_t conn) {
