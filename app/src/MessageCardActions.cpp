@@ -29,15 +29,15 @@ void MessageCard::fillMenu()
     QString state;
     if (flag("out")) {
         switch (m_msg.value("state").toInt()) {
-        case 0: state = Card::tr(kContext, "Sending"); break;
-        case 1: state = Card::tr(kContext, "Sent"); break;
-        case 2: state = Card::tr(kContext, "Delivered"); break;
-        case 3: state = Card::tr(kContext, "Read"); break;
-        default: state = Card::tr(kContext, "Not sent"); break;
+        case 0: state = Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Sending")); break;
+        case 1: state = Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Sent")); break;
+        case 2: state = Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Delivered")); break;
+        case 3: state = Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Read")); break;
+        default: state = Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Not sent")); break;
         }
     }
     if (flag("edited"))
-        state = state.isEmpty() ? Card::tr(kContext, "Edited") : state + QString::fromUtf8(" \xC2\xB7 ") + Card::tr(kContext, "Edited");
+        state = state.isEmpty() ? Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Edited")) : state + QString::fromUtf8(" \xC2\xB7 ") + Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Edited"));
     m_menu->setSubtitle(state);
 }
 
@@ -89,21 +89,21 @@ ActionItem *MessageCard::action(const char *title, const char *icon, const char 
 
 void MessageCard::makeActions()
 {
-    m_reply = action("Reply", "file:///usr/share/icons/bb_action_reply.png", SLOT(onReply()), "r");
+    m_reply = action(QT_TRANSLATE_NOOP("MessageItem", "Reply"), "file:///usr/share/icons/bb_action_reply.png", SLOT(onReply()), "r");
     // The icon is the emoji picker's action (step 5.11); the bar opens over the composer.
-    m_react = action("React", "asset:///images/emoji.png", SLOT(onReact()), "a");
-    m_forward = action("Forward", "file:///usr/share/icons/bb_action_forward.png", SLOT(onForward()), "f");
+    m_react = action(QT_TRANSLATE_NOOP("MessageItem", "React"), "asset:///images/emoji.png", SLOT(onReact()), "a");
+    m_forward = action(QT_TRANSLATE_NOOP("MessageItem", "Forward"), "file:///usr/share/icons/bb_action_forward.png", SLOT(onForward()), "f");
     // Who chose what in a poll (the user's request, 0.0.1.132), as the counts' tap shows it per option.
     if (m_rich)
-        m_votes = action("View votes", "file:///usr/share/icons/ic_accept.png", SLOT(onVotes()), "v");
+        m_votes = action(QT_TRANSLATE_NOOP("MessageItem", "View votes"), "file:///usr/share/icons/ic_accept.png", SLOT(onVotes()), "v");
     // /usr/share/icons has no copy icon: this one is the stock Text Messages app's.
-    m_copy = action("Copy", "asset:///images/copy.png", SLOT(onCopy()), "c");
-    m_edit = action("Edit", "file:///usr/share/icons/ic_edit.png", SLOT(onEdit()), "e");
-    m_revoke = action("Delete for everyone", "file:///usr/share/icons/bb_action_delete.png",
+    m_copy = action(QT_TRANSLATE_NOOP("MessageItem", "Copy"), "asset:///images/copy.png", SLOT(onCopy()), "c");
+    m_edit = action(QT_TRANSLATE_NOOP("MessageItem", "Edit"), "file:///usr/share/icons/ic_edit.png", SLOT(onEdit()), "e");
+    m_revoke = action(QT_TRANSLATE_NOOP("MessageItem", "Delete for everyone"), "file:///usr/share/icons/bb_action_delete.png",
                       SLOT(onRevoke()), "x");
     // "Delete for me" is a DeleteActionItem, which the system puts last.
     m_deleteMe = new DeleteActionItem();
-    m_deleteMe->setTitle(Card::tr(kContext, "Delete for me"));
+    m_deleteMe->setTitle(Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Delete for me")));
     connect(m_deleteMe, SIGNAL(triggered()), this, SLOT(onDeleteMe()));
     Shortcut *key = Shortcut::create().key("d");
     key->setEnabled(false);

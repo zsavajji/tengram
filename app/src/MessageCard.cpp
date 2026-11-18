@@ -83,7 +83,7 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_bang(0)
     , m_chip(0)
     , m_chipSpare(0)
-    , m_edited(Card::tr(kContext, "edited") + " ")
+    , m_edited(Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "edited")) + " ")
     , m_starMark(QString::fromUtf8("\xE2\x98\x85 "))
     , m_reply(0)
     , m_react(0)
@@ -598,7 +598,7 @@ void MessageCard::makeJoin()
     m_join = new Button();
     m_join->setTopMargin(m_ui->du(1));
     m_join->setHorizontalAlignment(HorizontalAlignment::Fill);
-    m_join->setText(Card::tr(kContext, "Join group"));
+    m_join->setText(Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Join group")));
     connect(m_join, SIGNAL(clicked()), this, SLOT(onJoin()));
     place(m_join, m_poll);
 }
@@ -754,7 +754,7 @@ void MessageCard::fillColumn()
     if (m_fwd) {
         m_fwd->setVisible(fwd > 0);
         if (fwd > 0) {
-            m_fwdText->setText(fwd >= 5 ? Card::tr(kContext, "Forwarded many times") : Card::tr(kContext, "Forwarded"));
+            m_fwdText->setText(fwd >= 5 ? Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Forwarded many times")) : Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Forwarded")));
             m_fwdIcon->setImageSource(Card::url(fwd >= 5 ? "asset:///images/forward_many.png" : "asset:///images/forward.png"));
         }
     }
@@ -769,7 +769,7 @@ void MessageCard::fillColumn()
             // A story's quote is labelled so, and shows the story's picture when it came with one.
             const bool story = flag("quoteStory");
             m_quoteName->setVisible(story || !name.isEmpty());
-            m_quoteName->setText(story ? Card::tr(kContext, "Story") : name);
+            m_quoteName->setText(story ? Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "Story")) : name);
             m_quoteName->textStyle()->setColor(tint.isEmpty() || story ? m_ui->palette()->primary() : Card::color(tint));
             m_quoteText->setText(Card::noKeycaps(quote));
             const bool thumb = story && flag("hasQuoteThumb");

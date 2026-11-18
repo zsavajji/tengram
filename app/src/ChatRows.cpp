@@ -344,17 +344,17 @@ void ChatRow::onPopulating()
     const bool archived = m_list->property("archivedList").toBool();
     const bool unread = m_chat.value("unread").toInt() != 0;
 
-    setItem(m_readItem, unread ? "Mark as read" : "Mark as unread",
+    setItem(m_readItem, unread ? QT_TRANSLATE_NOOP("ChatRow", "Mark as read") : QT_TRANSLATE_NOOP("ChatRow", "Mark as unread"),
             unread ? "file:///usr/share/icons/bb_action_markread.png"
                    : "file:///usr/share/icons/bb_action_markunread.png");
-    setItem(m_pinItem, flag("pinned") ? "Unpin" : "Pin", "asset:///images/pin_action.png");
+    setItem(m_pinItem, flag("pinned") ? QT_TRANSLATE_NOOP("ChatRow", "Unpin") : QT_TRANSLATE_NOOP("ChatRow", "Pin"), "asset:///images/pin_action.png");
     m_pinItem->setEnabled(!channels);
-    setItem(m_muteItem, flag("muted") ? "Unmute" : "Mute\xE2\x80\xA6", "asset:///images/mute_action.png");
+    setItem(m_muteItem, flag("muted") ? QT_TRANSLATE_NOOP("ChatRow", "Unmute") : QT_TRANSLATE_NOOP("ChatRow", "Mute\xE2\x80\xA6"), "asset:///images/mute_action.png");
     m_muteItem->setEnabled(!channels);
     if (channels)
-        setItem(m_archiveItem, "Unfollow", "file:///usr/share/icons/bb_action_delete.png");
+        setItem(m_archiveItem, QT_TRANSLATE_NOOP("ChatRow", "Unfollow"), "file:///usr/share/icons/bb_action_delete.png");
     else
-        setItem(m_archiveItem, archived ? "Unarchive" : "Archive",
+        setItem(m_archiveItem, archived ? QT_TRANSLATE_NOOP("ChatRow", "Unarchive") : QT_TRANSLATE_NOOP("ChatRow", "Archive"),
                 "file:///usr/share/icons/bb_action_archive.png");
 }
 

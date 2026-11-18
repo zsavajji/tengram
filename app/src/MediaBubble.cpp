@@ -127,7 +127,7 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_cover = cover();
     m_cover->setBackground(Card::color("#66000000"));
     Label *spoiler = docked(HorizontalAlignment::Center, VerticalAlignment::Center);
-    spoiler->setText(Card::tr(kContext, "Spoiler"));
+    spoiler->setText(Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Spoiler")));
     spoiler->textStyle()->setFontWeight(FontWeight::Bold);
     spoiler->textStyle()->setColor(Color::White);
     m_cover->add(spoiler);
@@ -168,7 +168,7 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_stickerText = new Label();
     m_stickerText->setTopMargin(0);
     m_stickerText->setBottomMargin(0);
-    m_stickerText->setText(Card::tr(kContext, "Sticker"));
+    m_stickerText->setText(Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Sticker")));
 
     // The files: an icon, the name over the size, and the spinner. It fills the card, so a long name
     // is cut by the column and the spinner is at the right.
@@ -282,7 +282,7 @@ void MediaBubble::show(const QVariantMap &msg)
         m_thumb->setVisible(hasThumb);
         m_thumb->setImage(m_msg.value("thumb").value<Image>());
         m_none->setVisible(!hasThumb);
-        m_noneText->setText(video ? Card::tr(kContext, "Video") : Card::tr(kContext, "Photo"));
+        m_noneText->setText(video ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Video")) : Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Photo")));
         m_play->setVisible(video && !spoiler);
         m_cover->setVisible(spoiler);
     }
@@ -307,9 +307,9 @@ void MediaBubble::show(const QVariantMap &msg)
 
         const QString fileName = str("fileName");
         m_name->setText(contact ? str("summary")
-                        : location ? Card::tr(kContext, "Show on map")
-                        : media == "audio" ? Card::tr(kContext, "Audio file")
-                        : (fileName.isEmpty() ? Card::tr(kContext, "Document") : fileName));
+                        : location ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Show on map"))
+                        : media == "audio" ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Audio file"))
+                        : (fileName.isEmpty() ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Document")) : fileName));
 
         // The size, and the length of an audio file when it is known; a contact's number.
         const QString contactInfo = str("contactInfo");
