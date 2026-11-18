@@ -251,6 +251,43 @@ user batches: build one package when the round is ready, then ask to install it.
     message going; a timed photo's countdown starting when it is opened; Delete chat ends it on both sides; the Hub says
     "New message" only; nothing of it in Pictures → Tengram. Requests that came while secret chats were off are lost.
 
+**After 0.1.0.25's round (2026-11-18, written, built, not packaged):**
+11. **Hub items' icons:** the inverted plane on the items too (`hub_read2.png`, `hub_unread2.png`, glyph 4: the Hub
+    caches them by file name as it did the account's); the account is re-added once at the first start.
+12. **Reactions in a group:** the chips start under the bubble, not under the sender's tile (`fillChips` puts the
+    tile's width in the area's left padding: a top-to-bottom stack ignores a child's left margin).
+13. **Telegram links open in the app** (`link.open`, `group.join`): a public chat we're in opens; one we're not in asks
+    Join/Follow, then opens; a user or bot opens their page; a message link opens the chat at the message (a forum:
+    only its topics); invites as before; a sticker set or proxy goes to the browser; an unknown username says "This
+    link doesn't lead anywhere". Links from outside the app (browser, e-mail) are not caught.
+14. **Telegram's look, Cascades kept** (2026-11-18, in 0.1.0.27, not committed; colours on `nav` in `main.qml`): our bubbles
+    `#2B5278` dark / `#EFFDDE` bright, theirs `#182533` / white, the time and ticks on ours in `outMeta` (read = two
+    ticks, no colour change); the doodle wallpaper behind the chat (`scripts/gen-wall.py`, 512 px tiles: Cascades
+    repeats only powers of two); dates and service lines as translucent pills with white text; a group's "Name:" in
+    the list in `#24A1DE` (rich text span: untried); tiles in Telegram's seven peer colours; the chat list's and the
+    chat's title bars in `headerColor` (a FreeForm container's background: does the bar's chrome show around it?);
+    **Seen in 0.1.0.27 (the user):** all fine but the wallpaper, which the user will redo later. **Taken off the chat
+    page** (the user, 2026-11-18, after 0.1.0.27): the PNGs deleted; `scripts/gen-wall.py` can draw them again. The Settings probe
+    (`TitleBarAppearance.Branded`) drew the bar as always: on 10.3 it doesn't take the primary colour, so the probe is
+    gone and a page's bar is coloured only by a FreeForm container's background.
+    Check both themes, switching live (the wallpaper's `imageSource` binding), and contrast of grey text, quotes,
+    link previews, polls and voice notes on our blue bubble (their own bubbles weren't recoloured).
+15. **Download in a file's menu** (2026-11-18, in 0.1.0.27, not committed; `media.get` with `save`, engine `downloads_copy`):
+    long-press a document or audio file → Download (key S) → downloaded if needed (the bubble's ring), copied to
+    `/accounts/1000/shared/downloads` under its own name (`name (2).ext` beside a different one; the same size is
+    reused), toast "Saved to Downloads"; File Manager shows it. Ours too (Saved Messages from another device). Greyed
+    in a secret chat; a protected or self-destructing one says "Couldn't save to Downloads". A tap still only opens.
+    tengramd.log says `downloads: <path>`.
+16. **Sending without the blink** (2026-11-18, builds, not packaged): the user saw a sent message drawn twice and a
+    short delay. The engine swaps the sending row (temporary id) for the final one in one `msgs` event; the model
+    took that as remove + add, so the card was destroyed and rebuilt. `MessageModel::merge` now hands the sending
+    row's entry to the final id (paired in order) and the card is updated in place. Our own new message also flushes
+    at once instead of after the 50 ms coalescing (`mark_dirty(true)` on `updateNewMessage` with a sending state).
+    Check: one bubble, no blink when the tick turns; several quick sends; a send that fails (airplane mode) stays.
+17. **About → Open source libraries** (2026-11-18, builds, not packaged): ten rows (name, version, licence), each
+    opening the project's page in the browser; the header in the ten languages. Update the versions when
+    `build-deps.sh` or a `fetch-*.sh` pins a new one.
+
 **Saved for later (the user, 2026-11-18): video streaming.** Possible, not built. bbtube plays a local MP4 while it
 fills (moov written first, the file at its final size). For Tengram the planned route is a small HTTP server in the
 engine on 127.0.0.1 serving a video by byte ranges: a range not downloaded yet is asked of TDLib (downloadFile with
