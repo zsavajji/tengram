@@ -236,6 +236,13 @@ user batches: build one package when the round is ready, then ask to install it.
 7. **Loose ends:** Clear chat empties the list's preview and keeps the chat's place; Saved Messages named so after an
    engine start; a sent video shows its length (read from the file's mvhd).
 
+**Saved for later (the user, 2026-11-18): video streaming.** Possible, not built. bbtube plays a local MP4 while it
+fills (moov written first, the file at its final size). For Tengram the planned route is a small HTTP server in the
+engine on 127.0.0.1 serving a video by byte ranges: a range not downloaded yet is asked of TDLib (downloadFile with
+offset/limit) and the request waits for it, so mm-renderer waits instead of ending and seeking works. The video viewer
+then opens that URL at once; a "Stream videos" toggle on Data and storage, as Android's. The simpler route, mm-renderer on
+TDLib's partial file, risks the player stopping at the file's end when it catches up, and can't seek ahead.
+
 **Left of step 4:** topics' create/rename/close and custom-emoji icons (not asked yet); voice encoding as the WAV grows
 (only if long notes stall the engine at send). No voter names or who-reacted any more: Telegram gives counts here.
 
