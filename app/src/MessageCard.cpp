@@ -422,7 +422,6 @@ void MessageCard::restyle()
         m_label->textStyle()->setColor(quiet);
     }
     if (m_chip) {
-        m_chip->setLeftPadding(side);
         foreach (Label *label, m_chipLabels)
             Card::style(label, m_list, body); // the text's size, not the small one (the user, 2026-11-08)
     }
@@ -687,7 +686,9 @@ void MessageCard::fillChips()
     m_chip->setVisible(n > 0);
     // Under the card's outer corner: ours is at the right now. Not under the tile before it.
     m_chip->setHorizontalAlignment(flag("out") ? HorizontalAlignment::Right : HorizontalAlignment::Left);
-    m_chip->setLeftMargin(tile ? tileSpace() : 0);
+    // In padding: a top-to-bottom stack ignores a child's left margin (the chips sat under the tile, the user,
+    // 2026-11-18). The side lines them up with the card's text.
+    m_chip->setLeftPadding(Card::side(m_ui, m_scale) + (tile ? tileSpace() : 0));
     if (n == 0)
         return;
 
