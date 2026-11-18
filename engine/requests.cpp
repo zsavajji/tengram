@@ -12,6 +12,8 @@
 #include <cerrno>
 #include <chrono>
 #include <cmath>
+#include <cstdio>
+#include <cstring>
 #include <cstdlib>
 #include <ctime>
 #include <memory>
@@ -514,6 +516,69 @@ bool size_field(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   return true;
 }
 
+// A big-endian number of n bytes.
+std::uint64_t be(const unsigned char *p, int n) {
+  std::uint64_t v = 0;
+  for (int i = 0; i < n; ++i) {
+    v = v << 8 | p[i];
+  }
+  return v;
+}
+
+// An MP4's (also 3GP's and MOV's) length in whole seconds, rounded, from moov's mvhd box; 0 when it can't be read. The
+// UI sends none, and Telegram shows the video as 0:00 without it. moov may come after the media (mdat), so the boxes
+// at the top are skipped by their sizes, not read.
+int video_seconds(const std::string &path) {
+  std::FILE *f = std::fopen(path.c_str(), "rb");
+  if (!f) {
+    return 0;
+  }
+  int seconds = 0;
+  long end = -1;  // the end of the box being looked into: the file, then moov
+  if (std::fseek(f, 0, SEEK_END) == 0) {
+    end = std::ftell(f);
+  }
+  long at = 0;
+  unsigned char h[32];
+  while (end > 0 && at + 8 <= end && std::fseek(f, at, SEEK_SET) == 0 && std::fread(h, 1, 8, f) == 8) {
+    std::uint64_t size = be(h, 4);
+    long head = 8;
+    if (size == 1) {  // the size follows as 64 bits
+      if (std::fread(h + 8, 1, 8, f) != 8) {
+        break;
+      }
+      size = be(h + 8, 8);
+      head = 16;
+    } else if (size == 0) {  // to the end
+      size = static_cast<std::uint64_t>(end - at);
+    }
+    if (size < static_cast<std::uint64_t>(head) || at + static_cast<long>(size) > end) {
+      break;
+    }
+    if (std::memcmp(h + 4, "moov", 4) == 0) {  // look inside it
+      end = at + static_cast<long>(size);
+      at += head;
+      continue;
+    }
+    if (std::memcmp(h + 4, "mvhd", 4) == 0) {
+      // version, flags; then the times, timescale and duration: 4 bytes each in version 0, 8 (but timescale) in 1
+      unsigned char b[32];
+      if (std::fseek(f, at + head, SEEK_SET) == 0 && std::fread(b, 1, sizeof b, f) == sizeof b) {
+        const bool wide = b[0] == 1;
+        const std::uint64_t scale = be(b + (wide ? 20 : 12), 4);
+        const std::uint64_t length = be(b + (wide ? 24 : 16), wide ? 8 : 4);
+        if (scale > 0 && length != (wide ? ~std::uint64_t{0} : 0xFFFFFFFFu)) {
+          seconds = static_cast<int>((length + scale / 2) / scale);
+        }
+      }
+      break;
+    }
+    at += static_cast<long>(size);
+  }
+  std::fclose(f);
+  return seconds;
+}
+
 // The extension of a path in lower case, with its dot (".jpg"); "" when the file name has none.
 std::string extension(const std::string &path) {
   const std::size_t dot = path.find_last_of("./");
@@ -576,10 +641,9 @@ void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
         make_object<td_api::inputPhoto>(file(), nullptr, nullptr, std::vector<std::int32_t>(), width, height),
         caption(), false, nullptr, false);
   } else if (ext == ".mp4" || ext == ".3gp" || ext == ".mov") {
-    // The request has no duration, so it is 0.
     content = make_object<td_api::inputMessageVideo>(
-        make_object<td_api::inputVideo>(file(), nullptr, nullptr, 0, std::vector<std::int32_t>(), 0, width, height,
-                                        true),
+        make_object<td_api::inputVideo>(file(), nullptr, nullptr, 0, std::vector<std::int32_t>(),
+                                        video_seconds(path.ok()), width, height, true),
         caption(), false, nullptr, false);
   } else if (std::find(std::begin(audio), std::end(audio), ext) != std::end(audio)) {
     content = make_object<td_api::inputMessageAudio>(make_object<td_api::inputAudio>(file(), nullptr, 0, "", ""),
