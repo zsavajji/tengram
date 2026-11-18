@@ -53,6 +53,8 @@ void MessageCard::onPopulating()
     m_forward->setEnabled(flag("forwardable"));
     if (m_votes)
         m_votes->setEnabled(flag("poll") && !deleted);
+    if (m_download)
+        m_download->setEnabled(!deleted && !flag("secret") && (str("media") == "doc" || str("media") == "audio"));
     m_copy->setEnabled(!deleted && !str("text").isEmpty());
     m_edit->setEnabled(flag("editable"));
     m_revoke->setEnabled(flag("revocable"));
@@ -93,9 +95,12 @@ void MessageCard::makeActions()
     // The icon is the emoji picker's action (step 5.11); the bar opens over the composer.
     m_react = action(QT_TRANSLATE_NOOP("MessageItem", "React"), "asset:///images/emoji.png", SLOT(onReact()), "a");
     m_forward = action(QT_TRANSLATE_NOOP("MessageItem", "Forward"), "file:///usr/share/icons/bb_action_forward.png", SLOT(onForward()), "f");
-    // Who chose what in a poll (the user's request, 0.0.1.132), as the counts' tap shows it per option.
-    if (m_rich)
+    if (m_rich) {
+        // Who chose what in a poll (the user's request, 0.0.1.132), as the counts' tap shows it per option.
         m_votes = action(QT_TRANSLATE_NOOP("MessageItem", "View votes"), "file:///usr/share/icons/ic_accept.png", SLOT(onVotes()), "v");
+        // A file into the phone's Downloads, where File Manager shows it (the user's ask, 2026-11-18).
+        m_download = action(QT_TRANSLATE_NOOP("MessageItem", "Download"), "asset:///images/save_action.png", SLOT(onDownload()), "s");
+    }
     // /usr/share/icons has no copy icon: this one is the stock Text Messages app's.
     m_copy = action(QT_TRANSLATE_NOOP("MessageItem", "Copy"), "asset:///images/copy.png", SLOT(onCopy()), "c");
     m_edit = action(QT_TRANSLATE_NOOP("MessageItem", "Edit"), "file:///usr/share/icons/ic_edit.png", SLOT(onEdit()), "e");
@@ -163,6 +168,7 @@ void MessageCard::onTouch(TouchEvent *event)
 }
 void MessageCard::onReact() { Card::call(m_list, "react", m_msg); }
 void MessageCard::onForward() { Card::call(m_list, "forward", m_msg); }
+void MessageCard::onDownload() { Card::call(m_list, "download", m_msg); }
 void MessageCard::onVotes() { Card::call(m_list, "showVoters", str("votesText")); }
 void MessageCard::onCopy() { Card::call(m_list, "copy", str("text")); }
 void MessageCard::onEdit() { Card::call(m_list, "edit", m_msg); }

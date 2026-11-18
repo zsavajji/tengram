@@ -62,7 +62,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `msg.forward` | `chat` (the message's chat), `id` (the message's id), `to` (the chat it goes to); optional `topic` (a topic of `to`) | `{id}`, the new message's id | |
 | `msg.react` | `chat`, `id`, `emoji` (a non-empty string); optional `remove` (bool, default false) | — | |
 | `poll.vote` | `chat`, `id` (a poll's message id), `options` (an array of option numbers, 0-based as `extra.options`; missing, null or `[]` takes our vote back) | — | |
-| `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`) | `not_found`, `download_failed`, `cancelled` |
+| `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool), `save` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`, of the copy in Downloads with `save`) | `not_found`, `download_failed`, `cancelled`, `not_saved` |
 | `media.cancel` | `chat`, `id` (a message with a file) | — | `not_found` |
 | `voice.start` | `chat`, `path` (the `.wav` the recorder is writing, inside the data folder); optional `topic` | — | |
 | `voice.send` | `chat`, `path` (as `voice.start`), `quote` (a message id, optional), `topic` (optional) | `{id}`, the message's id | |
@@ -236,6 +236,12 @@ file: for a photo its display size (the smallest size whose shorter side is at l
 reaches that: it can be the photo's own file), for a video, GIF or round video its thumbnail when that is a JPEG.
 Anything else, or a video with no JPEG thumbnail, is `not_found`. The row then has `extra.preview` (a `msgs` event
 follows) and the answer is `{path}` of that picture. Without `preview` nothing changes.
+
+With `save: true` (ignored with `preview`) a document or audio file is also copied to the phone's Downloads
+(`/accounts/1000/shared/downloads`, where File Manager shows it) under its own name, made file-system safe (`name (2).ext`
+beside a different file of that name; one of the same size is taken for this file's earlier copy), and the answer is
+`{path}` of that copy. `not_saved` when there is no copy: a secret, protected or self-destructing chat's message, a
+message that isn't a document or audio file, or the copy failed. Without `save` the file stays where TDLib keeps it.
 
 While a `media.get` without `preview` downloads, the engine sends `media.progress` events (see Events). A preview is
 never watched.

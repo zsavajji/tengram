@@ -72,6 +72,7 @@ private slots:
     void onTouch(bb::cascades::TouchEvent *event);
     void onReact();
     void onForward();
+    void onDownload();
     void onVotes();
     void onCopy();
     void onEdit();
@@ -215,6 +216,7 @@ private:
     bb::cascades::ActionItem *m_react;
     bb::cascades::ActionItem *m_forward;
     bb::cascades::ActionItem *m_votes;
+    bb::cascades::ActionItem *m_download;
     bb::cascades::ActionItem *m_copy;
     bb::cascades::ActionItem *m_edit;
     bb::cascades::ActionItem *m_revoke;

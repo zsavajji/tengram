@@ -632,6 +632,16 @@
         <translation>यह फ़ाइल खोली नहीं जा सकी</translation>
     </message>
     <message>
+        <location filename="../assets/ChatPage.qml" line="217"/>
+        <source>Saved to Downloads</source>
+        <translation>डाउनलोड में सहेजा गया</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="221"/>
+        <source>Couldn&apos;t save to Downloads</source>
+        <translation>डाउनलोड में सहेजा नहीं जा सका</translation>
+    </message>
+    <message>
         <location filename="../assets/ChatPage.qml" line="196"/>
         <source>Couldn&apos;t play this voice note</source>
         <translation>यह वॉइस मैसेज चलाया नहीं जा सका</translation>
@@ -1748,6 +1758,11 @@
     <message>
         <source>Forward</source>
         <translation>फ़ॉरवर्ड करें</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageCardActions.cpp" line="102"/>
+        <source>Download</source>
+        <translation>डाउनलोड करें</translation>
     </message>
     <message>
         <source>Forwarded</source>

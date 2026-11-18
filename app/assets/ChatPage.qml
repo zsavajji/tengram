@@ -39,7 +39,7 @@ Page {
             if (playerObj) playerObj.fail(engine.failure.code)
         } else if (failedCmd == "media.get") {
             if (engine.failure.code != "cancelled") {
-                mediaFailed.show()
+                media.saving() ? saveFailed.show() : mediaFailed.show()
             }
         } else if (failedCmd == "msg.edit") {
             editFailed.show()
@@ -60,6 +60,7 @@ Page {
         ctl.messages.loadingChanged.connect(page.loaded)
         media.ready.connect(page.mediaReady)
         media.openFailed.connect(mediaFailed.show)
+        media.saved.connect(savedToast.show)
         media.pictureEdited.connect(page.stage) // the editor's file is staged as the picker's, the caption kept
     }
     attachedObjects: [
@@ -210,6 +211,14 @@ Page {
         SystemToast {
             id: mediaFailed
             body: qsTr("Couldn't open this file")
+        },
+        SystemToast {
+            id: savedToast
+            body: qsTr("Saved to Downloads")
+        },
+        SystemToast {
+            id: saveFailed
+            body: qsTr("Couldn't save to Downloads")
         },
         SystemToast {
             id: voiceFailed
@@ -711,6 +720,11 @@ Page {
                             page.videoGif = !!msg.gif
                             media.get(page.chat.jid, msg.id, msg.media)
                         }
+                    }
+                    // The menu's Download (the user's ask, 2026-11-18): a document or audio file into the phone's
+                    // Downloads; savedToast or saveFailed answers.
+                    function download(msg) {
+                        media.get(page.chat.jid, msg.id, msg.media, true)
                     }
                     function showAlbum(members) {
                         nav.showAlbum(list, members)

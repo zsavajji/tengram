@@ -631,6 +631,16 @@
         <translation>Tidak dapat membuka file ini</translation>
     </message>
     <message>
+        <location filename="../assets/ChatPage.qml" line="217"/>
+        <source>Saved to Downloads</source>
+        <translation>Disimpan ke Unduhan</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="221"/>
+        <source>Couldn&apos;t save to Downloads</source>
+        <translation>Tidak dapat menyimpan ke Unduhan</translation>
+    </message>
+    <message>
         <location filename="../assets/ChatPage.qml" line="196"/>
         <source>Couldn&apos;t play this voice note</source>
         <translation>Tidak dapat memutar pesan suara ini</translation>
@@ -1745,6 +1755,11 @@
     <message>
         <source>Forward</source>
         <translation>Teruskan</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageCardActions.cpp" line="102"/>
+        <source>Download</source>
+        <translation>Unduh</translation>
     </message>
     <message>
         <source>Forwarded</source>

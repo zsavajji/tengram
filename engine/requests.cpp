@@ -806,6 +806,15 @@ void download_failed(std::uint64_t conn, const std::string &id, const std::strin
   server.reply_error(conn, id, "download_failed", why);
 }
 
+// media.get with save: the file's copy in the phone's Downloads, or why there is none.
+void reply_saved(std::uint64_t conn, const std::string &id, const td_api::message &m, const std::string &path) {
+  const std::string to = downloads_copy(m, path);
+  if (to.empty()) {
+    return server.reply_error(conn, id, "not_saved", "this file can't be saved to Downloads");
+  }
+  queue_reply(conn, id, path_json(to));
+}
+
 void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   std::int64_t message = 0;
   if (!message_id(conn, id, req, "id", message)) {
@@ -818,6 +827,12 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
     return bad_request(conn, id, "preview is true or false");
   }
   const bool preview = has_preview == 1 && want.get_boolean();
+  // save: also copy a document or audio file to the phone's Downloads, and answer with the copy (the menu's Download).
+  const int has_save = optional_field(req, "save", td::JsonValue::Type::Boolean, want);
+  if (has_save < 0) {
+    return bad_request(conn, id, "save is true or false");
+  }
+  const bool save = !preview && has_save == 1 && want.get_boolean();
   tdlib.send(make_object<td_api::getMessage>(chat, message), [=](Obj o) {
     if (as_error(o)) {
       return server.reply_error(conn, id, "not_found", "no such message");
@@ -835,6 +850,9 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
     }
     if (file->local_ && file->local_->is_downloading_completed_) {
       messages_queue(m);  // its row may still say the file is on the server (or have no extra.preview)
+      if (save) {
+        return reply_saved(conn, id, m, file->local_->path_);
+      }
       return queue_reply(conn, id, path_json(file->local_->path_));
     }
     // Synchronous: the answer is the file once the download is over. Another media.get for the same message
@@ -868,6 +886,11 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
           if (!preview) {
             gallery_save(m, path);
           }
+          if (save) {
+            return reply_saved(conn, id, m, path);
+          }
+        } else if (save) {
+          return server.reply_error(conn, id, "not_saved", "this file can't be saved to Downloads");
         }
         queue_reply(conn, id, path_json(path));
       });

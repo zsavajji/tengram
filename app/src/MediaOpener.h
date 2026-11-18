@@ -33,8 +33,11 @@ public:
     QString progressText() const;
 
     // Asks the engine for the file of message id (media.get); ready() follows. A failure shows in
-    // the engine's failure. A newer get replaces an older one, whose reply is dropped.
-    Q_INVOKABLE void get(const QString &chat, const QString &id, const QString &kind);
+    // the engine's failure. A newer get replaces an older one, whose reply is dropped. With save the engine also copies
+    // the file to the phone's Downloads (the menu's Download) and saved() follows, with the copy's path, not ready().
+    Q_INVOKABLE void get(const QString &chat, const QString &id, const QString &kind, bool save = false);
+    // The last get() was a save: the page reads it when that get fails, to word the toast.
+    Q_INVOKABLE bool saving() const;
     // Stops the fetch of loadingId (media.cancel); its get() ends with a "cancelled" failure that nobody shows.
     Q_INVOKABLE void cancel();
     // Hands the file to the system (bb.action.OPEN); false when the system gave no reply. Whether
@@ -74,6 +77,8 @@ signals:
     void progressChanged();
     // The file of message id is at path; kind is what get() was given.
     void ready(const QString &id, const QString &kind, const QString &path);
+    // The save asked of get() is done: the copy in Downloads is at path.
+    void saved(const QString &path);
     // The system found no app to open a file, or the app refused it.
     void openFailed();
     // The editor card closed with an edited file, at path.
@@ -97,6 +102,7 @@ private:
     QString m_progressText;
     QString m_kind;
     QString m_reqId; // the media.get request we wait for
+    bool m_saving; // that request is a save: its reply is saved(), not ready()
     bool m_editing; // the picture editor card is open: its done is ours, not an OPEN's or the contact import's
     bb::system::LocaleHandler m_region; // for the size text, as the chat models have it
 };

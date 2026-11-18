@@ -24,6 +24,7 @@ using namespace bb::system;
 MediaOpener::MediaOpener(QObject *parent)
     : QObject(parent)
     , m_progress(0)
+    , m_saving(false)
     , m_editing(false)
     , m_region(bb::system::LocaleType::Region)
 {
@@ -75,18 +76,26 @@ void MediaOpener::setLoadingId(const QString &id)
     emit progressChanged();
 }
 
-void MediaOpener::get(const QString &chat, const QString &id, const QString &kind)
+void MediaOpener::get(const QString &chat, const QString &id, const QString &kind, bool save)
 {
     if (!m_engine)
         return;
     QVariantMap args;
     args["chat"] = chat;
     args["id"] = id;
+    if (save)
+        args["save"] = true;
+    m_saving = save;
     m_kind = kind;
     m_chat = chat;
     // "" when the engine is down: request() has set the failure, and nothing is loading.
     m_reqId = m_engine->request("media.get", args);
     setLoadingId(m_reqId.isEmpty() ? QString() : id);
+}
+
+bool MediaOpener::saving() const
+{
+    return m_saving;
 }
 
 // The engine's media.progress. Until the first one comes the bubble keeps its spinner.
@@ -119,7 +128,10 @@ void MediaOpener::onReplied(const QString &id, const QString &cmd, const QVarian
     const QString msgId = m_loadingId;
     m_reqId.clear();
     setLoadingId(QString());
-    emit ready(msgId, m_kind, result.toMap()["path"].toString());
+    if (m_saving)
+        emit saved(result.toMap()["path"].toString());
+    else
+        emit ready(msgId, m_kind, result.toMap()["path"].toString());
 }
 
 // ponytail: a failure names no request, so an older one's, after a newer get, ends the newer

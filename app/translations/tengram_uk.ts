@@ -633,6 +633,16 @@
         <translation>Не вдалося відкрити цей файл</translation>
     </message>
     <message>
+        <location filename="../assets/ChatPage.qml" line="217"/>
+        <source>Saved to Downloads</source>
+        <translation>Збережено в Завантаження</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="221"/>
+        <source>Couldn&apos;t save to Downloads</source>
+        <translation>Не вдалося зберегти в Завантаження</translation>
+    </message>
+    <message>
         <location filename="../assets/ChatPage.qml" line="196"/>
         <source>Couldn&apos;t play this voice note</source>
         <translation>Не вдалося відтворити це голосове повідомлення</translation>
@@ -1751,6 +1761,11 @@
     <message>
         <source>Forward</source>
         <translation>Переслати</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageCardActions.cpp" line="102"/>
+        <source>Download</source>
+        <translation>Завантажити</translation>
     </message>
     <message>
         <source>Forwarded</source>

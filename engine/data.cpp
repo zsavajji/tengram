@@ -12,6 +12,7 @@
 
 #include <cerrno>
 #include <climits>
+#include <cstring>
 #include <unordered_map>
 
 namespace {
@@ -341,6 +342,61 @@ void gallery_save(const td_api::message &m, const std::string &path) {
     return;
   }
   say(copy_file(path, to) ? "gallery: %s" : "gallery: could not copy to %s", to.c_str());
+}
+
+// Another app opens a document or audio file only from where it can read, and File Manager shows only the shared
+// folders: the engine's files are neither (the user, 2026-11-18: a file sent to Saved Messages couldn't be found or
+// moved). So the menu's Download copies it (the user's ask, 2026-11-18: optional, not at every open). Ours too: in
+// Saved Messages what the user sent from another device is outgoing. "" when it can't be saved.
+std::string downloads_copy(const td_api::message &m, const std::string &path) {
+  if (!m.content_ || !m.can_be_saved_ || m.self_destruct_type_) {
+    return "";
+  }
+  std::string name;
+  if (m.content_->get_id() == td_api::messageDocument::ID) {
+    const auto &d = static_cast<const td_api::messageDocument &>(*m.content_).document_;
+    name = d ? d->file_name_ : "";
+  } else if (m.content_->get_id() == td_api::messageAudio::ID) {
+    const auto &a = static_cast<const td_api::messageAudio &>(*m.content_).audio_;
+    name = a ? a->file_name_ : "";
+  } else {
+    return "";
+  }
+  ChatBrief chat = {};
+  if (!chat_brief(m.chat_id_, chat) || chat.secret) {  // a secret chat's files stay inside Tengram
+    return "";
+  }
+  for (char &c : name) {
+    if (static_cast<unsigned char>(c) < 0x20 || std::strchr("/\\:*?\"<>|", c)) {
+      c = '_';
+    }
+  }
+  if (name.empty() || name[0] == '.') {
+    name = std::to_string(m.id_) + extension(path);
+  }
+  const std::string dir = "/accounts/1000/shared/downloads";
+  struct stat from;
+  if (!make_folder(dir) || stat(path.c_str(), &from) != 0) {
+    return "";
+  }
+  // "name.ext", else "name (2).ext" and on: one of the same size is taken for this file, opened before.
+  const std::string ext = extension(name), stem = name.substr(0, name.size() - ext.size());
+  for (int n = 1; n < 100; ++n) {
+    const std::string to = dir + "/" + (n == 1 ? stem : stem + " (" + std::to_string(n) + ")") + ext;
+    struct stat st;
+    if (stat(to.c_str(), &st) != 0) {
+      if (!copy_file(path, to)) {
+        say("downloads: could not copy to %s", to.c_str());
+        return "";
+      }
+      say("downloads: %s", to.c_str());
+      return to;
+    }
+    if (st.st_size == from.st_size) {
+      return to;
+    }
+  }
+  return "";
 }
 
 bool data_deadline(std::chrono::steady_clock::time_point &due) {

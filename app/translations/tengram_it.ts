@@ -632,6 +632,16 @@
         <translation>Impossibile aprire questo file</translation>
     </message>
     <message>
+        <location filename="../assets/ChatPage.qml" line="217"/>
+        <source>Saved to Downloads</source>
+        <translation>Salvato in Download</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="221"/>
+        <source>Couldn&apos;t save to Downloads</source>
+        <translation>Impossibile salvare in Download</translation>
+    </message>
+    <message>
         <location filename="../assets/ChatPage.qml" line="196"/>
         <source>Couldn&apos;t play this voice note</source>
         <translation>Impossibile riprodurre questo messaggio vocale</translation>
@@ -1748,6 +1758,11 @@
     <message>
         <source>Forward</source>
         <translation>Inoltra</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageCardActions.cpp" line="102"/>
+        <source>Download</source>
+        <translation>Scarica</translation>
     </message>
     <message>
         <source>Forwarded</source>

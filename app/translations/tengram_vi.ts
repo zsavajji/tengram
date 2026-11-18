@@ -631,6 +631,16 @@
         <translation>Không mở được tệp này</translation>
     </message>
     <message>
+        <location filename="../assets/ChatPage.qml" line="217"/>
+        <source>Saved to Downloads</source>
+        <translation>Đã lưu vào Tải xuống</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="221"/>
+        <source>Couldn&apos;t save to Downloads</source>
+        <translation>Không thể lưu vào Tải xuống</translation>
+    </message>
+    <message>
         <location filename="../assets/ChatPage.qml" line="196"/>
         <source>Couldn&apos;t play this voice note</source>
         <translation>Không phát được tin nhắn thoại này</translation>
@@ -1745,6 +1755,11 @@
     <message>
         <source>Forward</source>
         <translation>Chuyển tiếp</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageCardActions.cpp" line="102"/>
+        <source>Download</source>
+        <translation>Tải xuống</translation>
     </message>
     <message>
         <source>Forwarded</source>

@@ -240,6 +240,10 @@ void data_tick();                                                // that time ha
 // Copies the photo or video of an incoming message, just downloaded to `path`, to the gallery when the chat's kind is
 // switched on in the preferences. Nothing for any other message, or when the copy is there already.
 void gallery_save(const td_api::message &m, const std::string &path);
+// A document or audio file from a chat (the menu's Download): its copy in the phone's Downloads under its own name
+// (made now, or the one made before), else "" (not a document or audio file, a secret chat's, a protected or
+// self-destructing one, a failed copy).
+std::string downloads_copy(const td_api::message &m, const std::string &path);
 
 // mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).
 void mode_init();                                                    // read prefs.json
