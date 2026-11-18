@@ -3082,6 +3082,34 @@
     </message>
 </context>
 <context>
+    <name>SendFilesPage</name>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="18"/>
+        <source>Send files</source>
+        <translation>Envoyer des fichiers</translation>
+    </message>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="176"/>
+        <source>Group as album</source>
+        <translation>Grouper en album</translation>
+    </message>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="181"/>
+        <source>Send as files</source>
+        <translation>Envoyer comme fichiers</translation>
+    </message>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="186"/>
+        <source>Caption</source>
+        <translation>Légende</translation>
+    </message>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="196"/>
+        <source>Send</source>
+        <translation>Envoyer</translation>
+    </message>
+</context>
+<context>
     <name>Sessions</name>
     <message>
         <location filename="../src/Sessions.cpp" line="115"/>

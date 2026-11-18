@@ -5,6 +5,7 @@
 #include <bb/system/InvokeRequest>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 // A tap on a chat's item in the Hub (engine/hub_qnx.go) starts or resumes the app with
 // bb.action.OPEN or VIEW. The item's id, "chat_" and the chat key (decimal, n for a minus sign), rides in the URI or
@@ -22,6 +23,8 @@ signals:
     void openChat(const QString &jid);
     // The Share menu's file (a local path) or text; one of the two is empty.
     void shared(const QString &path, const QString &text);
+    // The Share menu's several files (two or more local paths).
+    void sharedFiles(const QStringList &paths);
 
 private slots:
     void invoked(const bb::system::InvokeRequest &request);

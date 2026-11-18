@@ -3077,6 +3077,34 @@
     </message>
 </context>
 <context>
+    <name>SendFilesPage</name>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="18"/>
+        <source>Send files</source>
+        <translation>Gửi tệp</translation>
+    </message>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="176"/>
+        <source>Group as album</source>
+        <translation>Nhóm thành album</translation>
+    </message>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="181"/>
+        <source>Send as files</source>
+        <translation>Gửi dưới dạng tệp</translation>
+    </message>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="186"/>
+        <source>Caption</source>
+        <translation>Chú thích</translation>
+    </message>
+    <message>
+        <location filename="../assets/SendFilesPage.qml" line="196"/>
+        <source>Send</source>
+        <translation>Gửi</translation>
+    </message>
+</context>
+<context>
     <name>Sessions</name>
     <message>
         <location filename="../src/Sessions.cpp" line="115"/>

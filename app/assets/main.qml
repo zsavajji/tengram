@@ -84,7 +84,7 @@ NavigationPane {
     // link named in it, "" for none.
     property string pendingChat
     property string pendingMsg
-    // The Share menu's {path, text}, held like pendingChat until the chat list is up.
+    // The Share menu's {path, text}, or {paths} for several files, held like pendingChat until the chat list is up.
     property variant pendingShare: ({})
     attachedObjects: [
         ComponentDefinition {
@@ -208,6 +208,7 @@ NavigationPane {
         // Not a Connections: Cascades' QML has none.
         openRequests.openChat.connect(nav.openRequested)
         openRequests.shared.connect(nav.shareRequested)
+        openRequests.sharedFiles.connect(nav.sharedFilesRequested)
         invites.offered.connect(nav.askToJoin)
         invites.joined.connect(nav.openRequested)
         invites.person.connect(nav.showPerson)
@@ -323,12 +324,18 @@ NavigationPane {
         openPending()
     }
 
+    // Several files from the Share menu (the user's ask, 2026-11-18): the same page, the chat gets them in its send-files page.
+    function sharedFilesRequested(paths) {
+        pendingShare = {"paths": paths}
+        openPending()
+    }
+
     // A share opens the Send to page over the list, Back drops it; a chat replaces whatever
     // is above the list, so Back goes to the list.
     function openPending() {
         if (!linked || count() == 0)
             return
-        if (pendingShare.path || pendingShare.text) {
+        if (pendingShare.path || pendingShare.paths || pendingShare.text) {
             var picker = shareDef.createObject()
             picker.share = pendingShare
             pendingShare = {}
@@ -360,10 +367,16 @@ NavigationPane {
     }
 
     // SharePage's pick: the Send to page goes out (destroy() is deferred, so it's safe from its
-    // own signal), and the chat opens with the file staged and the text in the composer.
+    // own signal), and the chat opens with the file staged and the text in the composer, or with the send-files page
+    // over it for several files.
     function shareTo(chat, share) {
         backToList()
-        at(0).openChat(chat).share(share.path, share.text)
+        var opened = at(0).openChat(chat)
+        if (share.paths) {
+            opened.openFiles(share.paths)
+        } else {
+            opened.share(share.path, share.text)
+        }
     }
 
     // The Send to page over the chat, for a message to forward; SharePage's pick comes back as forwardTo.

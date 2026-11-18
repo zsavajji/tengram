@@ -1,7 +1,7 @@
 // The requests about chats and messages: chat.open, chat.history, chat.newer, chat.pins, chat.close, chat.read,
-// chat.typing, chat.set, msg.send, media.send, msg.delete, msg.edit, msg.forward, msg.react, poll.vote, media.get and
-// media.cancel (docs/protocol.md). The rows they ask for are written by messages.cpp; the replies that tell the UI to read them
-// come after the flush that commits them (queue_reply).
+// chat.typing, chat.set, msg.send, media.send, media.album, msg.delete, msg.edit, msg.forward, msg.react, poll.vote,
+// media.get and media.cancel (docs/protocol.md). The rows they ask for are written by messages.cpp; the replies that
+// tell the UI to read them come after the flush that commits them (queue_reply).
 
 #include "engine.h"
 
@@ -595,9 +595,43 @@ std::string extension(const std::string &path) {
 // What Telegram takes of a file (without a Premium account), in bytes.
 constexpr std::int64_t kMaxFile = std::int64_t{2000} << 20;
 
-// media.send: the file's kind comes from its extension. Only a photo or a video carries a caption: the UI sends the
-// text of any other kind as a msg.send of its own. `thumb` (a base64 JPEG HyperBerry needed for WhatsApp) is not
-// read: TDLib makes its own thumbnails.
+// The content of a message for the file at `path`: its kind comes from the extension, `document` (a picture as it is,
+// not as a compressed photo) makes it a document whatever it is. Only a photo or a video carries `text`, a caption;
+// "" is none. `thumb` (a base64 JPEG HyperBerry needed for WhatsApp) is not read: TDLib makes its own thumbnails.
+td_api::object_ptr<td_api::InputMessageContent> file_content(const std::string &path, bool document, std::int32_t width,
+                                                             std::int32_t height, const std::string &text) {
+  auto caption = [&]() -> td_api::object_ptr<td_api::formattedText> {
+    return text.empty() ? nullptr : plain_text(text);  // null is TDLib's empty caption
+  };
+  auto file = [&] { return make_object<td_api::inputFileLocal>(path); };
+
+  static const char *const audio[] = {".mp3", ".m4a", ".aac", ".amr", ".ogg", ".wav"};
+  const std::string ext = extension(path);
+  if (document) {
+    return make_object<td_api::inputMessageDocument>(make_object<td_api::inputDocument>(file(), nullptr, false),
+                                                     nullptr);
+  }
+  if (ext == ".jpg" || ext == ".jpeg") {
+    return make_object<td_api::inputMessagePhoto>(
+        make_object<td_api::inputPhoto>(file(), nullptr, nullptr, std::vector<std::int32_t>(), width, height),
+        caption(), false, nullptr, false);
+  }
+  if (ext == ".mp4" || ext == ".3gp" || ext == ".mov") {
+    return make_object<td_api::inputMessageVideo>(
+        make_object<td_api::inputVideo>(file(), nullptr, nullptr, 0, std::vector<std::int32_t>(),
+                                        video_seconds(path), width, height, true),
+        caption(), false, nullptr, false);
+  }
+  if (std::find(std::begin(audio), std::end(audio), ext) != std::end(audio)) {
+    return make_object<td_api::inputMessageAudio>(make_object<td_api::inputAudio>(file(), nullptr, 0, "", ""),
+                                                  nullptr);
+  }
+  return make_object<td_api::inputMessageDocument>(make_object<td_api::inputDocument>(file(), nullptr, false),
+                                                   nullptr);
+}
+
+// media.send: one file, by file_content. Only a photo or a video carries a caption: the UI sends the text of any other
+// kind as a msg.send of its own.
 void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   auto path = string_field(req, "path");
   std::int64_t bytes = 0;
@@ -624,35 +658,73 @@ void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
     return bad_request(conn, id, "file is true or false");
   }
   const bool document = has_file == 1 && as_file.get_boolean();  // a picture as it is, not as a compressed photo
-  const std::string text = has_caption == 1 ? v.get_string().str() : "";
-  auto caption = [&]() -> td_api::object_ptr<td_api::formattedText> {
-    return text.empty() ? nullptr : plain_text(text);  // null is TDLib's empty caption
-  };
-  auto file = [&] { return make_object<td_api::inputFileLocal>(path.ok()); };
+  send_content(conn, id, chat, topic, std::move(reply),
+               file_content(path.ok(), document, width, height, has_caption == 1 ? v.get_string().str() : ""));
+}
 
-  static const char *const audio[] = {".mp3", ".m4a", ".aac", ".amr", ".ogg", ".wav"};
-  const std::string ext = extension(path.ok());
-  td_api::object_ptr<td_api::InputMessageContent> content;
-  if (document) {
-    content = make_object<td_api::inputMessageDocument>(make_object<td_api::inputDocument>(file(), nullptr, false),
-                                                        nullptr);
-  } else if (ext == ".jpg" || ext == ".jpeg") {
-    content = make_object<td_api::inputMessagePhoto>(
-        make_object<td_api::inputPhoto>(file(), nullptr, nullptr, std::vector<std::int32_t>(), width, height),
-        caption(), false, nullptr, false);
-  } else if (ext == ".mp4" || ext == ".3gp" || ext == ".mov") {
-    content = make_object<td_api::inputMessageVideo>(
-        make_object<td_api::inputVideo>(file(), nullptr, nullptr, 0, std::vector<std::int32_t>(),
-                                        video_seconds(path.ok()), width, height, true),
-        caption(), false, nullptr, false);
-  } else if (std::find(std::begin(audio), std::end(audio), ext) != std::end(audio)) {
-    content = make_object<td_api::inputMessageAudio>(make_object<td_api::inputAudio>(file(), nullptr, 0, "", ""),
-                                                     nullptr);
-  } else {
-    content = make_object<td_api::inputMessageDocument>(make_object<td_api::inputDocument>(file(), nullptr, false),
-                                                        nullptr);
+// media.album: 2 to 10 files (`items`, each {path, width, height, file} as media.send's) sent as one album. TDLib's
+// rules decide what can go together (photos and videos mix, documents only with documents, audio only with audio): what
+// it refuses comes back as the td error. The caption is the first item's, and only a photo or a video carries it. The
+// rows are queued as send_content's are, and `{ids}` are theirs, in order.
+void media_album(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  td::JsonValue list;
+  if (optional_field(req, "items", td::JsonValue::Type::Array, list) != 1 || list.get_array().size() < 2 ||
+      list.get_array().size() > 10) {
+    return bad_request(conn, id, "need the field items, an array of 2 to 10 objects with a path");
   }
-  send_content(conn, id, chat, topic, std::move(reply), std::move(content));
+  td_api::object_ptr<td_api::InputMessageReplyTo> reply;
+  std::int32_t topic = -1;
+  if (!quote_field(conn, id, req, reply) || !topic_field(conn, id, req, topic)) {
+    return;
+  }
+  td::JsonValue v;
+  const int has_caption = optional_field(req, "caption", td::JsonValue::Type::String, v);
+  if (has_caption < 0) {
+    return bad_request(conn, id, "caption is a string");
+  }
+  std::vector<td_api::object_ptr<td_api::InputMessageContent>> contents;
+  for (td::JsonValue &item : list.get_array()) {
+    if (item.type() != td::JsonValue::Type::Object) {
+      return bad_request(conn, id, "items are objects with a path, and optionally width, height and file");
+    }
+    td::JsonObject &o = item.get_object();
+    auto path = string_field(o, "path");
+    std::int64_t bytes = 0;
+    if (path.is_error() || !regular_file(path.ok(), bytes) || bytes > kMaxFile) {
+      return bad_request(conn, id, "every item needs a path, the absolute path of a file of at most 2000 MB");
+    }
+    std::int32_t width = 0, height = 0;
+    if (!size_field(conn, id, o, "width", width) || !size_field(conn, id, o, "height", height)) {
+      return;
+    }
+    td::JsonValue as_file;
+    const int has_file = optional_field(o, "file", td::JsonValue::Type::Boolean, as_file);
+    if (has_file < 0) {
+      return bad_request(conn, id, "file is true or false");
+    }
+    const bool document = has_file == 1 && as_file.get_boolean();
+    const bool first = contents.empty();
+    contents.push_back(file_content(path.ok(), document, width, height,
+                                    first && has_caption == 1 ? v.get_string().str() : ""));
+  }
+  tdlib.send(make_object<td_api::sendMessageAlbum>(chat, topic_object(topic), std::move(reply), nullptr,
+                                                   std::move(contents)),
+             [conn, id](Obj o) {
+               if (auto e = as_error(o)) {
+                 say("td error: %d %s", e->code_, e->message_.c_str());
+                 return reply_td_error(conn, id, *e);
+               }
+               std::vector<std::string> ids;
+               for (auto &m : static_cast<td_api::messages &>(*o).messages_) {
+                 if (m) {
+                   messages_queue(*m);  // the rows, state 0, under their temporary ids
+                   ids.push_back(std::to_string(m->id_));
+                 }
+               }
+               queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                             r("ids", td::json_array(ids, [](const std::string &s) { return s; }));
+                           })));
+             });
 }
 
 void msg_delete(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
@@ -1067,8 +1139,8 @@ bool regular_file(const std::string &path, std::int64_t &size) {
 
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.close", "chat.read",
-                                     "chat.typing", "chat.set", "msg.send", "media.send", "msg.delete", "msg.edit",
-                                     "msg.forward", "msg.react", "poll.vote", "media.get", "media.cancel"};
+                                     "chat.typing", "chat.set", "msg.send", "media.send", "media.album", "msg.delete",
+                                     "msg.edit", "msg.forward", "msg.react", "poll.vote", "media.get", "media.cancel"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -1140,6 +1212,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     msg_send(conn, id, req, chat);
   } else if (cmd == "media.send") {
     media_send(conn, id, req, chat);
+  } else if (cmd == "media.album") {
+    media_album(conn, id, req, chat);
   } else if (cmd == "msg.delete") {
     msg_delete(conn, id, req, chat);
   } else if (cmd == "msg.edit") {

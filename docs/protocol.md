@@ -57,6 +57,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.pinOrder` | `ids` (the main list's pinned chats, as strings, in their new order, top first; at least one; no `chat`) | — | |
 | `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` (optional) | `{id}` | |
 | `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`, `file` (true: a document whatever the extension, e.g. a JPEG as it is); all but `chat` and `path` optional | `{id}` | |
+| `media.album` | `chat`, `items` (2 to 10 objects `{path, width, height, file}`, each as `media.send`'s of those names; `path` required), `caption` (on the first item), `quote` (a message id), `topic`; all but `chat` and `items` optional | `{ids}`, the rows' temporary ids in order | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
 | `msg.forward` | `chat` (the message's chat), `id` (the message's id), `to` (the chat it goes to); optional `topic` (a topic of `to`) | `{id}`, the new message's id | |
@@ -202,6 +203,16 @@ included. Only a photo or a video carries `caption`: for the other kinds it is n
 as a `msg.send` of its own. `thumb`, a base64 JPEG that HyperBerry needed, is accepted and ignored: TDLib makes its
 own thumbnails. What TDLib refuses (a photo whose `width` and `height` add up to more than 10000, say) is the `td`
 error.
+
+**`media.album`:** 2 to 10 files sent as one album: `items` are objects with the fields of `media.send` of the same
+names (`path`, `width`, `height`, `file`), the kind of each decided by its extension as there. TDLib's own album rules
+apply: photos and videos may mix; documents go only with documents and audio only with audio; what it refuses (a mix
+it does not take, say) is the `td` error and nothing is sent. `caption` is put on the first item only, and takes effect
+only if that item is a photo or a video, as in `media.send`. An `items` that is not an array of 2 to 10 objects, a `path`
+that is missing or is not a regular file of at most 2000 MB, or a field of the wrong kind is `bad_request`. The rows are
+in `chats.db` as *sending* (state 0) under temporary ids before the reply comes, and `{ids}` are those ids, as strings,
+in the order of `items`; each is replaced by one with the final id as `msg.send`'s is. `quote` and `topic` are as in
+`media.send`.
 
 **`msg.delete`:** `everyone: true` deletes for all sides where Telegram allows it, `false` only
 here. The rows go when Telegram confirms (a `msgs` event names them: they no longer read back).

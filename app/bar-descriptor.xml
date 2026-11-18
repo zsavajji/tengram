@@ -86,6 +86,12 @@
             <mime-type>*</mime-type>
             <property var="uris" value="file://"/>
         </filter>
+        <!-- The system's multi-file share: the data is a list of file uris (src/OpenRequests.cpp). -->
+        <filter>
+            <action>bb.action.SHARE</action>
+            <mime-type>filelist/*</mime-type>
+            <property var="uris" value="list://"/>
+        </filter>
         <filter>
             <action>bb.action.SHARE</action>
             <mime-type>text/plain</mime-type>

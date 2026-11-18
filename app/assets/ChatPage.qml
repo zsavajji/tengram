@@ -61,16 +61,17 @@ Page {
         media.ready.connect(page.mediaReady)
         media.openFailed.connect(mediaFailed.show)
         media.saved.connect(savedToast.show)
-        media.pictureEdited.connect(page.stage) // the editor's file is staged as the picker's, the caption kept
+        media.pictureEdited.connect(page.edited) // the editor's file: the send-files page's, else staged as the picker's
     }
     attachedObjects: [
-        // Attach (step 6.2): the system's picker, every file type; the engine sends by the extension.
+        // Attach (step 6.2): the system's picker, every file type; the engine sends by the extension. One file waits in
+        // the staged bar; several open the send-files page (the user's ask, 2026-11-18).
         FilePicker {
             id: attachPicker
             type: FileType.Picture | FileType.Video | FileType.Music | FileType.Document | FileType.Other
-            mode: FilePickerMode.Picker
+            mode: FilePickerMode.PickerMultiple
             title: qsTr("Attach")
-            onFileSelected: page.stage(selectedFiles[0])
+            onFileSelected: selectedFiles.length > 1 ? page.openFiles(selectedFiles) : page.stage(selectedFiles[0])
         },
         ChatController {
             id: ctl
@@ -208,6 +209,10 @@ Page {
                 onCancelled: page.unstage()
             }
         },
+        ComponentDefinition {
+            id: filesDef
+            source: "SendFilesPage.qml"
+        },
         SystemToast {
             id: mediaFailed
             body: qsTr("Couldn't open this file")
@@ -292,6 +297,8 @@ Page {
     property variant searchObj
     property variant reactObj
     property variant stagedObj
+    // The send-files page over this one (openFiles); only meant while nav.top is it (edited).
+    property variant filesPage
     function player() {
         if (!playerObj) {
             var holder = playerDef.createObject()
@@ -357,6 +364,32 @@ Page {
         ctl.cancelReply()
         page.followOwn = !editing // an edit adds no row to follow
     }
+    // What media.send is given for one file, without the chat, topic, quote and caption (sendStaged and sendFiles). asFile:
+    // the PNG itself, which the engine sends as a document by its extension, or the JPEG with `file`.
+    function fileArgs(path, png, asFile) {
+        var args = {"path": asFile && png != "" ? png : path}
+        if (asFile && png == "") {
+            args.file = true
+        }
+        // A photo's thumbnail and size come from here: the engine decodes no picture (step 6.3).
+        var info = media.photoInfo(path)
+        if (info.width) {
+            args.width = info.width
+            args.height = info.height
+        }
+        if (info.thumb) {
+            args.thumb = info.thumb
+        }
+        // A video goes with a play mark on grey for a thumbnail, so the phone that gets it shows a video, not a grey box.
+        var ext = path.substring(path.lastIndexOf(".") + 1).toLowerCase()
+        if (ext == "mp4" || ext == "3gp" || ext == "mov") {
+            var poster = media.videoPoster()
+            if (poster) {
+                args.thumb = poster
+            }
+        }
+        return args
+    }
     // A photo's or a video's caption rides in the message; the other kinds' text follows as a message.
     function sendStaged(text) {
         // From a window of history around the first unread message our row would be dropped (it is beyond the
@@ -366,32 +399,13 @@ Page {
         // (the user's ask, 2026-11-17); the text follows it.
         var asFile = page.stagedBar().asFile && (stagedPng != "" || stagedJpeg)
         var picture = stagedInfo.picture && !asFile
-        var args = {"chat": chat.jid, "path": asFile && stagedPng != "" ? stagedPng : staged}
-        if (asFile && stagedPng == "") {
-            args.file = true
-        }
+        var args = fileArgs(staged, stagedPng, asFile)
+        args.chat = chat.jid
         if (topic) {
             args.topic = topic
         }
         if (ctl.quoteId()) {
             args.quote = ctl.quoteId()
-        }
-        // A photo's thumbnail and size come from here: the engine decodes no picture (step 6.3).
-        var info = media.photoInfo(staged)
-        if (info.width) {
-            args.width = info.width
-            args.height = info.height
-        }
-        if (info.thumb) {
-            args.thumb = info.thumb
-        }
-        // A video goes with a play mark on grey for a thumbnail, so the phone that gets it shows a video, not a grey box.
-        var ext = staged.substring(staged.lastIndexOf(".") + 1).toLowerCase()
-        if (ext == "mp4" || ext == "3gp" || ext == "mov") {
-            var poster = media.videoPoster()
-            if (poster) {
-                args.thumb = poster
-            }
         }
         if (picture && text) {
             args.caption = text
@@ -406,10 +420,124 @@ Page {
         }
         return true
     }
-    // The picker's file waits in the staged bar; what is typed is its caption.
-    function stage(path) {
-        // A PNG goes as a photo, made a JPEG as the story picker does: the engine sends a .png as a file.
-        // The picker can't say which of its tabs the file came from, so every PNG does (and a failed one stays a file).
+    // Several files, from the send-files page (the user's ask, 2026-11-18): items are its {path, png, info}. Each is a
+    // photo or video (class 0), an audio file (1) or a document (2); with group, each class goes as albums of at most
+    // 10 (Telegram's own rule: photos and videos mix, documents and audio only with their own kind), the classes in
+    // the order they first appear; without it, one message each, in order. A lone file of a class goes as media.send.
+    // The first request carries the topic and the quote, and the caption when its first file is a photo or video.
+    function sendFiles(items, group, asFile, caption) {
+        if (items.length == 0) {
+            return
+        }
+        ctl.messages.toLiveEnd()
+        var sends = []
+        var order = []
+        for (var i = 0; i < items.length; i++) {
+            var audio = /\.(mp3|m4a|aac|amr|ogg|wav)$/i.test(items[i].path)
+            var kind = !asFile && items[i].info.picture ? 0 : !asFile && audio ? 1 : 2
+            sends.push({"kind": kind, "args": fileArgs(items[i].path, items[i].png, asFile)})
+            if (order.indexOf(kind) < 0) {
+                order.push(kind)
+            }
+        }
+        var chunks = []
+        if (!group) {
+            for (var j = 0; j < sends.length; j++) {
+                chunks.push([sends[j]])
+            }
+        } else {
+            for (var c = 0; c < order.length; c++) {
+                var chunk = []
+                for (var k = 0; k < sends.length; k++) {
+                    if (sends[k].kind == order[c]) {
+                        chunk.push(sends[k])
+                        if (chunk.length == 10) {
+                            chunks.push(chunk)
+                            chunk = []
+                        }
+                    }
+                }
+                if (chunk.length > 0) {
+                    chunks.push(chunk)
+                }
+            }
+        }
+        var quote = ctl.quoteId()
+        var captioned = sends[0].kind == 0 && caption != ""
+        for (var r = 0; r < chunks.length; r++) {
+            var req
+            if (chunks[r].length == 1) {
+                req = chunks[r][0].args
+            } else {
+                req = {"items": []}
+                for (var m = 0; m < chunks[r].length; m++) {
+                    req.items.push(chunks[r][m].args)
+                }
+            }
+            req.chat = chat.jid
+            if (r == 0) {
+                if (topic) {
+                    req.topic = topic
+                }
+                if (quote) {
+                    req.quote = quote
+                }
+                if (captioned) {
+                    req.caption = caption
+                }
+            }
+            if (!engine.request(chunks[r].length == 1 ? "media.send" : "media.album", req)) {
+                notSent.show()
+                return
+            }
+        }
+        if (!captioned && caption != "") {
+            // The files carry the reply; the text after them is plain.
+            ctl.cancelReply()
+            ctl.send(caption)
+        }
+        composer.text = ""
+        ctl.cancelReply()
+        page.followOwn = true
+        if (filesPage && nav.top == filesPage) {
+            nav.pop()
+        }
+        filesPage = null
+    }
+    // The editor's file: the send-files page's picture when it is on top, else staged as the picker's.
+    function edited(path) {
+        if (filesPage && nav.top == filesPage) {
+            filesPage.edited(path)
+        } else {
+            stage(path)
+        }
+    }
+    // Several files go to the send-files page, pushed over this one; one waits in the staged bar as the picker's.
+    // The composer's text is the caption. Each goes through the same rule as stage: a PNG as a JPEG, a file that can't
+    // be read skipped.
+    function openFiles(paths) {
+        var items = []
+        for (var i = 0; i < paths.length; i++) {
+            var f = picked(paths[i])
+            if (f) {
+                items.push(f)
+            }
+        }
+        if (items.length == 1) {
+            stage(items[0].png != "" ? items[0].png : items[0].path)
+        } else if (items.length > 1) {
+            var files = filesDef.createObject()
+            files.media = media
+            files.caption = composer.text
+            files.items = items
+            files.send.connect(page.sendFiles)
+            filesPage = files
+            nav.push(files)
+        }
+    }
+    // A file to send as {path, png, info}: a PNG goes as a photo, made a JPEG as the story picker does (the engine sends
+    // a .png as a file), with the original in png; info is MediaOpener.fileInfo's. Null for a file that can't be read.
+    function picked(path) {
         var png = ""
         if (/\.png$/i.test(path)) {
             var jpg = media.asJpeg(path)
@@ -419,13 +547,19 @@ Page {
             }
         }
         var info = media.fileInfo(path)
-        if (!info.name) {
+        return info.name ? {"path": path, "png": png, "info": info} : null
+    }
+    // The picker's file waits in the staged bar; what is typed is its caption.
+    function stage(path) {
+        // The picker can't say which of its tabs the file came from, so every PNG does (and a failed one stays a file).
+        var f = picked(path)
+        if (!f) {
             return
         }
-        staged = path
-        stagedPng = png
+        staged = f.path
+        stagedPng = f.png
         page.stagedBar().asFile = false
-        stagedInfo = info
+        stagedInfo = f.info
         composer.requestFocus()
     }
     // A file or text from the phone's Share menu (SharePage.qml): staged as the picker's file, the

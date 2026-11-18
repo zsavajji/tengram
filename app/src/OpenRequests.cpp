@@ -1,7 +1,11 @@
 #include "OpenRequests.h"
 
+#include <bb/data/JsonDataAccess>
 #include <QDebug>
 #include <QRegExp>
+#include <QUrl>
+#include <QVariantList>
+#include <QVariantMap>
 
 using namespace bb::system;
 
@@ -18,7 +22,24 @@ void OpenRequests::invoked(const InvokeRequest &request)
 {
     if (request.action() == "bb.action.SHARE") {
         qDebug() << "shared:" << request.mimeType() << request.uri() << request.data().left(200);
-        // ponytail: one file; a multi-file share (filelist) isn't offered by the descriptor.
+        // The system's multi-file share (the user's ask, 2026-11-18): the mime type is filelist/..., the data a JSON array
+        // of objects with a uri (file:///...), as the editor's answer is (MediaOpener). Untested on the phone: the format
+        // is as the editor's, not seen from a Share menu yet.
+        if (request.mimeType().startsWith("filelist/")) {
+            bb::data::JsonDataAccess json;
+            const QVariantList list = json.loadFromBuffer(request.data()).toList();
+            QStringList paths;
+            foreach (const QVariant &item, list) {
+                const QString uri = item.toMap().value("uri").toString();
+                if (uri.startsWith("file://"))
+                    paths << QUrl::fromPercentEncoding(uri.mid(7).toUtf8());
+            }
+            if (paths.size() > 1)
+                emit sharedFiles(paths);
+            else if (paths.size() == 1)
+                emit shared(paths.first(), QString());
+            return;
+        }
         const QString path = request.uri().scheme() == "file" ? request.uri().toLocalFile() : QString();
         const QString text = path.isEmpty() ? QString::fromUtf8(request.data()) : QString();
         if (!path.isEmpty() || !text.trimmed().isEmpty())

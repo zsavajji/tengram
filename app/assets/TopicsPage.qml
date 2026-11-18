@@ -26,6 +26,10 @@ Page {
     function share(path, text) {
         pending = {"path": path, "text": text}
     }
+    // Several files from the Share menu (main.qml's shareTo) wait there too, for the topic's chat page to take.
+    function openFiles(paths) {
+        pending = {"paths": paths}
+    }
     // A message to forward ({chat, id}, main.qml's forwardTo) waits in the same place: Back without a tap sends nothing.
     function forward(fwd) {
         pending = {"forward": fwd}
@@ -46,6 +50,9 @@ Page {
         chatPage.focusComposer()
         if (pending.path || pending.text) {
             chatPage.share(pending.path, pending.text)
+            pending = {}
+        } else if (pending.paths) {
+            chatPage.openFiles(pending.paths)
             pending = {}
         }
     }

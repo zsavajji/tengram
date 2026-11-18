@@ -287,6 +287,14 @@ user batches: build one package when the round is ready, then ask to install it.
 17. **About → Open source libraries** (2026-11-18, builds, not packaged): ten rows (name, version, licence), each
     opening the project's page in the browser; the header in the ten languages. Update the versions when
     `build-deps.sh` or a `fetch-*.sh` pins a new one.
+18. **Several files at once** (2026-11-18, builds, not packaged): Attach picks several (PickerMultiple); two or more
+    open **Send files** (`SendFilesPage.qml`): a 3-column grid, a square cross drops a file, a tap on a picture opens the
+    system editor and the edited file takes its place; Group as album (on) and Send as files (off); the caption, from the
+    composer. Grouped: photos and videos in albums of up to 10 (engine `media.album`, `sendMessageAlbum`), documents and
+    audio each with their own kind, a lone file as `media.send`; the caption on the first photo or video, else a text
+    after. Also several files from another app's Share menu (`filelist/*`, `OpenRequests::sharedFiles`; **the data's
+    format is a guess**: tengramd's UI log prints `shared:` with it), into a forum's topic too. Check: 2 photos, 12
+    photos (two albums), photos + a PDF, Send as files, a reply and a topic, edit then send, cross down to none.
 
 **Saved for later (the user, 2026-11-18): video streaming.** Possible, not built. bbtube plays a local MP4 while it
 fills (moov written first, the file at its final size). For Tengram the planned route is a small HTTP server in the
