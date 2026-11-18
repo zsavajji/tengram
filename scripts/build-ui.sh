@@ -11,6 +11,16 @@ IMAGE=${BB10_NDK_IMAGE:-yamsergey/bb10-ndk:0.6}
 "$ROOT/scripts/fetch-omxil.sh"
 "$ROOT/scripts/fetch-libwebp.sh"
 "$ROOT/scripts/fetch-qtsqlcipher.sh"
+# Two functions of one name on a page's root object parse, and then the phone refuses the whole page ("Duplicate
+# method name": ChatPage's picked, 0.1.0.29), which lupdate doesn't see.
+dups=$(for f in "$ROOT"/app/assets/*.qml; do
+	sed -n 's/^    function \([A-Za-z0-9_]*\)(.*/\1/p' "$f" | sort | uniq -d | sed "s|^|$(basename "$f"): |"
+done)
+if [ -n "$dups" ]; then
+	echo "build-ui.sh: a function defined twice on a page's root object:" >&2
+	echo "$dups" >&2
+	exit 1
+fi
 docker run --rm -v "$ROOT:/src" -w /src "$IMAGE" bash -c '
 	source /root/bbndk/bbndk-env_10_3_1_995.sh >/dev/null
 	set -eu

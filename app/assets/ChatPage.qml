@@ -518,7 +518,7 @@ Page {
     function openFiles(paths) {
         var items = []
         for (var i = 0; i < paths.length; i++) {
-            var f = picked(paths[i])
+            var f = fileItem(paths[i])
             if (f) {
                 items.push(f)
             }
@@ -537,7 +537,7 @@ Page {
     }
     // A file to send as {path, png, info}: a PNG goes as a photo, made a JPEG as the story picker does (the engine sends
     // a .png as a file), with the original in png; info is MediaOpener.fileInfo's. Null for a file that can't be read.
-    function picked(path) {
+    function fileItem(path) {
         var png = ""
         if (/\.png$/i.test(path)) {
             var jpg = media.asJpeg(path)
@@ -552,7 +552,7 @@ Page {
     // The picker's file waits in the staged bar; what is typed is its caption.
     function stage(path) {
         // The picker can't say which of its tabs the file came from, so every PNG does (and a failed one stays a file).
-        var f = picked(path)
+        var f = fileItem(path)
         if (!f) {
             return
         }
