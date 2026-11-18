@@ -3089,27 +3089,27 @@
 <context>
     <name>SendFilesPage</name>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="18"/>
+        <location filename="../assets/SendFilesPage.qml" line="20"/>
         <source>Send files</source>
         <translation>Отправить файлы</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="176"/>
-        <source>Group as album</source>
-        <translation>Сгруппировать в альбом</translation>
+        <location filename="../assets/SendFilesPage.qml" line="240"/>
+        <source>Album</source>
+        <translation>Альбом</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="181"/>
-        <source>Send as files</source>
-        <translation>Отправить как файлы</translation>
+        <location filename="../assets/SendFilesPage.qml" line="257"/>
+        <source>As files</source>
+        <translation>Файлами</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="186"/>
+        <location filename="../assets/SendFilesPage.qml" line="273"/>
         <source>Caption</source>
         <translation>Подпись</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="196"/>
+        <location filename="../assets/SendFilesPage.qml" line="283"/>
         <source>Send</source>
         <translation>Отправить</translation>
     </message>

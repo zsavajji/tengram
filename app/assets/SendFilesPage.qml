@@ -1,7 +1,9 @@
 import bb.cascades 1.4
 
-// Several files picked to send (the user's ask, 2026-11-18): a grid of them, a cross on each that drops it, a tap on a
-// picture opens the system's editor. Below the grid, whether they go as one album, whether as files, and the caption.
+// Several files picked to send (the user's ask, 2026-11-18): a carousel of them, one large at a time with the next
+// peeking (a 3-column grid made them small on the Classic, and the checkboxes under it didn't fit), a cross on each
+// that drops it, a tap on a picture opens the system's editor. Under it two square toggles, Album and As files, on one
+// row, and the caption.
 // The page only collects: send() goes to the chat page (ChatPage.sendFiles), which sends and pops this one.
 // items are {path, png, info} (png: the PNG a JPEG was made from, "" for none; info: MediaOpener.fileInfo's), caption
 // the composer's text, media the chat page's MediaOpener (the editor's answer comes to its pictureEdited). All three
@@ -69,11 +71,27 @@ Page {
         }
         return list
     }
+    // A square toggle: the primary colour when on (the UI is square, the user).
+    function chipColor(on) {
+        return on ? ui.palette.primary : Color.create("#40808080")
+    }
+    property bool group: true
+    property bool asFile: false
     Container {
         ListView {
-            id: grid
+            id: carousel
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1
+            }
+            // A cell is the list's height and its width less a strip where the next file shows.
+            property real cellWidth: 0
+            property real cellHeight: 0
+            property int count: 0
+            attachedObjects: LayoutUpdateHandler {
+                onLayoutFrameChanged: {
+                    carousel.cellWidth = layoutFrame.width - ui.du(7)
+                    carousel.cellHeight = layoutFrame.height
+                }
             }
             // The cells reach the page through this list (ListItem.view).
             function drop(index) {
@@ -84,110 +102,179 @@ Page {
             }
             dataModel: ArrayDataModel {
                 id: files
+                onItemAdded: carousel.count = size()
+                onItemRemoved: carousel.count = size()
+                onItemsChanged: carousel.count = size()
             }
-            layout: GridListLayout {
-                columnCount: 3
-                cellAspectRatio: 1
+            layout: StackListLayout {
+                orientation: LayoutOrientation.LeftToRight
             }
+            snapMode: SnapMode.LeadingEdge
+            flickMode: FlickMode.SingleItem
+            scrollIndicatorMode: ScrollIndicatorMode.None
             listItemComponents: [
                 ListItemComponent {
                     Container {
                         id: cell
-                        layout: DockLayout {
-                        }
-                        background: ui.palette.plain
-                        // The picture, from the cached preview (MediaOpener.composePreview).
-                        ImageView {
-                            visible: ListItemData.kind == 0
+                        preferredWidth: cell.ListItem.view.cellWidth
+                        preferredHeight: cell.ListItem.view.cellHeight
+                        topPadding: ui.du(1)
+                        bottomPadding: ui.du(1)
+                        leftPadding: ui.du(1)
+                        Container {
                             horizontalAlignment: HorizontalAlignment.Fill
                             verticalAlignment: VerticalAlignment.Fill
-                            imageSource: ListItemData.preview != "" ? "file://" + ListItemData.preview : ""
-                            scalingMethod: ScalingMethod.AspectFill
-                            loadEffect: ImageViewLoadEffect.None
-                            gestureHandlers: TapHandler {
-                                onTapped: cell.ListItem.view.edit(cell.ListItem.indexPath[0])
+                            layoutProperties: StackLayoutProperties {
+                                spaceQuota: 1
                             }
-                        }
-                        // A video, a document or an audio file: its mark, name and size.
-                        Container {
-                            visible: ListItemData.kind != 0
-                            horizontalAlignment: HorizontalAlignment.Fill
-                            verticalAlignment: VerticalAlignment.Center
-                            leftPadding: ui.du(1)
-                            rightPadding: ui.du(1)
-                            Label {
-                                horizontalAlignment: HorizontalAlignment.Center
-                                // U+1F3AC, the clapper board, or U+1F4CE, the paperclip.
-                                text: ListItemData.kind == 1 ? "🎬" : "📎"
-                                textFormat: TextFormat.Plain
-                                textStyle.base: nav.emojiStyle
-                                textStyle.fontSize: FontSize.PercentageValue
-                                textStyle.fontSizeValue: 150
+                            layout: DockLayout {
                             }
-                            Label {
+                            background: Color.create("#20808080")
+                            // The whole picture, from the cached preview (MediaOpener.composePreview).
+                            ImageView {
+                                visible: ListItemData.kind == 0
                                 horizontalAlignment: HorizontalAlignment.Fill
-                                multiline: false
-                                text: ListItemData.info.name
-                                textFormat: TextFormat.Plain
-                                textStyle.base: nav.emojiStyle
-                                textStyle.fontSize: FontSize.PercentageValue
-                                textStyle.fontSizeValue: nav.smallSize
+                                verticalAlignment: VerticalAlignment.Fill
+                                imageSource: ListItemData.preview != "" ? "file://" + ListItemData.preview : ""
+                                scalingMethod: ScalingMethod.AspectFit
+                                loadEffect: ImageViewLoadEffect.None
+                                gestureHandlers: TapHandler {
+                                    onTapped: cell.ListItem.view.edit(cell.ListItem.indexPath[0])
+                                }
                             }
-                            Label {
-                                horizontalAlignment: HorizontalAlignment.Center
-                                multiline: false
-                                text: ListItemData.info.sizeText
-                                textFormat: TextFormat.Plain
-                                textStyle.base: nav.emojiStyle
-                                textStyle.fontSize: FontSize.PercentageValue
-                                textStyle.fontSizeValue: nav.smallSize
-                                textStyle.color: ui.palette.secondaryTextOnPlain
+                            // A video, a document or an audio file: its mark, name and size.
+                            Container {
+                                visible: ListItemData.kind != 0
+                                horizontalAlignment: HorizontalAlignment.Fill
+                                verticalAlignment: VerticalAlignment.Center
+                                leftPadding: ui.du(2)
+                                rightPadding: ui.du(2)
+                                Label {
+                                    horizontalAlignment: HorizontalAlignment.Center
+                                    // U+1F3AC, the clapper board, or U+1F4CE, the paperclip.
+                                    text: ListItemData.kind == 1 ? "🎬" : "📎"
+                                    textFormat: TextFormat.Plain
+                                    textStyle.base: nav.emojiStyle
+                                    textStyle.fontSize: FontSize.PercentageValue
+                                    textStyle.fontSizeValue: 300
+                                }
+                                Label {
+                                    horizontalAlignment: HorizontalAlignment.Center
+                                    multiline: true
+                                    text: ListItemData.info.name
+                                    textFormat: TextFormat.Plain
+                                    textStyle.base: nav.emojiStyle
+                                    textStyle.textAlign: TextAlign.Center
+                                    textStyle.fontSize: FontSize.PercentageValue
+                                    textStyle.fontSizeValue: nav.bodySize
+                                }
+                                Label {
+                                    horizontalAlignment: HorizontalAlignment.Center
+                                    multiline: false
+                                    text: ListItemData.info.sizeText
+                                    textFormat: TextFormat.Plain
+                                    textStyle.base: nav.emojiStyle
+                                    textStyle.fontSize: FontSize.PercentageValue
+                                    textStyle.fontSizeValue: nav.smallSize
+                                    textStyle.color: ui.palette.secondaryTextOnPlain
+                                }
                             }
-                        }
-                        // The cross, a square in the corner; a sibling of the picture, so its tap isn't the picture's.
-                        Container {
-                            horizontalAlignment: HorizontalAlignment.Right
-                            verticalAlignment: VerticalAlignment.Top
-                            leftPadding: ui.du(1.5)
-                            rightPadding: ui.du(1.5)
-                            topPadding: ui.du(1)
-                            bottomPadding: ui.du(1)
-                            background: Color.create("#99000000")
-                            gestureHandlers: TapHandler {
-                                onTapped: cell.ListItem.view.drop(cell.ListItem.indexPath[0])
+                            // Which file of how many, in the lower left corner.
+                            Container {
+                                horizontalAlignment: HorizontalAlignment.Left
+                                verticalAlignment: VerticalAlignment.Bottom
+                                leftPadding: ui.du(1)
+                                rightPadding: ui.du(1)
+                                background: Color.create("#99000000")
+                                Label {
+                                    text: (cell.ListItem.indexPath[0] + 1) + " / " + cell.ListItem.view.count
+                                    textFormat: TextFormat.Plain
+                                    textStyle.color: Color.White
+                                    textStyle.fontSize: FontSize.PercentageValue
+                                    textStyle.fontSizeValue: nav.smallSize
+                                }
                             }
-                            Label {
-                                text: "✕"
-                                textFormat: TextFormat.Plain
-                                textStyle.base: nav.emojiStyle
-                                textStyle.color: Color.White
+                            // The cross, a square in the corner; a sibling of the picture, so its tap isn't the picture's.
+                            Container {
+                                horizontalAlignment: HorizontalAlignment.Right
+                                verticalAlignment: VerticalAlignment.Top
+                                leftPadding: ui.du(2)
+                                rightPadding: ui.du(2)
+                                topPadding: ui.du(1.5)
+                                bottomPadding: ui.du(1.5)
+                                background: Color.create("#99000000")
+                                gestureHandlers: TapHandler {
+                                    onTapped: cell.ListItem.view.drop(cell.ListItem.indexPath[0])
+                                }
+                                Label {
+                                    text: "✕"
+                                    textFormat: TextFormat.Plain
+                                    textStyle.color: Color.White
+                                }
                             }
                         }
                     }
                 }
             ]
         }
+        // The two choices, square toggles on one row.
         Container {
             horizontalAlignment: HorizontalAlignment.Fill
-            leftPadding: ui.du(1.5)
-            rightPadding: ui.du(1.5)
-            CheckBox {
-                id: groupBox
-                text: qsTr("Group as album")
-                checked: true
+            leftPadding: ui.du(1)
+            rightPadding: ui.du(1)
+            topPadding: ui.du(1)
+            layout: StackLayout {
+                orientation: LayoutOrientation.LeftToRight
             }
-            CheckBox {
-                id: filesBox
-                text: qsTr("Send as files")
-                checked: false
+            Container {
+                rightMargin: ui.du(1)
+                leftPadding: ui.du(2)
+                rightPadding: ui.du(2)
+                topPadding: ui.du(1)
+                bottomPadding: ui.du(1)
+                background: page.chipColor(page.group)
+                gestureHandlers: TapHandler {
+                    onTapped: page.group = !page.group
+                }
+                Label {
+                    text: (page.group ? "✓ " : "") + qsTr("Album")
+                    textFormat: TextFormat.Plain
+                    textStyle.color: page.group ? Color.White : ui.palette.textOnPlain
+                    textStyle.fontSize: FontSize.PercentageValue
+                    textStyle.fontSizeValue: nav.bodySize
+                }
             }
+            Container {
+                leftPadding: ui.du(2)
+                rightPadding: ui.du(2)
+                topPadding: ui.du(1)
+                bottomPadding: ui.du(1)
+                background: page.chipColor(page.asFile)
+                gestureHandlers: TapHandler {
+                    onTapped: page.asFile = !page.asFile
+                }
+                Label {
+                    text: (page.asFile ? "✓ " : "") + qsTr("As files")
+                    textFormat: TextFormat.Plain
+                    textStyle.color: page.asFile ? Color.White : ui.palette.textOnPlain
+                    textStyle.fontSize: FontSize.PercentageValue
+                    textStyle.fontSizeValue: nav.bodySize
+                }
+            }
+        }
+        Container {
+            horizontalAlignment: HorizontalAlignment.Fill
+            leftPadding: ui.du(1)
+            rightPadding: ui.du(1)
+            topPadding: ui.du(1)
+            bottomPadding: ui.du(1)
             TextArea {
                 id: captionField
                 hintText: qsTr("Caption")
                 text: page.caption
                 textFormat: TextFormat.Plain
                 textStyle.base: nav.emojiStyle
-                autoSize.maxLineCount: 3
+                autoSize.maxLineCount: 2
             }
         }
     }
@@ -196,7 +283,7 @@ Page {
             title: qsTr("Send")
             imageSource: "file:///usr/share/icons/bb_action_sendtextmessage.png"
             ActionBar.placement: ActionBarPlacement.Signature
-            onTriggered: page.send(page.all(), groupBox.checked, filesBox.checked, captionField.text.trim())
+            onTriggered: page.send(page.all(), page.group, page.asFile, captionField.text.trim())
         }
     ]
 }

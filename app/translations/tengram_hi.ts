@@ -3084,27 +3084,27 @@
 <context>
     <name>SendFilesPage</name>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="18"/>
+        <location filename="../assets/SendFilesPage.qml" line="20"/>
         <source>Send files</source>
         <translation>फ़ाइलें भेजें</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="176"/>
-        <source>Group as album</source>
-        <translation>एल्बम के रूप में समूहित करें</translation>
+        <location filename="../assets/SendFilesPage.qml" line="240"/>
+        <source>Album</source>
+        <translation>एल्बम</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="181"/>
-        <source>Send as files</source>
-        <translation>फ़ाइलों के रूप में भेजें</translation>
+        <location filename="../assets/SendFilesPage.qml" line="257"/>
+        <source>As files</source>
+        <translation>फ़ाइलों के रूप में</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="186"/>
+        <location filename="../assets/SendFilesPage.qml" line="273"/>
         <source>Caption</source>
         <translation>कैप्शन</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="196"/>
+        <location filename="../assets/SendFilesPage.qml" line="283"/>
         <source>Send</source>
         <translation>भेजें</translation>
     </message>

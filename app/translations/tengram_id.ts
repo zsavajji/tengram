@@ -3079,27 +3079,27 @@
 <context>
     <name>SendFilesPage</name>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="18"/>
+        <location filename="../assets/SendFilesPage.qml" line="20"/>
         <source>Send files</source>
         <translation>Kirim file</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="176"/>
-        <source>Group as album</source>
-        <translation>Kelompokkan sebagai album</translation>
+        <location filename="../assets/SendFilesPage.qml" line="240"/>
+        <source>Album</source>
+        <translation>Album</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="181"/>
-        <source>Send as files</source>
-        <translation>Kirim sebagai file</translation>
+        <location filename="../assets/SendFilesPage.qml" line="257"/>
+        <source>As files</source>
+        <translation>Sebagai file</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="186"/>
+        <location filename="../assets/SendFilesPage.qml" line="273"/>
         <source>Caption</source>
         <translation>Keterangan</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="196"/>
+        <location filename="../assets/SendFilesPage.qml" line="283"/>
         <source>Send</source>
         <translation>Kirim</translation>
     </message>
