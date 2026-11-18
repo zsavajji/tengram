@@ -3,7 +3,7 @@ import bb.cascades 1.4
 // Several files picked to send (the user's ask, 2026-11-18): a carousel of them, one large at a time with the next
 // peeking (a 3-column grid made them small on the Classic, and the checkboxes under it didn't fit), a cross on each
 // that drops it, a tap on a picture opens the system's editor. Under it two square toggles, Album and As files, on one
-// row, and the caption.
+// row, and the caption. No title bar: it didn't fit with one.
 // The page only collects: send() goes to the chat page (ChatPage.sendFiles), which sends and pops this one.
 // items are {path, png, info} (png: the PNG a JPEG was made from, "" for none; info: MediaOpener.fileInfo's), caption
 // the composer's text, media the chat page's MediaOpener (the editor's answer comes to its pictureEdited). All three
@@ -16,9 +16,7 @@ Page {
     // The cell the editor was opened on, until it hands a file back (edited).
     property int editing: -1
     signal send(variant items, bool group, bool asFile, string caption)
-    titleBar: TitleBar {
-        title: qsTr("Send files")
-    }
+    // No title bar: on the Classic the page didn't fit with one (the user, 2026-11-18).
     // kind: 0 a picture (with its preview), 1 a video, 2 anything else. info keeps no image: the model holds plain maps.
     function entry(path, png, info) {
         var ext = path.substring(path.lastIndexOf(".") + 1).toLowerCase()
@@ -78,20 +76,21 @@ Page {
     property bool group: true
     property bool asFile: false
     Container {
+        // The carousel takes a share of the page, a little under what fit (the user, 2026-11-18): the toggles and the
+        // caption below it keep some room.
+        attachedObjects: LayoutUpdateHandler {
+            onLayoutFrameChanged: carousel.preferredHeight = Math.round(layoutFrame.height * 0.58)
+        }
         ListView {
             id: carousel
-            layoutProperties: StackLayoutProperties {
-                spaceQuota: 1
-            }
-            // A cell is the list's height and its width less a strip where the next file shows.
+            // A cell is the list's height and its width less a strip where the next file shows. The last cell is wider
+            // by that strip, so it too can line up with the list's leading edge: narrower, the snap couldn't reach it
+            // and pulled it back, a jump at every step with two files (the user, 2026-11-18).
+            property real peek: ui.du(7)
             property real cellWidth: 0
-            property real cellHeight: 0
             property int count: 0
             attachedObjects: LayoutUpdateHandler {
-                onLayoutFrameChanged: {
-                    carousel.cellWidth = layoutFrame.width - ui.du(7)
-                    carousel.cellHeight = layoutFrame.height
-                }
+                onLayoutFrameChanged: carousel.cellWidth = layoutFrame.width - carousel.peek
             }
             // The cells reach the page through this list (ListItem.view).
             function drop(index) {
@@ -116,11 +115,13 @@ Page {
                 ListItemComponent {
                     Container {
                         id: cell
-                        preferredWidth: cell.ListItem.view.cellWidth
-                        preferredHeight: cell.ListItem.view.cellHeight
+                        property bool last: cell.ListItem.indexPath[0] == cell.ListItem.view.count - 1
+                        preferredWidth: cell.ListItem.view.cellWidth + (cell.last ? cell.ListItem.view.peek : 0)
+                        preferredHeight: cell.ListItem.view.preferredHeight
                         topPadding: ui.du(1)
                         bottomPadding: ui.du(1)
                         leftPadding: ui.du(1)
+                        rightPadding: cell.last ? cell.ListItem.view.peek : 0
                         Container {
                             horizontalAlignment: HorizontalAlignment.Fill
                             verticalAlignment: VerticalAlignment.Fill
@@ -192,6 +193,27 @@ Page {
                                     textStyle.color: Color.White
                                     textStyle.fontSize: FontSize.PercentageValue
                                     textStyle.fontSizeValue: nav.smallSize
+                                }
+                            }
+                            // A tap edits a picture: a pencil, a square in the lower right corner, says so (the user, 2026-11-18).
+                            Container {
+                                visible: ListItemData.kind == 0
+                                horizontalAlignment: HorizontalAlignment.Right
+                                verticalAlignment: VerticalAlignment.Bottom
+                                leftPadding: ui.du(1)
+                                rightPadding: ui.du(1)
+                                topPadding: ui.du(1)
+                                bottomPadding: ui.du(1)
+                                background: Color.create("#99000000")
+                                gestureHandlers: TapHandler {
+                                    onTapped: cell.ListItem.view.edit(cell.ListItem.indexPath[0])
+                                }
+                                ImageView {
+                                    imageSource: "file:///usr/share/icons/ic_edit.png"
+                                    preferredWidth: ui.du(5)
+                                    preferredHeight: ui.du(5)
+                                    scalingMethod: ScalingMethod.AspectFit
+                                    filterColor: Color.White
                                 }
                             }
                             // The cross, a square in the corner; a sibling of the picture, so its tap isn't the picture's.

@@ -3084,27 +3084,22 @@
 <context>
     <name>SendFilesPage</name>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="20"/>
-        <source>Send files</source>
-        <translation>Invia file</translation>
-    </message>
-    <message>
-        <location filename="../assets/SendFilesPage.qml" line="240"/>
+        <location filename="../assets/SendFilesPage.qml" line="262"/>
         <source>Album</source>
         <translation>Album</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="257"/>
+        <location filename="../assets/SendFilesPage.qml" line="279"/>
         <source>As files</source>
         <translation>Come file</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="273"/>
+        <location filename="../assets/SendFilesPage.qml" line="295"/>
         <source>Caption</source>
         <translation>Didascalia</translation>
     </message>
     <message>
-        <location filename="../assets/SendFilesPage.qml" line="283"/>
+        <location filename="../assets/SendFilesPage.qml" line="305"/>
         <source>Send</source>
         <translation>Invia</translation>
     </message>
