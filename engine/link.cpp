@@ -181,6 +181,7 @@ void on_ready() {
       auto &u = static_cast<td_api::user &>(*o);
       cur.me = std::to_string(u.id_);
       cur.me_id = u.id_;
+      chats_rewrite(u.id_, false);  // Saved Messages, if TDLib announced it before this answer
       cur.name = u.first_name_ + (u.last_name_.empty() ? "" : " " + u.last_name_);
     }
     chats_start();  // before the state is ready: if it sets `syncing`, the first link event carries it
