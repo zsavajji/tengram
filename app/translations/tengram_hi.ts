@@ -2859,6 +2859,11 @@
         <translation>Telegram इस नंबर को लिंक से जुड़ने नहीं देता। अगर किसी एडमिन ने इसे हटाया है, तो एडमिन को ही इसे वापस जोड़ना होगा।</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="233"/>
+        <source>Request sent: an admin of the group has to let you in.</source>
+        <translation>अनुरोध भेज दिया गया: ग्रुप के किसी एडमिन को आपको अंदर आने देना होगा।</translation>
+    </message>
+    <message>
         <source>Chats</source>
         <translation type="obsolete">चैट</translation>
     </message>

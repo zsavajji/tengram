@@ -2862,6 +2862,11 @@
         <translation>Telegram nie pozwala temu numerowi dołączyć przez link. Jeśli administrator go usunął, administrator musi dodać go ponownie.</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="233"/>
+        <source>Request sent: an admin of the group has to let you in.</source>
+        <translation>Prośba wysłana: administrator grupy musi Cię wpuścić.</translation>
+    </message>
+    <message>
         <source>Chats</source>
         <translation type="obsolete">Czaty</translation>
     </message>

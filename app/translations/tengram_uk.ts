@@ -2862,6 +2862,11 @@
         <translation>Telegram не дозволяє цьому номеру приєднуватися за посиланням. Якщо номер видалив адміністратор, повернути його має адміністратор.</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="233"/>
+        <source>Request sent: an admin of the group has to let you in.</source>
+        <translation>Запит надіслано: адміністратор групи має вас впустити.</translation>
+    </message>
+    <message>
         <source>Chats</source>
         <translation type="obsolete">Чати</translation>
     </message>

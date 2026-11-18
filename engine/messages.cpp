@@ -220,6 +220,8 @@ void add_reactions(Row &r, const td_api::message &m) {
   }
 }
 
+}  // namespace
+
 // The text, of those kinds of content that show a formatted one (a document's is its caption), or nullptr.
 const td_api::formattedText *shown_text(const td_api::MessageContent &c) {
   switch (c.get_id()) {
@@ -241,6 +243,8 @@ const td_api::formattedText *shown_text(const td_api::MessageContent &c) {
       return nullptr;
   }
 }
+
+namespace {
 
 const td_api::photoSize *largest(const td_api::photo &p) {
   const td_api::photoSize *best = nullptr;

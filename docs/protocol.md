@@ -81,6 +81,13 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.clear` | `chat` | — | |
 | `chat.delete` | `chat` | — | |
 | `channel.unfollow` | `chat` (a channel) | — | `bad_chat` |
+| `contact.block` | `chat` (a person: a private or a secret chat), `block` (bool) | — | `bad_chat` |
+| `group.participants` | `chat` (a basic group, or a supergroup that is not a channel), `jid` (a user id), `action` (`add`, `remove`, `promote` or `demote`) | — | `bad_chat`, `refused` |
+| `group.create` | `name`, `participants` [user ids] | `{jid, refused}`, the new group's chat key and how many of the people could not be added | `name_too_long` |
+| `poll.create` | `chat`, `question`, `options` [2 to 12 strings], `multiple` (bool); optional `topic` | `{id}`, the new message's id | `bad_chat` |
+| `invite.info` | `url` (a `t.me/+…` or `t.me/joinchat/…` link) | `{member: true, jid}`, or `{member: false, kind, code, jid, name, count}` | `invite_invalid` |
+| `invite.accept` | `code` (the link as `invite.info` gave it); `kind`, `jid` and `name` of that answer may come along and are not read | `{jid}`, the chat's key | `invite_invalid`, `invite_not_allowed`, `request_sent` |
+| `chat.export` | `chat` | `{path}`, the absolute path of the text file | `bad_chat`, `write_failed` |
 | `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `mediaOnMobile` (bool), `language` (string), `cacheMB` (64 to 512); each optional, at least one | — | |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
@@ -313,6 +320,67 @@ from the list; TDLib allows that call for no supergroup or channel we have left,
 list is TDLib's. The reply comes when the last call is done.
 
 **`channel.unfollow`:** leaves a channel (`leaveChat`). Any other chat is `bad_chat`.
+
+**`contact.block`:** puts the person on our block list (`setMessageSenderBlockList` with the main block list) with `block: true`, takes
+them off with `false`. `chat` is a private or a secret chat, any other is `bad_chat`. `contact.info`'s `blocked` shows the result.
+A TDLib error is `td`.
+
+**`group.participants`:** one change to a group's members. `chat` is a basic group or a supergroup that is not a channel (any
+other is `bad_chat`), `jid` a user id, `action` one of:
+- `add`: `addChatMember` with the last 100 messages forwarded to the new member (TDLib ignores that in a supergroup). A person
+  Telegram could not add (their privacy settings) comes back as a list of who failed, not as an error; a list that is not empty is
+  `refused` with the message `403`.
+- `remove`: `banChatMember` with no end date. In a supergroup the person cannot come back by a link until an admin unbans them;
+  in a basic group they are only removed.
+- `promote`: `setChatMemberStatus` to administrator with the rights Telegram's apps give a new one: change group info, delete
+  messages, ban users, invite users, pin messages, manage video chats and manage topics; no right to add administrators, and not
+  anonymous. (In a basic group every administrator has every right; TDLib ignores these.)
+- `demote`: `setChatMemberStatus` to an ordinary member.
+
+An unknown `action` is `bad_request`. TDLib's `USER_PRIVACY_RESTRICTED` (403, it also comes as an error from some paths) is
+`refused` with the message `403`, and `USER_ALREADY_PARTICIPANT` is `refused` with `409`: the group info page words both. Any other
+refusal (we are not an admin, the person is not in the group) is the `td` error. The group's member list changes when the page
+asks `group.info` again.
+
+**`group.create`:** a new basic group (`createNewBasicGroupChat`) named `name`, with the people in `participants` (user ids, strings)
+in it. `name` is trimmed and holds 1 to 128 characters (code points): an empty one is `bad_request`, a longer one is
+`name_too_long`, checked here because TDLib cuts a longer name silently. The reply `{jid, refused}` comes after the flush that
+writes the chat to `chats.db`: `jid` is the chat's key, `refused` how many of the people Telegram would not add (their privacy
+settings), the group having been made without them.
+
+**`poll.create`:** a poll as a new message of the chat (`sendMessage` with `inputMessagePoll`), sent as `msg.send` sends a text: the
+row is *sending* under a temporary id and `{id}` is that id, and `topic` sends it into that forum topic. `question` is not empty and
+`options` holds 2 to 12 strings that are not empty (Telegram's `poll_answer_count_max`); anything else is `bad_request`. `multiple`
+lets a voter pick several options. The poll is a regular one (not a quiz) that allows changing a vote. It is anonymous in a group or
+a channel (a channel takes no other kind) and not anonymous in a chat with a person. TDLib takes a poll in a chat with a person only
+for a bot and for Saved Messages: any other is its `td` error ("Polls can't be sent to the private chat"), as are Telegram's other
+limits (a question over 255 characters, an option over 100, a group where members may not send polls).
+
+**`invite.info`:** looks at an invite link (`checkChatInviteLink`) without using it. When the link is for a chat we can already
+read, the result is `{member: true, jid}`, `jid` its key. Otherwise `{member: false, kind, code, jid, name, count}`: `kind` is
+`group`, or `channel` for a channel; `code` is `url` as it came, to give to `invite.accept`; `jid` is "" for a chat TDLib has no
+access to yet, or the chat's key for one it only lets us look at for a while (an invite that previews a channel); `name` is the
+chat's title and `count` its member count. A link Telegram has no more or never had (`INVITE_HASH_EXPIRED`, `INVITE_HASH_INVALID`,
+`INVITE_HASH_EMPTY`, or TDLib's own "Wrong invite link" for a text it can't read a link from) is `invite_invalid`; an empty or missing
+`url` is `bad_request`; any other TDLib error is `td`. The reply comes after the flush that writes the chat, when there is one.
+
+**`invite.accept`:** joins the chat of an invite link (`joinChatByInviteLink`). `code` is `invite.info`'s; the other three fields are
+not read. When we are in, the reply `{jid}` comes after the flush that writes the chat to `chats.db`. Otherwise an error:
+`request_sent` when the link only asks to join and the request went (an admin of the group has to let us in), `invite_not_allowed`
+when the join was declined, or needs a guard bot's approval, or Telegram says `USER_BANNED_IN_CHANNEL` or `CHANNEL_PRIVATE`,
+`invite_invalid` for a link that is gone (as `invite.info`). `CHANNELS_TOO_MUCH` and the rest are the `td` error.
+
+**`chat.export`:** writes the chat's whole history to a text file, oldest message first, one line for each message:
+`dd/mm/yy, HH:MM - Name: text` in the phone's local time. `Name` is `You` for our messages; in a chat with a person the chat's title
+for theirs; in a group or a channel the sender's full name (the channel's title for a post). The text is the message's text or
+caption; a media with none (photo, video, GIF, voice or video message, audio, file, sticker) is `<Media omitted>`; a service
+message is worded as the chat list words it ("Anna joined"), which holds the name, so it has no `Name: `; a poll, a place or a contact
+likewise. A text of several lines keeps them. The history is read with `getChatHistory`, 100 a call from the newest message down
+until a call brings nothing, so the engine asks Telegram for what it does not hold; it stops at the newest 50 000 messages or 6 MiB of
+text, whichever comes first. The file is `Telegram Chat with <the chat's title>.txt` (each of `/\:*?"<>|` becomes `_`), written over an
+older one of that name, in `/accounts/1000/shared/downloads`, else in `downloads` in the data folder. The reply `{path}` is its
+absolute path and comes when the file is written; a file that cannot be written is `write_failed`. An unknown chat is `bad_chat`, a
+TDLib error while reading the history is `td`. A connection that closes meanwhile stops the walk.
 
 **Forum topics.** A supergroup can be a forum, its messages sorted into topics (`chats.forum` is 1). A topic is a number, the
 `topic` field of the requests and the `topic` column of the tables. **General is topic 1** (TDLib's `ForumTopicId::general()`;

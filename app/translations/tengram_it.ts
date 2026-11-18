@@ -2859,6 +2859,11 @@
         <translation>Telegram non consente a questo numero di unirsi tramite link. Se un amministratore lo ha rimosso, deve essere un amministratore ad aggiungerlo di nuovo.</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="233"/>
+        <source>Request sent: an admin of the group has to let you in.</source>
+        <translation>Richiesta inviata: un amministratore del gruppo deve farti entrare.</translation>
+    </message>
+    <message>
         <source>Chats</source>
         <translation type="obsolete">Chat</translation>
     </message>

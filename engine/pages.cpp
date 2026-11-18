@@ -29,7 +29,10 @@ void bad_chat(std::uint64_t conn, const std::string &id, const char *what) {
   server.reply_error(conn, id, "bad_chat", what);
 }
 
-// getChat, then `next` gets the chat. A chat TDLib does not know is bad_chat.
+}  // namespace
+
+// getChat, then `next` gets the chat. A chat TDLib does not know is bad_chat. This and the three helpers below are
+// outside the anonymous namespace because manage.cpp uses them too (engine.h).
 void with_chat(std::uint64_t conn, const std::string &id, std::int64_t chat,
                std::function<void(const td_api::chat &)> next) {
   tdlib.send(make_object<td_api::getChat>(chat), [conn, id, next](Obj o) {
@@ -70,6 +73,8 @@ std::int64_t supergroup_of(const td_api::chat &c, bool channel) {
   }
   return 0;
 }
+
+namespace {
 
 // ---- photos of people, which come after the reply
 

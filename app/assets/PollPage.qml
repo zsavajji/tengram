@@ -7,6 +7,7 @@ import bb.system 1.2
 Page {
     id: page
     property string jid
+    property int topic: 0
     titleBar: TitleBar {
         title: qsTr("Create poll")
     }
@@ -115,7 +116,11 @@ Page {
             tooFew.show()
             return
         }
-        if (!engine.request("poll.create", {"chat": page.jid, "question": question.text.trim(), "options": list, "multiple": several.checked})) {
+        var args = {"chat": page.jid, "question": question.text.trim(), "options": list, "multiple": several.checked}
+        if (page.topic) {
+            args.topic = page.topic
+        }
+        if (!engine.request("poll.create", args)) {
             offline.show()
             return
         }

@@ -121,7 +121,7 @@ Page {
             chat: page.chat
             chatCtl: ctl
         },
-        PollAction { id: pollAction; jid: page.chat ? page.chat.jid : "" },
+        PollAction { id: pollAction; jid: page.chat ? page.chat.jid : ""; topic: page.topic },
         SystemToast {
             id: notSent
             body: qsTr("Not sent: Tengram is reconnecting. Try again in a moment.")

@@ -4,12 +4,15 @@ import bb.cascades 1.4
 ActionItem {
     id: action
     property string jid
+    // The forum topic the chat page is in (0: none); the poll is sent into it.
+    property int topic: 0
     title: qsTr("Create poll")
     imageSource: "file:///usr/share/icons/ic_accept.png"
     ActionBar.placement: ActionBarPlacement.InOverflow
     onTriggered: {
         var p = pollDef.createObject()
         p.jid = action.jid
+        p.topic = action.topic
         nav.push(p)
         p.focusQuestion()
     }

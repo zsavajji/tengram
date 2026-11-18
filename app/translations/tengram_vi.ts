@@ -2856,6 +2856,11 @@
         <translation>Telegram không cho số này tham gia bằng liên kết. Nếu quản trị viên đã xóa số này, quản trị viên phải thêm lại.</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="233"/>
+        <source>Request sent: an admin of the group has to let you in.</source>
+        <translation>Đã gửi yêu cầu: quản trị viên của nhóm phải cho bạn vào.</translation>
+    </message>
+    <message>
         <source>Chats</source>
         <translation type="obsolete">Đoạn chat</translation>
     </message>

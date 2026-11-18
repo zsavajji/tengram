@@ -2859,6 +2859,11 @@
         <translation>Telegram no deja que este número se una por enlace. Si un admin lo eliminó, un admin tiene que volver a añadirlo.</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="233"/>
+        <source>Request sent: an admin of the group has to let you in.</source>
+        <translation>Solicitud enviada: un admin del grupo tiene que dejarte entrar.</translation>
+    </message>
+    <message>
         <source>Chats</source>
         <translation type="obsolete">Chats</translation>
     </message>

@@ -2859,6 +2859,11 @@
         <translation>Telegram ne permet pas à ce numéro de rejoindre via un lien. Si un admin l&apos;a retiré, un admin doit le rajouter.</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="233"/>
+        <source>Request sent: an admin of the group has to let you in.</source>
+        <translation>Demande envoyée : un admin du groupe doit vous laisser entrer.</translation>
+    </message>
+    <message>
         <source>Chats</source>
         <translation type="obsolete">Discussions</translation>
     </message>

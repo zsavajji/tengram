@@ -230,6 +230,7 @@ NavigationPane {
             var code = engine.failure.code
             inviteFailed.body = code == "invite_invalid" ? qsTr("This invite doesn't work any more")
                               : code == "invite_not_allowed" ? qsTr("Telegram won't let this number join by link. If an admin removed it, an admin has to add it back.")
+                              : code == "request_sent" ? qsTr("Request sent: an admin of the group has to let you in.")
                               : qsTr("Couldn't open this invite. Try again in a moment.")
             inviteFailed.show()
         }

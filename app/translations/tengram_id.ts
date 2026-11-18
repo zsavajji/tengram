@@ -2856,6 +2856,11 @@
         <translation>Telegram tidak mengizinkan nomor ini bergabung lewat tautan. Jika admin mengeluarkannya, admin harus menambahkannya kembali.</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="233"/>
+        <source>Request sent: an admin of the group has to let you in.</source>
+        <translation>Permintaan terkirim: admin grup harus mengizinkan Anda masuk.</translation>
+    </message>
+    <message>
         <source>Chats</source>
         <translation type="obsolete">Chat</translation>
     </message>

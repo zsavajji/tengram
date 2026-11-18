@@ -114,6 +114,8 @@ void messages_reset();                         // a new client after a logout: d
 void messages_close();                         // before db.close(): finalizes the prepared statements
 // The kind of the message's row in the table, or -1 when there is none.
 int message_kind(std::int64_t chat, std::int64_t id);
+// The formatted text a message shows (a text's, or a media's caption), or nullptr when its kind has none.
+const td_api::formattedText *shown_text(const td_api::MessageContent &c);
 // The file of a message that has one (a photo's largest size, a video, a voice note...), or nullptr.
 const td_api::file *message_file(const td_api::message &m);
 // The file a bubble shows before the message's own is opened: a photo's display size (the smallest size whose shorter
@@ -197,6 +199,18 @@ bool sessions_handle(std::uint64_t conn, const std::string &id, const std::strin
 // pages.cpp: contact.info, channel.info, group.info, contacts.list, senders.get, chat.clear, chat.delete and
 // channel.unfollow, the requests behind the info pages and the group chat's senders.
 bool pages_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+// pages.cpp, for the requests that name a chat: the user a private or secret chat is with, the basic group, the
+// supergroup (a channel when `channel`, else a group); 0 when the chat is not that.
+std::int64_t person_of(const td_api::chat &c);
+std::int64_t basic_group_of(const td_api::chat &c);
+std::int64_t supergroup_of(const td_api::chat &c, bool channel);
+// getChat, then `next` gets the chat; a chat TDLib does not know is answered `bad_chat`.
+void with_chat(std::uint64_t conn, const std::string &id, std::int64_t chat,
+               std::function<void(const td_api::chat &)> next);
+
+// manage.cpp: contact.block, group.participants, group.create, poll.create, invite.info, invite.accept and chat.export,
+// what the UI does to people, groups and invite links, and the chat's export to a text file.
+bool manage_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).
 void mode_init();                                                    // read prefs.json

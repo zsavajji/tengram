@@ -2862,6 +2862,11 @@
         <translation>Telegram не разрешает этому номеру вступать по ссылке. Если номер удалил админ, вернуть его должен админ.</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="233"/>
+        <source>Request sent: an admin of the group has to let you in.</source>
+        <translation>Запрос отправлен: админ группы должен вас впустить.</translation>
+    </message>
+    <message>
         <source>Chats</source>
         <translation type="obsolete">Чаты</translation>
     </message>
