@@ -53,6 +53,7 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_downY(0)
     , m_swipe(0)
     , m_styled(false)
+    , m_restyledOut(false)
     , m_scale(0)
     , m_body(0)
     , m_small(0)
@@ -302,7 +303,7 @@ void MessageCard::show(const QVariantMap &msg)
         makeChip();
     if (chips > m_chipBoxes.size())
         growChips(chips);
-    restyle();
+    restyle(out);
 
     // Theirs at the left and ours at the right. A hidden spacer takes no part in the layout.
     m_gapL->setVisible(out);
@@ -317,14 +318,15 @@ void MessageCard::show(const QVariantMap &msg)
 }
 
 // Pressed: the page's pressColor. A search match: the primary colour at 20 % over the page, so it reads
-// in both themes (25 % until the user found it strong, 2026-11-17). Else the page's own colour; a sticker has none, it sits on the page (user).
-// An empty foundId matches nothing.
+// in both themes (25 % until the user found it strong, 2026-11-17). Else Telegram's bubble colour, ours or theirs
+// (the user's ask, 2026-11-18); a sticker has none, it sits on the page (user). An empty foundId matches nothing.
 void MessageCard::paintBackground()
 {
     const QString found = Card::foundId(m_list);
     const bool match = !found.isEmpty() && found == str("id");
     const Color c = m_pressed ? Card::color(Card::pressColor(m_list))
-                  : match ? Card::color("#3324a1de") : m_ui->palette()->plain();
+                  : match ? Card::color("#3324a1de")
+                  : flag("out") ? Card::color(Card::outColor(m_list)) : Card::color(Card::inColor(m_list));
     m_bg->setVisible(m_pressed || match || str("media") != "sticker");
     m_bg->setFilterColor(c);
     m_tailL->setFilterColor(c);
@@ -351,23 +353,25 @@ void MessageCard::reset(bool, bool activated)
 // or a part was made. The gap goes above each card: in the bottom-to-top list that also spaces the
 // first card from its day's header (Q10, 2026-10-31). It and the card's padding grow with the text
 // size (Q10, 2026-11-01: 140 % looked cramped). 2 px over 1.5 and 1 du: the text sat a little
-// tight to the card's edges (Q10).
-void MessageCard::restyle()
+// tight to the card's edges (Q10). Cards are recycled between ours and theirs, so the side is one of the causes:
+// the quiet text is Telegram's blue-grey on our bubble.
+void MessageCard::restyle(bool out)
 {
     const float scale = Card::textScale(m_list);
     const int body = Card::bodySize(m_list);
     const int small = Card::smallSize(m_list);
     const Color plain = m_ui->palette()->plain();
-    if (m_styled && scale == m_scale && body == m_body && small == m_small && plain == m_plain)
+    if (m_styled && scale == m_scale && body == m_body && small == m_small && plain == m_plain && out == m_restyledOut)
         return;
     m_styled = true;
+    m_restyledOut = out;
     m_scale = scale;
     m_body = body;
     m_small = small;
     m_plain = plain;
 
-    const Color quiet = m_ui->palette()->secondaryTextOnPlain();
-    m_barL->setFilterColor(quiet);
+    const Color quiet = out ? Card::color(Card::outMeta(m_list)) : m_ui->palette()->secondaryTextOnPlain();
+    m_barL->setFilterColor(m_ui->palette()->secondaryTextOnPlain());
     // The primary 20 % darker, quieter under our cards (the user, 2026-11-17).
     m_barR->setFilterColor(Card::color("#1D81B2"));
     const float side = Card::side(m_ui, scale);
@@ -870,7 +874,8 @@ void MessageCard::fillFoot()
         m_timeBox->setTopPadding(top);
     }
     // White on the picture's dark chip.
-    const Color quiet = onPicture ? Color::White : m_ui->palette()->secondaryTextOnPlain();
+    const Color quiet = onPicture ? Color::White
+                      : out ? Card::color(Card::outMeta(m_list)) : m_ui->palette()->secondaryTextOnPlain();
     m_time->textStyle()->setColor(quiet);
     m_timer->setFilterColor(quiet);
 
@@ -885,7 +890,9 @@ void MessageCard::fillFoot()
             m_ticks->setImageSource(Card::url(tick == 0 ? "asset:///images/clock.png"
                                         : tick == 1 ? "asset:///images/tick.png" : "asset:///images/ticks.png"));
         }
-        m_ticks->setFilterColor(state == 3 ? m_ui->palette()->primary() : quiet);
+        // One tick sent, two read: Telegram tells them by the count, so the colour is the time's (the engine never
+        // sends "delivered").
+        m_ticks->setFilterColor(quiet);
     }
     if (m_bang)
         m_bang->setVisible(out && state == 4);

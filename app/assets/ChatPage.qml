@@ -618,7 +618,7 @@ Page {
                 id: partSlot
                 visible: false
             }
-            // The list, and over it the note of an empty chat.
+            // The list, and over it the note of an empty chat. No wallpaper (taken off at the user's ask, 2026-11-18).
             Container {
                 layoutProperties: StackLayoutProperties {
                     spaceQuota: 1
@@ -732,6 +732,11 @@ Page {
                     // a bright one.
                     property string quoteTint: settings.theme == 1 ? "#0D000000" : "#14FFFFFF"
                     property string pressColor: nav.pressColor
+                    // Telegram's bubble and pill colours (main.qml), read by the C++ cards.
+                    property string inColor: nav.inColor
+                    property string outColor: nav.outColor
+                    property string outMeta: nav.outMeta
+                    property string serviceColor: nav.serviceColor
                     dataModel: ctl.messages
                     // The user's own scroll wins over an aim still running (page.aim).
                     onTouch: {
@@ -789,7 +794,7 @@ Page {
                     bottomMargin: ui.du(2)
                     preferredWidth: ui.du(11)
                     preferredHeight: ui.du(11)
-                    background: ui.palette.plain
+                    background: Color.create(nav.inColor)
                     layout: DockLayout {
                     }
                     gestureHandlers: TapHandler {

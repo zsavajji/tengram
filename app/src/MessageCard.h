@@ -108,7 +108,7 @@ private:
     bb::cascades::ActionItem *action(const char *title, const char *icon, const char *slot, const char *key);
     void setKeys(bool on);
 
-    void restyle();
+    void restyle(bool out);
     void fillColumn();
     void fillFoot();
     bb::cascades::ImageView *makeTail(const char *source);
@@ -137,6 +137,7 @@ private:
 
     // What the styling was last set from: restyle() runs again when one of them changes.
     bool m_styled;
+    bool m_restyledOut; // the side restyle() last styled: a recycled card changes it
     float m_scale;
     int m_body;
     int m_small;

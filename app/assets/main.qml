@@ -64,8 +64,26 @@ NavigationPane {
     // A secret chat's lock and name: Telegram's secret green (#00A65A) on the dark theme, a darker one on the bright
     // (4.6:1 on white; #00A65A is 3.1:1). The chat list and the chat page's title bar.
     property string secretColor: settings.theme == 1 ? "#00874A" : "#00A65A"
-    // The chat a notification tap asked for, until the chat list is up to open it.
+    // Telegram's chat colours (the user's ask, 2026-11-18); settings.theme 1 is Bright. The card helpers in CardStyle.h
+    // read the four bubble and pill ones through properties on the chat page's list.
+    // Telegram's incoming bubble
+    property string inColor: settings.theme == 1 ? "#FFFFFF" : "#182533"
+    // Telegram's outgoing bubble
+    property string outColor: settings.theme == 1 ? "#EFFDDE" : "#2B5278"
+    // Telegram's time, ticks and quiet text on our bubbles
+    property string outMeta: settings.theme == 1 ? "#4FA64C" : "#7DA8D3"
+    // Telegram's date and service pills (ARGB, translucent); their text is white
+    property string serviceColor: settings.theme == 1 ? "#806E8A9C" : "#CC1D2B3A"
+    // Telegram's title bar of the chat list and the chat
+    property string headerColor: settings.theme == 1 ? "#517DA2" : "#17212B"
+    // Telegram's status line in the chat's title bar
+    property string headerQuiet: settings.theme == 1 ? "#D7E6F2" : "#7F91A4"
+    // Telegram's secret chat lock and name on that title bar
+    property string headerSecret: settings.theme == 1 ? "#A6F0BC" : "#00A65A"
+    // The chat a notification tap asked for, until the chat list is up to open it; pendingMsg is the message a Telegram
+    // link named in it, "" for none.
     property string pendingChat
+    property string pendingMsg
     // The Share menu's {path, text}, held like pendingChat until the chat list is up.
     property variant pendingShare: ({})
     attachedObjects: [

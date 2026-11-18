@@ -122,7 +122,7 @@ void Profile::onReplied(const QString &id, const QString &cmd, const QVariant &r
         return;
     QVariantMap info = result.toMap();
     info["initials"] = initials(info["name"].toString());
-    info["color"] = pickColor(info["phone"].toString(), kColors, kColorCount);
+    info["color"] = pickColor(info["phone"].toString(), kSenders, kSenderCount);
     m_info = info;
     emit infoChanged();
 }

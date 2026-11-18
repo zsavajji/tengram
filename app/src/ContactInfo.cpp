@@ -117,7 +117,7 @@ void ContactInfo::onReplied(const QString &id, const QString &cmd, const QVarian
         if (g["name"].toString().isEmpty())
             g["name"] = tr("Unnamed group");
         g["initials"] = initials(g["name"].toString());
-        g["color"] = pickColor(g["jid"].toString(), kColors, kColorCount);
+        g["color"] = pickColor(g["jid"].toString(), kSenders, kSenderCount);
         groups << g;
     }
     info["groups"] = groups;

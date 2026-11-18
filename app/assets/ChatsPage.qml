@@ -191,6 +191,8 @@ Page {
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 verticalAlignment: VerticalAlignment.Fill
+                // Telegram's title bar colour, with white text on it (the user's ask, 2026-11-18).
+                background: Color.create(nav.headerColor)
                 leftPadding: ui.du(2)
                 rightPadding: ui.du(2)
                 layout: StackLayout {
@@ -203,6 +205,7 @@ Page {
                     }
                     text: listBar.waiting ? qsTr("Connecting…") : qsTr("Chats")
                     textStyle.base: SystemDefaults.TextStyles.TitleText
+                    textStyle.color: Color.White
                 }
                 // An ActivityIndicator hides itself while stopped: running, not visible.
                 ActivityIndicator {

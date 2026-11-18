@@ -134,7 +134,7 @@ void ContactPicker::onReplied(const QString &id, const QString &cmd, const QVari
             continue;
         c["kind"] = 0;
         c["initials"] = initials(c["name"].toString());
-        c["color"] = pickColor(c["jid"].toString(), kColors, kColorCount);
+        c["color"] = pickColor(c["jid"].toString(), kSenders, kSenderCount);
         c["chosen"] = m_chosen.contains(c["jid"].toString());
         m_all << c;
     }

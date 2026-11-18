@@ -33,6 +33,12 @@ inline QString quoteTint(bb::cascades::ListView *list) { return list->property("
 inline QString pressColor(bb::cascades::ListView *list) { return list->property("pressColor").toString(); }
 // Telegram's secret green for the theme (main.qml's nav.secretColor): a secret chat's lock and name.
 inline QString secretColor(bb::cascades::ListView *list) { return list->property("secretColor").toString(); }
+// Telegram's bubble and pill colours (main.qml's nav.inColor and the rest, the user's ask, 2026-11-18): theirs, ours,
+// the time and ticks on ours, and the date and service pills.
+inline QString inColor(bb::cascades::ListView *list) { return list->property("inColor").toString(); }
+inline QString outColor(bb::cascades::ListView *list) { return list->property("outColor").toString(); }
+inline QString outMeta(bb::cascades::ListView *list) { return list->property("outMeta").toString(); }
+inline QString serviceColor(bb::cascades::ListView *list) { return list->property("serviceColor").toString(); }
 inline QString foundId(bb::cascades::ListView *list) { return list->property("foundId").toString(); }
 inline bb::cascades::TextStyle emojiStyle(bb::cascades::ListView *list)
 {

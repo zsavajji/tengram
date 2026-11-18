@@ -54,7 +54,7 @@ static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
     row["kind"] = kind;
     row["name"] = name;
     row["initials"] = initials(name);
-    row["color"] = pickColor(jid, kColors, kColorCount);
+    row["color"] = pickColor(jid, kSenders, kSenderCount);
     row["preview"] = q.value(4).toString();
     row["out"] = q.value(5).toInt() != 0;
     row["state"] = q.value(6).toInt();

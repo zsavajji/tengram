@@ -225,7 +225,7 @@ QVariantMap Privacy::blockedRow(const QVariantMap &p) const
     const QString name = p["name"].toString().isEmpty() ? tr("Unknown") : p["name"].toString();
     row["name"] = name;
     row["initials"] = initials(name);
-    row["color"] = pickColor(p["jid"].toString(), kColors, kColorCount);
+    row["color"] = pickColor(p["jid"].toString(), kSenders, kSenderCount);
     if (!p["photo"].toString().isEmpty())
         row["photo"] = p["photo"];
     return row;

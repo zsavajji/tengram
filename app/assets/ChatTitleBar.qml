@@ -29,6 +29,8 @@ TitleBar {
         Container {
             horizontalAlignment: HorizontalAlignment.Fill
             verticalAlignment: VerticalAlignment.Fill
+            // Telegram's title bar colour, with white text on it (the user's ask, 2026-11-18).
+            background: Color.create(nav.headerColor)
             rightPadding: ui.px(7)
             layout: StackLayout {
                 orientation: LayoutOrientation.LeftToRight
@@ -48,7 +50,7 @@ TitleBar {
                     preferredWidth: ui.du(6)
                     preferredHeight: ui.du(6)
                     scalingMethod: ScalingMethod.AspectFit
-                    filterColor: ui.palette.textOnPlain
+                    filterColor: Color.White
                 }
             }
             // The info page's tap is on the name and on the picture, not on the whole bar: a tap on
@@ -80,7 +82,7 @@ TitleBar {
                         preferredHeight: ui.du(2.4)
                         scalingMethod: ScalingMethod.AspectFit
                         imageSource: "asset:///images/lock.png"
-                        filterColor: Color.create(nav.secretColor)
+                        filterColor: Color.create(nav.headerSecret)
                     }
                     Label {
                         bottomMargin: 0
@@ -94,7 +96,7 @@ TitleBar {
                         textStyle.base: nav.emojiStyle
                         textStyle.fontSize: FontSize.PercentageValue
                         textStyle.fontSizeValue: 110
-                        textStyle.color: bar.secret > 0 ? Color.create(nav.secretColor) : ui.palette.textOnPlain
+                        textStyle.color: bar.secret > 0 ? Color.create(nav.headerSecret) : Color.White
                     }
                 }
                 Label {
@@ -105,7 +107,7 @@ TitleBar {
                     textStyle.base: nav.emojiStyle
                     textStyle.fontSize: FontSize.PercentageValue
                     textStyle.fontSizeValue: 75
-                    textStyle.color: ui.palette.secondaryTextOnPlain
+                    textStyle.color: Color.create(nav.headerQuiet)
                 }
             }
             // The chat's picture (chat.photo, the engine's preview file) where the stock app has

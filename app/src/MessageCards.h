@@ -10,6 +10,7 @@
 
 namespace bb {
 namespace cascades {
+class Container;
 class Label;
 class ListView;
 }
@@ -34,7 +35,7 @@ private:
 };
 
 // A service line ("service" rows of MessageModel): a chip, like a button that isn't one (Q10,
-// 2026-10-31), mirroring ServiceItem.qml (gone since step 8.6).
+// 2026-10-31), mirroring ServiceItem.qml (gone since step 8.6). The day headers are its too.
 class ServiceCard : public bb::cascades::CustomControl
 {
     Q_OBJECT
@@ -42,9 +43,11 @@ public:
     ServiceCard(bb::cascades::ListView *list);
 
     void show(const QVariantMap &msg);
+    void showText(const QString &text);
 
 private:
     bb::cascades::ListView *m_list;
+    bb::cascades::Container *m_chip;
     bb::cascades::Label *m_text;
 };
 
