@@ -118,6 +118,8 @@ AlbumBubble::AlbumBubble(ListView *list)
     : m_list(list)
     , m_ui(list->ui())
     , m_size(0)
+    , m_second(0)
+    , m_wide(false)
 {
     // As MediaBubble's picture: no margin above, air above and below.
     setTopMargin(0);
@@ -140,6 +142,8 @@ AlbumBubble::AlbumBubble(ListView *list)
             m_tiles[row * 2 + column] = tile;
         }
         root->add(tiles);
+        if (row == 1)
+            m_second = tiles;
     }
     setRoot(root);
 
@@ -159,15 +163,21 @@ void AlbumBubble::show(const QVariantMap &msg)
 {
     m_msg = msg;
     // Across the card inside its side padding (the user, 2026-11-08), which grows with the text size.
-    const float size = (Card::width(m_ui) - 2 * Card::side(m_ui, Card::textScale(m_list)) - m_ui->du(0.5)) / 2;
-    if (size != m_size) {
+    const float gap = m_ui->du(0.5);
+    const float size = (Card::width(m_ui) - 2 * Card::side(m_ui, Card::textScale(m_list)) - gap) / 2;
+    const int count = m_msg.value("albumCount").toInt();
+    // Three: the third tile is as wide as the two above it.
+    const bool wide = count == 3;
+    if (size != m_size || wide != m_wide) {
         m_size = size;
+        m_wide = wide;
         for (int i = 0; i < 4; ++i) {
-            m_tiles[i]->box()->setPreferredWidth(size);
+            m_tiles[i]->box()->setPreferredWidth(i == 2 && wide ? 2 * size + gap : size);
             m_tiles[i]->box()->setPreferredHeight(size);
         }
     }
-    const int count = m_msg.value("albumCount").toInt();
+    m_second->setVisible(count > 2);
+    m_tiles[3]->box()->setVisible(count > 3);
     for (int i = 0; i < 4; ++i)
         m_tiles[i]->show(memberAt(i), i == 3 && count > 4 ? "+" + QString::number(count - 3) : QString());
     refresh();

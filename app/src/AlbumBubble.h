@@ -7,6 +7,7 @@
 
 namespace bb {
 namespace cascades {
+class Container;
 class ListView;
 class UIConfig;
 }
@@ -14,9 +15,9 @@ class UIConfig;
 
 class AlbumTile;
 
-// An album in a card (step 6.5g), mirroring AlbumBubble.qml (gone since step 8.6): 4 or more photos and videos sent
-// together (MessageModel makes the entry; Albums.h has the rule) as four square tiles, two by
-// two, across the card's width inside its side padding. With more than four, the fourth tile is
+// An album in a card (step 6.5g), mirroring AlbumBubble.qml (gone since step 8.6): Telegram's album of photos and
+// videos (MessageModel makes the entry; Albums.h has the rule) as square tiles, two by two, across the card's width
+// inside its side padding: two side by side, three as two over one wide tile, four or more as four. With more than four, the fourth tile is
 // darkened with "+N", N the album's size less 3, and opens the album's page (the list's
 // showAlbum); the others open their member as its own row would (the list's openMedia). The four
 // tiles are fixed and each takes its picture from the current msg, so a recycled row never keeps
@@ -43,7 +44,9 @@ private:
     bb::cascades::UIConfig *m_ui;
     QVariantMap m_msg;
     AlbumTile *m_tiles[4];
+    bb::cascades::Container *m_second; // the second row of tiles: an album of two has none
     float m_size; // a tile's side, set by show()
+    bool m_wide;  // the third tile spans the row (an album of three)
 };
 
 #endif

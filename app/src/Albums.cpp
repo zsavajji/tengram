@@ -1,17 +1,15 @@
 #include "Albums.h"
 
-static const int kMin = 4;
-static const long long kGap = 60;
+static const int kMin = 2;
 
 static bool fits(const Albums::Row &r)
 {
-    return (r.kind == 1 || r.kind == 2) && !r.deleted && !r.text && !r.quote && !r.spoiler && !r.forwarded;
+    return (r.kind == 1 || r.kind == 2) && !r.deleted && !r.spoiler && !r.album.empty();
 }
 
-// r may follow p in an album. Same sender: ours are all out, a group's by messages.sender.
 static bool follows(const Albums::Row &p, const Albums::Row &r)
 {
-    return r.out == p.out && r.sender == p.sender && r.day == p.day && r.ts - p.ts <= kGap;
+    return r.album == p.album;
 }
 
 std::vector<Albums::Run> Albums::find(const std::vector<Row> &rows)

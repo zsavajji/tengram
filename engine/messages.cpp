@@ -558,6 +558,10 @@ void content(Row &r, const td_api::message &m) {
   if (m.forward_info_) {
     append_extra(r, "\"forwarded\":true");
   }
+  // extra.album: Telegram's album, its messages share it (a string: it exceeds 2^53). The UI groups by it.
+  if (m.media_album_id_ != 0) {
+    append_extra(r, "\"album\":\"" + std::to_string(m.media_album_id_) + "\"");
+  }
   // A self-destructing message (a secret chat's, or a private chat's photo with a timer): the timer it carries, and when
   // it ends once the countdown runs, as unix seconds, so the UI counts down without the row being written again. Rounded
   // up: TDLib never says 0 for a countdown that has not ended.

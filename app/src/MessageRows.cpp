@@ -177,6 +177,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     m.data["text"] = shown;
     // The same text with its mentions linked, "" for none (MessageKinds::html).
     m.data["html"] = MessageKinds::html(shown, extra);
+    m.data["albumId"] = extra.value("album").toString(); // Telegram's album (Albums.h), "" for none
     m.data["quote"] = q.value(9).toString();
     m.data["quoteId"] = q.value(26).toString(); // a tap on the quote jumps to it
     m.data["sender"] = sender;

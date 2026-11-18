@@ -296,6 +296,11 @@ user batches: build one package when the round is ready, then ask to install it.
     after. Also several files from another app's Share menu (`filelist/*`, `OpenRequests::sharedFiles`; **the data's
     format is a guess**: tengramd's UI log prints `shared:` with it), into a forum's topic too. Check: 2 photos, 12
     photos (two albums), photos + a PDF, Send as files, a reply and a topic, edit then send, cross down to none.
+19. **Albums are Telegram's** (2026-11-18, 0.1.0.34): the chat grouped by HyperBerry's WhatsApp rule (4+ photos within
+    a minute, no caption), so a sent album of 3 showed as 3 photos. The engine keeps `extra.album` (media_album_id) and
+    `Albums::find` groups 2+ consecutive photos/videos of one album id (`tests/albums_check.cpp`); a caption on any
+    member shows under the tiles; 2 tiles side by side, 3 as two over one wide. Old rows group once the engine writes
+    them again (opening the chat). Check: a received album of 2 and 3, one with a caption, 4 separate photos stay apart.
 
 **Saved for later (the user, 2026-11-18): video streaming.** Possible, not built. bbtube plays a local MP4 while it
 fills (moov written first, the file at its final size). For Tengram the planned route is a small HTTP server in the

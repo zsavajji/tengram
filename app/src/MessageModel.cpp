@@ -226,14 +226,22 @@ void MessageModel::onFullscreen()
 }
 
 // An album's card: the first member's map (so its menu, reactions and search tint are the first
-// member's), the members' maps, and the last one's time and ticks, since the card shows when it ended.
+// member's), the members' maps, and the last one's time and ticks, since the card shows when it ended. The caption
+// is the first member's that has one: Telegram's apps put it on any one of them, and the card shows it under the tiles.
 QVariantMap MessageModel::albumData(const Entry &e) const
 {
     QVariantMap d = m_all[e.members.first()].data;
     const QVariantMap last = m_all[e.members.last()].data;
     QVariantList members;
-    foreach (int i, e.members)
+    bool captioned = !d["text"].toString().isEmpty();
+    foreach (int i, e.members) {
         members << m_all[i].data;
+        if (!captioned && !m_all[i].data["text"].toString().isEmpty()) {
+            d["text"] = m_all[i].data["text"];
+            d["html"] = m_all[i].data["html"];
+            captioned = true;
+        }
+    }
     d["album"] = members;
     d["albumCount"] = members.size();
     d["media"] = QString(); // MediaBubble isn't built for it
@@ -1131,7 +1139,7 @@ void MessageModel::rebuild()
 {
     const bool wasEmpty = m_entries.isEmpty();
     m_entries.clear();
-    // m_all is oldest first: the visible rows become units (a message, or an album of 4 or more),
+    // m_all is oldest first: the visible rows become units (a message, or Telegram's album),
     // then walked backwards, and a day's header follows its messages. A day with only hidden
     // messages has no header.
     std::vector<Albums::Row> rows;
@@ -1142,16 +1150,10 @@ void MessageModel::rebuild()
             continue;
         shown.append(i);
         Albums::Row r;
-        r.ts = m.ts;
-        r.day = m.day;
         r.kind = m.kind;
         r.deleted = m.data["deleted"].toBool();
-        r.text = !m.data["text"].toString().isEmpty();
         r.spoiler = m.data["spoiler"].toBool();
-        r.forwarded = m.data["forwarded"].toInt() > 0;
-        r.quote = !m.data["quote"].toString().isEmpty();
-        r.out = m.data["out"].toBool();
-        r.sender = m.who.toUtf8().constData();
+        r.album = m.data["albumId"].toString().toUtf8().constData();
         rows.push_back(r);
     }
     const std::vector<Albums::Run> runs = Albums::find(rows);

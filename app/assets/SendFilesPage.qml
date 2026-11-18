@@ -87,6 +87,10 @@ Page {
             // by that strip, so it too can line up with the list's leading edge: narrower, the snap couldn't reach it
             // and pulled it back, a jump at every step with two files (the user, 2026-11-18).
             property real peek: ui.du(7)
+            // A list item has its own context, without nav (ReferenceError on the phone): the cells read these.
+            property variant emojiStyle: nav.emojiStyle
+            property real bodySize: nav.bodySize
+            property real smallSize: nav.smallSize
             property real cellWidth: 0
             property int count: 0
             attachedObjects: LayoutUpdateHandler {
@@ -155,7 +159,7 @@ Page {
                                     // U+1F3AC, the clapper board, or U+1F4CE, the paperclip.
                                     text: ListItemData.kind == 1 ? "🎬" : "📎"
                                     textFormat: TextFormat.Plain
-                                    textStyle.base: nav.emojiStyle
+                                    textStyle.base: cell.ListItem.view.emojiStyle
                                     textStyle.fontSize: FontSize.PercentageValue
                                     textStyle.fontSizeValue: 300
                                 }
@@ -164,19 +168,19 @@ Page {
                                     multiline: true
                                     text: ListItemData.info.name
                                     textFormat: TextFormat.Plain
-                                    textStyle.base: nav.emojiStyle
+                                    textStyle.base: cell.ListItem.view.emojiStyle
                                     textStyle.textAlign: TextAlign.Center
                                     textStyle.fontSize: FontSize.PercentageValue
-                                    textStyle.fontSizeValue: nav.bodySize
+                                    textStyle.fontSizeValue: cell.ListItem.view.bodySize
                                 }
                                 Label {
                                     horizontalAlignment: HorizontalAlignment.Center
                                     multiline: false
                                     text: ListItemData.info.sizeText
                                     textFormat: TextFormat.Plain
-                                    textStyle.base: nav.emojiStyle
+                                    textStyle.base: cell.ListItem.view.emojiStyle
                                     textStyle.fontSize: FontSize.PercentageValue
-                                    textStyle.fontSizeValue: nav.smallSize
+                                    textStyle.fontSizeValue: cell.ListItem.view.smallSize
                                     textStyle.color: ui.palette.secondaryTextOnPlain
                                 }
                             }
@@ -192,7 +196,7 @@ Page {
                                     textFormat: TextFormat.Plain
                                     textStyle.color: Color.White
                                     textStyle.fontSize: FontSize.PercentageValue
-                                    textStyle.fontSizeValue: nav.bodySize
+                                    textStyle.fontSizeValue: cell.ListItem.view.bodySize
                                 }
                             }
                             // A tap edits a picture: a pencil, a square in the lower right corner, says so (the user, 2026-11-18).
