@@ -942,6 +942,7 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
 
     QSet<QString> loaded, updated;
     QList<Msg> all;
+    QStringList sending; // ours that were sending and are gone: Telegram gave them their own ids
     foreach (const Msg &m, m_all) {
         loaded.insert(m.id);
         if (!was.contains(m.id))
@@ -949,7 +950,8 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
         else if (back.contains(m.id)) {
             all.append(back.value(m.id));
             updated.insert(m.id);
-        }
+        } else if (m.data["out"].toBool() && m.data["state"].toInt() == 0)
+            sending << m.id;
     }
     const bool empty = m_all.isEmpty();
     bool incoming = false;
@@ -970,6 +972,20 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
             // new arrived live, even into a chat that opened empty.
             if (!older && !m.data["out"].toBool())
                 incoming = true;
+            // A sent message's row under its final id (the engine names both ids in one event): it keeps the
+            // sending row's entry, so the list updates that card instead of dropping it and adding a new one,
+            // which blinked. Paired in order, as they were sent.
+            if (!sending.isEmpty() && m.data["out"].toBool()) {
+                const QString temp = sending.takeFirst();
+                for (int i = 0; i < m_entries.size(); ++i) {
+                    Entry &e = m_entries[i];
+                    if (e.key == temp)
+                        e.key = m.id;
+                    else if (e.key == "album:" + temp)
+                        e.key = "album:" + m.id;
+                }
+                updated.insert(m.id);
+            }
         }
     }
     // Sending moves a row: its ts becomes the server's.

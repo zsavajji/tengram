@@ -42,8 +42,9 @@ void handle_update(Obj update);
 void handle_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // main.cpp: something changed that flush() has to write. Schedules the flush 50 ms ahead unless one is already
-// scheduled. flush() runs each part's write function in one transaction, then each part's events.
-void mark_dirty();
+// scheduled; `now` makes it due at once (what the user is waiting to see). flush() runs each part's write function
+// in one transaction, then each part's events.
+void mark_dirty(bool now = false);
 
 // link.cpp: the login.
 std::string link_body();  // the JSON object of the `hello` result and the `link` event

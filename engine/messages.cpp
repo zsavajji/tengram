@@ -1025,6 +1025,8 @@ void messages_update(td_api::Object &update) {
         messages_queue(*u.message_);
         if (!u.message_->sending_state_) {  // ours, still sending: the topic is fetched when it is sent
           topics_note(u.message_->chat_id_, topic_of(*u.message_));
+        } else {
+          mark_dirty(true);  // just sent here: its bubble shows without the 50 ms wait
         }
       }
       break;

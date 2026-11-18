@@ -92,10 +92,10 @@ void flush() {
 
 }  // namespace
 
-void mark_dirty() {
-  if (!flush_pending) {
+void mark_dirty(bool now) {
+  if (!flush_pending || now) {
     flush_pending = true;
-    flush_at = Clock::now() + std::chrono::milliseconds(50);
+    flush_at = Clock::now() + std::chrono::milliseconds(now ? 0 : 50);
   }
 }
 
