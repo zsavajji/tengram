@@ -535,11 +535,6 @@
         <translation>Không xác định</translation>
     </message>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="255"/>
-        <source>You</source>
-        <translation>Bạn</translation>
-    </message>
-    <message>
         <location filename="../src/ChatListModel.cpp" line="124"/>
         <source>Pinned</source>
         <translation>Đã ghim</translation>
@@ -2183,12 +2178,17 @@
 <context>
     <name>ReactBar</name>
     <message>
-        <location filename="../assets/ReactBar.qml" line="58"/>
+        <location filename="../assets/ReactBar.qml" line="60"/>
+        <source>Reaction not sent</source>
+        <translation>Chưa gửi cảm xúc</translation>
+    </message>
+    <message>
+        <location filename="../assets/ReactBar.qml" line="62"/>
         <source>Vote not sent</source>
         <translation>Chưa gửi lượt bình chọn</translation>
     </message>
     <message>
-        <location filename="../assets/ReactBar.qml" line="60"/>
+        <location filename="../assets/ReactBar.qml" line="64"/>
         <source>Poll not sent</source>
         <translation>Chưa gửi cuộc bình chọn</translation>
     </message>

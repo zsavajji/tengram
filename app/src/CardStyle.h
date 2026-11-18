@@ -68,12 +68,15 @@ inline QString noKeycaps(QString text)
 }
 
 // Calls one of the page's functions on the list. QML functions take and return a QVariant, and
-// the caller passes as many arguments as the function has: none, one or two.
+// the caller passes as many arguments as the function has: none, one, two or three.
 inline QVariant call(bb::cascades::ListView *list, const char *fn, const QVariant &a = QVariant(),
-                     const QVariant &b = QVariant())
+                     const QVariant &b = QVariant(), const QVariant &c = QVariant())
 {
     QVariant result;
-    if (b.isValid())
+    if (c.isValid())
+        QMetaObject::invokeMethod(list, fn, Q_RETURN_ARG(QVariant, result), Q_ARG(QVariant, a),
+                                  Q_ARG(QVariant, b), Q_ARG(QVariant, c));
+    else if (b.isValid())
         QMetaObject::invokeMethod(list, fn, Q_RETURN_ARG(QVariant, result), Q_ARG(QVariant, a),
                                   Q_ARG(QVariant, b));
     else if (a.isValid())

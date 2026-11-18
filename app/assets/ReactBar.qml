@@ -3,9 +3,10 @@ import bb.system 1.2
 
 // React to a message (step 5.11), a bar over the composer that the card's long-press menu opens
 // (the user's choice, 2026-11-01): six quick emoji, ＋ for the full picker and ✕ to close. Our
-// reaction on the message is underlined; tapping it again takes it back, and any other tap
-// reacts. Either way the bar closes. The engine's answer comes as the message changing, which
-// MessageModel reads (the chip under the card).
+// reactions on the message are underlined; tapping one again takes it back, and any other tap
+// adds it. Either way the bar closes. The chips under the card (MessageCard) add or take back one
+// reaction with toggle(). The engine's answer comes as the message changing (extra.reactions),
+// which MessageModel reads.
 Container {
     id: bar
     // The chat's jid, set by the page.
@@ -25,36 +26,39 @@ Container {
         msg = m
         picking = false
         for (var i = 0; i < cells.length; i++) {
-            cells[i].mine = !!m && m.myReaction == cells[i].emoji
+            cells[i].mine = !!m && m.myReactions.indexOf(cells[i].emoji) >= 0
         }
     }
     function close() {
         msg = null
         picking = false
     }
-    // Ours again is taking it back: an empty emoji.
+    // Ours again is taking it back.
     function react(emoji) {
-        var e = emoji == msg.myReaction ? "" : emoji
-        if (e != "") {
+        var mine = msg.myReactions.indexOf(emoji) >= 0
+        if (!mine) {
             emojis.use(emoji)
         }
-        if (!engine.request("msg.react", {"chat": jid, "id": msg.id, "emoji": e})) {
-            notSent.show()
-        }
+        toggle(msg.id, emoji, mine)
         close()
     }
-    function who(id) {
-        say(chats.reactionsText(jid, id))
+    // A chip under a card, or react(): `mine` takes our reaction of that emoji back, else it is added.
+    function toggle(id, emoji, mine) {
+        if (!engine.request("msg.react", {"chat": jid, "id": id, "emoji": emoji, "remove": mine})) {
+            notSent.show()
+        }
     }
-    // The who-reacted toast with any text: who voted for a poll's option (step 6.5e) and a vote that
-    // didn't go, which sit here because ChatPage.qml is at its limit of 500 lines.
+    // A toast with any text: the poll's counts (step 6.5e) and a vote or reaction that didn't go, which
+    // sit here because ChatPage.qml is at its limit of 500 lines.
     function say(text) {
         whoToast.body = text
         whoToast.show()
     }
     property string failedCmd: engine.failure.cmd || ""
     onFailedCmdChanged: {
-        if (failedCmd == "poll.vote") {
+        if (failedCmd == "msg.react") {
+            say(qsTr("Reaction not sent"))
+        } else if (failedCmd == "poll.vote") {
             say(qsTr("Vote not sent"))
         } else if (failedCmd == "poll.create") {
             say(qsTr("Poll not sent"))
@@ -124,7 +128,7 @@ Container {
             id: notSent
             body: qsTr("Not sent: Tengram is reconnecting. Try again in a moment.")
         },
-        // Who reacted, one per line (ChatListModel.reactionsText); say() puts other text in it.
+        // say()'s toast.
         SystemToast {
             id: whoToast
         }

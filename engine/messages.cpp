@@ -193,6 +193,33 @@ void add_entities(Row &r, const td_api::formattedText *text) {
   }
 }
 
+// The reactions under a message go into extra as `reactions`: [{e, n, me?}] in TDLib's order, one for each emoji
+// (custom emoji and the paid reaction are left out).
+void add_reactions(Row &r, const td_api::message &m) {
+  if (!m.interaction_info_ || !m.interaction_info_->reactions_) {
+    return;
+  }
+  bool any = false;
+  const std::string list = td::json_encode<std::string>(td::json_array([&](auto &all) {
+    for (const auto &re : m.interaction_info_->reactions_->reactions_) {
+      if (!re || !re->type_ || re->type_->get_id() != td_api::reactionTypeEmoji::ID) {
+        continue;
+      }
+      any = true;
+      all(td::json_object([&](auto &one) {
+        one("e", static_cast<const td_api::reactionTypeEmoji &>(*re->type_).emoji_);
+        one("n", re->total_count_);
+        if (re->is_chosen_) {
+          one("me", td::JsonBool(true));
+        }
+      }));
+    }
+  }));
+  if (any) {
+    append_extra(r, "\"reactions\":" + list);
+  }
+}
+
 // The text, of those kinds of content that show a formatted one (a document's is its caption), or nullptr.
 const td_api::formattedText *shown_text(const td_api::MessageContent &c) {
   switch (c.get_id()) {
@@ -507,6 +534,7 @@ void content(Row &r, const td_api::message &m) {
   if (m.forward_info_) {
     append_extra(r, "\"forwarded\":true");
   }
+  add_reactions(r, m);
   add_entities(r, shown_text(c));
 }
 
@@ -985,6 +1013,12 @@ void messages_update(td_api::Object &update) {
     }
     case td_api::updateMessageContent::ID: {
       auto &u = static_cast<td_api::updateMessageContent &>(update);
+      refresh.insert({u.chat_id_, u.message_id_});
+      mark_dirty();
+      break;
+    }
+    case td_api::updateMessageInteractionInfo::ID: {  // the reactions (and the views, which we do not keep)
+      auto &u = static_cast<td_api::updateMessageInteractionInfo &>(update);
       refresh.insert({u.chat_id_, u.message_id_});
       mark_dirty();
       break;

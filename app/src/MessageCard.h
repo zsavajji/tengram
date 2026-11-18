@@ -77,7 +77,7 @@ private slots:
     void onEdit();
     void onRevoke();
     void onDeleteMe();
-    void onWho();
+    void onChip();
     void onJoin();
     void onQuote();
 
@@ -98,6 +98,9 @@ private:
     void makeJoin();
     void makeBang();
     void makeChip();
+    void growChips(int n);
+    void fillChips();
+    float chipWidth(int count) const;
     void makeActions();
     void makeBubbles();
     void place(bb::cascades::Control *part, bb::cascades::Control *a = 0, bb::cascades::Control *b = 0,
@@ -193,8 +196,15 @@ private:
     bb::cascades::ImageView *m_barL;
     bb::cascades::ImageView *m_barR;
     bb::cascades::ImageView *m_tailR;
+    // The reactions: m_chip is the area under the card, holding rows of chips (a row ends where the column's width
+    // does). The chips are a pool, kept and moved between the rows as cards are recycled; the ones a message does not
+    // use wait in m_chipSpare, which is hidden. m_chipAt is the row each chip is in, -1 for the spare.
     bb::cascades::Container *m_chip;
-    bb::cascades::Label *m_reactions;
+    bb::cascades::Container *m_chipSpare;
+    QList<bb::cascades::Container *> m_chipRows;
+    QList<bb::cascades::Container *> m_chipBoxes;
+    QList<bb::cascades::Label *> m_chipLabels;
+    QList<int> m_chipAt;
 
     QString m_edited; // "edited ", translated
     QString m_starMark; // the star (U+2605) and a space, before the time of a starred message

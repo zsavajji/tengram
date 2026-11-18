@@ -536,11 +536,6 @@
         <translation>अज्ञात</translation>
     </message>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="255"/>
-        <source>You</source>
-        <translation>आप</translation>
-    </message>
-    <message>
         <location filename="../src/ChatListModel.cpp" line="124"/>
         <source>Pinned</source>
         <translation>पिन किए गए</translation>
@@ -2186,12 +2181,17 @@
 <context>
     <name>ReactBar</name>
     <message>
-        <location filename="../assets/ReactBar.qml" line="58"/>
+        <location filename="../assets/ReactBar.qml" line="60"/>
+        <source>Reaction not sent</source>
+        <translation>रिएक्शन भेजा नहीं गया</translation>
+    </message>
+    <message>
+        <location filename="../assets/ReactBar.qml" line="62"/>
         <source>Vote not sent</source>
         <translation>वोट भेजा नहीं गया</translation>
     </message>
     <message>
-        <location filename="../assets/ReactBar.qml" line="60"/>
+        <location filename="../assets/ReactBar.qml" line="64"/>
         <source>Poll not sent</source>
         <translation>पोल भेजा नहीं गया</translation>
     </message>

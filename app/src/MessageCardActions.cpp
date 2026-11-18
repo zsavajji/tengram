@@ -49,7 +49,7 @@ void MessageCard::onPopulating()
     const bool deleted = flag("deleted");
     const bool readOnly = flag("readOnly");
     m_reply->setEnabled(!deleted && !readOnly);
-    m_react->setEnabled(!deleted && !readOnly);
+    m_react->setEnabled(!deleted); // a channel's post too: anyone may react
     m_forward->setEnabled(flag("forwardable"));
     if (m_votes)
         m_votes->setEnabled(flag("poll") && !deleted);
@@ -168,7 +168,13 @@ void MessageCard::onCopy() { Card::call(m_list, "copy", str("text")); }
 void MessageCard::onEdit() { Card::call(m_list, "edit", m_msg); }
 void MessageCard::onRevoke() { Card::call(m_list, "deleteForEveryone", str("id")); }
 void MessageCard::onDeleteMe() { Card::call(m_list, "deleteForMe", str("id")); }
-void MessageCard::onWho() { Card::call(m_list, "whoReacted", str("id")); }
+// A tap on a chip adds our reaction of its emoji, or takes it back when it is ours (the page's toggleReaction).
+void MessageCard::onChip()
+{
+    QObject *box = sender() ? sender()->parent() : 0;
+    if (box)
+        Card::call(m_list, "toggleReaction", str("id"), box->property("emoji"), box->property("mine"));
+}
 
 // The page's invites (main.cpp's Invites), which the list holds as `joiner`.
 Invites *MessageCard::joiner() const

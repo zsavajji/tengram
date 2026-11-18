@@ -535,11 +535,6 @@
         <translation>Tidak dikenal</translation>
     </message>
     <message>
-        <location filename="../src/ChatListModel.cpp" line="255"/>
-        <source>You</source>
-        <translation>Anda</translation>
-    </message>
-    <message>
         <location filename="../src/ChatListModel.cpp" line="124"/>
         <source>Pinned</source>
         <translation>Disematkan</translation>
@@ -2183,12 +2178,17 @@
 <context>
     <name>ReactBar</name>
     <message>
-        <location filename="../assets/ReactBar.qml" line="58"/>
+        <location filename="../assets/ReactBar.qml" line="60"/>
+        <source>Reaction not sent</source>
+        <translation>Reaksi tidak terkirim</translation>
+    </message>
+    <message>
+        <location filename="../assets/ReactBar.qml" line="62"/>
         <source>Vote not sent</source>
         <translation>Suara tidak terkirim</translation>
     </message>
     <message>
-        <location filename="../assets/ReactBar.qml" line="60"/>
+        <location filename="../assets/ReactBar.qml" line="64"/>
         <source>Poll not sent</source>
         <translation>Polling tidak terkirim</translation>
     </message>

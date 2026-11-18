@@ -28,15 +28,12 @@ using namespace bb::utility::i18n;
 static const char *const kDb = "chats";
 
 // The three QUOTED are the quoted message's out, sender and sender_name, by its primary key. The
-// last two columns are the message's reactions, all and ours (sender '' is us); the engine makes
-// that table when it migrates chats.db, before the UI reads it.
+// reactions are in extra (docs/protocol.md), read in read() below.
 #define QUOTED(col) "(SELECT " col " FROM messages q WHERE q.chat = messages.chat AND q.id = messages.quote_id)"
 static const char *const kColumns = "CAST(id AS INTEGER), id, ts, out, state, sender, sender_name, kind, "
                                     "text, quote_preview, edited, deleted, "
                                     QUOTED("out") ", " QUOTED("sender") ", " QUOTED("sender_name") ", duration, waveform, media_state, played, "
-                                    "thumb, width, height, size, path, "
-                                    "(SELECT group_concat(emoji, ' ') FROM reactions r WHERE r.chat = messages.chat AND r.msg = messages.id), "
-                                    "(SELECT emoji FROM reactions r WHERE r.chat = messages.chat AND r.msg = messages.id AND r.sender = ''), extra, starred, quote_id";
+                                    "thumb, width, height, size, path, extra, starred, quote_id";
 #undef QUOTED
 
 MessageModel::Msg MessageModel::read(QSqlQuery &q)
@@ -59,7 +56,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     const QString time = locale.toString(when.time(), m_clock);
     // The wording of kinds 6, 7 and 9 to 14 (kind 6 and 13 are service lines).
     QString label, shown = text;
-    const QVariantMap extra = MessageKinds::parse(q.value(26).toString());
+    const QVariantMap extra = MessageKinds::parse(q.value(24).toString());
     m.service = MessageKinds::fill(kind, m_chat, m.id, text, extra, out,
                                    q.value(6).toString(), time, locale, m.data, label, shown);
     if (m.service) {
@@ -97,18 +94,25 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     m.data["out"] = out;
     m.data["state"] = q.value(4).toInt();
     m.data["edited"] = q.value(10).toInt() != 0;
-    m.data["starred"] = q.value(27).toInt() != 0;
+    m.data["starred"] = q.value(25).toInt() != 0;
     m.data["deleted"] = deleted;
-    // The chip under the card: up to three different emoji, and how many reactions there are.
-    const QStringList all = deleted ? QStringList() : q.value(24).toString().split(' ', QString::SkipEmptyParts);
-    QStringList kinds;
-    foreach (const QString &e, all) {
-        if (kinds.size() < 3 && !kinds.contains(e))
-            kinds << e;
+    // The chips under the card: one per emoji, [{e, n, me}] as the engine wrote them (extra.reactions), and ours.
+    QVariantList chips;
+    QStringList mine;
+    if (!deleted) {
+        foreach (const QVariant &v, extra.value("reactions").toList()) {
+            const QVariantMap r = v.toMap();
+            QVariantMap chip;
+            chip["e"] = r.value("e");
+            chip["n"] = r.value("n");
+            chip["me"] = r.value("me").toBool();
+            chips << chip;
+            if (r.value("me").toBool())
+                mine << r.value("e").toString();
+        }
     }
-    m.data["reactions"] = kinds.join(QString());
-    m.data["reactionCount"] = all.size();
-    m.data["myReaction"] = deleted ? QString() : q.value(25).toString();
+    m.data["reactions"] = chips;
+    m.data["myReactions"] = mine;
     // Delete for everyone: ours, sent, and inside WhatsApp's limit of about 2.5 days.
     // ponytail: read when the row is read, so a page left open for days can offer it a little late.
     const int state = q.value(4).toInt();
@@ -142,7 +146,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     // The same text with its mentions linked, "" for none (MessageKinds::html).
     m.data["html"] = MessageKinds::html(shown, extra);
     m.data["quote"] = q.value(9).toString();
-    m.data["quoteId"] = q.value(28).toString(); // a tap on the quote jumps to it
+    m.data["quoteId"] = q.value(26).toString(); // a tap on the quote jumps to it
     m.data["sender"] = sender;
     // Who sent it, by id: the runs of one person's messages are made of it, and so is the tile beside them. Only an
     // incoming message in a group has one; a service line or a notice (kinds 6, 13) is no one's, so it breaks a run.

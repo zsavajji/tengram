@@ -1,6 +1,6 @@
 // The requests about chats and messages: chat.open, chat.history, chat.newer, chat.pins, chat.close, chat.read,
-// chat.typing, chat.set, msg.send, media.send, msg.delete, msg.edit, msg.forward, media.get and media.cancel
-// (docs/protocol.md). The rows they ask for are written by messages.cpp; the replies that tell the UI to read them
+// chat.typing, chat.set, msg.send, media.send, msg.delete, msg.edit, msg.forward, msg.react, media.get and
+// media.cancel (docs/protocol.md). The rows they ask for are written by messages.cpp; the replies that tell the UI to read them
 // come after the flush that commits them (queue_reply).
 
 #include "engine.h"
@@ -678,6 +678,29 @@ void msg_forward(std::uint64_t conn, const std::string &id, td::JsonObject &req,
              });
 }
 
+// One emoji reaction on or off. The row changes with TDLib's updateMessageInteractionInfo (messages.cpp), so the
+// reply is TDLib's. Adding replaces our old reaction when the account allows only one.
+// ponytail: no "emoji is empty: take all ours back" (setMessageReactions is for bots only); the UI removes the
+// emoji it shows as ours. A premium account's custom emoji and the paid reaction are not handled.
+void msg_react(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t message = 0;
+  if (!message_id(conn, id, req, "id", message)) {
+    return;
+  }
+  auto emoji = string_field(req, "emoji");
+  td::JsonValue remove;
+  if (emoji.is_error() || emoji.ok().empty() || optional_field(req, "remove", td::JsonValue::Type::Boolean, remove) < 0) {
+    return bad_request(conn, id, "need the field emoji, a string that is not empty; remove is true or false");
+  }
+  auto type = make_object<td_api::reactionTypeEmoji>(emoji.ok());
+  auto done = [conn, id](Obj o) { answer(conn, id, o); };
+  if (remove.type() == td::JsonValue::Type::Boolean && remove.get_boolean()) {
+    tdlib.send(make_object<td_api::removeMessageReaction>(chat, message, std::move(type)), done);
+  } else {
+    tdlib.send(make_object<td_api::addMessageReaction>(chat, message, std::move(type), false, true), done);
+  }
+}
+
 // ---- media.get
 
 // The files a media.get (not a preview) is downloading, for media.progress: the message each belongs to and when its
@@ -924,7 +947,7 @@ bool regular_file(const std::string &path, std::int64_t &size) {
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.close", "chat.read",
                                      "chat.typing", "chat.set", "msg.send", "media.send", "msg.delete", "msg.edit",
-                                     "msg.forward", "media.get", "media.cancel"};
+                                     "msg.forward", "msg.react", "media.get", "media.cancel"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -1002,6 +1025,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     msg_edit(conn, id, req, chat);
   } else if (cmd == "msg.forward") {
     msg_forward(conn, id, req, chat);
+  } else if (cmd == "msg.react") {
+    msg_react(conn, id, req, chat);
   } else if (cmd == "media.cancel") {
     media_cancel(conn, id, req, chat);
   } else {

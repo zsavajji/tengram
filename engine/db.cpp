@@ -33,8 +33,9 @@ std::string read_key(const std::string &path) {
   return n == 64 && raw.is_ok() ? raw.move_as_ok() : "";
 }
 
-// The version-4 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
-// with the engine's own messages.sig, chats.read_inbox, chats.forum and messages.topic.
+// The version-5 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
+// without its reactions and poll_votes tables (a message's reactions and a poll's counts are in messages.extra),
+// and with the engine's own messages.sig, chats.read_inbox, chats.forum and messages.topic.
 // Column order is theirs, in case the UI reads by position; the engine's own come last, where ALTER TABLE
 // puts them in a migrated file. The first line removes the table that SqliteDb::change_key leaves in a
 // database it has just encrypted.
@@ -71,20 +72,6 @@ CREATE TABLE messages(
   PRIMARY KEY(chat, id));
 CREATE INDEX messages_by_time ON messages(chat, ts);
 CREATE INDEX messages_by_kind ON messages(kind, ts);
-CREATE TABLE reactions(
-  chat TEXT NOT NULL, msg TEXT NOT NULL,
-  sender TEXT NOT NULL,
-  sender_name TEXT,
-  emoji TEXT NOT NULL,
-  ts INTEGER NOT NULL,
-  PRIMARY KEY(chat, msg, sender));
-CREATE TABLE poll_votes(
-  chat TEXT NOT NULL, msg TEXT NOT NULL,
-  sender TEXT NOT NULL,
-  sender_name TEXT,
-  options TEXT NOT NULL,
-  ts INTEGER NOT NULL,
-  PRIMARY KEY(chat, msg, sender));
 CREATE TABLE engine_state(key TEXT PRIMARY KEY, value INTEGER NOT NULL);
 )";
 
@@ -157,13 +144,14 @@ bool Db::try_open(const std::string &raw_key) {
     return false;
   }
   auto v = db_.user_version();
-  if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3 && v.ok() != 4)) {
+  if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3 && v.ok() != 4 && v.ok() != 5)) {
     say("chats.db: user_version %d is not ours", v.is_ok() ? v.ok() : -1);
     db_.close();
     return false;
   }
   if ((v.ok() == 0 && !create_schema()) || (v.ok() == 2 && !migrate_2_to_3()) ||
-      ((v.ok() == 2 || v.ok() == 3) && !migrate_3_to_4())) {
+      ((v.ok() == 2 || v.ok() == 3) && !migrate_3_to_4()) ||
+      ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4) && !migrate_4_to_5())) {
     db_.close();
     return false;
   }
@@ -173,7 +161,7 @@ bool Db::try_open(const std::string &raw_key) {
 bool Db::create_schema() {
   // One transaction, user_version inside it: a crash leaves either nothing or all of it.
   return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) && exec(kTopics) &&
-         ok(db_.set_user_version(4), "user_version") && ok(db_.commit_transaction(), "commit");
+         ok(db_.set_user_version(5), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 // Version 2 had no chats.read_inbox. One transaction with user_version inside it, as create_schema: a crash
@@ -187,13 +175,23 @@ bool Db::migrate_2_to_3() {
 
 // Version 3 had no chats.forum, messages.topic or topics. Same shape as migrate_2_to_3. The messages go: their rows
 // have no topic, and a forum's topic pages would never find them. They are a cache that TDLib refills when a chat
-// opens (the UI's chat.open writes the newest page again).
+// opens (the UI's chat.open writes the newest page again). The tables of reactions and poll votes are still there
+// for the next step to drop.
 bool Db::migrate_3_to_4() {
   return ok(db_.begin_write_transaction(), "begin") &&
          exec("ALTER TABLE chats ADD COLUMN forum INTEGER NOT NULL DEFAULT 0") &&
          exec("ALTER TABLE messages ADD COLUMN topic INTEGER NOT NULL DEFAULT 0") && exec(kTopics) &&
-         exec("DELETE FROM messages; DELETE FROM reactions; DELETE FROM poll_votes") &&
+         exec("DELETE FROM messages") &&
          ok(db_.set_user_version(4), "user_version") && ok(db_.commit_transaction(), "commit");
+}
+
+// Version 4 kept reactions and poll votes in tables of their own (always empty); version 5 has them in messages.extra
+// (`reactions`, a poll's `votes`). Same shape as the others. The old rows get theirs when the engine writes them again
+// (a chat's newest page on chat.open, or any update of the message): the extra changes their sig.
+bool Db::migrate_4_to_5() {
+  return ok(db_.begin_write_transaction(), "begin") &&
+         exec("DROP TABLE IF EXISTS reactions; DROP TABLE IF EXISTS poll_votes") &&
+         ok(db_.set_user_version(5), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 void Db::close() {
@@ -229,7 +227,6 @@ void Db::commit() {
 
 void Db::wipe() {
   begin();
-  exec("DELETE FROM chats; DELETE FROM messages; DELETE FROM reactions; DELETE FROM poll_votes; "
-       "DELETE FROM topics; DELETE FROM engine_state");
+  exec("DELETE FROM chats; DELETE FROM messages; DELETE FROM topics; DELETE FROM engine_state");
   commit();
 }

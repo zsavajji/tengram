@@ -82,7 +82,7 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_poll(0)
     , m_bang(0)
     , m_chip(0)
-    , m_reactions(0)
+    , m_chipSpare(0)
     , m_edited(Card::tr(kContext, "edited") + " ")
     , m_starMark(QString::fromUtf8("\xE2\x98\x85 "))
     , m_reply(0)
@@ -287,8 +287,11 @@ void MessageCard::show(const QVariantMap &msg)
         makeBubbles();
     if (out && m_msg.value("state").toInt() == 4 && !m_bang)
         makeBang();
-    if (m_msg.value("reactionCount").toInt() > 0 && !m_chip)
+    const int chips = m_msg.value("reactions").toList().size();
+    if (chips > 0 && !m_chip)
         makeChip();
+    if (chips > m_chipBoxes.size())
+        growChips(chips);
     restyle();
 
     // Theirs at the left and ours at the right. A hidden spacer takes no part in the layout.
@@ -408,9 +411,9 @@ void MessageCard::restyle()
         m_label->textStyle()->setColor(quiet);
     }
     if (m_chip) {
-        m_chip->setBackground(plain);
         m_chip->setLeftPadding(side);
-        Card::style(m_reactions, m_list, body); // the text's size, not the small one (the user, 2026-11-08)
+        foreach (Label *label, m_chipLabels)
+            Card::style(label, m_list, body); // the text's size, not the small one (the user, 2026-11-08)
     }
 }
 
@@ -612,26 +615,117 @@ void MessageCard::makeBang()
     m_timeBox->add(m_bang);
 }
 
-// The reactions (step 5.11), under the card at its outer edge (fillFoot), with the card's own
-// left padding so theirs line up with its text. A tap says who reacted.
+// The reactions (step 5.11), under the card at its outer edge (fillFoot), with the card's own left padding so theirs
+// line up with its text: an area of rows of chips (fillChips). The area has a hidden spare for the chips in no row.
 void MessageCard::makeChip()
 {
     m_chip = new Container();
     m_chip->setHorizontalAlignment(HorizontalAlignment::Left);
     m_chip->setTopMargin(m_ui->du(0.5));
     m_chip->setRightPadding(m_ui->du(1));
-    m_chip->setTopPadding(m_ui->du(0.5));
-    m_chip->setBottomPadding(m_ui->du(0.5));
-    TapHandler *tap = new TapHandler(m_chip);
-    m_chip->addGestureHandler(tap);
-    connect(tap, SIGNAL(tapped(bb::cascades::TapEvent *)), this, SLOT(onWho()));
-
-    m_reactions = new Label();
-    m_reactions->setTopMargin(0);
-    m_reactions->setBottomMargin(0);
-    m_chip->add(m_reactions);
+    m_chipSpare = new Container();
+    m_chipSpare->setVisible(false);
+    m_chip->add(m_chipSpare);
     m_root->add(m_chip);
     m_styled = false;
+}
+
+// Makes chips until the pool holds n; a tap on one is onChip(). Before restyle(), which sets the labels' size.
+void MessageCard::growChips(int n)
+{
+    while (m_chipBoxes.size() < n) {
+        Container *box = new Container(); // square: no corners, the user's rule
+        box->setLeftPadding(m_ui->du(1));
+        box->setRightPadding(m_ui->du(1));
+        box->setTopPadding(m_ui->du(0.5));
+        box->setBottomPadding(m_ui->du(0.5));
+        box->setRightMargin(m_ui->du(0.5));
+        Label *label = new Label();
+        label->setTopMargin(0);
+        label->setBottomMargin(0);
+        label->setLeftMargin(0);
+        label->setRightMargin(0);
+        box->add(label);
+        TapHandler *tap = new TapHandler(box);
+        box->addGestureHandler(tap);
+        connect(tap, SIGNAL(tapped(bb::cascades::TapEvent *)), this, SLOT(onChip()));
+        m_chipSpare->add(box);
+        m_chipBoxes << box;
+        m_chipLabels << label;
+        m_chipAt << -1;
+    }
+    m_styled = false;
+}
+
+// A chip's width, reckoned a little over: the emoji and the space after it, the count's digits, the padding and the
+// margin after it.
+// ponytail: a reckoning, not measured on the phone; a chip wider than it (a long emoji sequence) runs past the column's
+// end, and one narrower leaves a gap before the wrap. Measuring takes a layout pass per chip.
+float MessageCard::chipWidth(int count) const
+{
+    return m_ui->du((2.6 + 1 + 1.55 * QString::number(count).size()) * m_scale) + m_ui->du(2.5);
+}
+
+// The chips, one for each emoji of the message: "👍 5", ours on the primary colour. They go into rows, a row ending
+// where the next chip would pass the column's width; the rows and chips are moved only when that changes.
+void MessageCard::fillChips()
+{
+    const QVariantList chips = m_msg.value("reactions").toList();
+    const int n = chips.size();
+    const bool tile = m_avatar && m_avatar->isVisible();
+    m_chip->setVisible(n > 0);
+    // Under the card's outer corner: ours is at the right now. Not under the tile before it.
+    m_chip->setHorizontalAlignment(flag("out") ? HorizontalAlignment::Right : HorizontalAlignment::Left);
+    m_chip->setLeftMargin(tile ? tileSpace() : 0);
+    if (n == 0)
+        return;
+
+    const float most = Card::width(m_ui) - 2 * Card::side(m_ui, m_scale) - (tile ? tileSpace() : 0);
+    QList<int> at;
+    float used = 0;
+    int row = 0;
+    for (int i = 0; i < n; ++i) {
+        const float width = chipWidth(chips.at(i).toMap().value("n").toInt());
+        if (used > 0 && used + width > most) {
+            ++row;
+            used = 0;
+        }
+        used += width;
+        at << row;
+    }
+    for (int i = n; i < m_chipBoxes.size(); ++i)
+        at << -1;
+    while (m_chipRows.size() <= row) {
+        Container *line = new Container();
+        line->setLayout(Card::across());
+        if (!m_chipRows.isEmpty())
+            line->setTopMargin(m_ui->du(0.5));
+        m_chip->add(line);
+        m_chipRows << line;
+    }
+    for (int r = 0; r < m_chipRows.size(); ++r)
+        m_chipRows.at(r)->setVisible(r <= row);
+    if (at != m_chipAt) {
+        for (int i = 0; i < m_chipBoxes.size(); ++i)
+            (m_chipAt.at(i) < 0 ? m_chipSpare : m_chipRows.at(m_chipAt.at(i)))->remove(m_chipBoxes.at(i));
+        for (int i = 0; i < m_chipBoxes.size(); ++i)
+            (at.at(i) < 0 ? m_chipSpare : m_chipRows.at(at.at(i)))->add(m_chipBoxes.at(i));
+        m_chipAt = at;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        const QVariantMap chip = chips.at(i).toMap();
+        const bool mine = chip.value("me").toBool();
+        Container *box = m_chipBoxes.at(i);
+        box->setProperty("emoji", chip.value("e"));
+        box->setProperty("mine", mine);
+        box->setBackground(mine ? m_ui->palette()->primary() : m_plain);
+        m_chipLabels.at(i)->setText(chip.value("e").toString() + " " + QString::number(chip.value("n").toInt()));
+        if (mine)
+            m_chipLabels.at(i)->textStyle()->setColor(Color::White);
+        else
+            m_chipLabels.at(i)->textStyle()->resetColor();
+    }
 }
 
 // The sender, the quote, the text and what hangs on it. A part a message doesn't need is hidden,
@@ -730,7 +824,7 @@ QString MessageCard::timeLead() const
 }
 
 // The time (the star and "edited" before it) and our message's state, as in ChatRows.cpp: sending, sent, delivered,
-// read, or a red "!" when it failed; then the foot and the reactions' chip.
+// read, or a red "!" when it failed; then the foot and the reactions' chips.
 void MessageCard::fillFoot()
 {
     const bool out = flag("out");
@@ -792,16 +886,8 @@ void MessageCard::fillFoot()
     m_tailL->setVisible(!out);
     m_tailR->setVisible(out);
 
-    const int count = m_msg.value("reactionCount").toInt();
-    if (m_chip) {
-        m_chip->setVisible(count > 0);
-        // Under the card's outer corner: ours is at the right now.
-        m_chip->setHorizontalAlignment(out ? HorizontalAlignment::Right : HorizontalAlignment::Left);
-        // Under the card, not the tile before it.
-        m_chip->setLeftMargin(m_avatar && m_avatar->isVisible() ? tileSpace() : 0);
-        if (count > 0)
-            m_reactions->setText(str("reactions") + (count > 1 ? QString(" %1").arg(count) : QString()));
-    }
+    if (m_chip)
+        fillChips();
 }
 
 

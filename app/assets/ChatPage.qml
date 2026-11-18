@@ -621,7 +621,7 @@ Page {
                     horizontalAlignment: HorizontalAlignment.Fill
                     verticalAlignment: VerticalAlignment.Fill
                     // The C++ cards call these functions on the list: the long-press menu's actions, a mention's
-                    // tap, the reactions' chip.
+                    // tap, the reactions' chips.
                     function reply(msg) {
                         ctl.reply(msg)
                         composer.requestFocus()
@@ -651,14 +651,14 @@ Page {
                     function openPerson(jid, name) {
                         infoAction.showPerson(jid, name)
                     }
-                    // Reactions (step 5.11): the bar over the composer, and the chip's who-reacted toast.
+                    // Reactions (step 5.11): the bar over the composer, and a chip's tap.
                     function react(msg) {
                         page.reactBar().open(msg)
                     }
-                    function whoReacted(id) {
-                        page.reactBar().who(id)
+                    function toggleReaction(id, emoji, mine) {
+                        page.reactBar().toggle(id, emoji, mine)
                     }
-                    // Polls (step 6.5e): a vote, and the toast of who chose an option, ReactBar's.
+                    // Polls (step 6.5e): a vote, and the toast of the counts, ReactBar's.
                     function vote(id, options) {
                         engine.request("poll.vote", {"chat": page.chat.jid, "id": id, "options": options})
                     }

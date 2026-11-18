@@ -231,35 +231,6 @@ QStringList ChatListModel::findMessages(const QString &jid, const QString &text)
     return ids;
 }
 
-// For the toast of the chip under a card: "You 👍" for ours, else the reactor's name, or the part
-// of the sender's key before the '@' when there is no name.
-QString ChatListModel::reactionsText(const QString &jid, const QString &id)
-{
-    QStringList lines;
-    QSqlDatabase db = ChatsDb::open(m_dbName);
-    if (!db.isOpen())
-        return QString();
-    QSqlQuery q(db);
-    q.prepare("SELECT sender, sender_name, emoji FROM reactions WHERE chat = ? AND msg = ? "
-              "ORDER BY ts, sender");
-    q.addBindValue(jid);
-    q.addBindValue(id);
-    if (!q.exec()) {
-        qWarning() << "reactions:" << q.lastError().text();
-        return QString();
-    }
-    while (q.next()) {
-        const QString sender = q.value(0).toString();
-        QString who = q.value(1).toString();
-        if (sender.isEmpty())
-            who = tr("You");
-        else if (who.isEmpty())
-            who = sender.section('@', 0, 0);
-        lines << who + " " + q.value(2).toString();
-    }
-    return lines.join("\n");
-}
-
 bool ChatListModel::empty() const
 {
     return m_groups.isEmpty();
