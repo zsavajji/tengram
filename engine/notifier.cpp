@@ -28,7 +28,9 @@ bool usable = false;  // the Hub opened
 bool account = false;
 // The Hub keeps an account's icon from when it was added: a new glyph shows only on an account added again. hub.json
 // says which glyph its account has; another number re-adds the account once (the inverted glyphs, 2026-11-17).
-constexpr int kGlyph = 2;
+// Re-adding isn't enough: the Hub caches the picture by file name (the old grey one stayed, the lock screen showed
+// the new), so a new glyph also needs a new file name (hub_account2.png, glyph 3; 2026-11-18).
+constexpr int kGlyph = 3;
 int glyph = 0;
 std::set<std::string> other_types;  // group types we have logged and ignore
 

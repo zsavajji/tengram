@@ -125,7 +125,7 @@
          hands it that folder). -->
     <asset path="assets/images/hub_unread.png" public="true">hub_unread.png</asset>
     <asset path="assets/images/hub_read.png" public="true">hub_read.png</asset>
-    <asset path="assets/images/hub_account.png" public="true">hub_account.png</asset>
+    <asset path="assets/images/hub_account2.png" public="true">hub_account2.png</asset>
     <asset path="assets/images/tick_action.png" public="true">tick_action.png</asset>
     <asset path="assets/images/unread_action.png" public="true">unread_action.png</asset>
     <asset path="assets/images/delete_action.png" public="true">delete_action.png</asset>

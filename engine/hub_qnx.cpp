@@ -93,7 +93,7 @@ int add_account() {
   uds.account_data_set_id(a, kAccount);
   uds.account_data_set_name(a, "Tengram");
   uds.account_data_set_description(a, "Telegram");
-  uds.account_data_set_icon(a, "hub_account.png");  // white: the lock screen and the instant preview draw it
+  uds.account_data_set_icon(a, "hub_account2.png");  // white: the lock screen and the instant preview draw it
   uds.account_data_set_target_name(a, "com.zsavajji.tengram");
   uds.account_data_set_supports_compose(a, false);
   uds.account_data_set_type(a, UDS_ACCOUNT_TYPE_IM);

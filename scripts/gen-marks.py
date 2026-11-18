@@ -9,7 +9,7 @@ help_action (a question mark in a ring, for About), back_action (a thin "<" chev
 title bar's Back) and overflow_action (three vertical dots, the composer's ⋮ column).
 A forwarded card's marks are forward.png and forward_many.png.
 The app's icon, the splash screens and the Hub's item and account glyphs (hub_read.png, hub_unread.png,
-hub_account.png) are not drawn here: they are Tengram's own (scripts/gen-icon.py).
+hub_account2.png) are not drawn here: they are Tengram's own (scripts/gen-icon.py).
 
 They're white on transparent, so QML tints them with ImageView.filterColor (grey, or the
 primary colour for read). Each is drawn at 8x and scaled down to its size on the Q10: 3 du,

@@ -3,7 +3,7 @@
 
 Writes assets/icon.svg (the design, to look at), and into app/assets/images, with Pillow: the app icon in
 every size (icon-<px>.png), the launch screens (splash-<w>x<h>.png), and the Hub's glyphs of the plane alone in
-one colour: hub_read.png (grey), hub_unread.png (yellow) and hub_account.png (white, also the lock screen's).
+one colour: hub_read.png (grey), hub_unread.png (yellow) and hub_account2.png (white, also the lock screen's).
 """
 import math
 import pathlib
@@ -168,7 +168,7 @@ def hub_glyphs(folder):
     glyph(81, (0x9E, 0x9E, 0x9E, 255), (0x81, 0x81, 0x81, 255), out=folder / "hub_read.png")     # a read item
     glyph(81, (0xFF, 0xD9, 0x1C, 255), (0xE0, 0xB2, 0x17, 255), out=folder / "hub_unread.png")   # an unread one
     # The account's own, which the lock screen and the instant preview draw: white, larger, no fade.
-    glyph(81, (255, 255, 255, 255), fill=0.9, out=folder / "hub_account.png")
+    glyph(81, (255, 255, 255, 255), fill=0.9, out=folder / "hub_account2.png")
 
 
 def main():
@@ -197,7 +197,7 @@ def main():
     images = out.parent.parent / "app" / "assets" / "images"
     app_images(images)
     hub_glyphs(images)
-    print(images, "icon-*.png splash-*.png hub_read.png hub_unread.png hub_account.png")
+    print(images, "icon-*.png splash-*.png hub_read.png hub_unread.png hub_account2.png")
 
 
 if __name__ == "__main__":

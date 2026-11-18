@@ -563,7 +563,7 @@ build, default mode, sampled every 5 minutes: `run7-engine*.log` in `/root/tengr
   next requests hung. Now a request in the last 10 s, or an answer TDLib still owes, keeps the
   network on and brings it up, and our own online status is not believed meanwhile.
 - **To verify on the phone once the app is packaged** (none of it could run from a root shell):
-  - the app's public assets hold `hub_account.png`, `hub_unread.png`, `hub_read.png`,
+  - the app's public assets hold `hub_account2.png`, `hub_unread.png`, `hub_read.png`,
     `tick_action.png`, `unread_action.png`, `delete_action.png`;
   - `dlopen` of the UDS library works through the bar's library path, with the Hub permission
     (`_sys_access_pim_unified`), on a thread with no Qt event loop;
