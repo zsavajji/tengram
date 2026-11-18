@@ -26,7 +26,8 @@ struct Row {
   std::int64_t last_ts = 0;
   bool has_last = false;    // last_preview is NULL without a last message
   std::string preview;
-  int last_out = 0, last_state = 0, unread = 0, pinned = 0, archived = 0;
+  int last_out = 0, last_state = 0, unread = 0, archived = 0;
+  std::int64_t pinned = 0;  // 0 not pinned, else the main list's position order (larger is higher)
   std::int64_t muted_until = 0;
   std::int64_t read_inbox = 0;
   int forum = 0;
@@ -68,7 +69,8 @@ struct Chat {
   bool use_default_mute = true;  // the chat's own notification settings, and when they were learned
   int mute_for = 0;
   std::int64_t mute_learned = 0;
-  bool in_main = false, in_archive = false, pinned = false;  // pinned: in the main list
+  bool in_main = false, in_archive = false;
+  std::int64_t pinned = 0;  // 0 not pinned, else the main list's chatPosition.order (a pinned chat's follows the pin order)
   std::int64_t read_inbox = 0;   // last_read_inbox_message_id_
   std::int64_t read_outbox = 0;
   bool dirty = false;
@@ -186,12 +188,18 @@ void set_last(Chat &c, const td_api::message *m) {
   c.last_preview = preview_of(c, *m);
 }
 
+// 0 for a position that is not a pin, else its order: the pins keep the order the user gave them, which is not the
+// last message's.
+std::int64_t pin_of(const td_api::chatPosition &p) {
+  return p.is_pinned_ && p.order_ != 0 ? p.order_ : 0;
+}
+
 // Only the main list's position matters, and only for pinned.
 void set_positions(Chat &c, const std::vector<td_api::object_ptr<td_api::chatPosition>> &positions) {
-  c.pinned = false;
+  c.pinned = 0;
   for (const auto &p : positions) {
     if (p && p->list_ && p->list_->get_id() == td_api::chatListMain::ID) {
-      c.pinned = p->is_pinned_ && p->order_ != 0;
+      c.pinned = pin_of(*p);
     }
   }
 }
@@ -414,7 +422,7 @@ td::Status load_row(Chat &c) {
     r.last_state = s.view_int32(6);
     r.unread = s.view_int32(7);
     r.muted_until = s.view_int64(8);
-    r.pinned = s.view_int32(9);
+    r.pinned = s.view_int64(9);
     r.archived = s.view_int32(10);
     r.read_inbox = s.view_int64(11);
     r.forum = s.view_int32(12);
@@ -439,7 +447,7 @@ td::Status write_row(const Chat &c, const Row &r) {
   TRY_STATUS(s.bind_int32(8, r.last_state));
   TRY_STATUS(s.bind_int32(9, r.unread));
   TRY_STATUS(s.bind_int64(10, r.muted_until));
-  TRY_STATUS(s.bind_int32(11, r.pinned));
+  TRY_STATUS(s.bind_int64(11, r.pinned));
   TRY_STATUS(s.bind_int32(12, r.archived));
   TRY_STATUS(s.bind_int64(13, r.read_inbox));
   TRY_STATUS(s.bind_int32(14, r.forum));
@@ -652,7 +660,7 @@ void chats_update(td_api::Object &update) {
       auto &u = static_cast<td_api::updateChatPosition &>(update);
       if (Chat *c = find(u.chat_id_)) {
         if (u.position_ && u.position_->list_ && u.position_->list_->get_id() == td_api::chatListMain::ID) {
-          c->pinned = u.position_->is_pinned_ && u.position_->order_ != 0;
+          c->pinned = pin_of(*u.position_);
           touch(*c);
         }
       }

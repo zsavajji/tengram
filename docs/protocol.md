@@ -54,6 +54,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.read` | `chat`; optional `upto` (a message id), `topic` | — | |
 | `chat.typing` | `chat`, `on` (bool); optional `topic` | — | |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool); at least one | — | |
+| `chat.pinOrder` | `ids` (the main list's pinned chats, as strings, in their new order, top first; at least one; no `chat`) | — | |
 | `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` (optional) | `{id}` | |
 | `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`, `file` (true: a document whatever the extension, e.g. a JPEG as it is); all but `chat` and `path` optional | `{id}` | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
@@ -174,6 +175,12 @@ date is not kept), comes after that commit; no pins is an empty list. TDLib's er
 
 **`chat.set`:** `pin`, `archive`, `unread` and `mute` as HyperBerry's. The row changes when
 Telegram's echo arrives (a `chats` event), not before.
+
+**`chat.pinOrder`:** `setPinnedChats` for the main list: `ids` is every pinned chat of the list in the order they should
+have, top first. TDLib takes it as the new set of pins, so a chat left out is unpinned and a chat added is pinned (a
+`td` failure past Telegram's limit or for a duplicate); an empty array is `bad_request`, as it would unpin them all.
+The reply says only that Telegram took it: TDLib sends an `updateChatPosition` for each chat that moved, and the rows'
+`pinned` change with the `chats` event that follows.
 
 **`msg.send`:** a text. `mentions` are the people the text's "@name"s point at: `jid` the
 user id, `name` what the text reads after the "@". Each "@name" found in the text becomes a
@@ -705,7 +712,7 @@ had secret chats off until version 6.
 | `last_ts`, `last_preview`, `last_out`, `last_state` | the newest message: unix seconds (0 when the chat is empty), the one-line preview ("You: hi", "Anna: Photo"; no name in a 1:1 chat or a channel), ours or not, its state |
 | `unread` | the unread count; -1 for a chat marked unread with none |
 | `muted_until` | unix seconds; 0 not muted; 2^40 muted forever |
-| `pinned` | 1 when pinned in the main list |
+| `pinned` | 0 when not pinned in the main list, else the position's `order` TDLib gives the chat there (an int64, near 2^63, larger is higher): a pinned chat's order follows the order the user gave the pins, not its last message, so `ORDER BY pinned DESC, last_ts DESC` lists the pins in their order and then the rest by time. A row written before the order was kept holds 1 until the engine next writes it (every pinned chat gets its position from TDLib at the next start, which writes the row); the tie falls back to `last_ts` |
 | `archived` | 1 when in the archive |
 | `read_inbox` | the id of the newest message read here or on another device; 0 when unknown (a database that was at `user_version` 2 has 0 until the engine next writes the chat's row) |
 | `forum` | 1 for a supergroup with topics (see *Forum topics*); 0 for any other chat, and until the engine next writes the row of a chat in a database that was at `user_version` 3. A group can become a forum or stop being one: a `chats` event names the row. Messages already in `messages` keep the `topic` they had (0 for a group that was not a forum): the UI uses `messages.topic` only while `forum` is 1, and a chat that has just become a forum gets its topics' messages from `chat.open` with `topic` |

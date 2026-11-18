@@ -21,6 +21,7 @@
 #include <bb/cascades/VerticalAlignment>
 
 #include "CardStyle.h"
+#include "ChatListModel.h"
 #include "Markup.h"
 
 using namespace bb::cascades;
@@ -29,10 +30,12 @@ namespace {
 // The QML file's name: the translations of ChatRow.qml's strings (tengram_it.ts) apply.
 const char *const kContext = "ChatRow";
 
-void setItem(ActionItem *item, const char *title, const char *icon)
+// icon 0: no picture.
+void setItem(ActionItem *item, const char *title, const char *icon = 0)
 {
     item->setTitle(Card::tr(kContext, title));
-    item->setImageSource(Card::url(icon));
+    if (icon)
+        item->setImageSource(Card::url(icon));
 }
 }
 
@@ -76,6 +79,8 @@ ChatRow::ChatRow(ListView *list)
     , m_menu(0)
     , m_readItem(0)
     , m_pinItem(0)
+    , m_upItem(0)
+    , m_downItem(0)
     , m_muteItem(0)
     , m_archiveItem(0)
 {
@@ -349,8 +354,24 @@ void ChatRow::makeActions()
 {
     m_readItem = action(SLOT(onRead()));
     m_pinItem = action(SLOT(onPin()));
+    m_upItem = action(SLOT(onUp()));
+    m_downItem = action(SLOT(onDown()));
     m_muteItem = action(SLOT(onMute()));
     m_archiveItem = action(SLOT(onArchive()));
+}
+
+// Move up and Move down sit under Pin only for a pinned chat: ActionItem has no visible, so they leave the menu and
+// come back (the ActionSet keeps the ones it let go of and deletes them with itself).
+void ChatRow::showMoves(bool on)
+{
+    ActionItem *const items[] = {m_upItem, m_downItem};
+    for (int i = 0; i < 2; ++i) {
+        const bool in = m_menu->indexOf(items[i]) >= 0;
+        if (on && !in)
+            m_menu->insert(2 + i, items[i]);
+        else if (!on && in)
+            m_menu->remove(items[i]);
+    }
 }
 
 // "Mute…" is UTF-8 in the source, as the .ts has it: main.cpp sets UTF-8 as the codec for tr.
@@ -368,6 +389,18 @@ void ChatRow::onPopulating()
                    : "file:///usr/share/icons/bb_action_markunread.png");
     setItem(m_pinItem, flag("pinned") ? QT_TRANSLATE_NOOP("ChatRow", "Unpin") : QT_TRANSLATE_NOOP("ChatRow", "Pin"), "asset:///images/pin_action.png");
     m_pinItem->setEnabled(!channels);
+    // Move up and down: for a pinned chat of the main list, off at the top and the bottom of the pins.
+    const bool movable = flag("pinned") && !archived && !channels;
+    showMoves(movable);
+    if (movable) {
+        ChatListModel *model = qobject_cast<ChatListModel *>(m_list->dataModel());
+        const QStringList pins = model ? model->pinnedJids() : QStringList();
+        const int at = pins.indexOf(str("jid"));
+        setItem(m_upItem, QT_TRANSLATE_NOOP("ChatRow", "Move up"));
+        setItem(m_downItem, QT_TRANSLATE_NOOP("ChatRow", "Move down"));
+        m_upItem->setEnabled(at > 0);
+        m_downItem->setEnabled(at >= 0 && at < pins.size() - 1);
+    }
     setItem(m_muteItem, flag("muted") ? QT_TRANSLATE_NOOP("ChatRow", "Unmute") : QT_TRANSLATE_NOOP("ChatRow", "Mute\xE2\x80\xA6"), "asset:///images/mute_action.png");
     m_muteItem->setEnabled(!channels);
     if (channels)
@@ -379,5 +412,7 @@ void ChatRow::onPopulating()
 
 void ChatRow::onRead() { Card::call(m_list, "toggleUnread", m_chat); }
 void ChatRow::onPin() { Card::call(m_list, "togglePin", m_chat); }
+void ChatRow::onUp() { Card::call(m_list, "movePin", m_chat, -1); }
+void ChatRow::onDown() { Card::call(m_list, "movePin", m_chat, 1); }
 void ChatRow::onMute() { Card::call(m_list, "toggleMute", m_chat); }
 void ChatRow::onArchive() { Card::call(m_list, "toggleArchive", m_chat); }

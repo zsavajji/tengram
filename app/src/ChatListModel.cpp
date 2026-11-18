@@ -60,7 +60,11 @@ static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
     row["state"] = q.value(6).toInt();
     row["unread"] = q.value(7).toInt();
     row["muted"] = q.value(8).toLongLong() > now;
-    row["pinned"] = q.value(9).toInt() != 0;
+    // chats.pinned is 0, or the main list's position order while pinned (larger is higher): an int64 that a double
+    // would round (TDLib's pins sit near 2^63), so it stays a qint64 for the comparisons below; QML reads pinned.
+    const qint64 pinOrder = q.value(9).toLongLong();
+    row["pinned"] = pinOrder != 0;
+    row["pinOrder"] = pinOrder;
     row["ts"] = q.value(3).isNull() ? qint64(-1) : q.value(3).toLongLong(); // the sort key, with pinned
     row["photo"] = q.value(10).toString(); // the engine's preview file's path, "" when none
     row["forum"] = q.value(11).toInt() != 0; // a group with topics: a tap opens its TopicsPage
@@ -68,14 +72,18 @@ static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
     return row;
 }
 
-// The list's order, pinned first and then newest: positive when a sorts before b, negative when
-// after, 0 for a tie.
+// The list's order, pinned first (in the order the user gave them: the same as SQL's pinned DESC) and then
+// newest: positive when a sorts before b, negative when after, 0 for a tie.
 static int byKey(const QVariantMap &a, const QVariantMap &b)
 {
     const bool pa = a.value("pinned").toBool();
     const bool pb = b.value("pinned").toBool();
     if (pa != pb)
         return pa ? 1 : -1;
+    const qint64 oa = a.value("pinOrder").toLongLong();
+    const qint64 ob = b.value("pinOrder").toLongLong();
+    if (oa != ob)
+        return oa > ob ? 1 : -1;
     const qint64 ta = a.value("ts").toLongLong();
     const qint64 tb = b.value("ts").toLongLong();
     return ta > tb ? 1 : ta < tb ? -1 : 0;
@@ -230,6 +238,24 @@ QStringList ChatListModel::findMessages(const QString &jid, const QString &text)
             ids << q.value(0).toString();
     }
     return ids;
+}
+
+// Every pinned chat of the main list in their order, top first, read from the table and not from the rows so a filter
+// does not hide any: chat.pinOrder takes them all. Empty on the Archived page.
+QStringList ChatListModel::pinnedJids()
+{
+    QStringList jids;
+    QSqlDatabase db = ChatsDb::open(m_dbName);
+    if (m_mode != Chats || !db.isOpen())
+        return jids;
+    QSqlQuery q(db);
+    if (!q.exec("SELECT jid FROM chats WHERE pinned != 0 AND archived = 0 ORDER BY pinned DESC, last_ts DESC")) {
+        qWarning() << "pinned:" << q.lastError().text();
+        return jids;
+    }
+    while (q.next())
+        jids << q.value(0).toString();
+    return jids;
 }
 
 bool ChatListModel::empty() const

@@ -66,6 +66,8 @@ private slots:
     void onPopulating();
     void onRead();
     void onPin();
+    void onUp();
+    void onDown();
     void onMute();
     void onArchive();
 
@@ -75,6 +77,7 @@ private:
 
     void paintBackground();
     void makeActions();
+    void showMoves(bool on);
     bb::cascades::ActionItem *action(const char *slot);
 
     bb::cascades::ListView *m_list;
@@ -110,6 +113,8 @@ private:
     bb::cascades::ActionSet *m_menu;
     bb::cascades::ActionItem *m_readItem;
     bb::cascades::ActionItem *m_pinItem;
+    bb::cascades::ActionItem *m_upItem; // Move up and down: in the menu for a pinned chat only (showMoves)
+    bb::cascades::ActionItem *m_downItem;
     bb::cascades::ActionItem *m_muteItem;
     bb::cascades::ActionItem *m_archiveItem;
 };

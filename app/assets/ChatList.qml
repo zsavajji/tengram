@@ -23,6 +23,13 @@ ListView {
     // True on a forum's topics (TopicsPage): a flat model with no headers and no long-press menu, its rows the same.
     property bool topicList: false
     signal chatTapped(variant chat)
+    // A failed move of a pin shows as a toast, once per failure (request() of the same cmd clears failure).
+    property string failedCmd: engine.failure.cmd || ""
+    onFailedCmdChanged: {
+        if (failedCmd == "chat.pinOrder" && !archivedList && !topicList) {
+            moveFailed.show()
+        }
+    }
 
     function set(jid, args) {
         args.chat = jid
@@ -33,6 +40,19 @@ ListView {
     }
     function togglePin(chat) {
         set(chat.jid, {"pin": !chat.pinned})
+    }
+    // Moves a pinned chat one place up (step -1) or down (1) among the main list's pins: the pins in their order, with it
+    // swapped with its neighbour, go to the engine, and chats.db's order changes with TDLib's answer.
+    function movePin(chat, step) {
+        var jids = dataModel.pinnedJids()
+        var i = jids.indexOf(chat.jid)
+        var j = i + step
+        if (i < 0 || j < 0 || j >= jids.length) {
+            return
+        }
+        jids[i] = jids[j]
+        jids[j] = chat.jid
+        engine.request("chat.pinOrder", {"ids": jids})
     }
     function toggleArchive(chat) {
         if (channelList) {
@@ -60,6 +80,10 @@ ListView {
         }
     }
     attachedObjects: [
+        SystemToast {
+            id: moveFailed
+            body: qsTr("Couldn't move this chat")
+        },
         SystemDialog {
             id: unfollowDialog
             property string jid

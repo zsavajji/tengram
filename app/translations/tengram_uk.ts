@@ -556,6 +556,11 @@
         <source>Unfollow</source>
         <translation>Відписатися</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="85"/>
+        <source>Couldn&apos;t move this chat</source>
+        <translation>Не вдалося перемістити чат</translation>
+    </message>
 </context>
 <context>
     <name>ChatListModel</name>
@@ -701,6 +706,16 @@
     <message>
         <source>Pin</source>
         <translation>Закріпити</translation>
+    </message>
+    <message>
+        <location filename="../src/ChatRows.cpp" line="399"/>
+        <source>Move up</source>
+        <translation>Перемістити вище</translation>
+    </message>
+    <message>
+        <location filename="../src/ChatRows.cpp" line="400"/>
+        <source>Move down</source>
+        <translation>Перемістити нижче</translation>
     </message>
     <message>
         <source>Unmute</source>

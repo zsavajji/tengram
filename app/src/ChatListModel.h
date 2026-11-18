@@ -19,8 +19,8 @@ class EngineLink;
 // The chat list (PLAN.md §7, step 2.4): chats.db's chats that aren't archived (or, for the Archived page, only those), pinned first,
 // then newest first. Headers ("Pinned", "Today", "Yesterday", "Monday", "Jan 20") are the top
 // level ([g]), and the chats are their children ([g, i]): a map of jid, kind, name, initials,
-// color, preview, time, out, state, unread, muted, pinned, ts (last_ts, -1 for none), photo (a
-// file path, or "") and forum (a group with topics).
+// color, preview, time, out, state, unread, muted, pinned, pinOrder (chats.pinned, a qint64: the order the user gave the
+// pins), ts (last_ts, -1 for none), photo (a file path, or "") and forum (a group with topics).
 class ChatListModel : public bb::cascades::DataModel
 {
     Q_OBJECT
@@ -49,6 +49,8 @@ public:
     Q_INVOKABLE QVariantMap chat(const QString &jid);
     // The ids of the chat's messages whose text has text in it, any case, newest first (step 5.10).
     Q_INVOKABLE QStringList findMessages(const QString &jid, const QString &text);
+    // The jids of the pinned chats of the main list, top first (all of them, whatever the filter); for chat.pinOrder.
+    Q_INVOKABLE QStringList pinnedJids();
     // Shows only the chats whose name has a word starting with text; "" shows all.
     Q_INVOKABLE void setFilter(const QString &text);
 

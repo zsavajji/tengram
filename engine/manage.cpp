@@ -1,6 +1,6 @@
-// The requests that act on people, groups and invite links, the secret chats and the chat's timer, and the chat's export
-// to a text file: contact.block, group.participants, group.create, poll.create, invite.info, invite.accept, secret.start,
-// chat.ttl and chat.export (docs/protocol.md).
+// The requests that act on people, groups and invite links, the secret chats and the chat's timer, the chat's export
+// to a text file and the order of the pinned chats: contact.block, group.participants, group.create, poll.create,
+// invite.info, invite.accept, secret.start, chat.ttl, chat.export and chat.pinOrder (docs/protocol.md).
 // What a chat is comes from pages.cpp (with_chat, person_of, basic_group_of, supergroup_of).
 
 #include "engine.h"
@@ -185,6 +185,35 @@ void group_create(std::uint64_t conn, const std::string &id, td::JsonObject &req
                   r("refused", static_cast<std::int32_t>(refused));
                 })));
   });
+}
+
+// ---- chat.pinOrder
+
+// The main list's pinned chats in their new order, top first. TDLib answers with an updateChatPosition for each chat
+// that moved (chats.pinned is the position's order), so the rows change with that, not with this reply.
+void chat_pin_order(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
+  td::JsonValue list;
+  if (optional_field(req, "ids", td::JsonValue::Type::Array, list) != 1) {
+    return bad_request(conn, id, "need the field ids, an array of chat ids");
+  }
+  std::vector<std::int64_t> chats;
+  for (const td::JsonValue &item : list.get_array()) {
+    std::int64_t chat = 0;
+    if (item.type() != td::JsonValue::Type::String || !parse_i64(item.get_string().str(), chat)) {
+      return bad_request(conn, id, "ids are strings with chat ids");
+    }
+    chats.push_back(chat);
+  }
+  if (chats.empty()) {  // setPinnedChats with none would unpin them all
+    return bad_request(conn, id, "ids holds at least one chat");
+  }
+  tdlib.send(make_object<td_api::setPinnedChats>(make_object<td_api::chatListMain>(), std::move(chats)),
+             [conn, id](Obj o) {
+               if (auto e = as_error(o)) {
+                 return td_failed(conn, id, *e);
+               }
+               server.reply_ok(conn, id);
+             });
 }
 
 // ---- poll.create
@@ -513,11 +542,12 @@ void chat_export(std::uint64_t conn, const std::string &id, std::int64_t chat) {
 bool manage_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"contact.block", "group.participants", "group.create", "poll.create",
                                      "invite.info",   "invite.accept",      "secret.start", "chat.ttl",
-                                     "chat.export"};
+                                     "chat.export",   "chat.pinOrder"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
-  if (cmd == "group.create" || cmd == "invite.info" || cmd == "invite.accept" || cmd == "secret.start") {  // no chat
+  if (cmd == "group.create" || cmd == "invite.info" || cmd == "invite.accept" || cmd == "secret.start" ||
+      cmd == "chat.pinOrder") {  // no chat
     if (!link_ready()) {
       server.reply_error(conn, id, "unlinked", "not logged in");
     } else if (cmd == "group.create") {
@@ -526,6 +556,8 @@ bool manage_handle(std::uint64_t conn, const std::string &id, const std::string 
       invite_info(conn, id, req);
     } else if (cmd == "secret.start") {
       secret_start(conn, id, req);
+    } else if (cmd == "chat.pinOrder") {
+      chat_pin_order(conn, id, req);
     } else {
       invite_accept(conn, id, req);
     }

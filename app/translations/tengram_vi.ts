@@ -554,6 +554,11 @@
         <source>Unfollow</source>
         <translation>Bỏ theo dõi</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="85"/>
+        <source>Couldn&apos;t move this chat</source>
+        <translation>Không thể di chuyển đoạn chat này</translation>
+    </message>
 </context>
 <context>
     <name>ChatListModel</name>
@@ -699,6 +704,16 @@
     <message>
         <source>Pin</source>
         <translation>Ghim</translation>
+    </message>
+    <message>
+        <location filename="../src/ChatRows.cpp" line="399"/>
+        <source>Move up</source>
+        <translation>Di chuyển lên</translation>
+    </message>
+    <message>
+        <location filename="../src/ChatRows.cpp" line="400"/>
+        <source>Move down</source>
+        <translation>Di chuyển xuống</translation>
     </message>
     <message>
         <source>Unmute</source>

@@ -555,6 +555,11 @@
         <source>Unfollow</source>
         <translation>Nicht mehr folgen</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="85"/>
+        <source>Couldn&apos;t move this chat</source>
+        <translation>Chat konnte nicht verschoben werden</translation>
+    </message>
 </context>
 <context>
     <name>ChatListModel</name>
@@ -700,6 +705,16 @@
     <message>
         <source>Pin</source>
         <translation>Anpinnen</translation>
+    </message>
+    <message>
+        <location filename="../src/ChatRows.cpp" line="399"/>
+        <source>Move up</source>
+        <translation>Nach oben</translation>
+    </message>
+    <message>
+        <location filename="../src/ChatRows.cpp" line="400"/>
+        <source>Move down</source>
+        <translation>Nach unten</translation>
     </message>
     <message>
         <source>Unmute</source>
