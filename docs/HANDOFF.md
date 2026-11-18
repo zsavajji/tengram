@@ -209,7 +209,7 @@ ten languages (the split settings pages' strings moved to their own contexts, tr
 inverted, the plane cut out of a disc (the user; `scripts/gen-icon.py`).
 
 **Loose ends:** Group info isn't in the TopicsPage's menu (it is inside a topic); the voice encode blocks the engine
-about a second a minute of audio (unmeasured). **lupdate trap (fixed `a937826`: the strings are marked with QT_TRANSLATE_NOOP now):** the C++ cards translate through
+about a second a minute of audio (unmeasured). **lupdate trap (fixed `7c95475`: the strings are marked with QT_TRANSLATE_NOOP now):** the C++ cards translate through
 `Card::tr(kContext, …)`, which lupdate can't see: a plain `lupdate -pro` marks their 35 entries (MessageItem,
 ChatRow, MediaBubble) obsolete and lrelease drops them. They were restored by hand; mark the strings with
 `QT_TRANSLATE_NOOP` before the next lupdate.
@@ -219,7 +219,7 @@ ChatRow, MediaBubble) obsolete and lrelease drops them. They were restored by ha
 **First:** try Link desktop device (scan Telegram Desktop's QR; then the camera is free for other apps); see the
 channel composer (0.1.0.17).
 
-**Step 4 is written (2026-11-18, `cebf0cf` to `55ec053`): it builds, it is not packaged and nothing of it has run.** The
+**Step 4 is written (2026-11-18, `26ff906` to `b9a76f1`): it builds, it is not packaged and nothing of it has run.** The
 user batches: build one package when the round is ready, then ask to install it. Test in that package:
 1. **Hub account icon:** the white glyph in the Hub too, not the old grey one (`hub_account2.png`, glyph 3; the Hub
    caches an account's icon by file name, `097d4ed`). The Hub's items go and the unread ones come back once.
@@ -236,16 +236,16 @@ user batches: build one package when the round is ready, then ask to install it.
 7. **Loose ends:** Clear chat empties the list's preview and keeps the chat's place; Saved Messages named so after an
    engine start; a sent video shows its length (read from the file's mvhd).
 
-8. **Settings → Privacy and security** (`03daf1a`, `aaa5a38`): the page loads (all rows at once); a rule's DropDown
+8. **Settings → Privacy and security** (`a3bd602`, `414fea4`): the page loads (all rows at once); a rule's DropDown
    changes and goes back when Telegram refuses; two-step verification set/change/e-mail code/off (a session under a day
    old may get "too fresh"); blocked users and unblock; auto-delete; account TTL; connected websites; Sync contacts stays
    off by default and sends the book at once when turned on.
-9. **Settings → Data and storage** (`43f89b1`, the page after it): storage and data used; Clear media, then a photo in a
+9. **Settings → Data and storage** (`5ee3f09`, the page after it): storage and data used; Clear media, then a photo in a
    chat shows its blurred thumbnail and comes back on a tap; automatic download on Wi-Fi only (the default: a photo
    arrives downloaded), nothing on mobile data, a download stopped when Wi-Fi goes; Save to gallery puts a received
    photo in Pictures → Tengram; the media cap prunes 2 minutes after start (tengramd.log).
 
-10. **Secret chats** (`74c1d59` and the UI after it; chats.db migrates to v6 at the first start): Start secret chat from a
+10. **Secret chats** (`618cabd` and the UI after it; chats.db migrates to v6 at the first start): Start secret chat from a
     person's page (the other side on the user's Android phone: Telegram Desktop has none); the lock and green; "Waiting
     for … to get online" until it is accepted; send and receive; the self-destruct timer, a message's countdown, the
     message going; a timed photo's countdown starting when it is opened; Delete chat ends it on both sides; the Hub says
