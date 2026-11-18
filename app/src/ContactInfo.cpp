@@ -69,6 +69,15 @@ void ContactInfo::exportChat()
     m_exportId = m_engine->request("chat.export", args);
 }
 
+void ContactInfo::startSecret(bool byChat)
+{
+    if (!m_engine)
+        return;
+    QVariantMap args;
+    args[byChat ? "chat" : "user"] = m_jid;
+    m_secretId = m_engine->request("secret.start", args);
+}
+
 // The card the phone app's "Add to contacts" opens: new contact or an existing one, the number
 // filled in. Its target and type are from the Contacts app's manifest on the Q10 (2026-11-01).
 void ContactInfo::saveNumber(const QString &phone)
@@ -88,6 +97,11 @@ void ContactInfo::onReplied(const QString &id, const QString &cmd, const QVarian
 {
     if (cmd == "contact.block" && id == m_blockId) {
         ask(m_jid); // info.blocked is read again with the rest
+        return;
+    }
+    if (cmd == "secret.start" && id == m_secretId) {
+        m_secretId.clear();
+        emit secretStarted(result.toMap()["jid"].toString());
         return;
     }
     if (cmd == "chat.export" && id == m_exportId) {

@@ -49,7 +49,7 @@ void MessageCard::onPopulating()
     const bool deleted = flag("deleted");
     const bool readOnly = flag("readOnly");
     m_reply->setEnabled(!deleted && !readOnly);
-    m_react->setEnabled(!deleted); // a channel's post too: anyone may react
+    m_react->setEnabled(!deleted && !flag("secret")); // a channel's post too: anyone may react; not in a secret chat
     m_forward->setEnabled(flag("forwardable"));
     if (m_votes)
         m_votes->setEnabled(flag("poll") && !deleted);

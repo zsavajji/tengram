@@ -8,6 +8,8 @@ TitleBar {
     id: bar
     property variant chat
     property string status
+    // The chat's secret state (ChatPage.secret): 0 for no secret chat, else its lock and green name show.
+    property int secret: 0
     // A forum topic's name, "" for a chat: the page is that topic's, and the status line is the group's name.
     property string topicName
     // Fetched while open: the chat keeps the row it opened with, so the picture is read from the table as the name is.
@@ -63,15 +65,37 @@ TitleBar {
                 // Two lines fit 85 px only without the labels' default margins (about 20 px),
                 // and below the stock title's 25 px capitals (125 %; 100 % draws 20 px):
                 // the name 22 px (110 %), the status 15 px (75 %). Q10, 2026-10-31.
-                Label {
-                    bottomMargin: 0
-                    // Saved in the address book while open: the chat keeps the row it opened with.
-                    text: bar.topicName != "" ? bar.topicName
-                        : bar.chat ? (chats.revision >= 0 && chats.chat(bar.chat.jid).name) || bar.chat.name : ""
-                    textFormat: TextFormat.Plain
-                    textStyle.base: nav.emojiStyle
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: 110
+                // A secret chat's name has its lock before it, both in the secret green (the chat list's).
+                Container {
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    layout: StackLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    ImageView {
+                        visible: bar.secret > 0
+                        verticalAlignment: VerticalAlignment.Center
+                        leftMargin: 0
+                        rightMargin: ui.du(0.5)
+                        preferredWidth: ui.du(2.4)
+                        preferredHeight: ui.du(2.4)
+                        scalingMethod: ScalingMethod.AspectFit
+                        imageSource: "asset:///images/lock.png"
+                        filterColor: Color.create(nav.secretColor)
+                    }
+                    Label {
+                        bottomMargin: 0
+                        layoutProperties: StackLayoutProperties {
+                            spaceQuota: 1
+                        }
+                        // Saved in the address book while open: the chat keeps the row it opened with.
+                        text: bar.topicName != "" ? bar.topicName
+                            : bar.chat ? (chats.revision >= 0 && chats.chat(bar.chat.jid).name) || bar.chat.name : ""
+                        textFormat: TextFormat.Plain
+                        textStyle.base: nav.emojiStyle
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: 110
+                        textStyle.color: bar.secret > 0 ? Color.create(nav.secretColor) : ui.palette.textOnPlain
+                    }
                 }
                 Label {
                     visible: bar.status != ""

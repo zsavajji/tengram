@@ -672,6 +672,16 @@
         <source>Couldn&apos;t edit this message</source>
         <translation>Nachricht konnte nicht bearbeitet werden</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="863"/>
+        <source>Waiting for %1 to get online…</source>
+        <translation>Warten, bis %1 online ist…</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="864"/>
+        <source>Secret chat cancelled</source>
+        <translation>Geheimer Chat abgebrochen</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -982,6 +992,16 @@
     <message>
         <source>Video call</source>
         <translation type="obsolete">Videoanruf</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="114"/>
+        <source>Start secret chat</source>
+        <translation>Geheimen Chat starten</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="235"/>
+        <source>Couldn&apos;t start a secret chat</source>
+        <translation>Der geheime Chat konnte nicht gestartet werden</translation>
     </message>
 </context>
 <context>
@@ -1934,6 +1954,26 @@
         <location filename="../src/MessageModel.cpp" line="1126"/>
         <source>Unread messages</source>
         <translation>Ungelesene Nachrichten</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="191"/>
+        <source>%1 s</source>
+        <translation>%1 s</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="193"/>
+        <source>%1 min</source>
+        <translation>%1 Min.</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="195"/>
+        <source>%1 h</source>
+        <translation>%1 Std.</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="196"/>
+        <source>%1 d</source>
+        <translation>%1 T</translation>
     </message>
 </context>
 <context>
@@ -3425,6 +3465,50 @@
     <message>
         <source>edited</source>
         <translation type="obsolete">bearbeitet</translation>
+    </message>
+</context>
+<context>
+    <name>TimerAction</name>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="12"/>
+        <location filename="../assets/TimerAction.qml" line="46"/>
+        <source>Self-destruct timer</source>
+        <translation>Selbstzerstörungs-Timer</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="23"/>
+        <source>Off</source>
+        <translation>Aus</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="26"/>
+        <source>%1 s</source>
+        <translation>%1 s</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="26"/>
+        <source>%1 min</source>
+        <translation>%1 Min.</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="27"/>
+        <source>%1 h</source>
+        <translation>%1 Std.</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="27"/>
+        <source>%1 d</source>
+        <translation>%1 T</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="41"/>
+        <source>Couldn&apos;t set the timer</source>
+        <translation>Der Timer konnte nicht gesetzt werden</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="48"/>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
     </message>
 </context>
 <context>

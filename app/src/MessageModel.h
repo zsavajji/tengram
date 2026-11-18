@@ -74,7 +74,9 @@ public:
     // topic: a forum topic's id (docs/protocol.md, Forum topics) when the model is one topic's messages, 0 for the chat's:
     // every read of messages then has `AND topic = ?`, the requests carry it, and the unread count and read_inbox are the
     // topic's own (the topics table's).
-    MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, int topic, QObject *parent = 0);
+    // secret: a secret chat (chats.secret above 0): its messages can't be forwarded or edited, and carry timers (extra.ttl,
+    // extra.expiresAt: the foot's countdown, ticked once a second by m_expiry while any row has one).
+    MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, bool secret, int topic, QObject *parent = 0);
 
     int childCount(const QVariantList &indexPath);
     bool hasChildren(const QVariantList &indexPath);
@@ -141,6 +143,8 @@ private slots:
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onPhoto(const QString &jid, const QString &path);
     void giveUp();
+    void tickExpiry();
+    void onFullscreen();
 
 private:
     struct Msg
@@ -213,12 +217,15 @@ private:
     QVariantMap albumData(const Entry &e) const;
     void refresh(const QStringList &old, const QSet<QString> &updated);
     QString longDay(const QDate &date, const QLocale &locale);
+    // A time as the foot shows it: "10 s", "5 min", "1 h", "7 d" (rounded up).
+    static QString span(qint64 secs);
     QString dayTitle(const Msg &m);
 
     QPointer<EngineLink> m_engine;
     QString m_chat;
     bool m_group;
     bool m_channel; // a channel (kind 3): read-only for us
+    bool m_secret; // a secret chat: no forward, edit or reaction
     int m_topic; // the forum topic shown, 0 for the whole chat
     qint64 m_floor; // the oldest verified message id: older rows are not shown
     bool m_floorKnown; // false until the first chat.open reply
@@ -249,6 +256,7 @@ private:
     QString m_newerId; // the chat.newer request in flight (the window's first included), "" for none
     QElapsedTimer m_newerAt; // when it was sent; invalid until the first
     QTimer m_windowGiveUp; // the window's first reply never came: open at the newest instead
+    QTimer m_expiry; // once a second while a row has an expiresAt and the app is in front: those cards are drawn again
     int m_low; // the lowest visible entry the list last reported: whether the bottom is within reach
     QList<Msg> m_all;
     QSet<QString> m_hidden;

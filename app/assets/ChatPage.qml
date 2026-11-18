@@ -28,6 +28,9 @@ Page {
     property string stagedPng: ""
     // The staged file is a JPEG of the user's own (not one made from a PNG): it can go as a file too.
     property bool stagedJpeg: stagedPng == "" && /\.jpe?g$/i.test(staged)
+    // A secret chat's state, read from the chat list as it changes (the chat keeps the row it opened with): 0 not a secret
+    // chat, 1 pending (the other side isn't online yet), 2 ready, 3 closed (docs/protocol.md, Secret chats).
+    property int secret: page.chat ? (chats.revision >= 0 && chats.chat(page.chat.jid).secret) || page.chat.secret || 0 : 0
     property string failedCmd: engine.failure.cmd || ""
     onFailedCmdChanged: {
         if (failedCmd == "msg.delete") {
@@ -48,8 +51,11 @@ Page {
     }
     onChatChanged: {
         ctl.open(chat, topic)
+        // Pinned messages, not in a secret chat (Telegram has no pins there), after Search as before.
+        if (!chat.secret) addAction(pinnedAction, ActionBarPlacement.InOverflow)
         if (chat.kind != 2) addAction(infoAction, ActionBarPlacement.InOverflow)
         if (chat.kind == 1) addAction(pollAction, ActionBarPlacement.InOverflow) // groups: Telegram refuses polls in a chat with a person
+        if (chat.secret) addAction(timerAction, ActionBarPlacement.InOverflow)
         ctl.messages.itemAdded.connect(page.added)
         ctl.messages.loadingChanged.connect(page.loaded)
         media.ready.connect(page.mediaReady)
@@ -122,6 +128,14 @@ Page {
             chatCtl: ctl
         },
         PollAction { id: pollAction; jid: page.chat ? page.chat.jid : ""; topic: page.topic },
+        // Added for secret chats (a secret chat's timer), enabled once it is ready.
+        TimerAction { id: timerAction; jid: page.chat ? page.chat.jid : ""; ready: page.secret == 2 },
+        // Added for every chat but a secret one (ActionItem has no visible).
+        PinnedAction {
+            id: pinnedAction
+            chatCtl: ctl
+            onJump: page.jump(id)
+        },
         SystemToast {
             id: notSent
             body: qsTr("Not sent: Tengram is reconnecting. Try again in a moment.")
@@ -241,10 +255,6 @@ Page {
             imageSource: "asset:///images/search.png"
             ActionBar.placement: ActionBarPlacement.InOverflow
             onTriggered: page.searchBar().open()
-        },
-        PinnedAction {
-            chatCtl: ctl
-            onJump: page.jump(id)
         }
     ]
     keyListeners: KeyListener {
@@ -551,7 +561,7 @@ Page {
     // Called by ChatsPage once the page is pushed: every key, the first included, goes through the
     // input method (auto-capitals, Alt and Shift), which a KeyListener bypasses (bb10-pitfalls).
     function focusComposer() {
-        if (chat.kind != 3) composer.requestFocus()
+        if (!composerBar.readOnly) composer.requestFocus()
     }
     // On the Q10, typing anywhere on the page goes to the field (step 3.2). A key reaches the page only
     // when the field doesn't have the focus: it goes in at the end, and the field takes over from the
@@ -560,7 +570,7 @@ Page {
     function typeKey(event) {
         // The search field and the composer (Composer.qml) are inside the page, so their keys come here too
         // (Q10, 0.0.1.122; the composer typed letters twice, 0.0.1.231); and a channel has no composer.
-        if ((searchObj && searchObj.typing) || composer.focused || page.chat.kind == 3) {
+        if ((searchObj && searchObj.typing) || composer.focused || composerBar.readOnly) {
             return
         }
         var c = event.unicode
@@ -576,6 +586,7 @@ Page {
         chat: page.chat
         topicName: page.topicName
         status: ctl.status
+        secret: page.secret
         members: ctl.groupInfo.participants ? ctl.groupInfo.participants.length : 0
         onTapped: infoAction.showInfo()
         // Only while this page is on top: a second tap during the slide out popped the chat list too, the last page,
@@ -847,7 +858,10 @@ Page {
                 id: composerBar
                 mic: page.mic
                 recording: page.recording
-                readOnly: page.chat ? page.chat.kind == 3 : false
+                // A channel; and a secret chat that can't take a message: pending (waiting for the other side) or closed.
+                readOnly: page.chat ? page.chat.kind == 3 || page.secret == 1 || page.secret == 3 : false
+                notice: page.secret == 1 ? qsTr("Waiting for %1 to get online…").arg(page.chat ? (chats.revision >= 0 && chats.chat(page.chat.jid).name) || page.chat.name : "")
+                      : page.secret == 3 ? qsTr("Secret chat cancelled") : ""
                 onEmoji: page.picking = !page.picking
                 onDiscard: page.recorder().discard()
                 onAttach: attachPicker.open()

@@ -150,6 +150,16 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     // Sized by fillFoot() with the time's text; 1 du from it, not the 20 px Cascades puts there.
     m_ticks->setScalingMethod(ScalingMethod::AspectFit);
     m_ticks->setLeftMargin(m_ui->du(1));
+    // A self-destructing message (a secret chat's) has a clock before the time; its seconds are the time label's lead
+    // (timeLead). Sized by restyle(), tinted by fillFoot().
+    m_timer = new ImageView();
+    m_timer->setVerticalAlignment(VerticalAlignment::Center);
+    m_timer->setScalingMethod(ScalingMethod::AspectFit);
+    m_timer->setLeftMargin(0);
+    m_timer->setRightMargin(m_ui->du(0.5));
+    m_timer->setImageSource(Card::url("asset:///images/clock.png"));
+    m_timer->setVisible(false);
+    m_timeBox->add(m_timer);
     m_timeBox->add(m_time);
     m_timeBox->add(m_ticks);
 
@@ -376,6 +386,7 @@ void MessageCard::restyle()
     // 72 % of SmallText, about two thirds of the body text (the user, 2026-11-14: the time and ticks
     // smaller; it was 85 % since 2026-11-08). The ticks follow it, so they are sized again.
     m_time->textStyle()->setFontSizeValue(qRound(72 * scale));
+    m_timer->setPreferredSize(m_ui->du(2.2 * scale), m_ui->du(2.2 * scale));
     m_tick = -1;
     if (m_sender)
         Card::style(m_sender, m_list, small);
@@ -817,10 +828,13 @@ void MessageCard::fillColumn()
     }
 }
 
-// What goes before the time: a star for a starred message, then "edited".
+// What goes before the time: the seconds a self-destructing message has left (or its timer's), a star for a starred message,
+// then "edited".
 QString MessageCard::timeLead() const
 {
-    return (flag("starred") ? m_starMark : QString()) + (flag("edited") ? m_edited : QString());
+    const QString ttl = str("ttlText");
+    return (ttl.isEmpty() ? QString() : ttl + QString::fromUtf8(" \xC2\xB7 ")) + (flag("starred") ? m_starMark : QString())
+           + (flag("edited") ? m_edited : QString());
 }
 
 // The time (the star and "edited" before it) and our message's state, as in ChatRows.cpp: sending, sent, delivered,
@@ -830,6 +844,12 @@ void MessageCard::fillFoot()
     const bool out = flag("out");
     const int state = m_msg.value("state").toInt();
     m_time->setText(timeLead() + str("time"));
+    const bool timed = !str("ttlText").isEmpty();
+    m_timer->setVisible(timed);
+    if (timed)
+        m_time->setLeftMargin(0);
+    else
+        m_time->resetLeftMargin();
     // Where the time goes: on a picture with no caption, at the text's end, under a voice note's
     // waveform, or else (a sticker, a file) beside the column's first line.
     // Top-aligned boxes put the time's baseline above the first line's: 7 px under a name or quote
@@ -851,6 +871,7 @@ void MessageCard::fillFoot()
     // White on the picture's dark chip.
     const Color quiet = onPicture ? Color::White : m_ui->palette()->secondaryTextOnPlain();
     m_time->textStyle()->setColor(quiet);
+    m_timer->setFilterColor(quiet);
 
     const bool ticked = out && state < 4;
     m_ticks->setVisible(ticked);
@@ -901,6 +922,7 @@ float MessageCard::timeWidth() const
     const int state = m_msg.value("state").toInt();
     const int chars = str("time").size() + timeLead().size();
     return chars * m_ui->du(1.55 * m_scale) + (out && state < 4 ? m_ui->du(1 + 3.1 * m_scale) : 0)
+           + (str("ttlText").isEmpty() ? 0 : m_ui->du(2.7 * m_scale))
            + (out && state == 4 ? m_ui->du(4) : 0);
 }
 

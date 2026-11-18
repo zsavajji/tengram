@@ -94,6 +94,7 @@ private:
     bb::cascades::ImageView *m_photo;
     bb::cascades::Label *m_initials;
     bb::cascades::Label *m_name;
+    bb::cascades::ImageView *m_secret;
     bb::cascades::ImageView *m_lock;
     bb::cascades::ImageView *m_pin;
     bb::cascades::ImageView *m_mute;

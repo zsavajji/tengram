@@ -23,9 +23,14 @@ Page {
     property bool hasChat: false
     // As ChatPage: a failure of the page's own requests, once per failure.
     property string failedCmd: engine.failure.cmd || ""
+    // Start secret chat is asked once at a time: a second ask would make a second chat.
+    property bool starting: false
     onFailedCmdChanged: {
         if (failedCmd == "contact.block" || failedCmd == "chat.export") {
             failedToast.show()
+        } else if (failedCmd == "secret.start") {
+            starting = false
+            secretFailed.show()
         }
     }
     onChatChanged: {
@@ -33,10 +38,18 @@ Page {
         muted = !!chat.muted
         hasChat = !!chats.chat(chat.jid).jid
         contact.ask(chat.jid)
+        // Not for our own chat, Saved Messages (its id is our user id, link.me), which has no one to share a secret with.
+        // ponytail: a bot is offered it too (the page doesn't know it is one); Telegram's answer is the toast.
+        if (String(engine.link.me) != String(chat.jid)) {
+            addAction(secretAction, ActionBarPlacement.InOverflow)
+        }
     }
     onInfoChanged: fill()
     // Not a Connections: Cascades' QML has none. Both live and die with the page.
-    onCreationCompleted: contact.exported.connect(page.exported)
+    onCreationCompleted: {
+        contact.exported.connect(page.exported)
+        contact.secretStarted.connect(page.secretStarted)
+    }
     titleBar: TitleBar {
         title: qsTr("Contact info")
     }
@@ -93,6 +106,19 @@ Page {
         ContactInfo {
             id: contact
             link: engine
+        },
+        // Added in onChatChanged for a person other than ourselves (ActionItem has no visible). A secret chat's page
+        // names the chat itself (the person's id isn't its jid): a closed one is started again from it.
+        ActionItem {
+            id: secretAction
+            title: qsTr("Start secret chat")
+            imageSource: "asset:///images/lock_action.png"
+            enabled: !page.starting
+            ActionBar.placement: ActionBarPlacement.InOverflow
+            onTriggered: {
+                page.starting = true
+                contact.startSecret(page.chat.secret > 0)
+            }
         },
         // A group in common: the same row as a participant on the group info page.
         ComponentDefinition {
@@ -205,6 +231,10 @@ Page {
             id: exportedToast
         },
         SystemToast {
+            id: secretFailed
+            body: qsTr("Couldn't start a secret chat")
+        },
+        SystemToast {
             id: failedToast
             body: qsTr("Couldn't do that. Check the connection and try again.")
         }
@@ -216,6 +246,10 @@ Page {
         }
         muted = on
         engine.request("chat.set", {"chat": chat.jid, "mute": on ? -1 : 0})
+    }
+    // The secret chat is in chats.db: it opens, over the list (the pages above it go), as a notification's tap does.
+    function secretStarted(jid) {
+        nav.openRequested(jid)
     }
     // The body is set when the export is done: it names the file.
     function exported(path) {

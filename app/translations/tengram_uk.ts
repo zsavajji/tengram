@@ -673,6 +673,16 @@
         <source>Couldn&apos;t edit this message</source>
         <translation>Не вдалося відредагувати повідомлення</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="863"/>
+        <source>Waiting for %1 to get online…</source>
+        <translation>Очікування, коли %1 буде онлайн…</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="864"/>
+        <source>Secret chat cancelled</source>
+        <translation>Секретний чат скасовано</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -984,6 +994,16 @@
     <message>
         <source>Video call</source>
         <translation type="obsolete">Відеодзвінок</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="114"/>
+        <source>Start secret chat</source>
+        <translation>Почати секретний чат</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="235"/>
+        <source>Couldn&apos;t start a secret chat</source>
+        <translation>Не вдалося почати секретний чат</translation>
     </message>
 </context>
 <context>
@@ -1938,6 +1958,26 @@
         <location filename="../src/MessageModel.cpp" line="1126"/>
         <source>Unread messages</source>
         <translation>Непрочитані повідомлення</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="191"/>
+        <source>%1 s</source>
+        <translation>%1 с</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="193"/>
+        <source>%1 min</source>
+        <translation>%1 хв</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="195"/>
+        <source>%1 h</source>
+        <translation>%1 год</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="196"/>
+        <source>%1 d</source>
+        <translation>%1 д</translation>
     </message>
 </context>
 <context>
@@ -3430,6 +3470,50 @@
     <message>
         <source>edited</source>
         <translation type="obsolete">змінено</translation>
+    </message>
+</context>
+<context>
+    <name>TimerAction</name>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="12"/>
+        <location filename="../assets/TimerAction.qml" line="46"/>
+        <source>Self-destruct timer</source>
+        <translation>Таймер самознищення</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="23"/>
+        <source>Off</source>
+        <translation>Вимк.</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="26"/>
+        <source>%1 s</source>
+        <translation>%1 с</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="26"/>
+        <source>%1 min</source>
+        <translation>%1 хв</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="27"/>
+        <source>%1 h</source>
+        <translation>%1 год</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="27"/>
+        <source>%1 d</source>
+        <translation>%1 д</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="41"/>
+        <source>Couldn&apos;t set the timer</source>
+        <translation>Не вдалося встановити таймер</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="48"/>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
     </message>
 </context>
 <context>

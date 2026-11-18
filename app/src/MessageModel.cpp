@@ -50,12 +50,13 @@ bool MessageModel::lessThan(const Msg &a, const Msg &b)
     return a.ts < b.ts || (a.ts == b.ts && a.rowid < b.rowid);
 }
 
-MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, int topic, QObject *parent)
+MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, bool secret, int topic, QObject *parent)
     : DataModel(parent)
     , m_engine(engine)
     , m_chat(chat)
     , m_group(group)
     , m_channel(channel)
+    , m_secret(secret)
     , m_topic(topic)
     , m_floor(0)
     , m_floorKnown(false)
@@ -89,6 +90,10 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     m_windowGiveUp.setSingleShot(true);
     m_windowGiveUp.setInterval(kWindowGiveUpMs);
     connect(&m_windowGiveUp, SIGNAL(timeout()), this, SLOT(giveUp()));
+    // One timer for the whole chat, not one per card. It starts when a row with expiresAt is read (read()).
+    m_expiry.setInterval(1000);
+    connect(&m_expiry, SIGNAL(timeout()), this, SLOT(tickExpiry()));
+    connect(engine, SIGNAL(fullscreenChanged()), this, SLOT(onFullscreen()));
     findUnread();
     QTimer::singleShot(kFirstLoadMs, this, SLOT(loadFirst()));
 }
@@ -158,6 +163,10 @@ QVariant MessageModel::data(const QVariantList &indexPath)
     if (e.msg < 0)
         return e.title;
     QVariantMap d = e.members.isEmpty() ? m_all[e.msg].data : albumData(e);
+    // A countdown running: what is left now, every time the row is asked for (tickExpiry makes the list ask).
+    const qint64 until = d.value("expiresAt").toLongLong();
+    if (until > 0)
+        d["ttlText"] = span(qMax<qint64>(0, until - QDateTime::currentMSecsSinceEpoch() / 1000));
     if (!m_group)
         return d;
     // A group's cards: the runs' flags, and what the engine said of the sender. Set on every row that has a sender id,
@@ -173,6 +182,47 @@ QVariant MessageModel::data(const QVariantList &indexPath)
         d["senderPhoto"] = it != m_senders.constEnd() ? it->photo : QString();
     }
     return d;
+}
+
+// "10 s", "5 min", "1 h", "7 d": a timer as the foot shows it, a longer one rounded up to the next unit's whole.
+QString MessageModel::span(qint64 secs)
+{
+    if (secs < 60)
+        return tr("%1 s").arg(secs);
+    if (secs < 3600)
+        return tr("%1 min").arg((secs + 59) / 60);
+    if (secs < 86400)
+        return tr("%1 h").arg((secs + 3599) / 3600);
+    return tr("%1 d").arg((secs + 86399) / 86400);
+}
+
+// The cards that count down are drawn again, once a second, while the app is in front; the timer stops with the last
+// of them. A card that reaches 0 stays at 0 until the engine's deletion takes its row (docs/protocol.md, Secret chats).
+void MessageModel::tickExpiry()
+{
+    if (!m_engine || !m_engine->fullscreen()) {
+        m_expiry.stop();
+        return;
+    }
+    bool any = false;
+    for (int i = 0; i < m_entries.size(); ++i) {
+        const Entry &e = m_entries.at(i);
+        if (e.msg < 0 || m_all.at(e.msg).data.value("expiresAt").toLongLong() <= 0)
+            continue;
+        any = true;
+        emit itemUpdated(QVariantList() << i);
+    }
+    if (!any)
+        m_expiry.stop();
+}
+
+// Coming to the front draws the countdowns again at once and restarts the ticks (tickExpiry stops them with none).
+void MessageModel::onFullscreen()
+{
+    if (m_engine && m_engine->fullscreen()) {
+        m_expiry.start();
+        tickExpiry();
+    }
 }
 
 // An album's card: the first member's map (so its menu, reactions and search tint are the first

@@ -186,6 +186,7 @@ private:
     LinkPreview *m_link;
     PollBubble *m_poll;
     bb::cascades::Container *m_timeBox;
+    bb::cascades::ImageView *m_timer; // a self-destructing message's clock, before the time
     bb::cascades::Label *m_time;
     bb::cascades::ImageView *m_ticks;
     bb::cascades::Label *m_bang;

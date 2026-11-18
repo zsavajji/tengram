@@ -14,6 +14,7 @@ ListView {
     property real textScale: settings.textScale
     property bool compact: settings.compact
     property string pressColor: nav.pressColor
+    property string secretColor: nav.secretColor
     // True on the Archived page, where "Archive" reads "Unarchive".
     property bool archivedList: false
     // True on a list of channels only: the row's menu has Unfollow for Archive, and no pin or mute. No page sets it

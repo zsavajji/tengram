@@ -61,6 +61,9 @@ NavigationPane {
     // 10.3 palette), so it shows on the message cards as well as on the bare page. List items
     // reach it through a property on their ListView, as they reach emojiStyle.
     property string pressColor: settings.theme == 1 ? "#DCDCDC" : "#464646"
+    // A secret chat's lock and name: Telegram's secret green (#00A65A) on the dark theme, a darker one on the bright
+    // (4.6:1 on white; #00A65A is 3.1:1). The chat list and the chat page's title bar.
+    property string secretColor: settings.theme == 1 ? "#00874A" : "#00A65A"
     // The chat a notification tap asked for, until the chat list is up to open it.
     property string pendingChat
     // The Share menu's {path, text}, held like pendingChat until the chat list is up.

@@ -116,6 +116,13 @@ ChatRow::ChatRow(ListView *list)
     m_name = new Label();
     m_name->setVerticalAlignment(VerticalAlignment::Center);
     Card::quota(m_name, 1);
+    // A secret chat's, before its name, in Telegram's secret green; its size is set by show().
+    m_secret = new ImageView();
+    m_secret->setVerticalAlignment(VerticalAlignment::Center);
+    m_secret->setLeftMargin(0);
+    m_secret->setRightMargin(m_ui->du(0.5));
+    m_secret->setScalingMethod(ScalingMethod::AspectFit);
+    m_secret->setImageSource(Card::url("asset:///images/lock.png"));
     // A closed topic's.
     m_lock = new ImageView();
     m_lock->setVerticalAlignment(VerticalAlignment::Center);
@@ -132,6 +139,7 @@ ChatRow::ChatRow(ListView *list)
     m_time->setVerticalAlignment(VerticalAlignment::Center);
     m_time->textStyle()->setBase(SystemDefaults::TextStyles::smallText());
     m_time->textStyle()->setFontSize(FontSize::PercentageValue);
+    top->add(m_secret);
     top->add(m_name);
     top->add(m_lock);
     top->add(m_pin);
@@ -233,6 +241,7 @@ void ChatRow::show(const QVariantMap &chat)
         Card::style(m_initials, m_list, qRound(118 * scale));
         m_initials->textStyle()->setColor(Color::White);
         Card::style(m_name, m_list, qRound(115 * scale));
+        m_secret->setPreferredSize(m_ui->du(2.6 * scale), m_ui->du(2.6 * scale));
         m_time->textStyle()->setFontSizeValue(qRound(100 * scale));
         Card::style(m_preview, m_list, qRound(90 * scale));
     }
@@ -252,6 +261,16 @@ void ChatRow::show(const QVariantMap &chat)
     m_initials->setText(str("initials"));
 
     m_name->setText(str("name"));
+    // A secret chat: the lock and the name in the theme's secret green (the list holds it); else the theme's own text.
+    const bool secret = m_chat.value("secret").toInt() > 0;
+    m_secret->setVisible(secret);
+    if (secret) {
+        const Color green = Card::color(Card::secretColor(m_list));
+        m_secret->setFilterColor(green);
+        m_name->textStyle()->setColor(green);
+    } else {
+        m_name->textStyle()->resetColor();
+    }
     if (m_topics)
         m_name->textStyle()->setFontWeight(unread != 0 ? FontWeight::Bold : FontWeight::Normal);
     m_lock->setVisible(flag("closed"));

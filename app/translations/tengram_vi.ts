@@ -671,6 +671,16 @@
         <source>Couldn&apos;t edit this message</source>
         <translation>Không thể chỉnh sửa tin nhắn này</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="863"/>
+        <source>Waiting for %1 to get online…</source>
+        <translation>Đang chờ %1 trực tuyến…</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="864"/>
+        <source>Secret chat cancelled</source>
+        <translation>Đã hủy đoạn chat bí mật</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -980,6 +990,16 @@
     <message>
         <source>Video call</source>
         <translation type="obsolete">Cuộc gọi video</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="114"/>
+        <source>Start secret chat</source>
+        <translation>Bắt đầu đoạn chat bí mật</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="235"/>
+        <source>Couldn&apos;t start a secret chat</source>
+        <translation>Không thể bắt đầu đoạn chat bí mật</translation>
     </message>
 </context>
 <context>
@@ -1930,6 +1950,26 @@
         <location filename="../src/MessageModel.cpp" line="1126"/>
         <source>Unread messages</source>
         <translation>Tin nhắn chưa đọc</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="191"/>
+        <source>%1 s</source>
+        <translation>%1 giây</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="193"/>
+        <source>%1 min</source>
+        <translation>%1 phút</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="195"/>
+        <source>%1 h</source>
+        <translation>%1 giờ</translation>
+    </message>
+    <message>
+        <location filename="../src/MessageModel.cpp" line="196"/>
+        <source>%1 d</source>
+        <translation>%1 ngày</translation>
     </message>
 </context>
 <context>
@@ -3420,6 +3460,50 @@
     <message>
         <source>edited</source>
         <translation type="obsolete">đã chỉnh sửa</translation>
+    </message>
+</context>
+<context>
+    <name>TimerAction</name>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="12"/>
+        <location filename="../assets/TimerAction.qml" line="46"/>
+        <source>Self-destruct timer</source>
+        <translation>Hẹn giờ tự hủy</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="23"/>
+        <source>Off</source>
+        <translation>Tắt</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="26"/>
+        <source>%1 s</source>
+        <translation>%1 giây</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="26"/>
+        <source>%1 min</source>
+        <translation>%1 phút</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="27"/>
+        <source>%1 h</source>
+        <translation>%1 giờ</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="27"/>
+        <source>%1 d</source>
+        <translation>%1 ngày</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="41"/>
+        <source>Couldn&apos;t set the timer</source>
+        <translation>Không thể đặt hẹn giờ</translation>
+    </message>
+    <message>
+        <location filename="../assets/TimerAction.qml" line="48"/>
+        <source>Cancel</source>
+        <translation>Hủy</translation>
     </message>
 </context>
 <context>

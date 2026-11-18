@@ -38,10 +38,15 @@ public:
     Q_INVOKABLE void exportChat();
     // Opens the Contacts app's card to save the number in a new or an existing contact.
     Q_INVOKABLE void saveNumber(const QString &phone);
+    // Asks for a secret chat with the person asked about (secret.start); secretStarted() says its jid. byChat: the page's jid is
+    // a chat with the person (a secret chat's page), not the person's user id (a private chat's, or a contact picked with no chat).
+    Q_INVOKABLE void startSecret(bool byChat);
 
 signals:
     void infoChanged();
     void exported(const QString &path);
+    // The secret chat is in chats.db (pending until the other side comes online); main.qml opens it.
+    void secretStarted(const QString &jid);
 
 private slots:
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
@@ -55,6 +60,7 @@ private:
     QString m_id; // the contact.info request we wait for
     QString m_blockId; // the contact.block request we wait for
     QString m_exportId; // the chat.export request we wait for
+    QString m_secretId; // the secret.start request we wait for
     bb::system::InvokeManager m_invoker;
 };
 

@@ -15,8 +15,10 @@ Container {
     // Empty field (nothing staged, nobody recording): Send shows Record.
     property bool mic
     property bool recording
-    // A channel (chat.kind == 3): nothing to write, only the menu.
+    // A channel (chat.kind == 3): nothing to write, only the menu. A secret chat that is pending or closed is the same,
+    // with `notice` in the field's place.
     property bool readOnly
+    property string notice
     signal emoji
     signal discard
     signal attach
@@ -149,10 +151,24 @@ Container {
                 }
             }
         }
+        // In a secret chat that can't take a message yet, or any more, it says why.
         Container {
             visible: bar.readOnly
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1
+            }
+            verticalAlignment: VerticalAlignment.Center
+            leftPadding: ui.du(1.5)
+            Label {
+                visible: bar.notice != ""
+                horizontalAlignment: HorizontalAlignment.Fill
+                multiline: true
+                text: bar.notice
+                textFormat: TextFormat.Plain
+                textStyle.base: nav.emojiStyle
+                textStyle.fontSize: FontSize.PercentageValue
+                textStyle.fontSizeValue: 90
+                textStyle.color: ui.palette.secondaryTextOnPlain
             }
         }
         // The action menu (Search, Pinned, info, ...); always live, a channel needs it too.
