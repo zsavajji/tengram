@@ -200,6 +200,7 @@ void on_closed() {
       topics_reset();
       notifier_reset();
       live_reset();
+      data_reset();
     }
     done = true;
     return;
@@ -211,6 +212,7 @@ void on_closed() {
   topics_reset();
   notifier_reset();
   live_reset();
+  data_reset();
   mode_reset();
   logging_out = false;
   cur = Link{};

@@ -858,7 +858,11 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
       const std::string path = got.local_->path_;
       tdlib.send(make_object<td_api::getMessage>(chat, message), [=](Obj o3) {
         if (!as_error(o3)) {
-          messages_queue(static_cast<td_api::message &>(*o3));  // now with media_state 2 and the path, or extra.preview
+          auto &m = static_cast<td_api::message &>(*o3);
+          messages_queue(m);  // now with media_state 2 and the path, or extra.preview
+          if (!preview) {
+            gallery_save(m, path);
+          }
         }
         queue_reply(conn, id, path_json(path));
       });

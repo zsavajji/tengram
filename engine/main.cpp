@@ -4,8 +4,8 @@
 //
 // This thread owns everything (the database, the sockets, all state) and sleeps in poll(). The TDLib thread
 // (td.cpp) only receives and queues; a third thread waits for signals. The engine has no timer of its own:
-// idle, it wakes only for TDLib or the UI. The exceptions are the 5 s limit of a stop and the flush, which
-// comes 50 ms after something changed.
+// idle, it wakes only for TDLib or the UI. The exceptions are the 5 s limit of a stop, the flush, which
+// comes 50 ms after something changed, and the pruning of downloaded media every 6 hours (data.cpp).
 
 #include "engine.h"
 
@@ -162,6 +162,7 @@ void handle_update(Obj update) {
       mode_update(*update);
       notifier_update(*update);
       live_update(*update);
+      data_update(*update);
       break;
   }
 }
@@ -170,8 +171,8 @@ void handle_request(std::uint64_t conn, const std::string &id, const std::string
   mode_note_request();
   if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req) || voice_handle(conn, id, cmd, req) ||
       profile_handle(conn, id, cmd, req) || sessions_handle(conn, id, cmd, req) || pages_handle(conn, id, cmd, req) ||
-      manage_handle(conn, id, cmd, req) || account_handle(conn, id, cmd, req) || topics_handle(conn, id, cmd, req) ||
-      mode_request(conn, id, cmd, req)) {
+      manage_handle(conn, id, cmd, req) || account_handle(conn, id, cmd, req) || data_handle(conn, id, cmd, req) ||
+      topics_handle(conn, id, cmd, req) || mode_request(conn, id, cmd, req)) {
     return;
   }
   server.reply_error(conn, id, "unknown_cmd", "unknown cmd " + cmd);
@@ -367,6 +368,10 @@ int main(int argc, char **argv) {
     if (mode_deadline(mode_due)) {
       due = std::min(due, mode_due);
     }
+    Clock::time_point data_due;
+    if (data_deadline(data_due)) {
+      due = std::min(due, data_due);
+    }
     if (due != Clock::time_point::max()) {
       const auto us = std::chrono::duration_cast<std::chrono::microseconds>(due - Clock::now()).count();
       timeout = us <= 0 ? 0 : static_cast<int>((us + 999) / 1000);  // rounded up: no early wake-up to spin on
@@ -400,6 +405,10 @@ int main(int argc, char **argv) {
     Clock::time_point voice_now_due;
     if (voice_deadline(voice_now_due) && Clock::now() >= voice_now_due) {
       voice_tick();
+    }
+    Clock::time_point data_now_due;
+    if (data_deadline(data_now_due) && Clock::now() >= data_now_due) {
+      data_tick();
     }
     if (flush_pending && Clock::now() >= flush_at) {
       flush();

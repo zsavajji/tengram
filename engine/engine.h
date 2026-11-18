@@ -217,6 +217,28 @@ bool manage_handle(std::uint64_t conn, const std::string &id, const std::string 
 // contacts.clearImported, contacts.book and topchats.set, the rows of Settings → Privacy and security. They have no chat.
 bool account_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
+// The preferences of data.cpp (docs/protocol.md, "Data and storage"); mode.cpp keeps and saves them with the others.
+struct DataPrefs {
+  std::string auto_net = "wifi";  // the network automatic download is allowed on: none, wifi (Wi-Fi only) or all
+  bool auto_photos = true;
+  int auto_video_mb = 15;  // videos and GIFs up to this size; 0 never
+  int auto_file_mb = 3;    // documents and audio files up to this size; 0 never
+  bool gallery_private = false, gallery_groups = false, gallery_channels = false;  // save photos and videos to the gallery
+  int keep_mb = 2048;  // the cap on TDLib's downloaded media; 0 no limit
+};
+
+// data.cpp: storage.get, storage.clear, network.get and network.reset, and the data preferences at work: the automatic
+// download of new messages' media, the gallery copy, and the pruning of TDLib's downloaded media.
+bool data_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+void data_update(td_api::Object &update);  // updateNewMessage (starts a download) and updateFile (one finished); the rest is ignored
+void data_reset();                         // a new client after a logout: forget the downloads under way
+void data_network_changed();               // the network or autoNet changed: stop our downloads it no longer allows
+bool data_deadline(std::chrono::steady_clock::time_point &due);  // while the media kept are capped: the next pruning
+void data_tick();                                                // that time has come
+// Copies the photo or video of an incoming message, just downloaded to `path`, to the gallery when the chat's kind is
+// switched on in the preferences. Nothing for any other message, or when the copy is there already.
+void gallery_save(const td_api::message &m, const std::string &path);
+
 // mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).
 void mode_init();                                                    // read prefs.json
 bool mode_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
@@ -231,6 +253,8 @@ void mode_connection(bool ready);           // TDLib's connection state changed:
 void mode_update(td_api::Object &update);   // updateUserStatus of our own account
 void mode_network(bool available, bool wifi);  // the system's network status: none, or Wi-Fi, or mobile data
 bool mode_notify_preview();                 // the preference notifyPreview
+const DataPrefs &mode_data_prefs();         // the preferences of data.cpp
+bool mode_auto_download_ok();               // the system's network is one that autoNet allows
 bool mode_ui_shows(std::int64_t chat);      // a UI that is in front has this chat open
 bool mode_deadline(std::chrono::steady_clock::time_point &due);  // the next sync, or the end of the running one
 void mode_tick();                           // the deadline has passed

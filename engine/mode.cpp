@@ -39,12 +39,12 @@ struct Prefs {
   std::string mode = "auto";  // auto, instant or batched
   int batch_secs = 300;
   bool notify_preview = true;  // the Hub's items say what the message says
-  // HyperBerry's three, which the UI sends on every connect. The engine keeps them and does nothing with them yet:
-  // nothing downloads by itself (mediaOnMobile), previews are worded in English (language), and TDLib's file cache
-  // is not pruned (cacheMB).
-  bool media_on_mobile = true;
+  // HyperBerry's two, which the UI sends on every connect. The engine keeps them and does nothing with them yet:
+  // previews are worded in English (language), and TDLib's file cache is not pruned by it (cacheMB; the pruning is
+  // data.keepMB).
   std::string language;
   int cache_mb = 64;
+  DataPrefs data;  // automatic download, the gallery copy, the media kept (data.cpp)
 } prefs;
 
 struct Ui {
@@ -190,9 +190,16 @@ void save_prefs() {
     o("mode", prefs.mode);
     o("batchSecs", prefs.batch_secs);
     o("notifyPreview", td::JsonBool(prefs.notify_preview));
-    o("mediaOnMobile", td::JsonBool(prefs.media_on_mobile));
     o("language", prefs.language);
     o("cacheMB", prefs.cache_mb);
+    o("autoNet", prefs.data.auto_net);
+    o("autoPhotos", td::JsonBool(prefs.data.auto_photos));
+    o("autoVideoMB", prefs.data.auto_video_mb);
+    o("autoFileMB", prefs.data.auto_file_mb);
+    o("galleryPrivate", td::JsonBool(prefs.data.gallery_private));
+    o("galleryGroups", td::JsonBool(prefs.data.gallery_groups));
+    o("galleryChannels", td::JsonBool(prefs.data.gallery_channels));
+    o("keepMB", prefs.data.keep_mb);
   }));
   const std::string tmp = prefs_path() + ".tmp";
   if (!write_file(tmp, json) || rename(tmp.c_str(), prefs_path().c_str()) < 0) {
@@ -218,6 +225,51 @@ bool valid_language(const td::JsonValue &v, std::string &out) {
   return out.size() <= 16;
 }
 
+// The data preferences in `obj`, merged into `d`: how many there were, or -1 when one has the wrong type or a value
+// out of range (`d` is then half changed: the caller drops it). Takes the fields out of obj.
+int data_prefs_read(td::JsonObject &obj, DataPrefs &d) {
+  int given = 0;
+  auto add = [&](int has) { given = has < 0 || given < 0 ? -1 : given + has; };
+  auto flag = [&](const char *name, bool &out) {
+    td::JsonValue v;
+    const int has = optional_field(obj, name, td::JsonValue::Type::Boolean, v);
+    if (has == 1) {
+      out = v.get_boolean();
+    }
+    add(has);
+  };
+  // 0, or a whole number from lo to hi.
+  auto number = [&](const char *name, int lo, int hi, int &out) {
+    td::JsonValue v;
+    int has = optional_field(obj, name, td::JsonValue::Type::Number, v);
+    int n = 0;
+    if (has == 1) {
+      has = whole_in(v, 0, hi, n) && (n == 0 || n >= lo) ? 1 : -1;
+      out = has == 1 ? n : out;
+    }
+    add(has);
+  };
+  td::JsonValue net;
+  int has_net = optional_field(obj, "autoNet", td::JsonValue::Type::String, net);
+  if (has_net == 1) {
+    const std::string n = net.get_string().str();
+    if (n == "none" || n == "wifi" || n == "all") {
+      d.auto_net = n;
+    } else {
+      has_net = -1;
+    }
+  }
+  add(has_net);
+  flag("autoPhotos", d.auto_photos);
+  number("autoVideoMB", 0, 2000, d.auto_video_mb);
+  number("autoFileMB", 0, 2000, d.auto_file_mb);
+  flag("galleryPrivate", d.gallery_private);
+  flag("galleryGroups", d.gallery_groups);
+  flag("galleryChannels", d.gallery_channels);
+  number("keepMB", 256, 20000, d.keep_mb);
+  return given;
+}
+
 void ui_state(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
   td::JsonValue fullscreen, open_chat;
   const int has_open = optional_field(req, "openChat", td::JsonValue::Type::String, open_chat);
@@ -235,25 +287,28 @@ void ui_state(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
 }
 
 void prefs_set(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
-  td::JsonValue mode, secs, preview, mobile, language, cache;
+  td::JsonValue mode, secs, preview, language, cache;
   const int has_mode = optional_field(req, "mode", td::JsonValue::Type::String, mode);
   const int has_secs = optional_field(req, "batchSecs", td::JsonValue::Type::Number, secs);
   const int has_preview = optional_field(req, "notifyPreview", td::JsonValue::Type::Boolean, preview);
-  const int has_mobile = optional_field(req, "mediaOnMobile", td::JsonValue::Type::Boolean, mobile);
   const int has_language = optional_field(req, "language", td::JsonValue::Type::String, language);
   const int has_cache = optional_field(req, "cacheMB", td::JsonValue::Type::Number, cache);
+  DataPrefs data = prefs.data;
+  const int has_data = data_prefs_read(req, data);
   int batch = 0, cache_mb = 0;
   std::string lang;
-  if (has_mode < 0 || has_secs < 0 || has_preview < 0 || has_mobile < 0 || has_language < 0 || has_cache < 0 ||
-      has_mode + has_secs + has_preview + has_mobile + has_language + has_cache == 0 ||
+  if (has_mode < 0 || has_secs < 0 || has_preview < 0 || has_language < 0 || has_cache < 0 || has_data < 0 ||
+      has_mode + has_secs + has_preview + has_language + has_cache + has_data == 0 ||
       (has_mode == 1 && !valid_mode(mode.get_string().str())) ||
       (has_secs == 1 && !whole_in(secs, kBatchMin, kBatchMax, batch)) ||
       (has_language == 1 && !valid_language(language, lang)) ||
       (has_cache == 1 && !whole_in(cache, 64, 512, cache_mb))) {
     server.reply_error(conn, id, "bad_request",
                        "mode is auto, instant or batched, batchSecs a whole number from " + std::to_string(kBatchMin) +
-                           " to " + std::to_string(kBatchMax) + ", notifyPreview and mediaOnMobile true or false, " +
-                           "language a string of at most 16 bytes, cacheMB a whole number from 64 to 512; " +
+                           " to " + std::to_string(kBatchMax) + ", notifyPreview, autoPhotos, galleryPrivate, " +
+                           "galleryGroups and galleryChannels true or false, language a string of at most 16 bytes, " +
+                           "cacheMB a whole number from 64 to 512, autoNet none, wifi or all, autoVideoMB and " +
+                           "autoFileMB whole numbers from 0 to 2000, keepMB 0 or a whole number from 256 to 20000; " +
                            "at least one");
     return;
   }
@@ -269,19 +324,18 @@ void prefs_set(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
   if (has_preview == 1) {
     prefs.notify_preview = preview.get_boolean();
   }
-  if (has_mobile == 1) {
-    prefs.media_on_mobile = mobile.get_boolean();
-  }
   if (has_language == 1) {
     prefs.language = lang;
   }
   if (has_cache == 1) {
     prefs.cache_mb = cache_mb;
   }
+  prefs.data = data;
+  data_network_changed();
   save_prefs();
   server.reply_ok(conn, id);
-  say("prefs: mode %s, every %d s, preview %s", prefs.mode.c_str(), prefs.batch_secs,
-      prefs.notify_preview ? "on" : "off");
+  say("prefs: mode %s, every %d s, preview %s, auto %s, keep %d MB", prefs.mode.c_str(), prefs.batch_secs,
+      prefs.notify_preview ? "on" : "off", prefs.data.auto_net.c_str(), prefs.data.keep_mb);
   evaluate();
 }
 
@@ -296,7 +350,7 @@ void mode_init() {
   if (parsed.is_error() || parsed.ok_ref().type() != td::JsonValue::Type::Object) {
     return;  // missing or unreadable: the defaults
   }
-  td::JsonValue mode, secs, preview, mobile, language, cache;
+  td::JsonValue mode, secs, preview, language, cache;
   auto &obj = parsed.ok_ref().get_object();
   int batch = 0, cache_mb = 0;
   std::string lang;
@@ -310,17 +364,18 @@ void mode_init() {
   if (optional_field(obj, "notifyPreview", td::JsonValue::Type::Boolean, preview) == 1) {
     prefs.notify_preview = preview.get_boolean();
   }
-  if (optional_field(obj, "mediaOnMobile", td::JsonValue::Type::Boolean, mobile) == 1) {
-    prefs.media_on_mobile = mobile.get_boolean();
-  }
   if (optional_field(obj, "language", td::JsonValue::Type::String, language) == 1 && valid_language(language, lang)) {
     prefs.language = lang;
   }
   if (optional_field(obj, "cacheMB", td::JsonValue::Type::Number, cache) == 1 && whole_in(cache, 64, 512, cache_mb)) {
     prefs.cache_mb = cache_mb;
   }
-  say("prefs: mode %s, every %d s, preview %s", prefs.mode.c_str(), prefs.batch_secs,
-      prefs.notify_preview ? "on" : "off");
+  DataPrefs data = prefs.data;  // a file with a wrong value keeps the defaults; mediaOnMobile of an old file is ignored
+  if (data_prefs_read(obj, data) >= 0) {
+    prefs.data = data;
+  }
+  say("prefs: mode %s, every %d s, preview %s, auto %s, keep %d MB", prefs.mode.c_str(), prefs.batch_secs,
+      prefs.notify_preview ? "on" : "off", prefs.data.auto_net.c_str(), prefs.data.keep_mb);
 }
 
 bool mode_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
@@ -336,6 +391,15 @@ bool mode_request(std::uint64_t conn, const std::string &id, const std::string &
 
 bool mode_notify_preview() {
   return prefs.notify_preview;
+}
+
+const DataPrefs &mode_data_prefs() {
+  return prefs.data;
+}
+
+bool mode_auto_download_ok() {
+  const std::string &net = prefs.data.auto_net;
+  return net_available && (net == "all" || (net == "wifi" && net_wifi));
 }
 
 bool mode_ui_shows(std::int64_t chat) {
@@ -377,6 +441,7 @@ void mode_network(bool available, bool wifi) {
   net_available = available;
   net_wifi = wifi;
   say("network: %s", !available ? "none" : wifi ? "wifi" : "mobile");
+  data_network_changed();
   if (link_ready()) {  // before that, mode_ready() tells TDLib
     apply_network();   // sends nothing while the mode keeps the network off: TDLib was told none then
   }

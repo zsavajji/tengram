@@ -13,6 +13,7 @@ decisions and measurements are in `NOTES.md`.
 | `messages.cpp`, `requests.cpp` | the `messages` table, `chat.*`, `msg.*`, `media.get` |
 | `topics.cpp` | the `topics` table (forum topics): `topics.list`, and the rows kept current |
 | `voice.cpp`, `opus_ogg.cpp` | `voice.*`: the recording's requests; the WAV / OGG Opus codec (no TDLib in it) |
+| `data.cpp` | `storage.*`, `network.*`; automatic download, the gallery copy, the cap on downloaded media |
 | `mode.cpp` | delivery mode (instant, batched, auto), `ui.state`, `prefs.set` |
 | `notifier.cpp`, `hub*.cpp` | notifications from TDLib's groups to the Hub (or to the log) |
 | `bb10.cpp` | `--service` only: navigator and network events |

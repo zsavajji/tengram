@@ -105,7 +105,11 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `contacts.clearImported` | — | — | |
 | `contacts.book` | `entries` [{`number`, `name`}] | `{imported}`, how many of the numbers are Telegram users | |
 | `topchats.set` | `on` (bool) | — | |
-| `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `mediaOnMobile` (bool), `language` (string), `cacheMB` (64 to 512); each optional, at least one | — | |
+| `storage.get` | — | `{files, count, db, logs}` in bytes: TDLib's downloaded files and how many (`count`), its databases (`db`), its log | |
+| `storage.clear` | — | `{freed}`, the bytes of downloaded media deleted | |
+| `network.get` | — | `{since, mobile: {sent, received}, wifi: {sent, received}, other: {sent, received}}`: bytes since `since` (unix seconds) | |
+| `network.reset` | — | — | |
+| `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `language` (string), `cacheMB` (64 to 512), `autoNet` (`none`, `wifi` or `all`), `autoPhotos` (bool), `autoVideoMB`, `autoFileMB` (0 to 2000), `galleryPrivate`, `galleryGroups`, `galleryChannels` (bool), `keepMB` (0, or 256 to 20000); each optional, at least one | — | |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
 (`requestQrCodeAuthentication`); `link.phone`, `link.code` and `link.password` are the phone
@@ -213,8 +217,8 @@ refuses what the poll doesn't allow (several answers to a single-choice poll, a 
 
 **`media.get`:** downloads the message's file (a photo's largest size) into TDLib's files folder
 and answers when it is complete, after the row has `media_state` 2 and `path` (a `msgs` event).
-A file that is already here answers at once. Nothing downloads by itself: the UI asks for what it
-shows. `not_found` is a message TDLib doesn't have or one without a file.
+A file that is already here answers at once. Only what *Data and storage* lists downloads by itself; the UI asks for the
+rest of what it shows. `not_found` is a message TDLib doesn't have or one without a file.
 
 With `preview: true` it downloads, in the same way, the picture a bubble shows before the file is opened, not the
 file: for a photo its display size (the smallest size whose shorter side is at least 400 px, the largest when none
@@ -505,10 +509,67 @@ a JSON number, a whole number from 1; anything else is `bad_request`. Without it
 
 **`prefs.set`:** the fields given are merged into the stored ones, kept in `prefs.json` in the
 data folder. `mode` and `batchSecs` are the delivery mode's settings (below), `notifyPreview`
-whether a notification shows the message's text. `mediaOnMobile`, `language` and `cacheMB` are
-HyperBerry's (the UI sends them on every connect): the engine keeps them and does nothing with
-them yet (nothing downloads by itself, previews are worded in English, TDLib's file cache is
-not pruned). Defaults: `auto`, 300, true, true, "", 64.
+whether a notification shows the message's text. `language` and `cacheMB` are HyperBerry's (the UI
+sends them on every connect): the engine keeps them and does nothing with them yet (previews are
+worded in English). `autoNet`, `autoPhotos`, `autoVideoMB`, `autoFileMB`, `galleryPrivate`,
+`galleryGroups`, `galleryChannels` and `keepMB` are *Data and storage* (below). `mediaOnMobile`, which
+HyperBerry had, is gone: `prefs.set` ignores it, so a request with only that field is `bad_request`,
+and an old `prefs.json` keeps it unread. Defaults: `auto`, 300, true, "", 64, `wifi`, true, 15, 3, false,
+false, false, 2048. A value of the wrong type or out of range is `bad_request` and nothing is changed.
+
+## Data and storage
+
+**Automatic download.** `autoNet` is the network it is allowed on: `none` (never), `wifi` (Wi-Fi only, the
+default) or `all` (Wi-Fi and mobile data; there is no roaming setting). The network is the system's word
+(`--service`; a test run counts as Wi-Fi). Within it, for each *new incoming* message (`updateNewMessage`; not
+ours, not still sending, not a self-destructing one; messages that were already in a chat are never fetched) the
+engine downloads, at priority 1 (below a preview's 8 and a tap's 16):
+
+| content | downloaded when |
+|---|---|
+| photo (its largest size, the file `media.get` gives) | `autoPhotos` |
+| video, GIF | its size is at most `autoVideoMB` MB (0: never) |
+| document, audio file | its size is at most `autoFileMB` MB (0: never) |
+| voice note, round video | always |
+
+Stickers and everything else are the UI's to ask for. A file that is here, or downloading, is skipped; one file is
+started once. When it is complete the row is written again (`media_state` 2, `path`: a `msgs` event) and the gallery
+copy follows. The engine logs one line per download it starts. Downloads that were started keep going if the network
+changes to one `autoNet` does not allow; in the batched delivery mode they run while a sync has the network on.
+
+**Gallery copy.** For a *photo or video of an incoming message* (GIFs and round videos are not copied) that has just
+been downloaded, whether by automatic download or by a `media.get` without `preview` that downloaded it (a file that
+was here already is not copied by that), the engine copies the file to `/accounts/1000/shared/photos/Tengram/` (photos)
+or `/accounts/1000/shared/videos/Tengram/` (videos), if the chat's kind is on: `galleryPrivate` (a person, a secret
+chat), `galleryGroups`, `galleryChannels`, each off by default. The file is `<chat id>_<message id>.<extension of the
+source>`, mode 0644; the folder is made (0755) when it is not there; a copy that exists is left alone, so it is made
+once. A message the chat does not let be saved (`can_be_saved` false, a protected chat) or that self-destructs is not
+copied. The copy is made in 64 KiB pieces into `<name>.part` and renamed when whole; it holds the engine's main thread
+while it runs.
+
+**Media kept.** `keepMB` caps what TDLib keeps of the media it downloaded (photos, videos, GIFs, documents, audio
+files, voice notes, round videos; not profile photos, stickers or thumbnails, which `chats.db` rows point at): when it
+is above the cap, the files used longest ago are deleted first (`optimizeStorage`, by last access time). 0 is no
+limit, and then nothing is pruned. The cap counts the files that are more than a day old: what was downloaded in the
+last day is never deleted by it (so the files kept can exceed `keepMB` by a day of downloads), which keeps what the
+user just opened. The engine prunes once about two minutes after it starts and then every six hours while it runs,
+only while the account is logged in and `keepMB` is not 0, and logs what it freed. A change of `keepMB` is applied at the
+next pruning (at once when that time has already passed, as after a stretch with `keepMB` at 0).
+
+**Missing files.** A prune or `storage.clear` deletes files without rewriting `chats.db`: a row can say `media_state`
+2 with a `path` (or an `extra.preview` that is a photo's display size) that is gone. The UI treats a file that does
+not exist as not downloaded and asks `media.get` again. That works: TDLib is told of every file it deletes and
+reports it as not downloaded, so `media.get` starts a new download (and if it were not told, `downloadFile` checks the
+file first). Thumbnails (a video's `extra.preview`) are never deleted. A re-downloaded file has the same path, so its
+row may come out unchanged and no `msgs` event follows: wait for the `media.get` answer, not for the event.
+
+**`storage.get`:** `getStorageStatisticsFast`, approximate and quick: `files` the bytes of the downloaded files of every
+type (profile photos and stickers included) and `count` how many, `db` TDLib's database and its language pack database,
+`logs` its log. `chats.db` is not in it. **`storage.clear`:** deletes all the downloaded media of the types above, at
+once and whatever their age (no cap, no one-day protection), and answers the bytes deleted. **`network.get`:**
+`getNetworkStatistics` since the statistics were last reset, files and calls together, by the network type the engine
+told TDLib: `mobile` (mobile and roaming), `wifi`, `other` (the rest). **`network.reset`:** `resetNetworkStatistics`.
+All four answer TDLib's error as `td` when it has one.
 
 ## Events
 
