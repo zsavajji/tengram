@@ -68,6 +68,51 @@ Page {
                 text: "github.com/zsavajji"
                 url: "https://github.com/zsavajji"
             }
+            // What the app and its engine are built from (scripts/build-deps.sh, the fetch-*.sh scripts, app.pro), with
+            // their licences; a row opens the project's page. Names and licences stay untranslated.
+            Header {
+                title: qsTr("Open source libraries")
+            }
+            LinkRow {
+                text: "TDLib (TDLight) · Boost Software License 1.0"
+                url: "https://github.com/tdlight-team/tdlight"
+            }
+            LinkRow {
+                text: "OpenSSL 3.5.7 · Apache License 2.0"
+                url: "https://www.openssl.org"
+            }
+            LinkRow {
+                text: "zlib · zlib License"
+                url: "https://zlib.net"
+            }
+            LinkRow {
+                text: "SQLCipher (TDLib's, on SQLite) · BSD 3-Clause; SQLite public domain"
+                url: "https://www.zetetic.net/sqlcipher/"
+            }
+            LinkRow {
+                text: "Qt 4.8.6 SQLite driver · LGPL 2.1"
+                url: "https://github.com/qt/qt/tree/v4.8.6/src/sql/drivers/sqlite"
+            }
+            LinkRow {
+                text: "libopus 1.6.1 · BSD 3-Clause"
+                url: "https://opus-codec.org"
+            }
+            LinkRow {
+                text: "libwebp 1.4.0 · BSD 3-Clause"
+                url: "https://chromium.googlesource.com/webm/libwebp"
+            }
+            LinkRow {
+                text: "QR Code generator 1.8.0 (Nayuki) · MIT"
+                url: "https://www.nayuki.io/page/qr-code-generator-library"
+            }
+            LinkRow {
+                text: "OpenMAX IL 1.1.2 headers · Khronos (MIT-style)"
+                url: "https://www.khronos.org/openmax/il/"
+            }
+            LinkRow {
+                text: "Noto Color Emoji · SIL Open Font License 1.1"
+                url: "https://github.com/googlefonts/noto-emoji"
+            }
         }
     }
 }

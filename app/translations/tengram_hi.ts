@@ -16,6 +16,11 @@
         <translation>BlackBerry 10 के लिए Telegram।</translation>
     </message>
     <message>
+        <location filename="../assets/AboutPage.qml" line="74"/>
+        <source>Open source libraries</source>
+        <translation>ओपन सोर्स लाइब्रेरी</translation>
+    </message>
+    <message>
         <source>Thanks</source>
         <translation type="obsolete">धन्यवाद</translation>
     </message>

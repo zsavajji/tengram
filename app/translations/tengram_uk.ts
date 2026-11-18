@@ -16,6 +16,11 @@
         <translation>Telegram для BlackBerry 10.</translation>
     </message>
     <message>
+        <location filename="../assets/AboutPage.qml" line="74"/>
+        <source>Open source libraries</source>
+        <translation>Бібліотеки з відкритим кодом</translation>
+    </message>
+    <message>
         <source>Thanks</source>
         <translation type="obsolete">Подяки</translation>
     </message>
