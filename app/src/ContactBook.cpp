@@ -9,6 +9,7 @@
 #include <QTimer>
 
 #include "EngineLink.h"
+#include "Settings.h"
 
 using namespace bb::pim::contacts;
 
@@ -88,9 +89,10 @@ void BookReader::read()
     emit ready(entries);
 }
 
-ContactBook::ContactBook(EngineLink *engine, QObject *parent)
+ContactBook::ContactBook(EngineLink *engine, Settings *settings, QObject *parent)
     : QObject(parent),
       m_engine(engine),
+      m_settings(settings),
       m_thread(new QThread) // no parent, see ~ContactBook
 {
     BookReader *reader = new BookReader;
@@ -98,6 +100,7 @@ ContactBook::ContactBook(EngineLink *engine, QObject *parent)
     connect(m_thread, SIGNAL(started()), reader, SLOT(start()));
     connect(reader, SIGNAL(ready(QVariantList)), this, SLOT(onRead(QVariantList)), Qt::QueuedConnection);
     connect(m_engine, SIGNAL(connectedChanged()), this, SLOT(send()));
+    connect(m_settings, SIGNAL(syncContactsChanged()), this, SLOT(send())); // at once when switched on
     // Low, so the read doesn't slow the UI down.
     m_thread->start(QThread::LowPriority);
 }
@@ -129,9 +132,8 @@ void ContactBook::onRead(const QVariantList &entries)
 // changed costs it nothing.
 void ContactBook::send()
 {
-    // Nothing is sent: uploading the address book to Telegram is a setting the user turns on, never a default.
-    return;
-    if (!m_engine->connected() || m_entries.isEmpty())
+    // Uploading the address book to Telegram is a setting the user turns on, never a default.
+    if (!m_settings->syncContacts() || !m_engine->connected() || m_entries.isEmpty())
         return;
     QVariantMap args;
     args["entries"] = m_entries;

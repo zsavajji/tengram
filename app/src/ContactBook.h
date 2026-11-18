@@ -5,6 +5,7 @@
 #include <QVariant>
 
 class EngineLink;
+class Settings;
 class QThread;
 class QTimer;
 namespace bb { namespace pim { namespace contacts { class ContactService; } } }
@@ -39,12 +40,13 @@ private:
 // saved on the Q10 shows under that name. The engine can't read it: only the UI has the permission.
 // The book only ever goes to our own engine, over the loopback link; the UI sends it nowhere else,
 // and keeps it in memory only (the engine keeps data/book.json). Sent when read, on every
-// (re)connect of the engine link, and again when the address book changes.
+// (re)connect of the engine link, and again when the address book changes, but only while Settings >
+// Privacy and security > Sync contacts is on (off by default), and at once when it is switched on.
 class ContactBook : public QObject
 {
     Q_OBJECT
 public:
-    explicit ContactBook(EngineLink *engine, QObject *parent = 0);
+    ContactBook(EngineLink *engine, Settings *settings, QObject *parent = 0);
     ~ContactBook();
 
 private slots:
@@ -53,6 +55,7 @@ private slots:
 
 private:
     EngineLink *m_engine;
+    Settings *m_settings;
     QThread *m_thread;
     QVariantList m_entries;
 };

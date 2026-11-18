@@ -101,6 +101,49 @@
     </message>
 </context>
 <context>
+    <name>BlockedPage</name>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="16"/>
+        <source>Blocked users (%1)</source>
+        <translation>Заблоковані користувачі (%1)</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="16"/>
+        <source>Blocked users</source>
+        <translation>Заблоковані користувачі</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="35"/>
+        <source>Unblock %1?</source>
+        <translation>Розблокувати %1?</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="45"/>
+        <source>Unblock</source>
+        <translation>Розблокувати</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="46"/>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="78"/>
+        <source>Loading…</source>
+        <translation>Завантаження…</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="87"/>
+        <source>Couldn&apos;t load the blocked users. Check the connection and try again.</source>
+        <translation>Не вдалося завантажити заблокованих користувачів. Перевірте з’єднання та повторіть спробу.</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="96"/>
+        <source>Nobody is blocked</source>
+        <translation>Ніхто не заблокований</translation>
+    </message>
+</context>
+<context>
     <name>CallDrawer</name>
     <message>
         <source>Swipe from the left edge to see who is in the call</source>
@@ -1860,6 +1903,226 @@
     </message>
 </context>
 <context>
+    <name>PasswordPage</name>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="21"/>
+        <source>Two-step verification</source>
+        <translation>Двоетапна перевірка</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="34"/>
+        <source>%1 h</source>
+        <translation>%1 год</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="34"/>
+        <source>%1 min</source>
+        <translation>%1 хв</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="38"/>
+        <source>Wrong password</source>
+        <translation>Неправильний пароль</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="40"/>
+        <location filename="../assets/PasswordPage.qml" line="99"/>
+        <source>That e-mail address doesn&apos;t work</source>
+        <translation>Ця адреса ел. пошти не підходить</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="42"/>
+        <source>Wrong code</source>
+        <translation>Неправильний код</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="47"/>
+        <source>Telegram allows this change later: try again in %1</source>
+        <translation>Telegram дозволить цю зміну пізніше: повторіть спробу через %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="49"/>
+        <source>Telegram allows this change later. Try again in a while.</source>
+        <translation>Telegram дозволить цю зміну пізніше. Повторіть спробу трохи згодом.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="58"/>
+        <source>Code sent again</source>
+        <translation>Код надіслано повторно</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="61"/>
+        <source>A code was sent to %1</source>
+        <translation>Код надіслано на %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="64"/>
+        <source>Password saved</source>
+        <translation>Пароль збережено</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="66"/>
+        <source>Recovery e-mail saved</source>
+        <translation>Пошту для відновлення збережено</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="68"/>
+        <source>E-mail confirmed</source>
+        <translation>Пошту підтверджено</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="70"/>
+        <source>Two-step verification is off</source>
+        <translation>Двоетапну перевірку вимкнено</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="78"/>
+        <source>Type the new password</source>
+        <translation>Введіть новий пароль</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="82"/>
+        <source>The passwords don&apos;t match</source>
+        <translation>Паролі не збігаються</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="112"/>
+        <source>Turn off two-step verification?</source>
+        <translation>Вимкнути двоетапну перевірку?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="113"/>
+        <source>Telegram will no longer ask for a password when you sign in.</source>
+        <translation>Telegram більше не запитуватиме пароль під час входу.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="114"/>
+        <location filename="../assets/PasswordPage.qml" line="293"/>
+        <source>Turn off</source>
+        <translation>Вимкнути</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="115"/>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="139"/>
+        <source>Enter the code sent to %1</source>
+        <translation>Введіть код, надісланий на %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="144"/>
+        <source>Code</source>
+        <translation>Код</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="154"/>
+        <source>Confirm</source>
+        <translation>Підтвердити</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="159"/>
+        <source>Send again</source>
+        <translation>Надіслати знову</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="175"/>
+        <source>Telegram will ask for this password besides the code when you sign in on a new device.</source>
+        <translation>Telegram запитуватиме цей пароль на додачу до коду під час входу на новому пристрої.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="180"/>
+        <location filename="../assets/PasswordPage.qml" line="246"/>
+        <source>New password</source>
+        <translation>Новий пароль</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="185"/>
+        <source>Repeat the password</source>
+        <translation>Повторіть пароль</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="189"/>
+        <location filename="../assets/PasswordPage.qml" line="255"/>
+        <source>Hint (optional)</source>
+        <translation>Підказка (необов’язково)</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="194"/>
+        <source>Recovery e-mail (optional)</source>
+        <translation>Пошта для відновлення (необов’язково)</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="200"/>
+        <source>With a recovery e-mail you can reset the password if you forget it: Telegram sends the e-mail a code.</source>
+        <translation>З поштою для відновлення можна скинути пароль, якщо ви його забудете: Telegram надішле на неї код.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="205"/>
+        <source>Set password</source>
+        <translation>Встановити пароль</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="220"/>
+        <source>Two-step verification is on.</source>
+        <translation>Двоетапну перевірку ввімкнено.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="226"/>
+        <source>Hint: %1</source>
+        <translation>Підказка: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="232"/>
+        <location filename="../assets/PasswordPage.qml" line="260"/>
+        <source>Change password</source>
+        <translation>Змінити пароль</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="241"/>
+        <location filename="../assets/PasswordPage.qml" line="278"/>
+        <location filename="../assets/PasswordPage.qml" line="303"/>
+        <source>Current password</source>
+        <translation>Поточний пароль</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="251"/>
+        <source>Repeat the new password</source>
+        <translation>Повторіть новий пароль</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="265"/>
+        <source>Recovery e-mail</source>
+        <translation>Пошта для відновлення</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="273"/>
+        <source>A recovery e-mail is set.</source>
+        <translation>Пошту для відновлення задано.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="273"/>
+        <source>No recovery e-mail is set.</source>
+        <translation>Пошту для відновлення не задано.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="283"/>
+        <source>New e-mail</source>
+        <translation>Нова пошта</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="288"/>
+        <source>Set recovery e-mail</source>
+        <translation>Встановити пошту для відновлення</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="308"/>
+        <source>Turn off two-step verification</source>
+        <translation>Вимкнути двоетапну перевірку</translation>
+    </message>
+</context>
+<context>
     <name>PhotoViewer</name>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="21"/>
@@ -1982,6 +2245,317 @@
         <location filename="../assets/PollPage.qml" line="101"/>
         <source>Option %1</source>
         <translation>Варіант %1</translation>
+    </message>
+</context>
+<context>
+    <name>Privacy</name>
+    <message>
+        <location filename="../src/Privacy.cpp" line="225"/>
+        <source>Unknown</source>
+        <translation>Невідомо</translation>
+    </message>
+</context>
+<context>
+    <name>PrivacyPage</name>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="21"/>
+        <source>Privacy and security</source>
+        <translation>Конфіденційність і безпека</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="29"/>
+        <source>Phone number</source>
+        <translation>Номер телефону</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="30"/>
+        <source>Who can find me by my number</source>
+        <translation>Хто може знайти мене за номером</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="31"/>
+        <source>Last seen &amp; online</source>
+        <translation>Час останнього входу</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="32"/>
+        <source>Profile photo</source>
+        <translation>Фото профілю</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="33"/>
+        <source>Forwarded messages</source>
+        <translation>Пересилання повідомлень</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="34"/>
+        <source>Calls</source>
+        <translation>Дзвінки</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="35"/>
+        <source>Birthday</source>
+        <translation>Дата народження</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="36"/>
+        <source>Gifts</source>
+        <translation>Подарунки</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="37"/>
+        <source>Bio</source>
+        <translation>Про себе</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="38"/>
+        <source>Saved music</source>
+        <translation>Збережена музика</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="39"/>
+        <source>Invites</source>
+        <translation>Запрошення</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="65"/>
+        <source>Payment and shipping info cleared</source>
+        <translation>Платіжні дані та адреси доставки видалено</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="68"/>
+        <source>Synced contacts deleted</source>
+        <translation>Синхронізовані контакти видалено</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="158"/>
+        <location filename="../assets/PrivacyPage.qml" line="188"/>
+        <source>Everybody</source>
+        <translation>Усі</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="159"/>
+        <location filename="../assets/PrivacyPage.qml" line="189"/>
+        <source>My contacts</source>
+        <translation>Мої контакти</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="160"/>
+        <source>Nobody</source>
+        <translation>Ніхто</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="169"/>
+        <location filename="../assets/PrivacyPage.qml" line="198"/>
+        <source>+ exceptions set in another Telegram app</source>
+        <translation>+ винятки задано в іншому застосунку Telegram</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="206"/>
+        <source>Clear payment and shipping info?</source>
+        <translation>Видалити платіжні дані та адреси доставки?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="207"/>
+        <source>The shipping info and payment cards you saved in Telegram&apos;s bots are deleted.</source>
+        <translation>Адреси доставки та платіжні картки, збережені в ботах Telegram, буде видалено.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="208"/>
+        <source>Clear</source>
+        <translation>Видалити</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="209"/>
+        <location filename="../assets/PrivacyPage.qml" line="221"/>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="218"/>
+        <source>Delete synced contacts?</source>
+        <translation>Видалити синхронізовані контакти?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="219"/>
+        <source>Telegram forgets the address book it got from this phone. The people already in your contacts stay.</source>
+        <translation>Telegram забуде адресну книгу, отриману з цього телефона. Люди, які вже є у ваших контактах, залишаться.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="220"/>
+        <source>Delete</source>
+        <translation>Видалити</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="241"/>
+        <source>Loading…</source>
+        <translation>Завантаження…</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="254"/>
+        <source>Couldn&apos;t load your privacy settings. Check the connection and try again.</source>
+        <translation>Не вдалося завантажити налаштування конфіденційності. Перевірте з’єднання та повторіть спробу.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="258"/>
+        <source>Retry</source>
+        <translation>Повторити</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="266"/>
+        <source>Security</source>
+        <translation>Безпека</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="271"/>
+        <source>Two-step verification</source>
+        <translation>Двоетапна перевірка</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="272"/>
+        <source>On</source>
+        <translation>Увімк.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="272"/>
+        <location filename="../assets/PrivacyPage.qml" line="289"/>
+        <source>Off</source>
+        <translation>Вимк.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="287"/>
+        <source>Auto-delete messages</source>
+        <translation>Автовидалення повідомлень</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="290"/>
+        <source>1 day</source>
+        <translation>1 день</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="291"/>
+        <source>1 week</source>
+        <translation>1 тиждень</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="292"/>
+        <location filename="../assets/PrivacyPage.qml" line="334"/>
+        <source>1 month</source>
+        <translation>1 місяць</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="304"/>
+        <source>Blocked users</source>
+        <translation>Заблоковані користувачі</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="305"/>
+        <source>None</source>
+        <translation>Немає</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="309"/>
+        <source>Devices</source>
+        <translation>Пристрої</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="313"/>
+        <source>Privacy</source>
+        <translation>Конфіденційність</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="323"/>
+        <source>Delete my account</source>
+        <translation>Видалити мій акаунт</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="332"/>
+        <source>If away for</source>
+        <translation>Якщо не заходити</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="335"/>
+        <source>3 months</source>
+        <translation>3 місяці</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="336"/>
+        <source>6 months</source>
+        <translation>6 місяців</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="337"/>
+        <source>12 months</source>
+        <translation>12 місяців</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="338"/>
+        <source>18 months</source>
+        <translation>18 місяців</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="339"/>
+        <source>24 months</source>
+        <translation>24 місяці</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="351"/>
+        <source>If you don&apos;t come online at least once in this period, your account will be deleted along with all messages and contacts.</source>
+        <translation>Якщо ви не зайдете в мережу жодного разу за цей період, ваш акаунт буде видалено разом з усіма повідомленнями та контактами.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="357"/>
+        <source>Bots and websites</source>
+        <translation>Боти та сайти</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="360"/>
+        <source>Clear payment and shipping info</source>
+        <translation>Видалити платіжні дані та адреси доставки</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="364"/>
+        <source>Connected websites</source>
+        <translation>Підключені сайти</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="368"/>
+        <source>Contacts</source>
+        <translation>Контакти</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="372"/>
+        <source>Delete synced contacts</source>
+        <translation>Видалити синхронізовані контакти</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../assets/PrivacyPage.qml" line="373"/>
+        <source>%Ln contacts</source>
+        <translation>
+            <numerusform>%Ln контакт</numerusform>
+            <numerusform>%Ln контакти</numerusform>
+            <numerusform>%Ln контактів</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="390"/>
+        <source>Sync contacts</source>
+        <translation>Синхронізувати контакти</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="394"/>
+        <source>Off, your address book stays on this phone. On, Tengram sends its names and numbers to Telegram, so the people you know there become your contacts.</source>
+        <translation>Якщо вимкнено, адресна книга залишається на цьому телефоні. Якщо ввімкнено, Tengram надсилає її імена й номери до Telegram, щоб знайомі вам люди стали вашими контактами.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="423"/>
+        <source>Suggest frequent contacts</source>
+        <translation>Пропонувати часті контакти</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="427"/>
+        <source>Show the people you message most at the top of the search.</source>
+        <translation>Показувати людей, яким ви пишете найчастіше, угорі пошуку.</translation>
     </message>
 </context>
 <context>
@@ -2282,6 +2856,16 @@
         <location filename="../assets/SettingsPage.qml" line="41"/>
         <source>Active sessions, link a desktop device</source>
         <translation>Активні сеанси, підключити комп’ютер</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="47"/>
+        <source>Privacy and security</source>
+        <translation>Конфіденційність і безпека</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="48"/>
+        <source>Password, blocked users, who sees what</source>
+        <translation>Пароль, заблоковані користувачі, хто що бачить</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38"/>
@@ -2675,6 +3259,61 @@
         <location filename="../assets/TopicsPage.qml" line="123"/>
         <source>No topics</source>
         <translation>Немає тем</translation>
+    </message>
+</context>
+<context>
+    <name>WebsitesPage</name>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="17"/>
+        <source>Connected websites</source>
+        <translation>Підключені сайти</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="37"/>
+        <source>Disconnect %1?</source>
+        <translation>Відключити %1?</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="47"/>
+        <location filename="../assets/WebsitesPage.qml" line="72"/>
+        <source>Disconnect all</source>
+        <translation>Відключити всі</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="60"/>
+        <source>Disconnect</source>
+        <translation>Відключити</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="61"/>
+        <location filename="../assets/WebsitesPage.qml" line="73"/>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="70"/>
+        <source>Disconnect all websites?</source>
+        <translation>Відключити всі сайти?</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="71"/>
+        <source>You will be signed out of every website you logged in to with Telegram.</source>
+        <translation>Ви вийдете з усіх сайтів, на які входили через Telegram.</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="156"/>
+        <source>Loading…</source>
+        <translation>Завантаження…</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="165"/>
+        <source>Couldn&apos;t load the websites. Check the connection and try again.</source>
+        <translation>Не вдалося завантажити сайти. Перевірте з’єднання та повторіть спробу.</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="174"/>
+        <source>No websites</source>
+        <translation>Немає сайтів</translation>
     </message>
 </context>
 <context>

@@ -101,6 +101,49 @@
     </message>
 </context>
 <context>
+    <name>BlockedPage</name>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="16"/>
+        <source>Blocked users (%1)</source>
+        <translation>Pengguna diblokir (%1)</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="16"/>
+        <source>Blocked users</source>
+        <translation>Pengguna diblokir</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="35"/>
+        <source>Unblock %1?</source>
+        <translation>Buka blokir %1?</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="45"/>
+        <source>Unblock</source>
+        <translation>Buka blokir</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="46"/>
+        <source>Cancel</source>
+        <translation>Batal</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="78"/>
+        <source>Loading…</source>
+        <translation>Memuat…</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="87"/>
+        <source>Couldn&apos;t load the blocked users. Check the connection and try again.</source>
+        <translation>Tidak dapat memuat pengguna yang diblokir. Periksa koneksi dan coba lagi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="96"/>
+        <source>Nobody is blocked</source>
+        <translation>Tidak ada yang diblokir</translation>
+    </message>
+</context>
+<context>
     <name>CallDrawer</name>
     <message>
         <source>Swipe from the left edge to see who is in the call</source>
@@ -1854,6 +1897,226 @@
     </message>
 </context>
 <context>
+    <name>PasswordPage</name>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="21"/>
+        <source>Two-step verification</source>
+        <translation>Verifikasi dua langkah</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="34"/>
+        <source>%1 h</source>
+        <translation>%1 jam</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="34"/>
+        <source>%1 min</source>
+        <translation>%1 menit</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="38"/>
+        <source>Wrong password</source>
+        <translation>Kata sandi salah</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="40"/>
+        <location filename="../assets/PasswordPage.qml" line="99"/>
+        <source>That e-mail address doesn&apos;t work</source>
+        <translation>Alamat email itu tidak berfungsi</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="42"/>
+        <source>Wrong code</source>
+        <translation>Kode salah</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="47"/>
+        <source>Telegram allows this change later: try again in %1</source>
+        <translation>Telegram mengizinkan perubahan ini nanti: coba lagi dalam %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="49"/>
+        <source>Telegram allows this change later. Try again in a while.</source>
+        <translation>Telegram mengizinkan perubahan ini nanti. Coba lagi beberapa saat lagi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="58"/>
+        <source>Code sent again</source>
+        <translation>Kode dikirim ulang</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="61"/>
+        <source>A code was sent to %1</source>
+        <translation>Kode dikirim ke %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="64"/>
+        <source>Password saved</source>
+        <translation>Kata sandi disimpan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="66"/>
+        <source>Recovery e-mail saved</source>
+        <translation>Email pemulihan disimpan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="68"/>
+        <source>E-mail confirmed</source>
+        <translation>Email dikonfirmasi</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="70"/>
+        <source>Two-step verification is off</source>
+        <translation>Verifikasi dua langkah nonaktif</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="78"/>
+        <source>Type the new password</source>
+        <translation>Ketik kata sandi baru</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="82"/>
+        <source>The passwords don&apos;t match</source>
+        <translation>Kata sandi tidak cocok</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="112"/>
+        <source>Turn off two-step verification?</source>
+        <translation>Nonaktifkan verifikasi dua langkah?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="113"/>
+        <source>Telegram will no longer ask for a password when you sign in.</source>
+        <translation>Telegram tidak akan lagi meminta kata sandi saat Anda masuk.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="114"/>
+        <location filename="../assets/PasswordPage.qml" line="293"/>
+        <source>Turn off</source>
+        <translation>Nonaktifkan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="115"/>
+        <source>Cancel</source>
+        <translation>Batal</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="139"/>
+        <source>Enter the code sent to %1</source>
+        <translation>Masukkan kode yang dikirim ke %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="144"/>
+        <source>Code</source>
+        <translation>Kode</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="154"/>
+        <source>Confirm</source>
+        <translation>Konfirmasi</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="159"/>
+        <source>Send again</source>
+        <translation>Kirim ulang</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="175"/>
+        <source>Telegram will ask for this password besides the code when you sign in on a new device.</source>
+        <translation>Telegram akan meminta kata sandi ini selain kode saat Anda masuk di perangkat baru.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="180"/>
+        <location filename="../assets/PasswordPage.qml" line="246"/>
+        <source>New password</source>
+        <translation>Kata sandi baru</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="185"/>
+        <source>Repeat the password</source>
+        <translation>Ulangi kata sandi</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="189"/>
+        <location filename="../assets/PasswordPage.qml" line="255"/>
+        <source>Hint (optional)</source>
+        <translation>Petunjuk (opsional)</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="194"/>
+        <source>Recovery e-mail (optional)</source>
+        <translation>Email pemulihan (opsional)</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="200"/>
+        <source>With a recovery e-mail you can reset the password if you forget it: Telegram sends the e-mail a code.</source>
+        <translation>Dengan email pemulihan, Anda dapat mengatur ulang kata sandi jika lupa: Telegram mengirim kode ke email tersebut.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="205"/>
+        <source>Set password</source>
+        <translation>Atur kata sandi</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="220"/>
+        <source>Two-step verification is on.</source>
+        <translation>Verifikasi dua langkah aktif.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="226"/>
+        <source>Hint: %1</source>
+        <translation>Petunjuk: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="232"/>
+        <location filename="../assets/PasswordPage.qml" line="260"/>
+        <source>Change password</source>
+        <translation>Ubah kata sandi</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="241"/>
+        <location filename="../assets/PasswordPage.qml" line="278"/>
+        <location filename="../assets/PasswordPage.qml" line="303"/>
+        <source>Current password</source>
+        <translation>Kata sandi saat ini</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="251"/>
+        <source>Repeat the new password</source>
+        <translation>Ulangi kata sandi baru</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="265"/>
+        <source>Recovery e-mail</source>
+        <translation>Email pemulihan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="273"/>
+        <source>A recovery e-mail is set.</source>
+        <translation>Email pemulihan sudah diatur.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="273"/>
+        <source>No recovery e-mail is set.</source>
+        <translation>Belum ada email pemulihan.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="283"/>
+        <source>New e-mail</source>
+        <translation>Email baru</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="288"/>
+        <source>Set recovery e-mail</source>
+        <translation>Atur email pemulihan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="308"/>
+        <source>Turn off two-step verification</source>
+        <translation>Nonaktifkan verifikasi dua langkah</translation>
+    </message>
+</context>
+<context>
     <name>PhotoViewer</name>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="21"/>
@@ -1976,6 +2239,315 @@
         <location filename="../assets/PollPage.qml" line="101"/>
         <source>Option %1</source>
         <translation>Opsi %1</translation>
+    </message>
+</context>
+<context>
+    <name>Privacy</name>
+    <message>
+        <location filename="../src/Privacy.cpp" line="225"/>
+        <source>Unknown</source>
+        <translation>Tidak dikenal</translation>
+    </message>
+</context>
+<context>
+    <name>PrivacyPage</name>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="21"/>
+        <source>Privacy and security</source>
+        <translation>Privasi dan keamanan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="29"/>
+        <source>Phone number</source>
+        <translation>Nomor telepon</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="30"/>
+        <source>Who can find me by my number</source>
+        <translation>Siapa yang dapat menemukan saya lewat nomor saya</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="31"/>
+        <source>Last seen &amp; online</source>
+        <translation>Terakhir dilihat &amp; online</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="32"/>
+        <source>Profile photo</source>
+        <translation>Foto profil</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="33"/>
+        <source>Forwarded messages</source>
+        <translation>Pesan yang diteruskan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="34"/>
+        <source>Calls</source>
+        <translation>Panggilan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="35"/>
+        <source>Birthday</source>
+        <translation>Ulang tahun</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="36"/>
+        <source>Gifts</source>
+        <translation>Hadiah</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="37"/>
+        <source>Bio</source>
+        <translation>Bio</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="38"/>
+        <source>Saved music</source>
+        <translation>Musik tersimpan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="39"/>
+        <source>Invites</source>
+        <translation>Undangan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="65"/>
+        <source>Payment and shipping info cleared</source>
+        <translation>Info pembayaran dan pengiriman dihapus</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="68"/>
+        <source>Synced contacts deleted</source>
+        <translation>Kontak tersinkron dihapus</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="158"/>
+        <location filename="../assets/PrivacyPage.qml" line="188"/>
+        <source>Everybody</source>
+        <translation>Semua orang</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="159"/>
+        <location filename="../assets/PrivacyPage.qml" line="189"/>
+        <source>My contacts</source>
+        <translation>Kontak saya</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="160"/>
+        <source>Nobody</source>
+        <translation>Tidak ada</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="169"/>
+        <location filename="../assets/PrivacyPage.qml" line="198"/>
+        <source>+ exceptions set in another Telegram app</source>
+        <translation>+ pengecualian diatur di aplikasi Telegram lain</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="206"/>
+        <source>Clear payment and shipping info?</source>
+        <translation>Hapus info pembayaran dan pengiriman?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="207"/>
+        <source>The shipping info and payment cards you saved in Telegram&apos;s bots are deleted.</source>
+        <translation>Info pengiriman dan kartu pembayaran yang Anda simpan di bot Telegram akan dihapus.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="208"/>
+        <source>Clear</source>
+        <translation>Hapus</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="209"/>
+        <location filename="../assets/PrivacyPage.qml" line="221"/>
+        <source>Cancel</source>
+        <translation>Batal</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="218"/>
+        <source>Delete synced contacts?</source>
+        <translation>Hapus kontak tersinkron?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="219"/>
+        <source>Telegram forgets the address book it got from this phone. The people already in your contacts stay.</source>
+        <translation>Telegram melupakan buku alamat yang diterimanya dari ponsel ini. Orang yang sudah ada di kontak Anda tetap ada.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="220"/>
+        <source>Delete</source>
+        <translation>Hapus</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="241"/>
+        <source>Loading…</source>
+        <translation>Memuat…</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="254"/>
+        <source>Couldn&apos;t load your privacy settings. Check the connection and try again.</source>
+        <translation>Tidak dapat memuat pengaturan privasi. Periksa koneksi dan coba lagi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="258"/>
+        <source>Retry</source>
+        <translation>Coba lagi</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="266"/>
+        <source>Security</source>
+        <translation>Keamanan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="271"/>
+        <source>Two-step verification</source>
+        <translation>Verifikasi dua langkah</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="272"/>
+        <source>On</source>
+        <translation>Aktif</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="272"/>
+        <location filename="../assets/PrivacyPage.qml" line="289"/>
+        <source>Off</source>
+        <translation>Nonaktif</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="287"/>
+        <source>Auto-delete messages</source>
+        <translation>Hapus pesan otomatis</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="290"/>
+        <source>1 day</source>
+        <translation>1 hari</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="291"/>
+        <source>1 week</source>
+        <translation>1 minggu</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="292"/>
+        <location filename="../assets/PrivacyPage.qml" line="334"/>
+        <source>1 month</source>
+        <translation>1 bulan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="304"/>
+        <source>Blocked users</source>
+        <translation>Pengguna diblokir</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="305"/>
+        <source>None</source>
+        <translation>Tidak ada</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="309"/>
+        <source>Devices</source>
+        <translation>Perangkat</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="313"/>
+        <source>Privacy</source>
+        <translation>Privasi</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="323"/>
+        <source>Delete my account</source>
+        <translation>Hapus akun saya</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="332"/>
+        <source>If away for</source>
+        <translation>Jika tidak aktif selama</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="335"/>
+        <source>3 months</source>
+        <translation>3 bulan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="336"/>
+        <source>6 months</source>
+        <translation>6 bulan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="337"/>
+        <source>12 months</source>
+        <translation>12 bulan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="338"/>
+        <source>18 months</source>
+        <translation>18 bulan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="339"/>
+        <source>24 months</source>
+        <translation>24 bulan</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="351"/>
+        <source>If you don&apos;t come online at least once in this period, your account will be deleted along with all messages and contacts.</source>
+        <translation>Jika Anda tidak online setidaknya sekali dalam periode ini, akun Anda akan dihapus beserta semua pesan dan kontak.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="357"/>
+        <source>Bots and websites</source>
+        <translation>Bot dan situs web</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="360"/>
+        <source>Clear payment and shipping info</source>
+        <translation>Hapus info pembayaran dan pengiriman</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="364"/>
+        <source>Connected websites</source>
+        <translation>Situs web terhubung</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="368"/>
+        <source>Contacts</source>
+        <translation>Kontak</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="372"/>
+        <source>Delete synced contacts</source>
+        <translation>Hapus kontak tersinkron</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../assets/PrivacyPage.qml" line="373"/>
+        <source>%Ln contacts</source>
+        <translation>
+            <numerusform>%Ln kontak</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="390"/>
+        <source>Sync contacts</source>
+        <translation>Sinkronkan kontak</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="394"/>
+        <source>Off, your address book stays on this phone. On, Tengram sends its names and numbers to Telegram, so the people you know there become your contacts.</source>
+        <translation>Jika nonaktif, buku alamat Anda tetap di ponsel ini. Jika aktif, Tengram mengirim nama dan nomornya ke Telegram, sehingga orang yang Anda kenal di sana menjadi kontak Anda.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="423"/>
+        <source>Suggest frequent contacts</source>
+        <translation>Sarankan kontak yang sering dihubungi</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="427"/>
+        <source>Show the people you message most at the top of the search.</source>
+        <translation>Tampilkan orang yang paling sering Anda kirimi pesan di bagian atas pencarian.</translation>
     </message>
 </context>
 <context>
@@ -2276,6 +2848,16 @@
         <location filename="../assets/SettingsPage.qml" line="41"/>
         <source>Active sessions, link a desktop device</source>
         <translation>Sesi aktif, tautkan perangkat desktop</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="47"/>
+        <source>Privacy and security</source>
+        <translation>Privasi dan keamanan</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="48"/>
+        <source>Password, blocked users, who sees what</source>
+        <translation>Kata sandi, pengguna diblokir, siapa melihat apa</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38"/>
@@ -2669,6 +3251,61 @@
         <location filename="../assets/TopicsPage.qml" line="123"/>
         <source>No topics</source>
         <translation>Tidak ada topik</translation>
+    </message>
+</context>
+<context>
+    <name>WebsitesPage</name>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="17"/>
+        <source>Connected websites</source>
+        <translation>Situs web terhubung</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="37"/>
+        <source>Disconnect %1?</source>
+        <translation>Putuskan %1?</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="47"/>
+        <location filename="../assets/WebsitesPage.qml" line="72"/>
+        <source>Disconnect all</source>
+        <translation>Putuskan semua</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="60"/>
+        <source>Disconnect</source>
+        <translation>Putuskan</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="61"/>
+        <location filename="../assets/WebsitesPage.qml" line="73"/>
+        <source>Cancel</source>
+        <translation>Batal</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="70"/>
+        <source>Disconnect all websites?</source>
+        <translation>Putuskan semua situs web?</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="71"/>
+        <source>You will be signed out of every website you logged in to with Telegram.</source>
+        <translation>Anda akan keluar dari semua situs web yang Anda masuki dengan Telegram.</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="156"/>
+        <source>Loading…</source>
+        <translation>Memuat…</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="165"/>
+        <source>Couldn&apos;t load the websites. Check the connection and try again.</source>
+        <translation>Tidak dapat memuat situs web. Periksa koneksi dan coba lagi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="174"/>
+        <source>No websites</source>
+        <translation>Tidak ada situs web</translation>
     </message>
 </context>
 <context>

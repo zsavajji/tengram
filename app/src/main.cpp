@@ -38,6 +38,7 @@
 #include "MemoryPatch.h"
 #include "MessageCards.h"
 #include "OpenRequests.h"
+#include "Privacy.h"
 #include "Profile.h"
 #include "Proximity.h"
 #include "QrImage.h"
@@ -151,14 +152,15 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     engine.start();
     // Before every model: its connectedChanged slot runs first, so the models' own find chats.db reopened.
     ChatsDbReconnect chatsDbReconnect(&engine, &app);
-    ContactBook book(&engine, &app);
+    // Before the book, which sends it only while Settings > Sync contacts is on.
+    Settings settings(&engine, &app);
+    ContactBook book(&engine, &settings, &app);
     ChatListModel chats(&engine, ChatListModel::Chats, &app);
     ChatListModel archivedChats(&engine, ChatListModel::Archived, &app);
     Proximity proximity(&app);
     // One for the run: the picker's table is built once, not per chat.
     EmojiModel emojis(&app);
     QrImage qr(&app);
-    Settings settings(&engine, &app);
     // With a Hub account (step 5.7) instant previews become possible, but BB10 starts them off,
     // and 5.6's try left the LED off: both on by default, as BBTelega does. apply() leaves alone
     // what the user has changed in Settings -> Notifications (Q10, 0.0.1.100).
@@ -181,6 +183,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     qmlRegisterType<MapChooser>("tengram", 1, 0, "MapChooser");
     qmlRegisterType<MediaOpener>("tengram", 1, 0, "MediaOpener");
     qmlRegisterType<MessageCards>("tengram", 1, 0, "MessageCards");
+    qmlRegisterType<Privacy>("tengram", 1, 0, "Privacy");
     qmlRegisterType<Profile>("tengram", 1, 0, "Profile");
     qmlRegisterType<Sessions>("tengram", 1, 0, "Sessions");
     qmlRegisterType<TopicModel>("tengram", 1, 0, "TopicModel");

@@ -28,6 +28,9 @@ class Settings : public QObject
     Q_PROPERTY(bool compact READ compact WRITE setCompact NOTIFY compactChanged)
     // How many group calls showed the people drawer's first-time hint (CallDrawer.qml shows it in the first 2).
     Q_PROPERTY(int callHints READ callHints WRITE setCallHints NOTIFY callHintsChanged)
+    // Privacy and security > Sync contacts: the phone's address book goes to Telegram (contacts.book) only while this
+    // is on. Off by default: uploading the address book is a setting the user turns on (ContactBook acts on it).
+    Q_PROPERTY(bool syncContacts READ syncContacts WRITE setSyncContacts NOTIFY syncContactsChanged)
 
 public:
     explicit Settings(EngineLink *engine, QObject *parent = 0);
@@ -43,6 +46,7 @@ public:
     qreal textScale() const;
     bool compact() const;
     int callHints() const;
+    bool syncContacts() const;
     void setTheme(int theme);
     void setEnterSends(bool on);
     void setNotifyPreview(bool on);
@@ -54,6 +58,7 @@ public:
     void setTextSize(int size);
     void setCompact(bool on);
     void setCallHints(int count);
+    void setSyncContacts(bool on);
     Q_INVOKABLE QString cacheSize();
     Q_INVOKABLE QString clearCache();
 
@@ -69,6 +74,7 @@ signals:
     void textSizeChanged();
     void compactChanged();
     void callHintsChanged();
+    void syncContactsChanged();
 
 private slots:
     void bootTimerReplied();

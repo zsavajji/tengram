@@ -101,6 +101,49 @@
     </message>
 </context>
 <context>
+    <name>BlockedPage</name>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="16"/>
+        <source>Blocked users (%1)</source>
+        <translation>Zablokowani użytkownicy (%1)</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="16"/>
+        <source>Blocked users</source>
+        <translation>Zablokowani użytkownicy</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="35"/>
+        <source>Unblock %1?</source>
+        <translation>Odblokować %1?</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="45"/>
+        <source>Unblock</source>
+        <translation>Odblokuj</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="46"/>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="78"/>
+        <source>Loading…</source>
+        <translation>Ładowanie…</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="87"/>
+        <source>Couldn&apos;t load the blocked users. Check the connection and try again.</source>
+        <translation>Nie udało się wczytać zablokowanych użytkowników. Sprawdź połączenie i spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="96"/>
+        <source>Nobody is blocked</source>
+        <translation>Nikt nie jest zablokowany</translation>
+    </message>
+</context>
+<context>
     <name>CallDrawer</name>
     <message>
         <source>Swipe from the left edge to see who is in the call</source>
@@ -1860,6 +1903,226 @@
     </message>
 </context>
 <context>
+    <name>PasswordPage</name>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="21"/>
+        <source>Two-step verification</source>
+        <translation>Weryfikacja dwuetapowa</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="34"/>
+        <source>%1 h</source>
+        <translation>%1 godz.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="34"/>
+        <source>%1 min</source>
+        <translation>%1 min</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="38"/>
+        <source>Wrong password</source>
+        <translation>Nieprawidłowe hasło</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="40"/>
+        <location filename="../assets/PasswordPage.qml" line="99"/>
+        <source>That e-mail address doesn&apos;t work</source>
+        <translation>Ten adres e-mail nie działa</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="42"/>
+        <source>Wrong code</source>
+        <translation>Nieprawidłowy kod</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="47"/>
+        <source>Telegram allows this change later: try again in %1</source>
+        <translation>Telegram pozwoli na tę zmianę później: spróbuj ponownie za %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="49"/>
+        <source>Telegram allows this change later. Try again in a while.</source>
+        <translation>Telegram pozwoli na tę zmianę później. Spróbuj ponownie za jakiś czas.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="58"/>
+        <source>Code sent again</source>
+        <translation>Kod wysłano ponownie</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="61"/>
+        <source>A code was sent to %1</source>
+        <translation>Kod wysłano na adres %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="64"/>
+        <source>Password saved</source>
+        <translation>Hasło zapisane</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="66"/>
+        <source>Recovery e-mail saved</source>
+        <translation>Adres e-mail odzyskiwania zapisany</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="68"/>
+        <source>E-mail confirmed</source>
+        <translation>Adres e-mail potwierdzony</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="70"/>
+        <source>Two-step verification is off</source>
+        <translation>Weryfikacja dwuetapowa jest wyłączona</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="78"/>
+        <source>Type the new password</source>
+        <translation>Wpisz nowe hasło</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="82"/>
+        <source>The passwords don&apos;t match</source>
+        <translation>Hasła się nie zgadzają</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="112"/>
+        <source>Turn off two-step verification?</source>
+        <translation>Wyłączyć weryfikację dwuetapową?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="113"/>
+        <source>Telegram will no longer ask for a password when you sign in.</source>
+        <translation>Telegram nie będzie już prosić o hasło przy logowaniu.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="114"/>
+        <location filename="../assets/PasswordPage.qml" line="293"/>
+        <source>Turn off</source>
+        <translation>Wyłącz</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="115"/>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="139"/>
+        <source>Enter the code sent to %1</source>
+        <translation>Wpisz kod wysłany na adres %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="144"/>
+        <source>Code</source>
+        <translation>Kod</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="154"/>
+        <source>Confirm</source>
+        <translation>Potwierdź</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="159"/>
+        <source>Send again</source>
+        <translation>Wyślij ponownie</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="175"/>
+        <source>Telegram will ask for this password besides the code when you sign in on a new device.</source>
+        <translation>Telegram poprosi o to hasło oprócz kodu przy logowaniu na nowym urządzeniu.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="180"/>
+        <location filename="../assets/PasswordPage.qml" line="246"/>
+        <source>New password</source>
+        <translation>Nowe hasło</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="185"/>
+        <source>Repeat the password</source>
+        <translation>Powtórz hasło</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="189"/>
+        <location filename="../assets/PasswordPage.qml" line="255"/>
+        <source>Hint (optional)</source>
+        <translation>Podpowiedź (opcjonalnie)</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="194"/>
+        <source>Recovery e-mail (optional)</source>
+        <translation>Adres e-mail odzyskiwania (opcjonalnie)</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="200"/>
+        <source>With a recovery e-mail you can reset the password if you forget it: Telegram sends the e-mail a code.</source>
+        <translation>Dzięki adresowi e-mail odzyskiwania możesz zresetować hasło, jeśli je zapomnisz: Telegram wysyła na niego kod.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="205"/>
+        <source>Set password</source>
+        <translation>Ustaw hasło</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="220"/>
+        <source>Two-step verification is on.</source>
+        <translation>Weryfikacja dwuetapowa jest włączona.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="226"/>
+        <source>Hint: %1</source>
+        <translation>Podpowiedź: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="232"/>
+        <location filename="../assets/PasswordPage.qml" line="260"/>
+        <source>Change password</source>
+        <translation>Zmień hasło</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="241"/>
+        <location filename="../assets/PasswordPage.qml" line="278"/>
+        <location filename="../assets/PasswordPage.qml" line="303"/>
+        <source>Current password</source>
+        <translation>Obecne hasło</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="251"/>
+        <source>Repeat the new password</source>
+        <translation>Powtórz nowe hasło</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="265"/>
+        <source>Recovery e-mail</source>
+        <translation>Adres e-mail odzyskiwania</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="273"/>
+        <source>A recovery e-mail is set.</source>
+        <translation>Adres e-mail odzyskiwania jest ustawiony.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="273"/>
+        <source>No recovery e-mail is set.</source>
+        <translation>Nie ustawiono adresu e-mail odzyskiwania.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="283"/>
+        <source>New e-mail</source>
+        <translation>Nowy adres e-mail</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="288"/>
+        <source>Set recovery e-mail</source>
+        <translation>Ustaw adres e-mail odzyskiwania</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="308"/>
+        <source>Turn off two-step verification</source>
+        <translation>Wyłącz weryfikację dwuetapową</translation>
+    </message>
+</context>
+<context>
     <name>PhotoViewer</name>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="21"/>
@@ -1982,6 +2245,317 @@
         <location filename="../assets/PollPage.qml" line="101"/>
         <source>Option %1</source>
         <translation>Opcja %1</translation>
+    </message>
+</context>
+<context>
+    <name>Privacy</name>
+    <message>
+        <location filename="../src/Privacy.cpp" line="225"/>
+        <source>Unknown</source>
+        <translation>Nieznany</translation>
+    </message>
+</context>
+<context>
+    <name>PrivacyPage</name>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="21"/>
+        <source>Privacy and security</source>
+        <translation>Prywatność i bezpieczeństwo</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="29"/>
+        <source>Phone number</source>
+        <translation>Numer telefonu</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="30"/>
+        <source>Who can find me by my number</source>
+        <translation>Kto może mnie znaleźć po numerze</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="31"/>
+        <source>Last seen &amp; online</source>
+        <translation>Ostatnio widziany i online</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="32"/>
+        <source>Profile photo</source>
+        <translation>Zdjęcie profilowe</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="33"/>
+        <source>Forwarded messages</source>
+        <translation>Przekazane wiadomości</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="34"/>
+        <source>Calls</source>
+        <translation>Połączenia</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="35"/>
+        <source>Birthday</source>
+        <translation>Data urodzenia</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="36"/>
+        <source>Gifts</source>
+        <translation>Prezenty</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="37"/>
+        <source>Bio</source>
+        <translation>Bio</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="38"/>
+        <source>Saved music</source>
+        <translation>Zapisana muzyka</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="39"/>
+        <source>Invites</source>
+        <translation>Zaproszenia</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="65"/>
+        <source>Payment and shipping info cleared</source>
+        <translation>Dane płatności i wysyłki zostały usunięte</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="68"/>
+        <source>Synced contacts deleted</source>
+        <translation>Zsynchronizowane kontakty zostały usunięte</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="158"/>
+        <location filename="../assets/PrivacyPage.qml" line="188"/>
+        <source>Everybody</source>
+        <translation>Wszyscy</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="159"/>
+        <location filename="../assets/PrivacyPage.qml" line="189"/>
+        <source>My contacts</source>
+        <translation>Moje kontakty</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="160"/>
+        <source>Nobody</source>
+        <translation>Nikt</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="169"/>
+        <location filename="../assets/PrivacyPage.qml" line="198"/>
+        <source>+ exceptions set in another Telegram app</source>
+        <translation>+ wyjątki ustawione w innej aplikacji Telegram</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="206"/>
+        <source>Clear payment and shipping info?</source>
+        <translation>Usunąć dane płatności i wysyłki?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="207"/>
+        <source>The shipping info and payment cards you saved in Telegram&apos;s bots are deleted.</source>
+        <translation>Dane wysyłki i karty płatnicze zapisane w botach Telegrama zostaną usunięte.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="208"/>
+        <source>Clear</source>
+        <translation>Wyczyść</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="209"/>
+        <location filename="../assets/PrivacyPage.qml" line="221"/>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="218"/>
+        <source>Delete synced contacts?</source>
+        <translation>Usunąć zsynchronizowane kontakty?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="219"/>
+        <source>Telegram forgets the address book it got from this phone. The people already in your contacts stay.</source>
+        <translation>Telegram zapomina książkę adresową otrzymaną z tego telefonu. Osoby, które już są w Twoich kontaktach, zostają.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="220"/>
+        <source>Delete</source>
+        <translation>Usuń</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="241"/>
+        <source>Loading…</source>
+        <translation>Ładowanie…</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="254"/>
+        <source>Couldn&apos;t load your privacy settings. Check the connection and try again.</source>
+        <translation>Nie udało się wczytać ustawień prywatności. Sprawdź połączenie i spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="258"/>
+        <source>Retry</source>
+        <translation>Spróbuj ponownie</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="266"/>
+        <source>Security</source>
+        <translation>Bezpieczeństwo</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="271"/>
+        <source>Two-step verification</source>
+        <translation>Weryfikacja dwuetapowa</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="272"/>
+        <source>On</source>
+        <translation>Włączone</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="272"/>
+        <location filename="../assets/PrivacyPage.qml" line="289"/>
+        <source>Off</source>
+        <translation>Wyłączone</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="287"/>
+        <source>Auto-delete messages</source>
+        <translation>Automatyczne usuwanie wiadomości</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="290"/>
+        <source>1 day</source>
+        <translation>1 dzień</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="291"/>
+        <source>1 week</source>
+        <translation>1 tydzień</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="292"/>
+        <location filename="../assets/PrivacyPage.qml" line="334"/>
+        <source>1 month</source>
+        <translation>1 miesiąc</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="304"/>
+        <source>Blocked users</source>
+        <translation>Zablokowani użytkownicy</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="305"/>
+        <source>None</source>
+        <translation>Brak</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="309"/>
+        <source>Devices</source>
+        <translation>Urządzenia</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="313"/>
+        <source>Privacy</source>
+        <translation>Prywatność</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="323"/>
+        <source>Delete my account</source>
+        <translation>Usuń moje konto</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="332"/>
+        <source>If away for</source>
+        <translation>Jeśli nieaktywny przez</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="335"/>
+        <source>3 months</source>
+        <translation>3 miesiące</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="336"/>
+        <source>6 months</source>
+        <translation>6 miesięcy</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="337"/>
+        <source>12 months</source>
+        <translation>12 miesięcy</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="338"/>
+        <source>18 months</source>
+        <translation>18 miesięcy</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="339"/>
+        <source>24 months</source>
+        <translation>24 miesiące</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="351"/>
+        <source>If you don&apos;t come online at least once in this period, your account will be deleted along with all messages and contacts.</source>
+        <translation>Jeśli w tym okresie ani razu nie będziesz online, Twoje konto zostanie usunięte wraz ze wszystkimi wiadomościami i kontaktami.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="357"/>
+        <source>Bots and websites</source>
+        <translation>Boty i strony internetowe</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="360"/>
+        <source>Clear payment and shipping info</source>
+        <translation>Usuń dane płatności i wysyłki</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="364"/>
+        <source>Connected websites</source>
+        <translation>Połączone strony internetowe</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="368"/>
+        <source>Contacts</source>
+        <translation>Kontakty</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="372"/>
+        <source>Delete synced contacts</source>
+        <translation>Usuń zsynchronizowane kontakty</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../assets/PrivacyPage.qml" line="373"/>
+        <source>%Ln contacts</source>
+        <translation>
+            <numerusform>%Ln kontakt</numerusform>
+            <numerusform>%Ln kontakty</numerusform>
+            <numerusform>%Ln kontaktów</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="390"/>
+        <source>Sync contacts</source>
+        <translation>Synchronizuj kontakty</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="394"/>
+        <source>Off, your address book stays on this phone. On, Tengram sends its names and numbers to Telegram, so the people you know there become your contacts.</source>
+        <translation>Gdy wyłączone, książka adresowa zostaje na tym telefonie. Gdy włączone, Tengram wysyła jej nazwy i numery do Telegrama, aby znane Ci osoby stały się Twoimi kontaktami.</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="423"/>
+        <source>Suggest frequent contacts</source>
+        <translation>Sugeruj częste kontakty</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="427"/>
+        <source>Show the people you message most at the top of the search.</source>
+        <translation>Pokazuj osoby, do których piszesz najczęściej, na górze wyszukiwania.</translation>
     </message>
 </context>
 <context>
@@ -2282,6 +2856,16 @@
         <location filename="../assets/SettingsPage.qml" line="41"/>
         <source>Active sessions, link a desktop device</source>
         <translation>Aktywne sesje, połącz urządzenie desktopowe</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="47"/>
+        <source>Privacy and security</source>
+        <translation>Prywatność i bezpieczeństwo</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="48"/>
+        <source>Password, blocked users, who sees what</source>
+        <translation>Hasło, zablokowani użytkownicy, kto co widzi</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38"/>
@@ -2675,6 +3259,61 @@
         <location filename="../assets/TopicsPage.qml" line="123"/>
         <source>No topics</source>
         <translation>Brak tematów</translation>
+    </message>
+</context>
+<context>
+    <name>WebsitesPage</name>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="17"/>
+        <source>Connected websites</source>
+        <translation>Połączone strony internetowe</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="37"/>
+        <source>Disconnect %1?</source>
+        <translation>Rozłączyć %1?</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="47"/>
+        <location filename="../assets/WebsitesPage.qml" line="72"/>
+        <source>Disconnect all</source>
+        <translation>Rozłącz wszystkie</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="60"/>
+        <source>Disconnect</source>
+        <translation>Rozłącz</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="61"/>
+        <location filename="../assets/WebsitesPage.qml" line="73"/>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="70"/>
+        <source>Disconnect all websites?</source>
+        <translation>Rozłączyć wszystkie strony?</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="71"/>
+        <source>You will be signed out of every website you logged in to with Telegram.</source>
+        <translation>Zostaniesz wylogowany ze wszystkich stron, na które zalogowano Cię przez Telegram.</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="156"/>
+        <source>Loading…</source>
+        <translation>Ładowanie…</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="165"/>
+        <source>Couldn&apos;t load the websites. Check the connection and try again.</source>
+        <translation>Nie udało się wczytać stron. Sprawdź połączenie i spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="174"/>
+        <source>No websites</source>
+        <translation>Brak stron</translation>
     </message>
 </context>
 <context>

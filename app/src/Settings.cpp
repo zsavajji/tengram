@@ -50,6 +50,7 @@ QString Settings::deliveryMode() const { return m_file.value("deliveryMode", "au
 int Settings::textSize() const { return qBound(0, m_file.value("textSize", 1).toInt(), 2); }
 bool Settings::compact() const { return m_file.value("compact", false).toBool(); }
 int Settings::callHints() const { return qMax(0, m_file.value("callHints", 0).toInt()); }
+bool Settings::syncContacts() const { return m_file.value("syncContacts", false).toBool(); }
 
 qreal Settings::textScale() const
 {
@@ -232,6 +233,14 @@ void Settings::setCallHints(int count)
         return;
     store("callHints", count);
     emit callHintsChanged();
+}
+
+void Settings::setSyncContacts(bool on)
+{
+    if (on == syncContacts())
+        return;
+    store("syncContacts", on);
+    emit syncContactsChanged();
 }
 
 // The cache is data/cache/ except upload/, which holds an upload in progress. Everything else in

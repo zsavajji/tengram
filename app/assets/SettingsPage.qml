@@ -17,6 +17,10 @@ Page {
             source: "DevicesPage.qml"
         },
         ComponentDefinition {
+            id: privacyDef
+            source: "PrivacyPage.qml"
+        },
+        ComponentDefinition {
             id: appearanceDef
             source: "AppearanceSettingsPage.qml"
         },
@@ -39,6 +43,11 @@ Page {
         if (engine.linked) {
             items.push({ title: qsTr("Account"), description: qsTr("Name, bio, picture, log out"), target: "account" })
             items.push({ title: qsTr("Devices"), description: qsTr("Active sessions, link a desktop device"), target: "devices" })
+            items.push({
+                title: qsTr("Privacy and security"),
+                description: qsTr("Password, blocked users, who sees what"),
+                target: "privacy"
+            })
         }
         items.push({ title: qsTr("Appearance"), description: qsTr("Theme, text size"), target: "appearance" })
         items.push({ title: qsTr("Chats"), description: qsTr("Enter key, proximity sensor"), target: "chats" })
@@ -55,6 +64,8 @@ Page {
             nav.push(profileDef.createObject())
         } else if (target == "devices") {
             nav.push(devicesDef.createObject())
+        } else if (target == "privacy") {
+            nav.push(privacyDef.createObject())
         } else if (target == "appearance") {
             nav.push(appearanceDef.createObject())
         } else if (target == "chats") {

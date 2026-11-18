@@ -101,6 +101,49 @@
     </message>
 </context>
 <context>
+    <name>BlockedPage</name>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="16"/>
+        <source>Blocked users (%1)</source>
+        <translation>ब्लॉक किए गए उपयोगकर्ता (%1)</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="16"/>
+        <source>Blocked users</source>
+        <translation>ब्लॉक किए गए उपयोगकर्ता</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="35"/>
+        <source>Unblock %1?</source>
+        <translation>%1 को अनब्लॉक करें?</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="45"/>
+        <source>Unblock</source>
+        <translation>अनब्लॉक करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="46"/>
+        <source>Cancel</source>
+        <translation>रद्द करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="78"/>
+        <source>Loading…</source>
+        <translation>लोड हो रहा है…</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="87"/>
+        <source>Couldn&apos;t load the blocked users. Check the connection and try again.</source>
+        <translation>ब्लॉक किए गए उपयोगकर्ता लोड नहीं हो सके। कनेक्शन जाँचें और फिर कोशिश करें।</translation>
+    </message>
+    <message>
+        <location filename="../assets/BlockedPage.qml" line="96"/>
+        <source>Nobody is blocked</source>
+        <translation>किसी को ब्लॉक नहीं किया गया है</translation>
+    </message>
+</context>
+<context>
     <name>CallDrawer</name>
     <message>
         <source>Swipe from the left edge to see who is in the call</source>
@@ -1857,6 +1900,226 @@
     </message>
 </context>
 <context>
+    <name>PasswordPage</name>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="21"/>
+        <source>Two-step verification</source>
+        <translation>टू-स्टेप वेरिफ़िकेशन</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="34"/>
+        <source>%1 h</source>
+        <translation>%1 घंटे</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="34"/>
+        <source>%1 min</source>
+        <translation>%1 मिनट</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="38"/>
+        <source>Wrong password</source>
+        <translation>गलत पासवर्ड</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="40"/>
+        <location filename="../assets/PasswordPage.qml" line="99"/>
+        <source>That e-mail address doesn&apos;t work</source>
+        <translation>यह ईमेल पता काम नहीं करता</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="42"/>
+        <source>Wrong code</source>
+        <translation>गलत कोड</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="47"/>
+        <source>Telegram allows this change later: try again in %1</source>
+        <translation>Telegram यह बदलाव बाद में करने देगा: %1 बाद फिर कोशिश करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="49"/>
+        <source>Telegram allows this change later. Try again in a while.</source>
+        <translation>Telegram यह बदलाव बाद में करने देगा। थोड़ी देर बाद फिर कोशिश करें।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="58"/>
+        <source>Code sent again</source>
+        <translation>कोड दोबारा भेजा गया</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="61"/>
+        <source>A code was sent to %1</source>
+        <translation>%1 पर एक कोड भेजा गया</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="64"/>
+        <source>Password saved</source>
+        <translation>पासवर्ड सेव हो गया</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="66"/>
+        <source>Recovery e-mail saved</source>
+        <translation>रिकवरी ईमेल सेव हो गया</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="68"/>
+        <source>E-mail confirmed</source>
+        <translation>ईमेल की पुष्टि हो गई</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="70"/>
+        <source>Two-step verification is off</source>
+        <translation>टू-स्टेप वेरिफ़िकेशन बंद है</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="78"/>
+        <source>Type the new password</source>
+        <translation>नया पासवर्ड लिखें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="82"/>
+        <source>The passwords don&apos;t match</source>
+        <translation>पासवर्ड मेल नहीं खाते</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="112"/>
+        <source>Turn off two-step verification?</source>
+        <translation>टू-स्टेप वेरिफ़िकेशन बंद करें?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="113"/>
+        <source>Telegram will no longer ask for a password when you sign in.</source>
+        <translation>साइन इन करते समय Telegram अब पासवर्ड नहीं माँगेगा।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="114"/>
+        <location filename="../assets/PasswordPage.qml" line="293"/>
+        <source>Turn off</source>
+        <translation>बंद करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="115"/>
+        <source>Cancel</source>
+        <translation>रद्द करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="139"/>
+        <source>Enter the code sent to %1</source>
+        <translation>%1 पर भेजा गया कोड दर्ज करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="144"/>
+        <source>Code</source>
+        <translation>कोड</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="154"/>
+        <source>Confirm</source>
+        <translation>पुष्टि करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="159"/>
+        <source>Send again</source>
+        <translation>फिर भेजें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="175"/>
+        <source>Telegram will ask for this password besides the code when you sign in on a new device.</source>
+        <translation>नए डिवाइस पर साइन इन करते समय Telegram कोड के अलावा यह पासवर्ड भी माँगेगा।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="180"/>
+        <location filename="../assets/PasswordPage.qml" line="246"/>
+        <source>New password</source>
+        <translation>नया पासवर्ड</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="185"/>
+        <source>Repeat the password</source>
+        <translation>पासवर्ड दोबारा लिखें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="189"/>
+        <location filename="../assets/PasswordPage.qml" line="255"/>
+        <source>Hint (optional)</source>
+        <translation>संकेत (वैकल्पिक)</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="194"/>
+        <source>Recovery e-mail (optional)</source>
+        <translation>रिकवरी ईमेल (वैकल्पिक)</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="200"/>
+        <source>With a recovery e-mail you can reset the password if you forget it: Telegram sends the e-mail a code.</source>
+        <translation>रिकवरी ईमेल से आप पासवर्ड भूल जाने पर उसे रीसेट कर सकते हैं: Telegram उस ईमेल पर एक कोड भेजता है।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="205"/>
+        <source>Set password</source>
+        <translation>पासवर्ड सेट करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="220"/>
+        <source>Two-step verification is on.</source>
+        <translation>टू-स्टेप वेरिफ़िकेशन चालू है।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="226"/>
+        <source>Hint: %1</source>
+        <translation>संकेत: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="232"/>
+        <location filename="../assets/PasswordPage.qml" line="260"/>
+        <source>Change password</source>
+        <translation>पासवर्ड बदलें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="241"/>
+        <location filename="../assets/PasswordPage.qml" line="278"/>
+        <location filename="../assets/PasswordPage.qml" line="303"/>
+        <source>Current password</source>
+        <translation>मौजूदा पासवर्ड</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="251"/>
+        <source>Repeat the new password</source>
+        <translation>नया पासवर्ड दोबारा लिखें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="265"/>
+        <source>Recovery e-mail</source>
+        <translation>रिकवरी ईमेल</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="273"/>
+        <source>A recovery e-mail is set.</source>
+        <translation>एक रिकवरी ईमेल सेट है।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="273"/>
+        <source>No recovery e-mail is set.</source>
+        <translation>कोई रिकवरी ईमेल सेट नहीं है।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="283"/>
+        <source>New e-mail</source>
+        <translation>नया ईमेल</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="288"/>
+        <source>Set recovery e-mail</source>
+        <translation>रिकवरी ईमेल सेट करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PasswordPage.qml" line="308"/>
+        <source>Turn off two-step verification</source>
+        <translation>टू-स्टेप वेरिफ़िकेशन बंद करें</translation>
+    </message>
+</context>
+<context>
     <name>PhotoViewer</name>
     <message>
         <location filename="../assets/PhotoViewer.qml" line="21"/>
@@ -1979,6 +2242,316 @@
         <location filename="../assets/PollPage.qml" line="101"/>
         <source>Option %1</source>
         <translation>विकल्प %1</translation>
+    </message>
+</context>
+<context>
+    <name>Privacy</name>
+    <message>
+        <location filename="../src/Privacy.cpp" line="225"/>
+        <source>Unknown</source>
+        <translation>अज्ञात</translation>
+    </message>
+</context>
+<context>
+    <name>PrivacyPage</name>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="21"/>
+        <source>Privacy and security</source>
+        <translation>गोपनीयता और सुरक्षा</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="29"/>
+        <source>Phone number</source>
+        <translation>फ़ोन नंबर</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="30"/>
+        <source>Who can find me by my number</source>
+        <translation>मेरे नंबर से मुझे कौन ढूँढ सकता है</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="31"/>
+        <source>Last seen &amp; online</source>
+        <translation>आखिरी बार देखा गया और ऑनलाइन</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="32"/>
+        <source>Profile photo</source>
+        <translation>प्रोफ़ाइल फ़ोटो</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="33"/>
+        <source>Forwarded messages</source>
+        <translation>फ़ॉरवर्ड किए गए मैसेज</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="34"/>
+        <source>Calls</source>
+        <translation>कॉल</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="35"/>
+        <source>Birthday</source>
+        <translation>जन्मदिन</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="36"/>
+        <source>Gifts</source>
+        <translation>गिफ़्ट</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="37"/>
+        <source>Bio</source>
+        <translation>बायो</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="38"/>
+        <source>Saved music</source>
+        <translation>सेव किया गया संगीत</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="39"/>
+        <source>Invites</source>
+        <translation>आमंत्रण</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="65"/>
+        <source>Payment and shipping info cleared</source>
+        <translation>भुगतान और शिपिंग जानकारी हटा दी गई</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="68"/>
+        <source>Synced contacts deleted</source>
+        <translation>सिंक किए गए संपर्क डिलीट कर दिए गए</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="158"/>
+        <location filename="../assets/PrivacyPage.qml" line="188"/>
+        <source>Everybody</source>
+        <translation>सभी</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="159"/>
+        <location filename="../assets/PrivacyPage.qml" line="189"/>
+        <source>My contacts</source>
+        <translation>मेरे संपर्क</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="160"/>
+        <source>Nobody</source>
+        <translation>कोई नहीं</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="169"/>
+        <location filename="../assets/PrivacyPage.qml" line="198"/>
+        <source>+ exceptions set in another Telegram app</source>
+        <translation>+ अपवाद किसी दूसरे Telegram ऐप में सेट किए गए हैं</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="206"/>
+        <source>Clear payment and shipping info?</source>
+        <translation>भुगतान और शिपिंग जानकारी हटाएँ?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="207"/>
+        <source>The shipping info and payment cards you saved in Telegram&apos;s bots are deleted.</source>
+        <translation>Telegram के बॉट में सेव की गई शिपिंग जानकारी और पेमेंट कार्ड डिलीट कर दिए जाएँगे।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="208"/>
+        <source>Clear</source>
+        <translation>हटाएँ</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="209"/>
+        <location filename="../assets/PrivacyPage.qml" line="221"/>
+        <source>Cancel</source>
+        <translation>रद्द करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="218"/>
+        <source>Delete synced contacts?</source>
+        <translation>सिंक किए गए संपर्क डिलीट करें?</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="219"/>
+        <source>Telegram forgets the address book it got from this phone. The people already in your contacts stay.</source>
+        <translation>इस फ़ोन से मिली एड्रेस बुक को Telegram भूल जाता है। जो लोग पहले से आपके संपर्कों में हैं, वे बने रहते हैं।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="220"/>
+        <source>Delete</source>
+        <translation>डिलीट करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="241"/>
+        <source>Loading…</source>
+        <translation>लोड हो रहा है…</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="254"/>
+        <source>Couldn&apos;t load your privacy settings. Check the connection and try again.</source>
+        <translation>आपकी गोपनीयता सेटिंग लोड नहीं हो सकीं। कनेक्शन जाँचें और फिर कोशिश करें।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="258"/>
+        <source>Retry</source>
+        <translation>फिर कोशिश करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="266"/>
+        <source>Security</source>
+        <translation>सुरक्षा</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="271"/>
+        <source>Two-step verification</source>
+        <translation>टू-स्टेप वेरिफ़िकेशन</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="272"/>
+        <source>On</source>
+        <translation>चालू</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="272"/>
+        <location filename="../assets/PrivacyPage.qml" line="289"/>
+        <source>Off</source>
+        <translation>बंद</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="287"/>
+        <source>Auto-delete messages</source>
+        <translation>मैसेज अपने-आप डिलीट करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="290"/>
+        <source>1 day</source>
+        <translation>1 दिन</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="291"/>
+        <source>1 week</source>
+        <translation>1 सप्ताह</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="292"/>
+        <location filename="../assets/PrivacyPage.qml" line="334"/>
+        <source>1 month</source>
+        <translation>1 महीना</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="304"/>
+        <source>Blocked users</source>
+        <translation>ब्लॉक किए गए उपयोगकर्ता</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="305"/>
+        <source>None</source>
+        <translation>कोई नहीं</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="309"/>
+        <source>Devices</source>
+        <translation>डिवाइस</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="313"/>
+        <source>Privacy</source>
+        <translation>गोपनीयता</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="323"/>
+        <source>Delete my account</source>
+        <translation>मेरा अकाउंट डिलीट करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="332"/>
+        <source>If away for</source>
+        <translation>अगर दूर रहूँ तो</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="335"/>
+        <source>3 months</source>
+        <translation>3 महीने</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="336"/>
+        <source>6 months</source>
+        <translation>6 महीने</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="337"/>
+        <source>12 months</source>
+        <translation>12 महीने</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="338"/>
+        <source>18 months</source>
+        <translation>18 महीने</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="339"/>
+        <source>24 months</source>
+        <translation>24 महीने</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="351"/>
+        <source>If you don&apos;t come online at least once in this period, your account will be deleted along with all messages and contacts.</source>
+        <translation>अगर आप इस अवधि में कम से कम एक बार ऑनलाइन नहीं आते, तो आपका अकाउंट सभी मैसेज और संपर्कों के साथ डिलीट कर दिया जाएगा।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="357"/>
+        <source>Bots and websites</source>
+        <translation>बॉट और वेबसाइट</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="360"/>
+        <source>Clear payment and shipping info</source>
+        <translation>भुगतान और शिपिंग जानकारी हटाएँ</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="364"/>
+        <source>Connected websites</source>
+        <translation>कनेक्टेड वेबसाइट</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="368"/>
+        <source>Contacts</source>
+        <translation>संपर्क</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="372"/>
+        <source>Delete synced contacts</source>
+        <translation>सिंक किए गए संपर्क डिलीट करें</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../assets/PrivacyPage.qml" line="373"/>
+        <source>%Ln contacts</source>
+        <translation>
+            <numerusform>%Ln संपर्क</numerusform>
+            <numerusform>%Ln संपर्क</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="390"/>
+        <source>Sync contacts</source>
+        <translation>संपर्क सिंक करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="394"/>
+        <source>Off, your address book stays on this phone. On, Tengram sends its names and numbers to Telegram, so the people you know there become your contacts.</source>
+        <translation>बंद होने पर आपकी एड्रेस बुक इसी फ़ोन में रहती है। चालू होने पर Tengram उसके नाम और नंबर Telegram को भेजता है, ताकि वहाँ आपके जानने वाले लोग आपके संपर्क बन जाएँ।</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="423"/>
+        <source>Suggest frequent contacts</source>
+        <translation>बार-बार संपर्क किए गए लोग सुझाएँ</translation>
+    </message>
+    <message>
+        <location filename="../assets/PrivacyPage.qml" line="427"/>
+        <source>Show the people you message most at the top of the search.</source>
+        <translation>जिन लोगों को आप सबसे ज़्यादा मैसेज करते हैं, उन्हें खोज के ऊपर दिखाएँ।</translation>
     </message>
 </context>
 <context>
@@ -2279,6 +2852,16 @@
         <location filename="../assets/SettingsPage.qml" line="41"/>
         <source>Active sessions, link a desktop device</source>
         <translation>सक्रिय सत्र, डेस्कटॉप डिवाइस लिंक करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="47"/>
+        <source>Privacy and security</source>
+        <translation>गोपनीयता और सुरक्षा</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="48"/>
+        <source>Password, blocked users, who sees what</source>
+        <translation>पासवर्ड, ब्लॉक किए गए उपयोगकर्ता, कौन क्या देखे</translation>
     </message>
     <message>
         <location filename="../assets/SettingsPage.qml" line="38"/>
@@ -2672,6 +3255,61 @@
         <location filename="../assets/TopicsPage.qml" line="123"/>
         <source>No topics</source>
         <translation>कोई विषय नहीं</translation>
+    </message>
+</context>
+<context>
+    <name>WebsitesPage</name>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="17"/>
+        <source>Connected websites</source>
+        <translation>कनेक्टेड वेबसाइट</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="37"/>
+        <source>Disconnect %1?</source>
+        <translation>%1 को डिस्कनेक्ट करें?</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="47"/>
+        <location filename="../assets/WebsitesPage.qml" line="72"/>
+        <source>Disconnect all</source>
+        <translation>सभी डिस्कनेक्ट करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="60"/>
+        <source>Disconnect</source>
+        <translation>डिस्कनेक्ट करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="61"/>
+        <location filename="../assets/WebsitesPage.qml" line="73"/>
+        <source>Cancel</source>
+        <translation>रद्द करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="70"/>
+        <source>Disconnect all websites?</source>
+        <translation>सभी वेबसाइट डिस्कनेक्ट करें?</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="71"/>
+        <source>You will be signed out of every website you logged in to with Telegram.</source>
+        <translation>Telegram से जिन भी वेबसाइट में आपने लॉग इन किया है, उन सभी से आप साइन आउट हो जाएँगे।</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="156"/>
+        <source>Loading…</source>
+        <translation>लोड हो रहा है…</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="165"/>
+        <source>Couldn&apos;t load the websites. Check the connection and try again.</source>
+        <translation>वेबसाइट लोड नहीं हो सकीं। कनेक्शन जाँचें और फिर कोशिश करें।</translation>
+    </message>
+    <message>
+        <location filename="../assets/WebsitesPage.qml" line="174"/>
+        <source>No websites</source>
+        <translation>कोई वेबसाइट नहीं</translation>
     </message>
 </context>
 <context>
