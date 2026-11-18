@@ -217,7 +217,9 @@ ChatRow, MediaBubble) obsolete and lrelease drops them. They were restored by ha
 ## 7. Where to resume, in order
 
 **First:** try Link desktop device (scan Telegram Desktop's QR; then the camera is free for other apps); see the
-channel composer (0.1.0.17) and the Hub account's re-add (`hub: the account has glyph` in tengramd.log); then step 4.
+channel composer (0.1.0.17); then step 4. The Hub account's re-add ran (glyph 2), but the Hub kept the old grey icon
+(it caches by file name; the lock screen showed the new): `097d4ed` renames it `hub_account2.png`, glyph 3; in the next
+package, check the Hub's account icon.
 
 **Then the evening's step 4 (agreed with the user):**
 - **Reactions:** one chip per emoji with its count under the message (Telegram's look, several chips, wrapping), ours
