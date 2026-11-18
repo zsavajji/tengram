@@ -88,6 +88,23 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `invite.info` | `url` (a `t.me/+…` or `t.me/joinchat/…` link) | `{member: true, jid}`, or `{member: false, kind, code, jid, name, count}` | `invite_invalid` |
 | `invite.accept` | `code` (the link as `invite.info` gave it); `kind`, `jid` and `name` of that answer may come along and are not read | `{jid}`, the chat's key | `invite_invalid`, `invite_not_allowed`, `request_sent` |
 | `chat.export` | `chat` | `{path}`, the absolute path of the text file | `bad_chat`, `write_failed` |
+| `privacy.get` | — | `{rules: {phone, phoneFind, status, photo, forwards, calls, birthday, gifts, bio, music, invites}, exceptions: {"<key>": true}, password: {set, hint, recovery, pendingEmail, resetDate}, autoDelete, blocked, ttlDays, topChats, imported}`; a field whose call failed is absent | |
+| `privacy.set` | `key` (a key of `rules`), `value` (`everybody`, `contacts` or `nobody`; `phoneFind` has no `nobody`) | — | |
+| `password.set` | `old` (the current password, "" when none is set), `new` (not empty); optional `hint`, `email` ("" none) | the password object | `bad_password`, `bad_email`, `too_fresh` |
+| `password.email` | `password`, `email` (not empty) | the password object | `bad_password`, `bad_email`, `too_fresh` |
+| `password.code` | `code` (the e-mail confirmation code) | the password object | `bad_code` |
+| `password.resend` | — | the password object | |
+| `password.off` | `old` (the current password) | the password object | `bad_password`, `too_fresh` |
+| `autodelete.set` | `secs` (0, 86400, 604800 or 2678400) | — | |
+| `blocked.list` | optional `offset` (default 0) | `{total, people: [{jid, name, kind, photo}]}`, up to 50 a call; `photo` is absent when not downloaded yet | |
+| `blocked.set` | `jid` (an id), `block` (bool); optional `kind` (`user`, the default, or `chat`) | — | |
+| `account.ttl` | `days` (30, 90, 180, 365, 548 or 730) | — | |
+| `websites.list` | — | `{websites: [{id, domain, bot, browser, platform, ip, location, login, active}]}` | |
+| `websites.disconnect` | `id` (a website's id), or `all: true` | — | |
+| `payments.clear` | — | — | |
+| `contacts.clearImported` | — | — | |
+| `contacts.book` | `entries` [{`number`, `name`}] | `{imported}`, how many of the numbers are Telegram users | |
+| `topchats.set` | `on` (bool) | — | |
 | `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `mediaOnMobile` (bool), `language` (string), `cacheMB` (64 to 512); each optional, at least one | — | |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
@@ -267,6 +284,75 @@ this; neither changes the list the UI holds, which asks again. `sessions.confirm
 the QR code of Telegram Desktop (or another app's login screen) holds, and anything that does not start with
 `tg://login?token=` is `bad_request`. The reply is the session just created; TDLib's refusal (an expired or used code)
 is the `td` reply.
+
+**Privacy and security.** Settings → Privacy and security, as Telegram Android's page. All of these are `unlinked` before the login, and a
+TDLib refusal that is not listed below is the `td` error.
+- **`privacy.get`:** everything the page shows, in one reply. The engine sends the TDLib calls together and replies when every one has
+  answered; one that fails (it is logged) leaves its field out and the reply goes on without it. `rules` has a value for each key:
+  `phone` (who sees our number, `ShowPhoneNumber`), `phoneFind` (who finds us by it, `AllowFindingByPhoneNumber`: only `everybody` or
+  `contacts`), `status` (last seen, `ShowStatus`), `photo` (`ShowProfilePhoto`), `forwards` (`ShowLinkInForwardedMessages`), `calls`
+  (`AllowCalls`), `birthday` (`ShowBirthdate`), `gifts` (`AutosaveGifts`), `bio` (`ShowBio`), `music` (`ShowProfileAudio`) and `invites`
+  (`AllowChatInvites`). A value is `everybody`, `contacts` or `nobody`: the base of the setting's rules. The first matching rule decides
+  in Telegram's list and no match means "not allowed" (`td_api.tl`, `userPrivacySettingRules`), so the base is the first of
+  `AllowAll` (everybody), `AllowContacts` (contacts) and `RestrictAll` (nobody) in the list, and `nobody` when the list has none: TDLib
+  drops a trailing `RestrictAll` when it reads from Telegram, so "nobody" is often an empty list or a list of exceptions alone. A
+  `RestrictContacts` rule is not looked at (Telegram's apps never write one). `exceptions` has `"<key>": true` for each key whose rules
+  hold more than the base: a list of users or chats that is not empty, or a bots or a Premium users rule (TDLib turns a list it
+  cannot keep, like a close friends rule, into an empty list; that is not an exception). The engine does not list who is in them.
+  `password` is the two-step verification (below). `autoDelete` is the default auto-delete time of
+  new chats in seconds, 0 off (`getDefaultMessageAutoDeleteTime`); `blocked` the number of blocked people (`total_count` of
+  `getBlockedMessageSenders`); `ttlDays` the account's time to live in days (`getAccountTtl`); `topChats` whether frequent contacts are
+  suggested (`!getOption("disable_top_chats")`: the option is empty until Telegram says it is off); `imported` how many contacts the
+  address book upload holds (`getImportedContactCount`).
+- **`privacy.set`:** changes the base of one setting and nothing else. The engine reads the setting's rules (`getUserPrivacySettingRules`),
+  keeps every exception rule in its order (`AllowUsers`, `AllowChatMembers`, `RestrictUsers`, `RestrictChatMembers`, `AllowBots`,
+  `RestrictBots`, `AllowPremiumUsers`; a list that is empty is dropped), drops the base rules (`AllowAll`, `AllowContacts`, `RestrictAll`,
+  `RestrictContacts`) and puts the new base after them: `everybody` is `AllowAll`, `contacts` is `AllowContacts` then `RestrictAll`,
+  `nobody` is `RestrictAll`. The exceptions come first, where the first match decides, so a person on a list is answered by it and everyone
+  else by the base (TDLib leaves a trailing `RestrictAll` off the wire, `UserPrivacySettingRules::get_input_privacy_rules`). Then it
+  calls `setUserPrivacySettingRules`. An unknown `key`, a `value` that is none of the three, or `phoneFind` with `nobody` is `bad_request`.
+- **The password object** (the result of every `password.*`, and `privacy.get`'s `password`): `set` whether a password is set, `hint` its
+  hint, `recovery` whether a recovery e-mail is set, `pendingEmail` the masked address Telegram sent a confirmation code to
+  (its `email_address_pattern`), "" when no code is waiting, `resetDate` unix seconds after which the password can be reset at
+  once, 0 when no reset is pending. They are `getPasswordState`'s `has_password`, `password_hint`, `has_recovery_email_address`, `recovery_email_address_code_info`'s
+  `email_address_pattern` and `pending_reset_date`.
+- **`password.set`:** `setPassword` with `old` (the current password, "" when none is set), `new`, `hint` and the recovery e-mail `email`
+  ("" or missing: none). With an `email` Telegram does not apply the change until the e-mail is confirmed: TDLib takes the server's
+  `EMAIL_UNCONFIRMED` for an answer, not an error, so the reply is the state with `pendingEmail` set (the change is applied only after the
+  e-mail is confirmed, so `set` can still be false); `password.code` finishes it. **`password.email`** adds or changes the
+  recovery e-mail of a password that is set (`setRecoveryEmailAddress`, with the password); the new address waits for its code the same
+  way. **`password.code`** (`checkRecoveryEmailAddressCode`) confirms it. TDLib takes `CODE_INVALID` and `EMAIL_HASH_EXPIRED` for answers there and gives the
+  state back, so a code that did not work is the state still holding a `pendingEmail`: the engine answers that as `bad_code`.
+  **`password.resend`** sends the code again. **`password.off`** (`setPassword` with the current password `old` and an empty new one)
+  turns the verification off. Forgetting the password and resetting it are not here (other Telegram apps do it).
+- **Errors of `password.*`:** `bad_password` is `PASSWORD_HASH_INVALID` (the old password is wrong); `bad_email` is `EMAIL_INVALID`;
+  `bad_code` is `CODE_INVALID`, `EMAIL_VERIFY_EXPIRED` or `EMAIL_HASH_EXPIRED`, and the unconfirmed case above; `too_fresh` is
+  `PASSWORD_TOO_FRESH_<n>` or `SESSION_TOO_FRESH_<n>` (Telegram wants the password or this session older before it lets the change
+  through) and its `message` is the seconds `n` when the text holds them, else the text. Their `message` is otherwise
+  `<code> <TDLib's message>`, as `td`'s; anything else is `td`.
+- **`autodelete.set`:** the default auto-delete time of new chats (`setDefaultMessageAutoDeleteTime`): `secs` is 0 (off), 86400 (a day),
+  604800 (a week) or 2678400 (a month), else `bad_request`. **`account.ttl`:** the days of inactivity after which the account is deleted
+  (`setAccountTtl`): `days` is 30, 90, 180, 365, 548 or 730, else `bad_request`. **`topchats.set`:** `on` false sets `disable_top_chats`,
+  true clears it (`setOption`); TDLib tells Telegram.
+- **`blocked.list`:** the people on the main block list (`getBlockedMessageSenders`), 50 a call from `offset`; `total` is how many there are
+  in all. `jid` is the user's or the chat's id, `kind` `user` or `chat` (Telegram blocks users and supergroups), `name` the user's full
+  name or the chat's title ("" when the engine does not know it: the chat is not in its list). `photo` is the user's small profile photo,
+  absent when not downloaded yet or for a chat; for a user the engine then asks TDLib for it in the background, after the reply, and
+  each one that comes arrives as a `photo` event. **`blocked.set`:** `setMessageSenderBlockList` with the main block list for `block:
+  true` and none for false, by sender: `kind` `user` (the default; `jid` a user id) or `chat` (`jid` a chat id). `contact.block` blocks
+  by chat; this one works for a person we have no chat with.
+- **`websites.list`:** the websites we signed in to with Telegram (`getConnectedWebsites`). `id` (a string), `domain`, `bot` (the bot's
+  name, "" when unknown), `browser`, `platform`, `ip`, `location` (as TDLib words them), `login` and `active` (unix seconds).
+  **`websites.disconnect`** takes one `id` (`disconnectWebsite`) or `all: true` (`disconnectAllWebsites`); the UI asks again for the list.
+- **`payments.clear`:** `deleteSavedOrderInfo` and `deleteSavedCredentials`, both sent at once; ok when both answered ok, else the first
+  error (shipping info before cards).
+- **`contacts.clearImported`:** `clearImportedContacts`: Telegram forgets the address book we uploaded; the contacts stay.
+  **`contacts.book`:** the phone's address book to Telegram (`changeImportedContacts`, which also drops the contacts that are gone from the
+  book). `entries` is a list of `{number, name}`, both strings: the digits of `number` are sent (international format, anything else
+  ignored, as `link.phone`) and `name` is split at its first space into first and last name, as `profile.set` does. A `number` with no
+  digit, an empty `name` or an entry that is not an object is `bad_request`, and nothing is sent. An empty list is valid. The reply `{imported}` counts the numbers that belong to a Telegram user. **The UI
+  sends it only when the user turned "Sync contacts" on:** uploading the address book to Telegram is a setting, never a default. TDLib allows one change at a time (its `td` error
+  otherwise).
 
 **`contact.info`:** a person's page. `chat` is a private or a secret chat, any other is `bad_chat`. `phone` is the
 number with a "+" in front, "" when the user hides it or Telegram has none; `about` the bio; `blocked` whether the

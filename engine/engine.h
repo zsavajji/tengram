@@ -213,6 +213,10 @@ void with_chat(std::uint64_t conn, const std::string &id, std::int64_t chat,
 // what the UI does to people, groups and invite links, and the chat's export to a text file.
 bool manage_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
+// account.cpp: privacy.get, privacy.set, password.*, autodelete.set, blocked.*, account.ttl, websites.*, payments.clear,
+// contacts.clearImported, contacts.book and topchats.set, the rows of Settings → Privacy and security. They have no chat.
+bool account_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+
 // mode.cpp: the delivery mode, ui.state and prefs.set (prefs.json).
 void mode_init();                                                    // read prefs.json
 bool mode_request(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);

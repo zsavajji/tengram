@@ -170,7 +170,8 @@ void handle_request(std::uint64_t conn, const std::string &id, const std::string
   mode_note_request();
   if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req) || voice_handle(conn, id, cmd, req) ||
       profile_handle(conn, id, cmd, req) || sessions_handle(conn, id, cmd, req) || pages_handle(conn, id, cmd, req) ||
-      manage_handle(conn, id, cmd, req) || topics_handle(conn, id, cmd, req) || mode_request(conn, id, cmd, req)) {
+      manage_handle(conn, id, cmd, req) || account_handle(conn, id, cmd, req) || topics_handle(conn, id, cmd, req) ||
+      mode_request(conn, id, cmd, req)) {
     return;
   }
   server.reply_error(conn, id, "unknown_cmd", "unknown cmd " + cmd);
