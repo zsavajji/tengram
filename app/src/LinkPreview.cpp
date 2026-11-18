@@ -107,7 +107,7 @@ void LinkPreview::show(const QVariantMap &msg)
     m_desc->setText(desc);
 }
 
-// A group or channel invite is asked here (Invites), anything else goes to the browser.
+// A Telegram link is asked here (Invites), anything else goes to the browser.
 void LinkPreview::onTap()
 {
     if (m_link.isEmpty())

@@ -3739,6 +3739,11 @@
         <translation>Undangan ini tidak berlaku lagi</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="243"/>
+        <source>This link doesn&apos;t lead anywhere</source>
+        <translation>Tautan ini tidak mengarah ke mana pun</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="230"/>
         <source>Couldn&apos;t open this invite. Try again in a moment.</source>
         <translation>Tidak dapat membuka undangan ini. Coba lagi sebentar lagi.</translation>

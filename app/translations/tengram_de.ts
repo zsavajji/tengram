@@ -3744,6 +3744,11 @@
         <translation>Diese Einladung funktioniert nicht mehr</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="243"/>
+        <source>This link doesn&apos;t lead anywhere</source>
+        <translation>Dieser Link führt ins Leere</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="230"/>
         <source>Couldn&apos;t open this invite. Try again in a moment.</source>
         <translation>Diese Einladung konnte nicht geöffnet werden. Versuche es gleich noch einmal.</translation>

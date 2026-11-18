@@ -3744,6 +3744,11 @@
         <translation>यह आमंत्रण अब काम नहीं करता</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="243"/>
+        <source>This link doesn&apos;t lead anywhere</source>
+        <translation>यह लिंक कहीं नहीं ले जाता</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="230"/>
         <source>Couldn&apos;t open this invite. Try again in a moment.</source>
         <translation>यह आमंत्रण खोला नहीं जा सका। थोड़ी देर में फिर कोशिश करें।</translation>

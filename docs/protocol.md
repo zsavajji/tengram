@@ -88,6 +88,8 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `poll.create` | `chat`, `question`, `options` [2 to 12 strings], `multiple` (bool); optional `topic` | `{id}`, the new message's id | `bad_chat` |
 | `invite.info` | `url` (a `t.me/+…` or `t.me/joinchat/…` link) | `{member: true, jid}`, or `{member: false, kind, code, jid, name, count}` | `invite_invalid` |
 | `invite.accept` | `code` (the link as `invite.info` gave it); `kind`, `jid` and `name` of that answer may come along and are not read | `{jid}`, the chat's key | `invite_invalid`, `invite_not_allowed`, `request_sent` |
+| `link.open` | `url` (a link from a message: `t.me`, `telegram.me`, `telegram.dog` or `tg:`) | `{open: "browser"}`; `{person, name}`; `{member: true, jid, msg}`; `{member: false, join, kind, name, count}`; or `invite.info`'s | `link_invalid` |
+| `group.join` | `chat` (a public group or channel that `link.open` found) | `{jid}`, the chat's key | `bad_chat`, `invite_not_allowed`, `request_sent` |
 | `chat.export` | `chat` | `{path}`, the absolute path of the text file | `bad_chat`, `write_failed` |
 | `secret.start` | `user` (a user id), or `chat` (a chat with a person, whose person is used); `user` wins when both are given | `{jid}`, the new secret chat's key | `bad_request`, `bad_chat` |
 | `chat.ttl` | `chat`, `secs` (a whole number: 0 off; in a secret chat up to 604800; in any other chat a whole number of days up to 365) | — | `bad_request`, `bad_chat` |
@@ -470,6 +472,32 @@ not read. When we are in, the reply `{jid}` comes after the flush that writes th
 `request_sent` when the link only asks to join and the request went (an admin of the group has to let us in), `invite_not_allowed`
 when the join was declined, or needs a guard bot's approval, or Telegram says `USER_BANNED_IN_CHANNEL` or `CHANNEL_PRIVATE`,
 `invite_invalid` for a link that is gone (as `invite.info`). `CHANNELS_TOO_MUCH` and the rest are the `td` error.
+
+**`link.open`:** what a Telegram link opens (`getInternalLinkType`), so a tap in a message or a link preview can stay in the app. The
+reply says what the UI does with it, one of:
+- `{open: "browser"}`: not for the app, so the UI opens `url` in the browser. A link TDLib can't read or that is not a Telegram one
+  (the 404 `getInternalLinkType` answers), and every kind of link but the three below (a bot's start, a sticker set, a proxy, …).
+- `{person, name}`: a link to a user or a bot (`t.me/name`, `tg://resolve?domain=name`); `person` is the user's chat key (the
+  user's id), `name` the chat's title. The UI shows the person's page. The reply is at once; no row in `chats.db` is needed.
+- `{member: true, jid, msg}`: a link to a group or a channel, or to a message in one, that we are in (the chat is in the main or the
+  archive list). `jid` is the chat's key, `msg` the id of the message the link names (`t.me/name/123`, `t.me/c/…/123`, as a message
+  key travels) or "" for a link to the chat alone, or for a message TDLib could not find. The reply comes after the flush that writes
+  the chat to `chats.db`.
+- `{member: false, join, kind, name, count}`: a public group or channel we are not in. `join` is its chat (give it to `group.join`),
+  `kind` is `group` or `channel`, `name` the title, and `count` the member count TDLib holds (0 when it has none). The message a
+  link named, if any, is not kept.
+- `invite.info`'s result, for an invite link (`t.me/+…`, `t.me/joinchat/…`, `tg:join?invite=…`): the same call, the same results
+  and errors.
+
+A username nobody has, or a link `getMessageLinkInfo` can't read (`USERNAME_NOT_OCCUPIED`, `USERNAME_INVALID`, any 400 of those two
+calls) is `link_invalid`; any other TDLib error is `td`. An empty or missing `url` is `bad_request`. A message link into a chat that
+TDLib can't reach (a private link, and we are not in it) is `{open: "browser"}`.
+
+**`group.join`:** joins a public group or channel (`joinChat`) that `link.open` found, so TDLib knows the chat though it is in no list
+yet; `chat` is `link.open`'s `join`. When we are in, the reply `{jid}` comes after the flush that writes the chat to `chats.db`.
+Otherwise an error: `request_sent` when the group only asks to join and the request went (an admin has to let us in, whether TDLib says
+`INVITE_REQUEST_SENT` or answers with a request sent), `invite_not_allowed` when Telegram says `CHANNEL_PRIVATE`,
+`USER_BANNED_IN_CHANNEL` or `CHANNELS_TOO_MUCH`, or the join was declined or needs a guard bot's approval; the rest is the `td` error.
 
 **`chat.export`:** writes the chat's whole history to a text file, oldest message first, one line for each message:
 `dd/mm/yy, HH:MM - Name: text` in the phone's local time. `Name` is `You` for our messages; in a chat with a person the chat's title

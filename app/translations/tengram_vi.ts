@@ -3739,6 +3739,11 @@
         <translation>Lời mời này không còn hiệu lực</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="243"/>
+        <source>This link doesn&apos;t lead anywhere</source>
+        <translation>Liên kết này không dẫn đến đâu cả</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="230"/>
         <source>Couldn&apos;t open this invite. Try again in a moment.</source>
         <translation>Không mở được lời mời này. Hãy thử lại sau giây lát.</translation>

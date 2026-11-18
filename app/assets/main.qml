@@ -109,6 +109,11 @@ NavigationPane {
             id: shareDef
             source: "SharePage.qml"
         },
+        // A person's page, for a Telegram link to a user or a bot (showPerson).
+        ComponentDefinition {
+            id: personDef
+            source: "ContactInfoPage.qml"
+        },
         TextStyleDefinition {
             id: emoji
             fontFamily: "sans-serif, HBEmoji"
@@ -187,6 +192,7 @@ NavigationPane {
         openRequests.shared.connect(nav.shareRequested)
         invites.offered.connect(nav.askToJoin)
         invites.joined.connect(nav.openRequested)
+        invites.person.connect(nav.showPerson)
         engine.linkChanged.connect(nav.checkMemory)
         memPatch.finished.connect(nav.memFinished)
         // setCover, as the skills have it: cover belongs to Application, not to a page.
@@ -229,9 +235,10 @@ NavigationPane {
 
     property string failedCmd: engine.failure.cmd || ""
     onFailedCmdChanged: {
-        if (failedCmd == "invite.info" || failedCmd == "invite.accept" || failedCmd == "group.join") {
+        if (failedCmd == "invite.info" || failedCmd == "invite.accept" || failedCmd == "group.join" || failedCmd == "link.open") {
             var code = engine.failure.code
             inviteFailed.body = code == "invite_invalid" ? qsTr("This invite doesn't work any more")
+                              : code == "link_invalid" ? qsTr("This link doesn't lead anywhere")
                               : code == "invite_not_allowed" ? qsTr("Telegram won't let this number join by link. If an admin removed it, an admin has to add it back.")
                               : code == "request_sent" ? qsTr("Request sent: an admin of the group has to let you in.")
                               : qsTr("Couldn't open this invite. Try again in a moment.")
@@ -273,9 +280,24 @@ NavigationPane {
         openPending()
     }
 
-    function openRequested(jid) {
+    // msg, when there is one, is a message of the chat to scroll to; a notification and the rest give none.
+    function openRequested(jid, msg) {
         pendingChat = jid
+        pendingMsg = msg || ""
         openPending()
+    }
+
+    // A Telegram link to a user or a bot: the person's page, over what is on screen (Back returns). The row is the
+    // one-to-one chat's, else one built as InfoAction.showPerson builds it.
+    function showPerson(jid, name) {
+        var row = chats.chat(jid)
+        if (!row.jid) {
+            row = {"kind": 0, "jid": jid, "name": name, "initials": name.charAt(0).toUpperCase() || "#",
+                   "color": "#087099"}
+        }
+        var c = personDef.createObject()
+        c.chat = row
+        push(c)
     }
 
     function shareRequested(path, text) {
@@ -299,11 +321,17 @@ NavigationPane {
         if (pendingChat == "")
             return
         var chat = chats.chat(pendingChat)
+        var msg = pendingMsg
         pendingChat = ""
+        pendingMsg = ""
         if (!chat.jid)
             return
         backToList()
-        at(0).openChat(chat)
+        // A topics page (a forum) has no jump: it just opens.
+        var opened = at(0).openChat(chat)
+        if (msg != "" && opened.jump) {
+            opened.jump(msg)
+        }
     }
 
     // A contact page's Message (step 5.8): a chat list row, for a chat that may not exist yet

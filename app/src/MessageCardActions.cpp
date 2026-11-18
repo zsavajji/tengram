@@ -200,5 +200,5 @@ void MessageCard::onLink(ActiveTextTriggeredEvent *event)
     }
     Invites *invites = joiner();
     if (invites && invites->openLink(href))
-        event->abort(); // a group or channel invite: it's asked here, not in the browser
+        event->abort(); // a Telegram link: it's asked here (Invites opens the browser itself when it's not ours)
 }

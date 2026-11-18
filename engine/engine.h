@@ -210,9 +210,9 @@ std::int64_t supergroup_of(const td_api::chat &c, bool channel);
 void with_chat(std::uint64_t conn, const std::string &id, std::int64_t chat,
                std::function<void(const td_api::chat &)> next);
 
-// manage.cpp: contact.block, group.participants, group.create, poll.create, invite.info, invite.accept, secret.start,
-// chat.ttl and chat.export, what the UI does to people, groups and invite links, starting a secret chat, the chat's
-// self-destruct or auto-delete timer, and the chat's export to a text file.
+// manage.cpp: contact.block, group.participants, group.create, poll.create, invite.info, invite.accept, link.open,
+// group.join, secret.start, chat.ttl and chat.export, what the UI does to people, groups, invite links and Telegram
+// links, starting a secret chat, the chat's self-destruct or auto-delete timer, and the chat's export to a text file.
 bool manage_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // account.cpp: privacy.get, privacy.set, password.*, autodelete.set, blocked.*, account.ttl, websites.*, payments.clear,

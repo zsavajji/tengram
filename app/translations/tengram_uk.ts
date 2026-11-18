@@ -3749,6 +3749,11 @@
         <translation>Це запрошення більше не діє</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="243"/>
+        <source>This link doesn&apos;t lead anywhere</source>
+        <translation>Це посилання нікуди не веде</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="230"/>
         <source>Couldn&apos;t open this invite. Try again in a moment.</source>
         <translation>Не вдалося відкрити це запрошення. Повторіть спробу трохи пізніше.</translation>

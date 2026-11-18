@@ -3749,6 +3749,11 @@
         <translation>Это приглашение больше не действует</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="243"/>
+        <source>This link doesn&apos;t lead anywhere</source>
+        <translation>Эта ссылка никуда не ведёт</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="230"/>
         <source>Couldn&apos;t open this invite. Try again in a moment.</source>
         <translation>Не удалось открыть это приглашение. Повторите попытку чуть позже.</translation>

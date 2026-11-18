@@ -3744,6 +3744,11 @@
         <translation>Cette invitation n&apos;est plus valide</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="243"/>
+        <source>This link doesn&apos;t lead anywhere</source>
+        <translation>Ce lien ne mène nulle part</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="230"/>
         <source>Couldn&apos;t open this invite. Try again in a moment.</source>
         <translation>Impossible d&apos;ouvrir cette invitation. Réessayez dans un instant.</translation>

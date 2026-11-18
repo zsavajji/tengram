@@ -1,6 +1,7 @@
-// The requests that act on people, groups and invite links, the secret chats and the chat's timer, the chat's export
-// to a text file and the order of the pinned chats: contact.block, group.participants, group.create, poll.create,
-// invite.info, invite.accept, secret.start, chat.ttl, chat.export and chat.pinOrder (docs/protocol.md).
+// The requests that act on people, groups, invite links and Telegram links, the secret chats and the chat's timer, the
+// chat's export to a text file and the order of the pinned chats: contact.block, group.participants, group.create,
+// poll.create, invite.info, invite.accept, link.open, group.join, secret.start, chat.ttl, chat.export and chat.pinOrder
+// (docs/protocol.md).
 // What a chat is comes from pages.cpp (with_chat, person_of, basic_group_of, supergroup_of).
 
 #include "engine.h"
@@ -280,12 +281,9 @@ void invite_failed(std::uint64_t conn, const std::string &id, const td_api::erro
   }
 }
 
-void invite_info(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
-  auto url = string_field(req, "url");
-  if (url.is_error() || url.ok().empty()) {
-    return bad_request(conn, id, "need the field url, a t.me invite link");
-  }
-  tdlib.send(make_object<td_api::checkChatInviteLink>(url.ok()), [conn, id, link = url.ok()](Obj o) {
+// checkChatInviteLink of a link, and the reply invite.info and link.open both give.
+void invite_check(std::uint64_t conn, const std::string &id, const std::string &link) {
+  tdlib.send(make_object<td_api::checkChatInviteLink>(link), [conn, id, link](Obj o) {
     if (auto e = as_error(o)) {
       return invite_failed(conn, id, *e, false);
     }
@@ -308,6 +306,28 @@ void invite_info(std::uint64_t conn, const std::string &id, td::JsonObject &req)
   });
 }
 
+void invite_info(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
+  auto url = string_field(req, "url");
+  if (url.is_error() || url.ok().empty()) {
+    return bad_request(conn, id, "need the field url, a t.me invite link");
+  }
+  invite_check(conn, id, url.ok());
+}
+
+// The answer to a join (joinChatByInviteLink, joinChat): the chat's key once the flush has written it, or why not.
+void join_result(std::uint64_t conn, const std::string &id, const td_api::Object &o) {
+  if (o.get_id() == td_api::chatJoinResultSuccess::ID) {
+    return queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                         r("jid", std::to_string(static_cast<const td_api::chatJoinResultSuccess &>(o).chat_id_));
+                       })));
+  }
+  if (o.get_id() == td_api::chatJoinResultRequestSent::ID) {
+    return server.reply_error(conn, id, "request_sent", "an admin has to let the request in");
+  }
+  // Declined, or a guard bot's approval, which Tengram can't give.
+  server.reply_error(conn, id, "invite_not_allowed", "the link doesn't let this account in");
+}
+
 void invite_accept(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
   auto code = string_field(req, "code");  // kind, jid and name come back too (invite.info's); TDLib needs the link
   if (code.is_error() || code.ok().empty()) {
@@ -317,16 +337,120 @@ void invite_accept(std::uint64_t conn, const std::string &id, td::JsonObject &re
     if (auto e = as_error(o)) {
       return invite_failed(conn, id, *e, true);
     }
-    if (o->get_id() == td_api::chatJoinResultSuccess::ID) {
-      return queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
-                           r("jid", std::to_string(static_cast<const td_api::chatJoinResultSuccess &>(*o).chat_id_));
-                         })));
+    join_result(conn, id, *o);
+  });
+}
+
+// ---- link.open and group.join
+
+// The reply for a link that is not for the app: the UI opens it in the browser.
+void link_browser(std::uint64_t conn, const std::string &id) {
+  server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) { r("open", "browser"); })));
+}
+
+// A search or a link info that found nothing: a username nobody has, or a text that is no link (TDLib's own 400).
+void link_failed(std::uint64_t conn, const std::string &id, const td_api::error &e) {
+  if (e.code_ == 400 || has(e, "USERNAME_NOT_OCCUPIED") || has(e, "USERNAME_INVALID")) {
+    refuse(conn, id, "link_invalid", e);
+  } else {
+    td_failed(conn, id, e);
+  }
+}
+
+// What a link to a chat opens, `msg` being the message it names (0: none): a person's page, a chat we are in (to open
+// from chats.db, so after the flush), or a public group or channel we are not in, to offer to join.
+void link_chat(std::uint64_t conn, const std::string &id, const td_api::chat &c, std::int64_t msg) {
+  const std::string jid = std::to_string(c.id_);
+  if (c.type_ && c.type_->get_id() == td_api::chatTypePrivate::ID) {  // a user or a bot
+    return server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                             r("person", jid);
+                             r("name", c.title_);
+                           })));
+  }
+  // chats.cpp writes a row for each chat that is in the main or the archive list, which TDLib says in chat_lists_ (a chat
+  // with no message has no position yet).
+  if (!c.chat_lists_.empty()) {
+    return queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                         r("member", td::JsonBool(true));
+                         r("jid", jid);
+                         r("msg", msg ? std::to_string(msg) : std::string());
+                       })));
+  }
+  const std::int64_t channel = supergroup_of(c, true);
+  const std::int64_t super = channel ? channel : supergroup_of(c, false);
+  auto offer = [conn, id, jid, name = c.title_, kind = channel ? "channel" : "group"](std::int32_t count) {
+    server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                      r("member", td::JsonBool(false));
+                      r("join", jid);
+                      r("kind", kind);
+                      r("name", name);
+                      r("count", count);
+                    })));
+  };
+  if (!super) {
+    return offer(0);
+  }
+  // Answered from what TDLib holds, no call to Telegram; 0 when it does not know the count.
+  tdlib.send(make_object<td_api::getSupergroup>(super), [offer](Obj o) {
+    offer(as_error(o) ? 0 : static_cast<const td_api::supergroup &>(*o).member_count_);
+  });
+}
+
+void link_open(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
+  auto url = string_field(req, "url");
+  if (url.is_error() || url.ok().empty()) {
+    return bad_request(conn, id, "need the field url, a Telegram link");
+  }
+  tdlib.send(make_object<td_api::getInternalLinkType>(url.ok()), [conn, id](Obj o) {
+    if (!o || as_error(o)) {  // not a Telegram link (a 404), or one TDLib can't read
+      return link_browser(conn, id);
     }
-    if (o->get_id() == td_api::chatJoinResultRequestSent::ID) {
-      return server.reply_error(conn, id, "request_sent", "an admin has to let the request in");
+    switch (o->get_id()) {
+      case td_api::internalLinkTypeChatInvite::ID:
+        return invite_check(conn, id, static_cast<const td_api::internalLinkTypeChatInvite &>(*o).invite_link_);
+      case td_api::internalLinkTypePublicChat::ID:
+        return tdlib.send(make_object<td_api::searchPublicChat>(
+                              static_cast<const td_api::internalLinkTypePublicChat &>(*o).chat_username_),
+                          [conn, id](Obj found) {
+                            if (auto e = as_error(found)) {
+                              return link_failed(conn, id, *e);
+                            }
+                            link_chat(conn, id, static_cast<const td_api::chat &>(*found), 0);
+                          });
+      case td_api::internalLinkTypeMessage::ID:
+        return tdlib.send(make_object<td_api::getMessageLinkInfo>(
+                              static_cast<const td_api::internalLinkTypeMessage &>(*o).url_),
+                          [conn, id](Obj found) {
+                            if (auto e = as_error(found)) {
+                              return link_failed(conn, id, *e);
+                            }
+                            const auto &info = static_cast<const td_api::messageLinkInfo &>(*found);
+                            if (!info.chat_id_) {  // a chat TDLib can't reach (a private link, and we are not in it)
+                              return link_browser(conn, id);
+                            }
+                            with_chat(conn, id, info.chat_id_,
+                                      [conn, id, msg = info.message_ ? info.message_->id_ : std::int64_t{0}](
+                                          const td_api::chat &c) { link_chat(conn, id, c, msg); });
+                          });
+      default:  // a bot, a sticker set, a proxy: nothing the app opens
+        return link_browser(conn, id);
     }
-    // Declined, or a guard bot's approval, which Tengram can't give.
-    server.reply_error(conn, id, "invite_not_allowed", "the link doesn't let this account in");
+  });
+}
+
+// Joins a public group or channel the chat of which TDLib knows (link.open found it), and gives its key.
+void group_join(std::uint64_t conn, const std::string &id, std::int64_t chat) {
+  tdlib.send(make_object<td_api::joinChat>(chat), [conn, id](Obj o) {
+    if (auto e = as_error(o)) {
+      if (has(*e, "INVITE_REQUEST_SENT")) {
+        return refuse(conn, id, "request_sent", *e);
+      }
+      if (has(*e, "CHANNEL_PRIVATE") || has(*e, "USER_BANNED_IN_CHANNEL") || has(*e, "CHANNELS_TOO_MUCH")) {
+        return refuse(conn, id, "invite_not_allowed", *e);
+      }
+      return td_failed(conn, id, *e);
+    }
+    join_result(conn, id, *o);
   });
 }
 
@@ -541,19 +665,21 @@ void chat_export(std::uint64_t conn, const std::string &id, std::int64_t chat) {
 
 bool manage_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"contact.block", "group.participants", "group.create", "poll.create",
-                                     "invite.info",   "invite.accept",      "secret.start", "chat.ttl",
-                                     "chat.export",   "chat.pinOrder"};
+                                     "invite.info",   "invite.accept",      "link.open",    "group.join",
+                                     "secret.start",  "chat.ttl",           "chat.export",  "chat.pinOrder"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
-  if (cmd == "group.create" || cmd == "invite.info" || cmd == "invite.accept" || cmd == "secret.start" ||
-      cmd == "chat.pinOrder") {  // no chat
+  if (cmd == "group.create" || cmd == "invite.info" || cmd == "invite.accept" || cmd == "link.open" ||
+      cmd == "secret.start" || cmd == "chat.pinOrder") {  // no chat
     if (!link_ready()) {
       server.reply_error(conn, id, "unlinked", "not logged in");
     } else if (cmd == "group.create") {
       group_create(conn, id, req);
     } else if (cmd == "invite.info") {
       invite_info(conn, id, req);
+    } else if (cmd == "link.open") {
+      link_open(conn, id, req);
     } else if (cmd == "secret.start") {
       secret_start(conn, id, req);
     } else if (cmd == "chat.pinOrder") {
@@ -575,6 +701,8 @@ bool manage_handle(std::uint64_t conn, const std::string &id, const std::string 
     poll_create(conn, id, req, chat);
   } else if (cmd == "chat.ttl") {
     chat_ttl(conn, id, req, chat);
+  } else if (cmd == "group.join") {
+    group_join(conn, id, chat);
   } else {
     chat_export(conn, id, chat);
   }
