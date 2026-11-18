@@ -49,7 +49,7 @@ Page {
     onChatChanged: {
         ctl.open(chat, topic)
         if (chat.kind != 2) addAction(infoAction, ActionBarPlacement.InOverflow)
-        if (chat.kind <= 1) addAction(pollAction, ActionBarPlacement.InOverflow)
+        if (chat.kind == 1) addAction(pollAction, ActionBarPlacement.InOverflow) // groups: Telegram refuses polls in a chat with a person
         ctl.messages.itemAdded.connect(page.added)
         ctl.messages.loadingChanged.connect(page.loaded)
         media.ready.connect(page.mediaReady)

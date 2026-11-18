@@ -1,6 +1,6 @@
 import bb.cascades 1.4
 
-// ⋮ → Create poll (step 6.6e), out of ChatPage.qml to keep that file short. People's and groups' chats only: the page adds it for those, as Contact info.
+// ⋮ → Create poll (step 6.6e), out of ChatPage.qml to keep that file short. Groups only: the page adds it for those (Telegram refuses a poll in a chat with a person).
 ActionItem {
     id: action
     property string jid
