@@ -54,6 +54,11 @@ Page {
             id: topics
             link: engine
         },
+        // Group info's controller: no messages, only the group's info (ChatController.openInfo, from InfoAction).
+        ChatController {
+            id: infoCtl
+            link: engine
+        },
         ComponentDefinition {
             id: chatDef
             source: "ChatPage.qml"
@@ -64,6 +69,13 @@ Page {
         }
     ]
     actions: [
+        // GroupInfoPage's own title and translations.
+        InfoAction {
+            title: qsTranslate("GroupInfoPage", "Group info")
+            ActionBar.placement: ActionBarPlacement.InOverflow
+            chat: page.chat
+            chatCtl: infoCtl
+        },
         ActionItem {
             title: qsTr("Mark all read")
             imageSource: "file:///usr/share/icons/bb_action_markread.png"

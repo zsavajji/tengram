@@ -39,6 +39,10 @@ ActionItem {
             nav.push(c)
             return
         }
+        // The topics list's controller has opened no chat: it asks for the group's info alone, now.
+        if (!chatCtl.messages) {
+            chatCtl.openInfo(chat)
+        }
         var p = infoDef.createObject()
         p.chat = chat
         p.ctl = chatCtl

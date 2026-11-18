@@ -56,6 +56,9 @@ public:
     // Forum topics) when the page shows one topic of the chat, 0 for the whole chat: everything the page asks for and
     // sends then carries it.
     Q_INVOKABLE void open(const QVariantMap &chat, int topic = 0);
+    // A group's info only, for a page with no messages (TopicsPage's Group info): groupInfo and changeParticipant
+    // work, nothing else. Asks group.info again at each call; does nothing after open().
+    Q_INVOKABLE void openInfo(const QVariantMap &chat);
     Q_INVOKABLE void nearTop(const QVariantList &firstVisible);
     // False when the engine isn't connected: nothing was sent, so QML keeps the text. mentions are
     // the {jid, name} of the people the text's "@name"s name (msg.send's, docs/protocol.md).

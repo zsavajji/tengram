@@ -60,7 +60,7 @@ ChatController::~ChatController()
 {
     commitDelete(); // popping the page while the Undo toast shows still deletes
     cancelVoice(); // a recording the page never ended: the engine drops it and the WAV
-    if (m_engine && m_engine->connected() && !m_jid.isEmpty()) {
+    if (m_engine && m_engine->connected() && m_messages) { // openInfo() alone opened nothing to close
         QVariantMap args;
         args["chat"] = m_jid;
         if (m_composing) {
@@ -71,7 +71,7 @@ ChatController::~ChatController()
         }
         m_engine->request("chat.close", args);
     }
-    if (m_engine && !m_jid.isEmpty() && m_engine->openChat() == m_jid)
+    if (m_engine && m_messages && m_engine->openChat() == m_jid)
         m_engine->setOpenChat(QString());
 }
 
@@ -200,6 +200,20 @@ void ChatController::open(const QVariantMap &chat, int topic)
     // bottom is on screen: the page says so (setAtBottom) when it has positioned the list. Not before.
     m_atBottom = false;
     markRead();
+}
+
+void ChatController::openInfo(const QVariantMap &chat)
+{
+    if (m_messages || !m_engine)
+        return;
+    if (m_jid.isEmpty()) {
+        m_jid = chat["jid"].toString();
+        m_name = chat["name"].toString();
+        m_group = chat["kind"].toInt() == 1;
+        connect(m_engine, SIGNAL(replied(QString, QString, QVariant)), this,
+                SLOT(onReplied(QString, QString, QVariant)));
+    }
+    askGroupInfo();
 }
 
 void ChatController::setAtBottom(bool atBottom)
