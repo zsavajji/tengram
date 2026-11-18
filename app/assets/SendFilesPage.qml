@@ -76,10 +76,10 @@ Page {
     property bool group: true
     property bool asFile: false
     Container {
-        // The carousel takes a share of the page, a little under what fit (the user, 2026-11-18): the toggles and the
-        // caption below it keep some room.
+        // The carousel takes a share of the page, a little under all that's left (the user, 2026-11-18): 58 % left
+        // 140 px empty on the Classic, too small; the toggles and the caption take about 22 %.
         attachedObjects: LayoutUpdateHandler {
-            onLayoutFrameChanged: carousel.preferredHeight = Math.round(layoutFrame.height * 0.58)
+            onLayoutFrameChanged: carousel.preferredHeight = Math.round(layoutFrame.height * 0.72)
         }
         ListView {
             id: carousel
@@ -192,7 +192,7 @@ Page {
                                     textFormat: TextFormat.Plain
                                     textStyle.color: Color.White
                                     textStyle.fontSize: FontSize.PercentageValue
-                                    textStyle.fontSizeValue: nav.smallSize
+                                    textStyle.fontSizeValue: nav.bodySize
                                 }
                             }
                             // A tap edits a picture: a pencil, a square in the lower right corner, says so (the user, 2026-11-18).
