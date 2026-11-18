@@ -498,6 +498,25 @@ void content(Row &r, const td_api::message &m) {
               }
             }));
           o("max", poll->allows_multiple_answers_ ? 0 : 1);
+          // The counts TDLib gives (0 for a poll we have not voted in and that is open, unless we made it), our own
+          // answers as option positions, and how many people voted. No voters' names: Telegram's polls are anonymous
+          // here.
+          o("votes", td::json_array([&](auto &list) {
+              for (const auto &option : poll->options_) {
+                list(option ? option->voter_count_ : 0);
+              }
+            }));
+          o("mine", td::json_array([&](auto &list) {
+              for (std::size_t i = 0; i < poll->options_.size(); ++i) {
+                if (poll->options_[i] && poll->options_[i]->is_chosen_) {
+                  list(static_cast<std::int32_t>(i));
+                }
+              }
+            }));
+          o("voted", poll->total_voter_count_);
+          if (poll->is_closed_) {
+            o("closed", td::JsonBool(true));
+          }
         });
       }
       break;

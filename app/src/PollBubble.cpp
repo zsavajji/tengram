@@ -69,8 +69,7 @@ void PollBubble::makeRow(int index, const QVariantMap &option)
     Container *line = new Container();
     line->setLayout(Card::across());
 
-    // The mark and the name vote; the count beside them, not inside, has its own tap:
-    // nested, a tap on the count could reach both handlers.
+    // The mark and the name vote.
     Container *choice = new Container();
     Card::quota(choice, 1);
     choice->setLayout(Card::across());
@@ -104,7 +103,7 @@ void PollBubble::makeRow(int index, const QVariantMap &option)
     choice->add(r.mark);
     choice->add(words);
 
-    // Its own tap, so it doesn't vote; the width is a thumb's, the number at the right.
+    // The count at the right.
     r.count = new Label();
     r.count->setVerticalAlignment(VerticalAlignment::Top);
     r.count->setTopMargin(0);
@@ -112,10 +111,6 @@ void PollBubble::makeRow(int index, const QVariantMap &option)
     r.count->setLeftMargin(m_ui->du(1));
     r.count->setMinWidth(m_ui->du(5));
     r.count->setText(QString::number(count));
-    TapHandler *who = new TapHandler(r.count);
-    who->setProperty("index", index);
-    r.count->addGestureHandler(who);
-    connect(who, SIGNAL(tapped(bb::cascades::TapEvent *)), this, SLOT(onWho()));
 
     line->add(choice);
     line->add(r.count);
@@ -196,7 +191,7 @@ bool PollBubble::chosen(int i) const
 // state; an optimistic copy of mine if that shows.
 void PollBubble::choose(int i)
 {
-    if (m_msg.value("readOnly").toBool())
+    if (m_msg.value("readOnly").toBool() || m_msg.value("pollClosed").toBool())
         return;
     const QVariantList mine = m_msg.value("mine").toList();
     const int max = m_msg.value("max").toInt();
@@ -222,14 +217,4 @@ void PollBubble::choose(int i)
 void PollBubble::onChoose()
 {
     choose(sender()->property("index").toInt());
-}
-
-void PollBubble::onWho()
-{
-    const QVariantList options = m_msg.value("options").toList();
-    const int i = sender()->property("index").toInt();
-    if (i < 0 || i >= options.size())
-        return;
-    const QString voters = options.at(i).toMap().value("voters").toString();
-    Card::call(m_list, "showVoters", voters.isEmpty() ? QCoreApplication::translate("PollBubble", "Nobody yet") : voters);
 }

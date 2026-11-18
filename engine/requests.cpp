@@ -1,5 +1,5 @@
 // The requests about chats and messages: chat.open, chat.history, chat.newer, chat.pins, chat.close, chat.read,
-// chat.typing, chat.set, msg.send, media.send, msg.delete, msg.edit, msg.forward, msg.react, media.get and
+// chat.typing, chat.set, msg.send, media.send, msg.delete, msg.edit, msg.forward, msg.react, poll.vote, media.get and
 // media.cancel (docs/protocol.md). The rows they ask for are written by messages.cpp; the replies that tell the UI to read them
 // come after the flush that commits them (queue_reply).
 
@@ -701,6 +701,31 @@ void msg_react(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
   }
 }
 
+// Our answer to a poll: option positions (0-based, as extra.options lists them); none takes the vote back. TDLib
+// refuses what the poll does not allow (several answers, revoting, a closed poll). The row changes with the
+// updateMessageContent that follows.
+void poll_vote(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t message = 0;
+  if (!message_id(conn, id, req, "id", message)) {
+    return;
+  }
+  auto list = req.extract_optional_field(td::Slice("options"), td::JsonValue::Type::Null);  // any type, null too
+  std::vector<std::int32_t> picked;
+  if (list.is_ok() && list.ok().type() == td::JsonValue::Type::Array) {
+    for (const td::JsonValue &item : list.ok().get_array()) {
+      std::int64_t n = 0;
+      if (item.type() != td::JsonValue::Type::Number || !parse_i64(item.get_number().str(), n) || n < 0 || n > 1000) {
+        return bad_request(conn, id, "options are the numbers of the options, 0 or more");
+      }
+      picked.push_back(static_cast<std::int32_t>(n));
+    }
+  } else if (list.is_error() || list.ok().type() != td::JsonValue::Type::Null) {
+    return bad_request(conn, id, "options is an array of option numbers, or missing to take the vote back");
+  }
+  tdlib.send(make_object<td_api::setPollAnswer>(chat, message, std::move(picked)),
+             [conn, id](Obj o) { answer(conn, id, o); });
+}
+
 // ---- media.get
 
 // The files a media.get (not a preview) is downloading, for media.progress: the message each belongs to and when its
@@ -947,7 +972,7 @@ bool regular_file(const std::string &path, std::int64_t &size) {
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.close", "chat.read",
                                      "chat.typing", "chat.set", "msg.send", "media.send", "msg.delete", "msg.edit",
-                                     "msg.forward", "msg.react", "media.get", "media.cancel"};
+                                     "msg.forward", "msg.react", "poll.vote", "media.get", "media.cancel"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -1027,6 +1052,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     msg_forward(conn, id, req, chat);
   } else if (cmd == "msg.react") {
     msg_react(conn, id, req, chat);
+  } else if (cmd == "poll.vote") {
+    poll_vote(conn, id, req, chat);
   } else if (cmd == "media.cancel") {
     media_cancel(conn, id, req, chat);
   } else {

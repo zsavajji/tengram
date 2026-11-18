@@ -10,7 +10,7 @@ When the code changes, this file changes with it.
 | file | what |
 |---|---|
 | `db/`, `files/` | TDLib's own database and files. Only the engine touches them. |
-| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2 and 3 are migrated in place to 4; the step to 4 empties `messages`, `reactions` and `poll_votes`, see *chats.db*), or `db.key` is new. |
+| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2, 3 and 4 are migrated in place to 5; the step to 4 empties `messages` and the step to 5 drops the unused `reactions` and `poll_votes` tables, see *chats.db*), or `db.key` is new. |
 | `db.key` | The key of both databases: 64 hex characters (32 bytes read from `/dev/random` at the first launch), mode 0600. The engine hands it to TDLib as its database key; the UI opens `chats.db` with `PRAGMA key = "x'<the 64 characters>'"` (a raw key: no key derivation). There is no setting to turn encryption off and no passcode. |
 | `engine.json` | `{"port": 41234, "token": "<32 hex characters>"}`, mode 0600, written as a temporary file and renamed, new at every start, removed at a clean stop. |
 
@@ -59,6 +59,8 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
 | `msg.forward` | `chat` (the message's chat), `id` (the message's id), `to` (the chat it goes to); optional `topic` (a topic of `to`) | `{id}`, the new message's id | |
+| `msg.react` | `chat`, `id`, `emoji` (a non-empty string); optional `remove` (bool, default false) | — | |
+| `poll.vote` | `chat`, `id` (a poll's message id), `options` (an array of option numbers, 0-based as `extra.options`; missing, null or `[]` takes our vote back) | — | |
 | `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`) | `not_found`, `download_failed`, `cancelled` |
 | `media.cancel` | `chat`, `id` (a message with a file) | — | `not_found` |
 | `voice.start` | `chat`, `path` (the `.wav` the recorder is writing, inside the data folder); optional `topic` | — | |
@@ -173,6 +175,17 @@ changes when Telegram's echo arrives.
 original sender). A missing or non-numeric `to` is `bad_request`. What TDLib refuses (a message that can't be forwarded,
 a chat we can't write to) comes back as its `td` error. Our row in the target chat is `msg.send`'s: queued as *sending*
 under a temporary id, and `{id}` is that id.
+
+**`msg.react`:** adds our reaction of `emoji` to the message (`addMessageReaction`), or with `remove: true` takes our reaction of
+that emoji back (`removeMessageReaction`). When the account may have one reaction only, TDLib replaces our old one. Anyone may
+react in a channel. Custom emoji and the paid reaction are not supported. What TDLib refuses (a reaction the chat doesn't allow, a
+message that can't be reacted to) comes back as its `td` error. The row changes with Telegram's update of the message's
+interactions (`extra.reactions`, a `msgs` event); the reply only says TDLib took the request.
+
+**`poll.vote`:** our answer to the poll (`setPollAnswer`): the options we choose, all of them, so a new vote replaces the old and
+an empty or missing `options` takes it back. An option number that is not a whole number of 0 to 1000 is `bad_request`. TDLib
+refuses what the poll doesn't allow (several answers to a single-choice poll, a vote when revoting is off, a closed poll) as its
+`td` error. The poll's row changes with Telegram's update (`extra.votes`, `mine`, `voted`).
 
 **`media.get`:** downloads the message's file (a photo's largest size) into TDLib's files folder
 and answers when it is complete, after the row has `media_state` 2 and `path` (a `msgs` event).
@@ -409,10 +422,13 @@ read on another device, and the delay while another device is in use are all Tel
 ## chats.db, as the UI reads it
 
 HyperBerry's tables and columns (`../hyperberry/docs/protocol.md`, *chats.db, as the UI reads
-it*), with these meanings for Telegram. `user_version` is 4. A file at version 2 or 3 is migrated in place when the engine starts;
-the step from 3 to 4 adds `chats.forum`, `messages.topic` and `topics`, and **empties `messages`, `reactions` and `poll_votes`**:
+it*), with these meanings for Telegram. `user_version` is 5. A file at version 2, 3 or 4 is migrated in place when the engine starts;
+the step from 3 to 4 adds `chats.forum`, `messages.topic` and `topics`, and **empties `messages`**:
 the old rows have no topic, and the table is a cache that TDLib refills (the engine writes each chat's newest message again
-when it starts, and a page of history when the UI opens a chat). `chats` and its rows stay.
+when it starts, and a page of history when the UI opens a chat). `chats` and its rows stay. The step from 4 to 5 **drops the
+`reactions` and `poll_votes` tables**, which were always empty: a message's reactions and a poll's counts are in `messages.extra`
+now (below). A row written before that has none until the engine writes it again, which it does for a chat's newest page on
+`chat.open` and for any update of the message (a new reaction, a vote, an edit).
 
 **`chats`:** one row per chat in Telegram's main or archived chat list, and no others.
 
@@ -453,7 +469,16 @@ when it starts, and a page of history when the UI opens a chat). `chats` and its
 | `played` | voice notes and round videos: 1 once listened to |
 | `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
 | `topic` | the forum topic the message belongs to: its id (General is 1); 0 in every chat that is not a forum. Index `messages_by_topic` on `(chat, topic, ts)`: a topic's page is `WHERE chat = ? AND topic = ? ORDER BY ts, CAST(id AS INTEGER)` |
-| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs` |
+| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted` and `closed`; a message's `reactions`; a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs` |
+
+**Reactions:** any kind's `extra` can carry `reactions: [{e, n, me}, …]`, one object for each emoji reaction on the message in
+TDLib's order: `e` the emoji, `n` how many reacted with it, `me: true` when one of them is ours (absent otherwise). Custom emoji
+and the paid reaction are left out, and a message with none has no `reactions`. `msg.react` changes them.
+
+**Polls:** a poll's `extra` (kind 11) carries, beside `options` (the option names) and `max`: `votes`, the number of voters for
+each option in the same order (all 0 until we have voted or the poll is closed, unless we made it: Telegram hides the counts
+before); `mine`, the numbers (0-based) of the options we chose; `voted`, how many people voted in all; and `closed: true` when
+the poll is closed (absent otherwise). There are no voters' names. `poll.vote` changes them.
 
 Any kind's `extra` can also carry `forwarded: true` (the message is a forward) and, on a photo or
 video, `spoiler: true` (Telegram covers it until tapped).
@@ -492,5 +517,4 @@ current by the engine. Only chats with `chats.forum` 1 have rows.
 | `muted_until` | the topic's own mute, as `chats.muted_until` (unix seconds; 0 not muted; 2^40 forever). A topic that follows the chat's setting has 0, and so does one unmuted on purpose in a muted chat: a topic is muted when this is in the future or, when it is 0, when `chats.muted_until` is |
 
 A notice's `text` is `call`, `video_call`, `missed_call` or `missed_video_call`.
-`deleted`, `media` and `starred` are unused (0 or NULL). `reactions` and `poll_votes` exist and
-are empty for now.
+`deleted`, `media` and `starred` are unused (0 or NULL).

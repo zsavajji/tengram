@@ -6,7 +6,7 @@
 #include <QVariantList>
 
 // A chat's pinned messages (step 6.5h). Telegram's list comes from the engine (chat.pins); the previews are read from
-// the "chats" connection MessageModel has open, as Polls reads poll_votes.
+// the "chats" connection MessageModel has open.
 namespace Pins {
 // The pins, in the order of `ids`, each a map {id, preview}. preview is the first line of the message's text cut to
 // about 60 characters, else the kind's name (Photo, Video, ...); "" when chats.db doesn't hold the message.

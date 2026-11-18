@@ -118,7 +118,7 @@ QVariantMap MessageKinds::parse(const QString &json)
     return extra;
 }
 
-bool MessageKinds::fill(int kind, const QString &chat, const QString &id, const QString &text,
+bool MessageKinds::fill(int kind, const QString &chat, const QString &text,
                         const QVariantMap &extra, bool out, const QString &sender, const QString &time,
                         const QLocale &locale, QVariantMap &data, QString &label, QString &shown)
 {
@@ -181,7 +181,7 @@ bool MessageKinds::fill(int kind, const QString &chat, const QString &id, const 
         const int max = extra.value("max").toInt();
         label = max == 1 ? QCoreApplication::translate("MessageKinds", "Poll")
                          : QCoreApplication::translate("MessageKinds", "Poll, choose several");
-        Polls::fill(chat, id, extra.value("options").toList(), max, data);
+        Polls::fill(extra, data);
         break;
     }
     case 12: {

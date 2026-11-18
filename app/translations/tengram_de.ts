@@ -1929,14 +1929,6 @@
     </message>
 </context>
 <context>
-    <name>PollBubble</name>
-    <message>
-        <location filename="../src/PollBubble.cpp" line="234"/>
-        <source>Nobody yet</source>
-        <translation>Noch niemand</translation>
-    </message>
-</context>
-<context>
     <name>PollPage</name>
     <message>
         <location filename="../assets/PollPage.qml" line="11"/>
@@ -1987,14 +1979,6 @@
         <location filename="../assets/PollPage.qml" line="101"/>
         <source>Option %1</source>
         <translation>Option %1</translation>
-    </message>
-</context>
-<context>
-    <name>Polls</name>
-    <message>
-        <location filename="../src/Polls.cpp" line="42"/>
-        <source>You</source>
-        <translation>Du</translation>
     </message>
 </context>
 <context>
