@@ -123,8 +123,8 @@
     </splashScreens>
     <!-- The Hub is another process: it reads these from /apps/<pkg>/public/ (engine/hub_qnx.go
          hands it that folder). -->
-    <asset path="assets/images/hub_unread.png" public="true">hub_unread.png</asset>
-    <asset path="assets/images/hub_read.png" public="true">hub_read.png</asset>
+    <asset path="assets/images/hub_unread2.png" public="true">hub_unread2.png</asset>
+    <asset path="assets/images/hub_read2.png" public="true">hub_read2.png</asset>
     <asset path="assets/images/hub_account2.png" public="true">hub_account2.png</asset>
     <asset path="assets/images/tick_action.png" public="true">tick_action.png</asset>
     <asset path="assets/images/unread_action.png" public="true">unread_action.png</asset>

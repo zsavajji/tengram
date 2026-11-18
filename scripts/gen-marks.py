@@ -8,7 +8,7 @@ The phone has only the trash can among the info page's and chat menu's icons (us
 help_action (a question mark in a ring, for About), back_action (a thin "<" chevron, the chat
 title bar's Back) and overflow_action (three vertical dots, the composer's ⋮ column).
 A forwarded card's marks are forward.png and forward_many.png.
-The app's icon, the splash screens and the Hub's item and account glyphs (hub_read.png, hub_unread.png,
+The app's icon, the splash screens and the Hub's item and account glyphs (hub_read2.png, hub_unread2.png,
 hub_account2.png) are not drawn here: they are Tengram's own (scripts/gen-icon.py).
 
 They're white on transparent, so QML tints them with ImageView.filterColor (grey, or the

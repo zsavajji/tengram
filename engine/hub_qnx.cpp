@@ -158,7 +158,7 @@ void hubuds_item(const HubItem &item, bool is_new) {
   uds.inbox_item_data_set_name(i, item.title.c_str());
   uds.inbox_item_data_set_description(i, item.body.c_str());
   // The Hub is light (a white glyph vanished, Q10) and tints nothing: yellow unread, grey read.
-  uds.inbox_item_data_set_icon(i, item.unread > 0 ? "hub_unread.png" : "hub_read.png");
+  uds.inbox_item_data_set_icon(i, item.unread > 0 ? "hub_unread2.png" : "hub_read2.png");
   uds.inbox_item_data_set_mime_type(i, kMime);
   uds.inbox_item_data_set_unread_count(i, item.unread);
   uds.inbox_item_data_set_total_count(i, 1);
