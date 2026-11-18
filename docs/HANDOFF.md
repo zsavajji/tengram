@@ -209,7 +209,7 @@ ten languages (the split settings pages' strings moved to their own contexts, tr
 inverted, the plane cut out of a disc (the user; `scripts/gen-icon.py`).
 
 **Loose ends:** Group info isn't in the TopicsPage's menu (it is inside a topic); the voice encode blocks the engine
-about a second a minute of audio (unmeasured). **lupdate trap:** the C++ cards translate through
+about a second a minute of audio (unmeasured). **lupdate trap (fixed `a937826`: the strings are marked with QT_TRANSLATE_NOOP now):** the C++ cards translate through
 `Card::tr(kContext, …)`, which lupdate can't see: a plain `lupdate -pro` marks their 35 entries (MessageItem,
 ChatRow, MediaBubble) obsolete and lrelease drops them. They were restored by hand; mark the strings with
 `QT_TRANSLATE_NOOP` before the next lupdate.
@@ -217,25 +217,27 @@ ChatRow, MediaBubble) obsolete and lrelease drops them. They were restored by ha
 ## 7. Where to resume, in order
 
 **First:** try Link desktop device (scan Telegram Desktop's QR; then the camera is free for other apps); see the
-channel composer (0.1.0.17); then step 4. The Hub account's re-add ran (glyph 2), but the Hub kept the old grey icon
-(it caches by file name; the lock screen showed the new): `097d4ed` renames it `hub_account2.png`, glyph 3; in the next
-package, check the Hub's account icon.
+channel composer (0.1.0.17).
 
-**Then the evening's step 4 (agreed with the user):**
-- **Reactions:** one chip per emoji with its count under the message (Telegram's look, several chips, wrapping), ours
-  highlighted, a tap on a chip adds or removes that reaction; the long-press React stays for a new emoji. Stored in the
-  message row's `extra` as `"reactions": [{"e": "👍", "n": 5, "me": true}, …]` (the user's idea): the `reactions` table
-  and the UI's two subqueries per row go. Premium custom emoji are left out at first.
-- **Polls:** counts per option in the poll row's `extra`, next to `options`; `poll_votes` goes.
-- **Sending and managing:** `contact.block`, `group.participants`, `group.create`, `poll.create`, `poll.vote`,
-  `msg.react`, `invite.info`/`invite.accept`, `chat.export` (the UI sends all of them; the engine answers `unknown_cmd`).
-  `poll.create` in a topic takes `topic` like the other sends (the topics UI leaves it out today). `msg.forward` is done.
-- **Topics, next:** Group info in the TopicsPage's menu (GroupInfoPage needs a ChatController today); creating,
-  renaming, closing topics (not asked yet); custom-emoji topic icons (Premium stickers; coloured squares for now).
-- **Voice:** encode as the WAV grows (HyperBerry did) if long notes make the engine stall at send.
-- **Translations:** mark `Card::tr(kContext, …)` strings with `QT_TRANSLATE_NOOP` before any `lupdate -pro` (§6c).
-- Loose ends: a sent video has duration 0 (the UI sends none); Clear chat leaves the list's old preview; the Saved
-  Messages row keeps our name until that chat's row is next written.
+**Step 4 is written (2026-11-18, `cebf0cf` to `55ec053`): it builds, it is not packaged and nothing of it has run.** The
+user batches: build one package when the round is ready, then ask to install it. Test in that package:
+1. **Hub account icon:** the white glyph in the Hub too, not the old grey one (`hub_account2.png`, glyph 3; the Hub
+   caches an account's icon by file name, `097d4ed`). The Hub's items go and the unread ones come back once.
+2. **First start migrates chats.db to v5** (drops `reactions` and `poll_votes`): chats open as before.
+3. **Reactions:** chips under messages with their counts, wrapping on the Classic (the chip widths are reckoned, not
+   measured: `MessageCard::chipWidth`), ours on the primary colour; a tap adds or takes back; React from the menu,
+   also in a channel. Older messages get their chips once the engine writes them again (opening the chat).
+4. **Polls:** counts and our answers from Telegram, a vote and its withdrawal, a closed poll can't be voted on;
+   Create poll (groups only now: Telegram refuses one in a chat with a person), also inside a topic.
+5. **Managing:** block/unblock a contact; a group's add, remove, promote, demote (an admin's own group); New group;
+   an invite link (t.me/+…): join, an expired one, a group that approves requests ("Request sent"); Export chat
+   (`Telegram Chat with <name>.txt` in Downloads, readable by other apps: the engine chmods it 0644, untried).
+6. **Group info in a forum's topics list** (its ⋮).
+7. **Loose ends:** Clear chat empties the list's preview and keeps the chat's place; Saved Messages named so after an
+   engine start; a sent video shows its length (read from the file's mvhd).
+
+**Left of step 4:** topics' create/rename/close and custom-emoji icons (not asked yet); voice encoding as the WAV grows
+(only if long notes stall the engine at send). No voter names or who-reacted any more: Telegram gives counts here.
 
 **The older list follows (items 0 to 8 below; 3's walk of §8b is mostly done by the evening's tests).**
 
