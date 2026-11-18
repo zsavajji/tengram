@@ -18,8 +18,8 @@ QByteArray picture(const QString &id, const QString &path);
 // first time only: asked holds the ids already asked for, and takes id when the request went out (not
 // while the engine is down). The engine's msgs event then makes the chat re-read the row. preview asks
 // for the display-size picture of a photo or the thumbnail of a video instead (media.get's preview), which
-// the row then carries as extra.preview.
-void fetch(EngineLink *engine, const QString &chat, const QString &id, QSet<QString> &asked, bool preview = false);
+// the row then carries as extra.preview. Returns the request's id, "" when none went out.
+QString fetch(EngineLink *engine, const QString &chat, const QString &id, QSet<QString> &asked, bool preview = false);
 }
 
 #endif

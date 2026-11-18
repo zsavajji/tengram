@@ -998,42 +998,237 @@
 <context>
     <name>DataSettingsPage</name>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="9"/>
+        <location filename="../assets/DataSettingsPage.qml" line="25"/>
         <source>Data and storage</source>
         <translation>Dữ liệu và bộ nhớ</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="34"/>
-        <source>Download on mobile data</source>
-        <translation>Tải xuống bằng dữ liệu di động</translation>
+        <location filename="../assets/DataSettingsPage.qml" line="76"/>
+        <source>Media cleared: %1 freed</source>
+        <translation>Đã xóa phương tiện: giải phóng %1</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="38"/>
-        <source>Off, photos and voice notes wait for a tap unless you&apos;re on Wi-Fi.</source>
-        <translation>Khi tắt, ảnh và tin nhắn thoại chờ nhấn để tải, trừ khi bạn dùng Wi-Fi.</translation>
+        <location filename="../assets/DataSettingsPage.qml" line="90"/>
+        <source>Mobile: received %1, sent %2</source>
+        <translation>Dữ liệu di động: đã nhận %1, đã gửi %2</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="54"/>
+        <location filename="../assets/DataSettingsPage.qml" line="93"/>
+        <source>Wi-Fi: received %1, sent %2</source>
+        <translation>Wi-Fi: đã nhận %1, đã gửi %2</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="105"/>
+        <source>Clear media?</source>
+        <translation>Xóa phương tiện?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="106"/>
+        <source>Downloaded photos, videos and files are removed from the phone. They stay in Telegram and download again when opened.</source>
+        <translation>Ảnh, video và tệp đã tải xuống sẽ bị xóa khỏi điện thoại. Chúng vẫn còn trên Telegram và được tải lại khi mở.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="107"/>
+        <source>Clear</source>
+        <translation>Xóa</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="108"/>
+        <location filename="../assets/DataSettingsPage.qml" line="120"/>
+        <source>Cancel</source>
+        <translation>Hủy</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="117"/>
+        <source>Reset data usage?</source>
+        <translation>Đặt lại mức dùng dữ liệu?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="118"/>
+        <source>The count of data sent and received starts again from now.</source>
+        <translation>Số liệu dữ liệu đã gửi và đã nhận sẽ được tính lại từ bây giờ.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="119"/>
+        <location filename="../assets/DataSettingsPage.qml" line="248"/>
+        <source>Reset</source>
+        <translation>Đặt lại</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="133"/>
+        <source>Disk and network usage</source>
+        <translation>Sử dụng ổ đĩa và mạng</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="139"/>
+        <source>Loading…</source>
+        <translation>Đang tải…</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="152"/>
+        <source>Couldn&apos;t load the storage figures. Check the connection and try again.</source>
+        <translation>Không tải được số liệu bộ nhớ. Hãy kiểm tra kết nối và thử lại.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="156"/>
+        <source>Retry</source>
+        <translation>Thử lại</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="177"/>
+        <source>Storage used</source>
+        <translation>Bộ nhớ đã dùng</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../assets/DataSettingsPage.qml" line="183"/>
+        <source>%Ln files</source>
+        <translation>
+            <numerusform>%Ln tệp</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="192"/>
+        <source>Clear media</source>
+        <translation>Xóa phương tiện</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="199"/>
+        <source>Telegram&apos;s database: %1</source>
+        <translation>Cơ sở dữ liệu của Telegram: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="219"/>
+        <source>Data used</source>
+        <translation>Dữ liệu đã dùng</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="239"/>
+        <source>Since %1</source>
+        <translation>Từ %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="253"/>
+        <source>Automatic media download</source>
+        <translation>Tự động tải phương tiện</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="261"/>
+        <source>Download automatically</source>
+        <translation>Tự động tải xuống</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="263"/>
+        <source>Off</source>
+        <translation>Tắt</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="264"/>
+        <source>Wi-Fi only</source>
+        <translation>Chỉ Wi-Fi</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="265"/>
+        <source>Wi-Fi and mobile data</source>
+        <translation>Wi-Fi và dữ liệu di động</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="274"/>
+        <source>Photos</source>
+        <translation>Ảnh</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="282"/>
+        <source>Videos up to</source>
+        <translation>Video tối đa</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="284"/>
+        <location filename="../assets/DataSettingsPage.qml" line="303"/>
+        <source>Never</source>
+        <translation>Không bao giờ</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="301"/>
+        <source>Files up to</source>
+        <translation>Tệp tối đa</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="318"/>
+        <source>Voice messages and round videos download whenever automatic download is on.</source>
+        <translation>Tin nhắn thoại và video tròn luôn được tải xuống khi bật tự động tải.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="324"/>
+        <source>Media kept on the phone</source>
+        <translation>Phương tiện giữ trên điện thoại</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="332"/>
+        <source>Keep up to</source>
+        <translation>Giữ tối đa</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="339"/>
+        <source>No limit</source>
+        <translation>Không giới hạn</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="349"/>
+        <source>The oldest unused media are removed above this. They stay in Telegram.</source>
+        <translation>Vượt mức này, phương tiện lâu không dùng nhất sẽ bị xóa. Chúng vẫn còn trên Telegram.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="355"/>
+        <source>Save to gallery</source>
+        <translation>Lưu vào thư viện</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="362"/>
+        <source>Private chats</source>
+        <translation>Trò chuyện riêng</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="367"/>
+        <source>Groups</source>
+        <translation>Nhóm</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="372"/>
+        <source>Channels</source>
+        <translation>Kênh</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="379"/>
+        <source>New photos and videos you receive are copied to the Tengram album in Pictures and Videos.</source>
+        <translation>Ảnh và video mới nhận được sẽ được sao chép vào album Tengram trong Ảnh và Video.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="385"/>
+        <source>App cache</source>
+        <translation>Bộ nhớ đệm ứng dụng</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="393"/>
         <source>Cache limit</source>
         <translation>Giới hạn bộ nhớ đệm</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="77"/>
+        <location filename="../assets/DataSettingsPage.qml" line="416"/>
         <source>Cache: %1</source>
         <translation>Bộ nhớ đệm: %1</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="81"/>
+        <location filename="../assets/DataSettingsPage.qml" line="420"/>
         <source>Clear cache</source>
         <translation>Xóa bộ nhớ đệm</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="86"/>
+        <location filename="../assets/DataSettingsPage.qml" line="425"/>
         <source>Cache cleared: %1 freed</source>
         <translation>Đã xóa bộ nhớ đệm: giải phóng %1</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="94"/>
+        <location filename="../assets/DataSettingsPage.qml" line="433"/>
         <source>Voice notes&apos; decoded audio and photo previews; they&apos;re made again when needed.</source>
         <translation>Âm thanh đã giải mã của tin nhắn thoại và bản xem trước ảnh; chúng được tạo lại khi cần.</translation>
     </message>
@@ -1120,8 +1315,8 @@
 <context>
     <name>EngineLink</name>
     <message>
-        <location filename="../src/EngineLink.cpp" line="317"/>
-        <location filename="../src/EngineLink.cpp" line="344"/>
+        <location filename="../src/EngineLink.cpp" line="320"/>
+        <location filename="../src/EngineLink.cpp" line="347"/>
         <source>The engine isn&apos;t running.</source>
         <translation>Engine không chạy.</translation>
     </message>
@@ -1721,18 +1916,18 @@
 <context>
     <name>MessageModel</name>
     <message>
-        <location filename="../src/MessageRows.cpp" line="90"/>
+        <location filename="../src/MessageRows.cpp" line="108"/>
         <location filename="../src/Pins.cpp" line="40"/>
         <source>This message was deleted</source>
         <translation>Tin nhắn này đã bị xóa</translation>
     </message>
     <message>
-        <location filename="../src/MessageRows.cpp" line="170"/>
+        <location filename="../src/MessageRows.cpp" line="195"/>
         <source>You</source>
         <translation>Bạn</translation>
     </message>
     <message>
-        <location filename="../src/MessageModel.cpp" line="1123"/>
+        <location filename="../src/MessageModel.cpp" line="1126"/>
         <source>Unread messages</source>
         <translation>Tin nhắn chưa đọc</translation>
     </message>
@@ -2972,16 +3167,8 @@
         <translation type="obsolete">Bộ nhớ</translation>
     </message>
     <message>
-        <source>Download on mobile data</source>
-        <translation type="obsolete">Tải xuống bằng dữ liệu di động</translation>
-    </message>
-    <message>
         <source>Cache limit</source>
         <translation type="obsolete">Giới hạn bộ nhớ đệm</translation>
-    </message>
-    <message>
-        <source>Off, photos and voice notes wait for a tap unless you&apos;re on Wi-Fi.</source>
-        <translation type="obsolete">Khi tắt, ảnh và tin nhắn thoại chờ nhấn để tải, trừ khi bạn dùng Wi-Fi.</translation>
     </message>
     <message>
         <source>Cache: %1</source>

@@ -998,42 +998,237 @@
 <context>
     <name>DataSettingsPage</name>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="9"/>
+        <location filename="../assets/DataSettingsPage.qml" line="25"/>
         <source>Data and storage</source>
         <translation>Data dan penyimpanan</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="34"/>
-        <source>Download on mobile data</source>
-        <translation>Unduh lewat data seluler</translation>
+        <location filename="../assets/DataSettingsPage.qml" line="76"/>
+        <source>Media cleared: %1 freed</source>
+        <translation>Media dibersihkan: %1 dibebaskan</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="38"/>
-        <source>Off, photos and voice notes wait for a tap unless you&apos;re on Wi-Fi.</source>
-        <translation>Jika nonaktif, foto dan pesan suara menunggu ketukan kecuali Anda memakai Wi-Fi.</translation>
+        <location filename="../assets/DataSettingsPage.qml" line="90"/>
+        <source>Mobile: received %1, sent %2</source>
+        <translation>Seluler: %1 diterima, %2 dikirim</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="54"/>
+        <location filename="../assets/DataSettingsPage.qml" line="93"/>
+        <source>Wi-Fi: received %1, sent %2</source>
+        <translation>Wi-Fi: %1 diterima, %2 dikirim</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="105"/>
+        <source>Clear media?</source>
+        <translation>Hapus media?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="106"/>
+        <source>Downloaded photos, videos and files are removed from the phone. They stay in Telegram and download again when opened.</source>
+        <translation>Foto, video, dan file yang diunduh akan dihapus dari ponsel. Semuanya tetap ada di Telegram dan diunduh lagi saat dibuka.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="107"/>
+        <source>Clear</source>
+        <translation>Hapus</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="108"/>
+        <location filename="../assets/DataSettingsPage.qml" line="120"/>
+        <source>Cancel</source>
+        <translation>Batal</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="117"/>
+        <source>Reset data usage?</source>
+        <translation>Setel ulang penggunaan data?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="118"/>
+        <source>The count of data sent and received starts again from now.</source>
+        <translation>Hitungan data terkirim dan diterima dimulai lagi dari sekarang.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="119"/>
+        <location filename="../assets/DataSettingsPage.qml" line="248"/>
+        <source>Reset</source>
+        <translation>Setel ulang</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="133"/>
+        <source>Disk and network usage</source>
+        <translation>Penggunaan disk dan jaringan</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="139"/>
+        <source>Loading…</source>
+        <translation>Memuat…</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="152"/>
+        <source>Couldn&apos;t load the storage figures. Check the connection and try again.</source>
+        <translation>Tidak dapat memuat angka penyimpanan. Periksa koneksi dan coba lagi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="156"/>
+        <source>Retry</source>
+        <translation>Coba lagi</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="177"/>
+        <source>Storage used</source>
+        <translation>Penyimpanan terpakai</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../assets/DataSettingsPage.qml" line="183"/>
+        <source>%Ln files</source>
+        <translation>
+            <numerusform>%Ln file</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="192"/>
+        <source>Clear media</source>
+        <translation>Hapus media</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="199"/>
+        <source>Telegram&apos;s database: %1</source>
+        <translation>Database Telegram: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="219"/>
+        <source>Data used</source>
+        <translation>Data terpakai</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="239"/>
+        <source>Since %1</source>
+        <translation>Sejak %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="253"/>
+        <source>Automatic media download</source>
+        <translation>Unduh media otomatis</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="261"/>
+        <source>Download automatically</source>
+        <translation>Unduh otomatis</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="263"/>
+        <source>Off</source>
+        <translation>Nonaktif</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="264"/>
+        <source>Wi-Fi only</source>
+        <translation>Hanya Wi-Fi</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="265"/>
+        <source>Wi-Fi and mobile data</source>
+        <translation>Wi-Fi dan data seluler</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="274"/>
+        <source>Photos</source>
+        <translation>Foto</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="282"/>
+        <source>Videos up to</source>
+        <translation>Video hingga</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="284"/>
+        <location filename="../assets/DataSettingsPage.qml" line="303"/>
+        <source>Never</source>
+        <translation>Tidak pernah</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="301"/>
+        <source>Files up to</source>
+        <translation>File hingga</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="318"/>
+        <source>Voice messages and round videos download whenever automatic download is on.</source>
+        <translation>Pesan suara dan video bulat diunduh selama unduhan otomatis aktif.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="324"/>
+        <source>Media kept on the phone</source>
+        <translation>Media yang disimpan di ponsel</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="332"/>
+        <source>Keep up to</source>
+        <translation>Simpan hingga</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="339"/>
+        <source>No limit</source>
+        <translation>Tanpa batas</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="349"/>
+        <source>The oldest unused media are removed above this. They stay in Telegram.</source>
+        <translation>Di atas batas ini, media tak terpakai yang paling lama dihapus. Media tetap ada di Telegram.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="355"/>
+        <source>Save to gallery</source>
+        <translation>Simpan ke galeri</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="362"/>
+        <source>Private chats</source>
+        <translation>Chat pribadi</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="367"/>
+        <source>Groups</source>
+        <translation>Grup</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="372"/>
+        <source>Channels</source>
+        <translation>Saluran</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="379"/>
+        <source>New photos and videos you receive are copied to the Tengram album in Pictures and Videos.</source>
+        <translation>Foto dan video baru yang diterima disalin ke album Tengram di Gambar dan Video.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="385"/>
+        <source>App cache</source>
+        <translation>Cache aplikasi</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="393"/>
         <source>Cache limit</source>
         <translation>Batas cache</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="77"/>
+        <location filename="../assets/DataSettingsPage.qml" line="416"/>
         <source>Cache: %1</source>
         <translation>Cache: %1</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="81"/>
+        <location filename="../assets/DataSettingsPage.qml" line="420"/>
         <source>Clear cache</source>
         <translation>Hapus cache</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="86"/>
+        <location filename="../assets/DataSettingsPage.qml" line="425"/>
         <source>Cache cleared: %1 freed</source>
         <translation>Cache dihapus: %1 dibebaskan</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="94"/>
+        <location filename="../assets/DataSettingsPage.qml" line="433"/>
         <source>Voice notes&apos; decoded audio and photo previews; they&apos;re made again when needed.</source>
         <translation>Audio pesan suara yang sudah didekode dan pratinjau foto; keduanya dibuat lagi saat diperlukan.</translation>
     </message>
@@ -1120,8 +1315,8 @@
 <context>
     <name>EngineLink</name>
     <message>
-        <location filename="../src/EngineLink.cpp" line="317"/>
-        <location filename="../src/EngineLink.cpp" line="344"/>
+        <location filename="../src/EngineLink.cpp" line="320"/>
+        <location filename="../src/EngineLink.cpp" line="347"/>
         <source>The engine isn&apos;t running.</source>
         <translation>Mesin tidak berjalan.</translation>
     </message>
@@ -1721,18 +1916,18 @@
 <context>
     <name>MessageModel</name>
     <message>
-        <location filename="../src/MessageRows.cpp" line="90"/>
+        <location filename="../src/MessageRows.cpp" line="108"/>
         <location filename="../src/Pins.cpp" line="40"/>
         <source>This message was deleted</source>
         <translation>Pesan ini telah dihapus</translation>
     </message>
     <message>
-        <location filename="../src/MessageRows.cpp" line="170"/>
+        <location filename="../src/MessageRows.cpp" line="195"/>
         <source>You</source>
         <translation>Anda</translation>
     </message>
     <message>
-        <location filename="../src/MessageModel.cpp" line="1123"/>
+        <location filename="../src/MessageModel.cpp" line="1126"/>
         <source>Unread messages</source>
         <translation>Pesan belum dibaca</translation>
     </message>
@@ -2972,16 +3167,8 @@
         <translation type="obsolete">Penyimpanan</translation>
     </message>
     <message>
-        <source>Download on mobile data</source>
-        <translation type="obsolete">Unduh lewat data seluler</translation>
-    </message>
-    <message>
         <source>Cache limit</source>
         <translation type="obsolete">Batas cache</translation>
-    </message>
-    <message>
-        <source>Off, photos and voice notes wait for a tap unless you&apos;re on Wi-Fi.</source>
-        <translation type="obsolete">Jika nonaktif, foto dan pesan suara menunggu ketukan kecuali Anda memakai Wi-Fi.</translation>
     </message>
     <message>
         <source>Cache: %1</source>

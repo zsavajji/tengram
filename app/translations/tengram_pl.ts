@@ -1002,42 +1002,239 @@
 <context>
     <name>DataSettingsPage</name>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="9"/>
+        <location filename="../assets/DataSettingsPage.qml" line="25"/>
         <source>Data and storage</source>
         <translation>Dane i pamięć</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="34"/>
-        <source>Download on mobile data</source>
-        <translation>Pobieranie w sieci komórkowej</translation>
+        <location filename="../assets/DataSettingsPage.qml" line="76"/>
+        <source>Media cleared: %1 freed</source>
+        <translation>Wyczyszczono multimedia: zwolniono %1</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="38"/>
-        <source>Off, photos and voice notes wait for a tap unless you&apos;re on Wi-Fi.</source>
-        <translation>Gdy wyłączone, zdjęcia i wiadomości głosowe pobierają się po dotknięciu, chyba że jesteś w Wi-Fi.</translation>
+        <location filename="../assets/DataSettingsPage.qml" line="90"/>
+        <source>Mobile: received %1, sent %2</source>
+        <translation>Sieć komórkowa: odebrano %1, wysłano %2</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="54"/>
+        <location filename="../assets/DataSettingsPage.qml" line="93"/>
+        <source>Wi-Fi: received %1, sent %2</source>
+        <translation>Wi-Fi: odebrano %1, wysłano %2</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="105"/>
+        <source>Clear media?</source>
+        <translation>Wyczyścić multimedia?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="106"/>
+        <source>Downloaded photos, videos and files are removed from the phone. They stay in Telegram and download again when opened.</source>
+        <translation>Pobrane zdjęcia, filmy i pliki zostaną usunięte z telefonu. Pozostaną w Telegramie i pobiorą się ponownie po otwarciu.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="107"/>
+        <source>Clear</source>
+        <translation>Wyczyść</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="108"/>
+        <location filename="../assets/DataSettingsPage.qml" line="120"/>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="117"/>
+        <source>Reset data usage?</source>
+        <translation>Zresetować zużycie danych?</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="118"/>
+        <source>The count of data sent and received starts again from now.</source>
+        <translation>Licznik wysłanych i odebranych danych zacznie liczyć od nowa od teraz.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="119"/>
+        <location filename="../assets/DataSettingsPage.qml" line="248"/>
+        <source>Reset</source>
+        <translation>Zresetuj</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="133"/>
+        <source>Disk and network usage</source>
+        <translation>Użycie dysku i sieci</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="139"/>
+        <source>Loading…</source>
+        <translation>Ładowanie…</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="152"/>
+        <source>Couldn&apos;t load the storage figures. Check the connection and try again.</source>
+        <translation>Nie udało się wczytać danych o pamięci. Sprawdź połączenie i spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="156"/>
+        <source>Retry</source>
+        <translation>Spróbuj ponownie</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="177"/>
+        <source>Storage used</source>
+        <translation>Zajęta pamięć</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../assets/DataSettingsPage.qml" line="183"/>
+        <source>%Ln files</source>
+        <translation>
+            <numerusform>%Ln plik</numerusform>
+            <numerusform>%Ln pliki</numerusform>
+            <numerusform>%Ln plików</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="192"/>
+        <source>Clear media</source>
+        <translation>Wyczyść multimedia</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="199"/>
+        <source>Telegram&apos;s database: %1</source>
+        <translation>Baza danych Telegrama: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="219"/>
+        <source>Data used</source>
+        <translation>Zużyte dane</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="239"/>
+        <source>Since %1</source>
+        <translation>Od %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="253"/>
+        <source>Automatic media download</source>
+        <translation>Automatyczne pobieranie multimediów</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="261"/>
+        <source>Download automatically</source>
+        <translation>Pobieraj automatycznie</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="263"/>
+        <source>Off</source>
+        <translation>Wyłączone</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="264"/>
+        <source>Wi-Fi only</source>
+        <translation>Tylko Wi-Fi</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="265"/>
+        <source>Wi-Fi and mobile data</source>
+        <translation>Wi-Fi i dane komórkowe</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="274"/>
+        <source>Photos</source>
+        <translation>Zdjęcia</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="282"/>
+        <source>Videos up to</source>
+        <translation>Filmy do</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="284"/>
+        <location filename="../assets/DataSettingsPage.qml" line="303"/>
+        <source>Never</source>
+        <translation>Nigdy</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="301"/>
+        <source>Files up to</source>
+        <translation>Pliki do</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="318"/>
+        <source>Voice messages and round videos download whenever automatic download is on.</source>
+        <translation>Wiadomości głosowe i okrągłe filmy pobierają się zawsze, gdy automatyczne pobieranie jest włączone.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="324"/>
+        <source>Media kept on the phone</source>
+        <translation>Multimedia przechowywane w telefonie</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="332"/>
+        <source>Keep up to</source>
+        <translation>Przechowuj do</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="339"/>
+        <source>No limit</source>
+        <translation>Bez limitu</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="349"/>
+        <source>The oldest unused media are removed above this. They stay in Telegram.</source>
+        <translation>Powyżej tego usuwane są najstarsze nieużywane multimedia. Pozostają w Telegramie.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="355"/>
+        <source>Save to gallery</source>
+        <translation>Zapisz w galerii</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="362"/>
+        <source>Private chats</source>
+        <translation>Czaty prywatne</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="367"/>
+        <source>Groups</source>
+        <translation>Grupy</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="372"/>
+        <source>Channels</source>
+        <translation>Kanały</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="379"/>
+        <source>New photos and videos you receive are copied to the Tengram album in Pictures and Videos.</source>
+        <translation>Nowe zdjęcia i filmy, które otrzymasz, są kopiowane do albumu Tengram w Obrazach i Wideo.</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="385"/>
+        <source>App cache</source>
+        <translation>Pamięć podręczna aplikacji</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="393"/>
         <source>Cache limit</source>
         <translation>Limit pamięci podręcznej</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="77"/>
+        <location filename="../assets/DataSettingsPage.qml" line="416"/>
         <source>Cache: %1</source>
         <translation>Pamięć podręczna: %1</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="81"/>
+        <location filename="../assets/DataSettingsPage.qml" line="420"/>
         <source>Clear cache</source>
         <translation>Wyczyść pamięć podręczną</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="86"/>
+        <location filename="../assets/DataSettingsPage.qml" line="425"/>
         <source>Cache cleared: %1 freed</source>
         <translation>Wyczyszczono pamięć: zwolniono %1</translation>
     </message>
     <message>
-        <location filename="../assets/DataSettingsPage.qml" line="94"/>
+        <location filename="../assets/DataSettingsPage.qml" line="433"/>
         <source>Voice notes&apos; decoded audio and photo previews; they&apos;re made again when needed.</source>
         <translation>Zdekodowany dźwięk wiadomości głosowych i miniatury zdjęć; w razie potrzeby powstają ponownie.</translation>
     </message>
@@ -1124,8 +1321,8 @@
 <context>
     <name>EngineLink</name>
     <message>
-        <location filename="../src/EngineLink.cpp" line="317"/>
-        <location filename="../src/EngineLink.cpp" line="344"/>
+        <location filename="../src/EngineLink.cpp" line="320"/>
+        <location filename="../src/EngineLink.cpp" line="347"/>
         <source>The engine isn&apos;t running.</source>
         <translation>Silnik nie działa.</translation>
     </message>
@@ -1727,18 +1924,18 @@
 <context>
     <name>MessageModel</name>
     <message>
-        <location filename="../src/MessageRows.cpp" line="90"/>
+        <location filename="../src/MessageRows.cpp" line="108"/>
         <location filename="../src/Pins.cpp" line="40"/>
         <source>This message was deleted</source>
         <translation>Ta wiadomość została usunięta</translation>
     </message>
     <message>
-        <location filename="../src/MessageRows.cpp" line="170"/>
+        <location filename="../src/MessageRows.cpp" line="195"/>
         <source>You</source>
         <translation>Ty</translation>
     </message>
     <message>
-        <location filename="../src/MessageModel.cpp" line="1123"/>
+        <location filename="../src/MessageModel.cpp" line="1126"/>
         <source>Unread messages</source>
         <translation>Nieprzeczytane wiadomości</translation>
     </message>
@@ -2980,16 +3177,8 @@
         <translation type="obsolete">Pamięć</translation>
     </message>
     <message>
-        <source>Download on mobile data</source>
-        <translation type="obsolete">Pobieranie w sieci komórkowej</translation>
-    </message>
-    <message>
         <source>Cache limit</source>
         <translation type="obsolete">Limit pamięci podręcznej</translation>
-    </message>
-    <message>
-        <source>Off, photos and voice notes wait for a tap unless you&apos;re on Wi-Fi.</source>
-        <translation type="obsolete">Gdy wyłączone, zdjęcia i wiadomości głosowe pobierają się po dotknięciu, chyba że jesteś w Wi-Fi.</translation>
     </message>
     <message>
         <source>Cache: %1</source>

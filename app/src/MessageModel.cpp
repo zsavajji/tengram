@@ -304,6 +304,8 @@ void MessageModel::onReplied(const QString &id, const QString &cmd, const QVaria
         takeBridge(result.toMap());
     else if (m_senderAsks.contains(id))
         takeSenders(id, result.toMap());
+    else if (m_refetch.contains(id))
+        onMsgs(m_chat, QStringList(m_refetch.take(id))); // the file is back where the row says: read it again
 }
 
 // Asks senders.get for the senders of the rows just read, in batches of 100: the colour of their names, an admin's tag
@@ -846,6 +848,7 @@ void MessageModel::onConnected()
     if (m_loading)
         return;
     m_asked.clear(); // a fetch the engine lost with its restart is asked again
+    m_refetch.clear();
     m_historyId.clear(); // so is a chat.history
     m_bridgeId.clear(); // and a bridge: the chat.open that follows checks the gap again
     m_newerId.clear(); // and a chat.newer

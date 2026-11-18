@@ -44,6 +44,7 @@
 #include "QrImage.h"
 #include "Sessions.h"
 #include "Settings.h"
+#include "Storage.h"
 #include "TopicModel.h"
 
 using namespace bb::cascades;
@@ -186,6 +187,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     qmlRegisterType<Privacy>("tengram", 1, 0, "Privacy");
     qmlRegisterType<Profile>("tengram", 1, 0, "Profile");
     qmlRegisterType<Sessions>("tengram", 1, 0, "Sessions");
+    qmlRegisterType<Storage>("tengram", 1, 0, "Storage");
     qmlRegisterType<TopicModel>("tengram", 1, 0, "TopicModel");
     QmlDocument *document = QmlDocument::create("asset:///main.qml").parent(&app);
     if (!loaded(document, "main.qml"))

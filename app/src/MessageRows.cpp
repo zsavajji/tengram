@@ -15,6 +15,7 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
+#include <QFile>
 #include <QLocale>
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -57,6 +58,22 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     // The wording of kinds 6, 7 and 9 to 14 (kind 6 and 13 are service lines).
     QString label, shown = text;
     const QVariantMap extra = MessageKinds::parse(q.value(24).toString());
+    // The cap on the media kept and "Clear media" delete TDLib's files without rewriting the row (docs/protocol.md,
+    // "Missing files"): a file that is not there is not downloaded, so the row is read as on the server and the next tap
+    // asks media.get for it; a preview that is gone is asked for again below. Stickers are never pruned.
+    bool gone = false;
+    int mediaState = q.value(17).toInt();
+    QString path = q.value(23).toString();
+    if (mediaState == 2 && !QFile::exists(path)) {
+        mediaState = 1;
+        path.clear();
+        gone = true;
+    }
+    QString previewPath = extra.value("preview").toString();
+    if (!previewPath.isEmpty() && !QFile::exists(previewPath)) {
+        previewPath.clear();
+        gone = true;
+    }
     m.service = MessageKinds::fill(kind, m_chat, text, extra, out,
                                    q.value(6).toString(), time, locale, m.data, label, shown);
     if (m.service) {
@@ -66,20 +83,24 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     }
     // Photos, videos, stickers, audio files and documents are drawn by MediaBubble: no label, and a
     // document's text (its name) is the bubble's. A caption stays in the text.
-    if (kind == 5 && !deleted && q.value(17).toInt() == 1)
+    if (kind == 5 && !deleted && mediaState == 1)
         Sticker::fetch(m_engine, m_chat, m.id, m_asked); // a history sticker, asked once per page
     // A photo not downloaded and a video show Telegram's tiny blurred thumbnail until they are opened: ask once for
     // a display-size picture, which comes back as extra.preview. Not for our own message still sending.
-    if (((kind == 1 && q.value(17).toInt() != 2) || kind == 2) && !deleted
-        && extra.value("preview").toString().isEmpty() && !(out && q.value(4).toInt() == 0))
-        Sticker::fetch(m_engine, m_chat, m.id, m_asked, true);
+    if (((kind == 1 && mediaState != 2) || kind == 2) && !deleted
+        && previewPath.isEmpty() && !(out && q.value(4).toInt() == 0)) {
+        const QString request = Sticker::fetch(m_engine, m_chat, m.id, m_asked, true);
+        // The file comes back at the path the row already has, so the engine writes nothing and sends no msgs event: the
+        // row is read again when the answer comes (onReplied).
+        if (gone && !request.isEmpty())
+            m_refetch.insert(request, m.id);
+    }
     // Covered until a tap takes the cover off (unspoil), for as long as this chat stays open.
     const bool covered = m.data["spoiler"].toBool() && !deleted && !m_revealed.contains(m.id);
     m.data["spoiler"] = covered;
     if (MediaData::fill(m.data, m.id, deleted ? 0 : kind, text, q.value(19).toByteArray(),
                         q.value(20).toInt(), q.value(21).toInt(), q.value(22).toLongLong(),
-                        q.value(15).toInt(), q.value(17).toInt(), q.value(23).toString(),
-                        extra.value("preview").toString(), locale, covered)
+                        q.value(15).toInt(), mediaState, path, previewPath, locale, covered)
         && (kind == 4 || kind == 8))
         shown = QString();
     if (deleted) {
@@ -133,7 +154,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     m.data["voice"] = voice;
     if (voice) {
         m.data["duration"] = q.value(15).toInt();
-        m.data["mediaState"] = q.value(17).toInt();
+        m.data["mediaState"] = mediaState;
         m.data["played"] = q.value(18).toInt() != 0;
         m.data["wave"] = Waveform::image(q.value(16).toByteArray());
         // As numbers: bytes could reach QML as a string, cut at the first 0 (a silent bar).

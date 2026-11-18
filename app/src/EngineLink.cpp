@@ -1,5 +1,7 @@
 #include "EngineLink.h"
 
+#include "Settings.h"
+
 #include <bb/cascades/Application>
 #include <bb/data/JsonDataAccess>
 #include <bb/system/InvokeRequest>
@@ -204,7 +206,8 @@ void EngineLink::readLines()
                     QVariantMap prefs;
                     QSettings file(QDir::homePath() + "/settings.ini", QSettings::IniFormat);
                     prefs["notifyPreview"] = file.value("notifyPreview", true).toBool();
-                    prefs["mediaOnMobile"] = file.value("mediaOnMobile", true).toBool();
+                    // Data and storage: automatic download, the gallery copy, the media kept (Settings::dataPrefs).
+                    prefs.unite(Settings::dataPrefs(file));
                     prefs["language"] = m_language;
                     prefs["cacheMB"] = qBound(64, file.value("cacheLimit", 64).toInt(), 512);
                     prefs["mode"] = file.value("deliveryMode", "auto").toString();

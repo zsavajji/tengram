@@ -4,6 +4,7 @@
 #include <bb/system/LocaleHandler>
 #include <QObject>
 #include <QSettings>
+#include <QVariantMap>
 
 class EngineLink;
 
@@ -16,7 +17,17 @@ class Settings : public QObject
     Q_PROPERTY(bool enterSends READ enterSends WRITE setEnterSends NOTIFY enterSendsChanged)
     Q_PROPERTY(bool notifyPreview READ notifyPreview WRITE setNotifyPreview NOTIFY notifyPreviewChanged)
     Q_PROPERTY(bool startAtBoot READ startAtBoot WRITE setStartAtBoot NOTIFY startAtBootChanged)
-    Q_PROPERTY(bool mediaOnMobile READ mediaOnMobile WRITE setMediaOnMobile NOTIFY mediaOnMobileChanged)
+    // Data and storage (docs/protocol.md): each is the engine's prefs.set field of the same name, sent as it changes and
+    // at every connect. autoNet is "none", "wifi" or "all"; the MB values are sizes (0: never, for the auto-download
+    // ones; no limit, for keepMB).
+    Q_PROPERTY(QString autoNet READ autoNet WRITE setAutoNet NOTIFY autoNetChanged)
+    Q_PROPERTY(bool autoPhotos READ autoPhotos WRITE setAutoPhotos NOTIFY autoPhotosChanged)
+    Q_PROPERTY(int autoVideoMB READ autoVideoMB WRITE setAutoVideoMB NOTIFY autoVideoMBChanged)
+    Q_PROPERTY(int autoFileMB READ autoFileMB WRITE setAutoFileMB NOTIFY autoFileMBChanged)
+    Q_PROPERTY(bool galleryPrivate READ galleryPrivate WRITE setGalleryPrivate NOTIFY galleryPrivateChanged)
+    Q_PROPERTY(bool galleryGroups READ galleryGroups WRITE setGalleryGroups NOTIFY galleryGroupsChanged)
+    Q_PROPERTY(bool galleryChannels READ galleryChannels WRITE setGalleryChannels NOTIFY galleryChannelsChanged)
+    Q_PROPERTY(int keepMB READ keepMB WRITE setKeepMB NOTIFY keepMBChanged)
     // Off for a phone whose proximity sensor misreads: voice notes stay on the speaker, the call screen never blanks.
     Q_PROPERTY(bool earSensor READ earSensor WRITE setEarSensor NOTIFY earSensorChanged)
     Q_PROPERTY(int cacheLimit READ cacheLimit WRITE setCacheLimit NOTIFY cacheLimitChanged)         // MB
@@ -38,7 +49,14 @@ public:
     bool enterSends() const;
     bool notifyPreview() const;
     bool startAtBoot() const;
-    bool mediaOnMobile() const;
+    QString autoNet() const;
+    bool autoPhotos() const;
+    int autoVideoMB() const;
+    int autoFileMB() const;
+    bool galleryPrivate() const;
+    bool galleryGroups() const;
+    bool galleryChannels() const;
+    int keepMB() const;
     bool earSensor() const;
     int cacheLimit() const;
     QString deliveryMode() const;
@@ -51,7 +69,14 @@ public:
     void setEnterSends(bool on);
     void setNotifyPreview(bool on);
     void setStartAtBoot(bool on);
-    void setMediaOnMobile(bool on);
+    void setAutoNet(const QString &net);
+    void setAutoPhotos(bool on);
+    void setAutoVideoMB(int mb);
+    void setAutoFileMB(int mb);
+    void setGalleryPrivate(bool on);
+    void setGalleryGroups(bool on);
+    void setGalleryChannels(bool on);
+    void setKeepMB(int mb);
     void setEarSensor(bool on);
     void setCacheLimit(int mb);
     void setDeliveryMode(const QString &mode);
@@ -59,6 +84,9 @@ public:
     void setCompact(bool on);
     void setCallHints(int count);
     void setSyncContacts(bool on);
+    // The eight Data and storage prefs as prefs.set takes them, read from file with their defaults and limits: what the
+    // getters answer, and what EngineLink sends at every connect.
+    static QVariantMap dataPrefs(const QSettings &file);
     Q_INVOKABLE QString cacheSize();
     Q_INVOKABLE QString clearCache();
 
@@ -67,7 +95,14 @@ signals:
     void enterSendsChanged();
     void notifyPreviewChanged();
     void startAtBootChanged();
-    void mediaOnMobileChanged();
+    void autoNetChanged();
+    void autoPhotosChanged();
+    void autoVideoMBChanged();
+    void autoFileMBChanged();
+    void galleryPrivateChanged();
+    void galleryGroupsChanged();
+    void galleryChannelsChanged();
+    void keepMBChanged();
     void earSensorChanged();
     void cacheLimitChanged();
     void deliveryModeChanged();
@@ -83,6 +118,8 @@ private:
     void applyTheme();
     void applyBootTimer(bool on);
     void store(const char *key, const QVariant &value);
+    // Stores one of dataPrefs' values and sends it to the engine; true when what dataPrefs reads back has changed.
+    bool storeData(const char *key, const QVariant &value);
     QSettings m_file;
     EngineLink *m_engine;
     bb::system::LocaleHandler m_region; // for the size text, as the chat models have it

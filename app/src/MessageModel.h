@@ -254,6 +254,7 @@ private:
     QSet<QString> m_hidden;
     QSet<QString> m_revealed; // the spoilers tapped open (unspoil)
     QSet<QString> m_asked; // the ids of the stickers, photos and videos asked for from the engine (Sticker::fetch)
+    QHash<QString, QString> m_refetch; // the fetches of a picture whose file was gone, by request id: the message's id
     QHash<QString, Sender> m_senders; // a group's senders by user id, as senders.get answered
     QSet<QString> m_sendersAsked; // the user ids senders.get was sent for, and the ones it answered: asked once
     QSet<QString> m_sendersWanted; // the user ids of the rows read that nothing was asked for yet (askSenders)

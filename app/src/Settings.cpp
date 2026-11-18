@@ -42,7 +42,14 @@ int Settings::theme() const { return m_file.value("theme", 0).toInt() == 1 ? 1 :
 bool Settings::enterSends() const { return m_file.value("enterSends", true).toBool(); }
 bool Settings::notifyPreview() const { return m_file.value("notifyPreview", true).toBool(); }
 bool Settings::startAtBoot() const { return m_file.value("startAtBoot", false).toBool(); }
-bool Settings::mediaOnMobile() const { return m_file.value("mediaOnMobile", true).toBool(); }
+QString Settings::autoNet() const { return dataPrefs(m_file)["autoNet"].toString(); }
+bool Settings::autoPhotos() const { return dataPrefs(m_file)["autoPhotos"].toBool(); }
+int Settings::autoVideoMB() const { return dataPrefs(m_file)["autoVideoMB"].toInt(); }
+int Settings::autoFileMB() const { return dataPrefs(m_file)["autoFileMB"].toInt(); }
+bool Settings::galleryPrivate() const { return dataPrefs(m_file)["galleryPrivate"].toBool(); }
+bool Settings::galleryGroups() const { return dataPrefs(m_file)["galleryGroups"].toBool(); }
+bool Settings::galleryChannels() const { return dataPrefs(m_file)["galleryChannels"].toBool(); }
+int Settings::keepMB() const { return dataPrefs(m_file)["keepMB"].toInt(); }
 bool Settings::earSensor() const { return m_file.value("earSensor", true).toBool(); }
 int Settings::cacheLimit() const { return qBound(64, m_file.value("cacheLimit", 64).toInt(), 512); }
 QString Settings::deliveryMode() const { return m_file.value("deliveryMode", "auto").toString(); }
@@ -165,18 +172,86 @@ void Settings::bootTimerReplied()
     reply->deleteLater();
 }
 
-void Settings::setMediaOnMobile(bool on)
+// The defaults are the engine's (docs/protocol.md, "prefs.set"); the limits are the ones it refuses a value outside of,
+// which would leave the whole prefs.set unapplied.
+QVariantMap Settings::dataPrefs(const QSettings &file)
 {
-    if (on == mediaOnMobile())
-        return;
-    store("mediaOnMobile", on);
+    QVariantMap prefs;
+    const QString net = file.value("autoNet", "wifi").toString();
+    prefs["autoNet"] = net == "none" || net == "all" ? net : QString("wifi");
+    prefs["autoPhotos"] = file.value("autoPhotos", true).toBool();
+    prefs["autoVideoMB"] = qBound(0, file.value("autoVideoMB", 15).toInt(), 2000);
+    prefs["autoFileMB"] = qBound(0, file.value("autoFileMB", 3).toInt(), 2000);
+    prefs["galleryPrivate"] = file.value("galleryPrivate", false).toBool();
+    prefs["galleryGroups"] = file.value("galleryGroups", false).toBool();
+    prefs["galleryChannels"] = file.value("galleryChannels", false).toBool();
+    const int keep = file.value("keepMB", 2048).toInt();
+    prefs["keepMB"] = keep <= 0 ? 0 : qBound(256, keep, 20000);
+    return prefs;
+}
+
+bool Settings::storeData(const char *key, const QVariant &value)
+{
+    const QVariant before = dataPrefs(m_file)[key];
+    store(key, value);
+    const QVariant now = dataPrefs(m_file)[key];
+    if (now == before)
+        return false;
     // Not connected: the hello path sends it on the next connect.
     if (m_engine->connected()) {
         QVariantMap prefs;
-        prefs["mediaOnMobile"] = on;
+        prefs[key] = now;
         m_engine->request("prefs.set", prefs);
     }
-    emit mediaOnMobileChanged();
+    return true;
+}
+
+void Settings::setAutoNet(const QString &net)
+{
+    if (storeData("autoNet", net))
+        emit autoNetChanged();
+}
+
+void Settings::setAutoPhotos(bool on)
+{
+    if (storeData("autoPhotos", on))
+        emit autoPhotosChanged();
+}
+
+void Settings::setAutoVideoMB(int mb)
+{
+    if (storeData("autoVideoMB", mb))
+        emit autoVideoMBChanged();
+}
+
+void Settings::setAutoFileMB(int mb)
+{
+    if (storeData("autoFileMB", mb))
+        emit autoFileMBChanged();
+}
+
+void Settings::setGalleryPrivate(bool on)
+{
+    if (storeData("galleryPrivate", on))
+        emit galleryPrivateChanged();
+}
+
+void Settings::setGalleryGroups(bool on)
+{
+    if (storeData("galleryGroups", on))
+        emit galleryGroupsChanged();
+}
+
+void Settings::setGalleryChannels(bool on)
+{
+    if (storeData("galleryChannels", on))
+        emit galleryChannelsChanged();
+}
+
+void Settings::setKeepMB(int mb)
+{
+    if (storeData("keepMB", mb))
+        emit keepMBChanged();
 }
 
 void Settings::setCacheLimit(int mb)
