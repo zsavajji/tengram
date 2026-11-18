@@ -1,5 +1,6 @@
-// The requests that act on people, groups and invite links, and the chat's export to a text file: contact.block,
-// group.participants, group.create, poll.create, invite.info, invite.accept and chat.export (docs/protocol.md).
+// The requests that act on people, groups and invite links, the secret chats and the chat's timer, and the chat's export
+// to a text file: contact.block, group.participants, group.create, poll.create, invite.info, invite.accept, secret.start,
+// chat.ttl and chat.export (docs/protocol.md).
 // What a chat is comes from pages.cpp (with_chat, person_of, basic_group_of, supergroup_of).
 
 #include "engine.h"
@@ -300,6 +301,73 @@ void invite_accept(std::uint64_t conn, const std::string &id, td::JsonObject &re
   });
 }
 
+// ---- secret.start and chat.ttl
+
+// A secret chat's timer: TDLib takes any time from 0 and sends it to the other side (set_dialog_message_ttl in
+// MessagesManager.cpp checks nothing else); Telegram's apps offer up to a week.
+constexpr std::int64_t kSecretTtlMax = 604800;
+// Any other chat's auto-delete time: a whole number of days up to a year (td_api.tl, setChatMessageAutoDeleteTime); the
+// server refuses the days it has no setting for.
+constexpr std::int64_t kAutoDeleteMax = 365 * 86400;
+
+void start_secret(std::uint64_t conn, const std::string &id, std::int64_t user) {
+  tdlib.send(make_object<td_api::createNewSecretChat>(user), [conn, id](Obj o) {
+    if (auto e = as_error(o)) {
+      // A user TDLib has no access to (UserManager::get_input_user), or none it can ask: not one to start a chat with.
+      if (has(*e, "User not found") || has(*e, "Have no access to the user") || has(*e, "Can't create secret chat")) {
+        return refuse(conn, id, "bad_request", *e);
+      }
+      return td_failed(conn, id, *e);
+    }
+    // After the flush: the UI opens the chat from chats.db, and updateNewChat came before this answer. The chat is
+    // pending (chats.secret 1) until the other side comes online and TDLib's updateSecretChat says ready.
+    queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                  r("jid", std::to_string(static_cast<const td_api::chat &>(*o).id_));
+                })));
+  });
+}
+
+// `user`, a user id, or `chat`, a chat with a person (whose peer is used); `user` wins when both are there.
+void secret_start(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
+  td::JsonValue by_user, by_chat;
+  const int has_user = optional_field(req, "user", td::JsonValue::Type::String, by_user);
+  const int has_chat = optional_field(req, "chat", td::JsonValue::Type::String, by_chat);
+  std::int64_t n = 0;
+  if (has_user < 0 || has_chat < 0 || has_user + has_chat == 0 ||
+      !parse_i64(has_user == 1 ? by_user.get_string().str() : by_chat.get_string().str(), n) ||
+      (has_user == 1 && n <= 0)) {
+    return bad_request(conn, id, "need the field user, a string with a user id, or chat, a chat with a person");
+  }
+  if (has_user == 1) {
+    return start_secret(conn, id, n);
+  }
+  with_chat(conn, id, n, [conn, id](const td_api::chat &c) {
+    const std::int64_t user = person_of(c);
+    if (!user) {
+      return bad_chat(conn, id, "not a chat with a person");
+    }
+    start_secret(conn, id, user);
+  });
+}
+
+void chat_ttl(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  td::JsonValue v;
+  std::int64_t secs = 0;
+  if (optional_field(req, "secs", td::JsonValue::Type::Number, v) != 1 || !parse_i64(v.get_number().str(), secs) ||
+      secs < 0) {
+    return bad_request(conn, id, "need the field secs, a whole number of seconds, 0 for off");
+  }
+  with_chat(conn, id, chat, [conn, id, chat, secs](const td_api::chat &c) {
+    const bool secret = c.type_ && c.type_->get_id() == td_api::chatTypeSecret::ID;
+    if (secs > (secret ? kSecretTtlMax : kAutoDeleteMax) || (!secret && secs % 86400 != 0)) {
+      return bad_request(conn, id, secret ? "secs is 0 to 604800 in a secret chat"
+                                          : "secs is 0 or a whole number of days, up to 365");
+    }
+    tdlib.send(make_object<td_api::setChatMessageAutoDeleteTime>(chat, static_cast<std::int32_t>(secs)),
+               [conn, id](Obj o) { answer(conn, id, o); });
+  });
+}
+
 // ---- chat.export
 
 struct Export {
@@ -444,17 +512,20 @@ void chat_export(std::uint64_t conn, const std::string &id, std::int64_t chat) {
 
 bool manage_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"contact.block", "group.participants", "group.create", "poll.create",
-                                     "invite.info",   "invite.accept",      "chat.export"};
+                                     "invite.info",   "invite.accept",      "secret.start", "chat.ttl",
+                                     "chat.export"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
-  if (cmd == "group.create" || cmd == "invite.info" || cmd == "invite.accept") {  // no chat
+  if (cmd == "group.create" || cmd == "invite.info" || cmd == "invite.accept" || cmd == "secret.start") {  // no chat
     if (!link_ready()) {
       server.reply_error(conn, id, "unlinked", "not logged in");
     } else if (cmd == "group.create") {
       group_create(conn, id, req);
     } else if (cmd == "invite.info") {
       invite_info(conn, id, req);
+    } else if (cmd == "secret.start") {
+      secret_start(conn, id, req);
     } else {
       invite_accept(conn, id, req);
     }
@@ -470,6 +541,8 @@ bool manage_handle(std::uint64_t conn, const std::string &id, const std::string 
     group_participants(conn, id, req, chat);
   } else if (cmd == "poll.create") {
     poll_create(conn, id, req, chat);
+  } else if (cmd == "chat.ttl") {
+    chat_ttl(conn, id, req, chat);
   } else {
     chat_export(conn, id, chat);
   }

@@ -823,6 +823,11 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
       return server.reply_error(conn, id, "not_found", "no such message");
     }
     auto &m = static_cast<td_api::message &>(*o);
+    // A tap on a self-destructing photo or video of theirs is its opening: TDLib starts the countdown only then
+    // (updateMessageContentOpened rewrites the row with extra.expiresAt). A preview isn't an opening.
+    if (!preview && m.self_destruct_type_ && !m.is_outgoing_) {
+      tdlib.send(make_object<td_api::openMessageContent>(chat, message));
+    }
     const td_api::file *file = preview ? message_preview_file(m) : message_file(m);
     if (!file) {
       return server.reply_error(conn, id, "not_found",

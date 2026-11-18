@@ -10,7 +10,7 @@ When the code changes, this file changes with it.
 | file | what |
 |---|---|
 | `db/`, `files/` | TDLib's own database and files. Only the engine touches them. |
-| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2, 3 and 4 are migrated in place to 5; the step to 4 empties `messages` and the step to 5 drops the unused `reactions` and `poll_votes` tables, see *chats.db*), or `db.key` is new. |
+| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2, 3, 4 and 5 are migrated in place to 6; the step to 4 empties `messages`, the step to 5 drops the unused `reactions` and `poll_votes` tables and the step to 6 adds `chats.secret`, see *chats.db*), or `db.key` is new. |
 | `db.key` | The key of both databases: 64 hex characters (32 bytes read from `/dev/random` at the first launch), mode 0600. The engine hands it to TDLib as its database key; the UI opens `chats.db` with `PRAGMA key = "x'<the 64 characters>'"` (a raw key: no key derivation). There is no setting to turn encryption off and no passcode. |
 | `engine.json` | `{"port": 41234, "token": "<32 hex characters>"}`, mode 0600, written as a temporary file and renamed, new at every start, removed at a clean stop. |
 
@@ -88,6 +88,8 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `invite.info` | `url` (a `t.me/+…` or `t.me/joinchat/…` link) | `{member: true, jid}`, or `{member: false, kind, code, jid, name, count}` | `invite_invalid` |
 | `invite.accept` | `code` (the link as `invite.info` gave it); `kind`, `jid` and `name` of that answer may come along and are not read | `{jid}`, the chat's key | `invite_invalid`, `invite_not_allowed`, `request_sent` |
 | `chat.export` | `chat` | `{path}`, the absolute path of the text file | `bad_chat`, `write_failed` |
+| `secret.start` | `user` (a user id), or `chat` (a chat with a person, whose person is used); `user` wins when both are given | `{jid}`, the new secret chat's key | `bad_request`, `bad_chat` |
+| `chat.ttl` | `chat`, `secs` (a whole number: 0 off; in a secret chat up to 604800; in any other chat a whole number of days up to 365) | — | `bad_request`, `bad_chat` |
 | `privacy.get` | — | `{rules: {phone, phoneFind, status, photo, forwards, calls, birthday, gifts, bio, music, invites}, exceptions: {"<key>": true}, password: {set, hint, recovery, pendingEmail, resetDate}, autoDelete, blocked, ttlDays, topChats, imported}`; a field whose call failed is absent | |
 | `privacy.set` | `key` (a key of `rules`), `value` (`everybody`, `contacts` or `nobody`; `phoneFind` has no `nobody`) | — | |
 | `password.set` | `old` (the current password, "" when none is set), `new` (not empty); optional `hint`, `email` ("" none) | the password object | `bad_password`, `bad_email`, `too_fresh` |
@@ -403,8 +405,10 @@ list); an active secret chat is the one exception, TDLib deletes its history onl
 TDLib's delete updates, as `msg.delete`'s do (`msgs` events). The chat's `last_preview` stays as it was until its
 next message: the engine keeps a chat's preview when TDLib says it has no newest message. A TDLib error is `td`.
 
-**`chat.delete`:** for a private or a secret chat, deletes its history for us and removes the chat from the list (a
-`chats` event names it). For a basic group, a supergroup or a channel it leaves the chat (`leaveChat`: deleting a group
+**`chat.delete`:** for a private chat, deletes its history for us and removes the chat from the list (a
+`chats` event names it). A secret chat that is pending or ready is closed first: TDLib's `deleteChat` ends it on Telegram's side
+(`messages.discardEncryption` with the history deleted for both sides) and then removes it from the list (`deleteChatHistory` would
+leave the secret chat open); a closed one is a private chat's case. For a basic group, a supergroup or a channel it leaves the chat (`leaveChat`: deleting a group
 in Telegram means leaving it, the others keep it), and then for a basic group also deletes its history and removes it
 from the list; TDLib allows that call for no supergroup or channel we have left, so whether such a chat goes from the
 list is TDLib's. The reply comes when the last call is done.
@@ -516,6 +520,49 @@ worded in English). `autoNet`, `autoPhotos`, `autoVideoMB`, `autoFileMB`, `galle
 HyperBerry had, is gone: `prefs.set` ignores it, so a request with only that field is `bad_request`,
 and an old `prefs.json` keeps it unread. Defaults: `auto`, 300, true, "", 64, `wifi`, true, 15, 3, false,
 false, false, 2048. A value of the wrong type or out of range is `bad_request` and nothing is changed.
+
+## Secret chats
+
+Secret chats are TDLib's (`use_secret_chats` is on): it does the end-to-end encryption, the engine mirrors each chat's state and
+starts them. A secret chat lives only on the device that made or accepted it: Telegram's cloud does not hold its messages, no
+other device of the account sees it, and a logout loses it for good. It is a row of `chats` like a person's (`kind` 0, `name` the
+person's name, a preview as a private chat's, the person's `presence` and `typing` events) with `chats.secret` for its state:
+
+| `chats.secret` | meaning |
+|---|---|
+| 0 | not a secret chat |
+| 1 | pending: waiting for the other side to accept or to come online; nothing can be sent yet |
+| 2 | ready |
+| 3 | closed (cancelled or ended by either side): the history stays and can be read or deleted, nothing can be sent |
+
+The state changes with a `chats` event (TDLib's `updateSecretChat`). A request from another person arrives as a new row, pending
+and then ready: TDLib accepts it itself, 2 s after it arrives while the account is online and 3 s while it is not.
+
+**`secret.start`:** asks for a secret chat with a person (`createNewSecretChat`). `user` is a user id (a string) or `chat` a chat with
+a person (private or secret; its person is used); `user` wins when both are given; neither, or an id that is not a positive whole
+number, is `bad_request`, and a `chat` that is not a chat with a person is `bad_chat`. A user TDLib has no access to ("User not
+found", "Have no access to the user") or cannot make a secret chat with (ourselves) is `bad_request` with TDLib's text; any other
+TDLib error is `td`. The reply `{jid}` comes after the flush that writes the chat to `chats.db`: the row is there, pending
+(`secret` 1) until the other side comes online. A second chat with the same person is another chat.
+
+**`chat.ttl`:** the chat's self-destruct (secret chat) or auto-delete timer (`setChatMessageAutoDeleteTime`); 0 turns it off.
+`secs` is a whole number of seconds. In a secret chat it is 0 to 604800 (TDLib takes any time and sends it to the other side;
+Telegram's apps offer up to a week); in any other chat, a whole number of days up to 365 (`td_api.tl`; the server refuses the days it
+has no setting for, as a `td` error). Anything else is `bad_request`. The timer is a service message in the chat, worded in
+English (kind 6): "You set the self-destruct timer to 5 seconds", "Anna disabled the self-destruct timer", and in another chat
+"You set messages to auto-delete in 1 day". A secret chat must be ready (a `td` error otherwise).
+
+**Messages.** A message with a timer has `extra.ttl` (its seconds), and `extra.expiresAt` (unix seconds: when it
+disappears, rounded up) once its countdown runs. TDLib deletes the message when the time is up and the row goes with that (`msgs` event).
+In a secret chat the countdown of a message starts when the chat is read (`chat.read`; TDLib sends no update for it, so
+`expiresAt` appears when the row is next written, by a `chat.open` page say), except for a photo, video, round video or voice note
+with a timer of up to 60 seconds: that starts when its content is opened (TDLib's `openMessageContent`), and the row is written
+again then. `voice.play` opens a voice note, and `media.get` (not a preview) opens a photo or a video of theirs. Another service
+message of a secret chat: "Anna took a screenshot!". The automatic download and the gallery copy skip every self-destructing
+message, and the gallery copy skips a secret chat's media altogether.
+
+**Notifications.** A new secret chat is an item "New secret chat"; its messages notify like a private chat's, always with the text
+"New message", whatever `notifyPreview` is. `chat.delete` closes a secret chat and removes it.
 
 ## Data and storage
 
@@ -630,20 +677,22 @@ read on another device, and the delay while another device is in use are all Tel
 - It alerts (sound, LED, instant preview) unless Telegram says the notification is silent, or
   the chat is the `openChat` of a UI that is in front.
 - The text is the chat list's preview of the message, or "New message" when `notifyPreview` is
-  false (default true) or Telegram hides the preview.
+  false (default true), Telegram hides the preview, or the chat is a secret chat (their content is never shown). A new
+  secret chat's request is an item "New secret chat".
 - `hub.json` in the data folder records the account and the chats that have items.
 - Calls are not notified yet.
 
 ## chats.db, as the UI reads it
 
 HyperBerry's tables and columns (`../hyperberry/docs/protocol.md`, *chats.db, as the UI reads
-it*), with these meanings for Telegram. `user_version` is 5. A file at version 2, 3 or 4 is migrated in place when the engine starts;
+it*), with these meanings for Telegram. `user_version` is 6. A file at version 2, 3, 4 or 5 is migrated in place when the engine starts;
 the step from 3 to 4 adds `chats.forum`, `messages.topic` and `topics`, and **empties `messages`**:
 the old rows have no topic, and the table is a cache that TDLib refills (the engine writes each chat's newest message again
 when it starts, and a page of history when the UI opens a chat). `chats` and its rows stay. The step from 4 to 5 **drops the
 `reactions` and `poll_votes` tables**, which were always empty: a message's reactions and a poll's counts are in `messages.extra`
 now (below). A row written before that has none until the engine writes it again, which it does for a chat's newest page on
-`chat.open` and for any update of the message (a new reaction, a vote, an edit).
+`chat.open` and for any update of the message (a new reaction, a vote, an edit). The step from 5 to 6 adds `chats.secret`, 0 in every old row, which is right: the engine
+had secret chats off until version 6.
 
 **`chats`:** one row per chat in Telegram's main or archived chat list, and no others.
 
@@ -660,6 +709,7 @@ now (below). A row written before that has none until the engine writes it again
 | `archived` | 1 when in the archive |
 | `read_inbox` | the id of the newest message read here or on another device; 0 when unknown (a database that was at `user_version` 2 has 0 until the engine next writes the chat's row) |
 | `forum` | 1 for a supergroup with topics (see *Forum topics*); 0 for any other chat, and until the engine next writes the row of a chat in a database that was at `user_version` 3. A group can become a forum or stop being one: a `chats` event names the row. Messages already in `messages` keep the `topic` they had (0 for a group that was not a forum): the UI uses `messages.topic` only while `forum` is 1, and a chat that has just become a forum gets its topics' messages from `chat.open` with `topic` |
+| `secret` | 0 for any chat that is not a secret chat; for a secret chat 1 pending, 2 ready, 3 closed (see *Secret chats*); a `chats` event names the row when it changes. 0 in a database that was at `user_version` 5 until the engine next writes the row (no old row is a secret chat) |
 
 **`messages`**, primary key `(chat, id)`. Order by `ts`, then `CAST(id AS INTEGER)` (not
 `rowid`: older pages are inserted later).
@@ -684,7 +734,7 @@ now (below). A row written before that has none until the engine writes it again
 | `played` | voice notes and round videos: 1 once listened to |
 | `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
 | `topic` | the forum topic the message belongs to: its id (General is 1); 0 in every chat that is not a forum. Index `messages_by_topic` on `(chat, topic, ts)`: a topic's page is `WHERE chat = ? AND topic = ? ORDER BY ts, CAST(id AS INTEGER)` |
-| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted` and `closed`; a message's `reactions`; a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs` |
+| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted` and `closed`; a message's `reactions`; a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs`; `ttl` and `expiresAt` of a self-destructing message |
 
 **Reactions:** any kind's `extra` can carry `reactions: [{e, n, me}, …]`, one object for each emoji reaction on the message in
 TDLib's order: `e` the emoji, `n` how many reacted with it, `me: true` when one of them is ours (absent otherwise). Custom emoji
@@ -697,6 +747,10 @@ the poll is closed (absent otherwise). There are no voters' names. `poll.vote` c
 
 Any kind's `extra` can also carry `forwarded: true` (the message is a forward) and, on a photo or
 video, `spoiler: true` (Telegram covers it until tapped).
+
+A message that self-destructs (a secret chat's, whatever its kind) carries `ttl`, the seconds of the timer it was sent with (a whole
+number; a message that disappears after one view has none), and `expiresAt` once its countdown runs: unix seconds, when
+it disappears (rounded up). TDLib deletes the message when the time is up (see *Secret chats*).
 
 A photo's or video's `extra` can carry `preview`, the absolute path of the picture the bubble shows before the file
 is opened, once `media.get` with `preview` has downloaded it (or it is here for another reason): a photo's display

@@ -30,6 +30,7 @@ class Db {
   bool migrate_2_to_3();
   bool migrate_3_to_4();
   bool migrate_4_to_5();
+  bool migrate_5_to_6();
 
   td::SqliteDb db_;
   std::string path_;

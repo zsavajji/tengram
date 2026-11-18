@@ -462,9 +462,15 @@ void chat_clear(std::uint64_t conn, const std::string &id, std::int64_t chat) {
 
 void chat_delete(std::uint64_t conn, const std::string &id, std::int64_t chat) {
   with_chat(conn, id, chat, [conn, id, chat](const td_api::chat &c) {
-    if (person_of(c)) {
-      tdlib.send(make_object<td_api::deleteChatHistory>(chat, true, revoke_of(c)),
-                 [conn, id](Obj o) { answer(conn, id, o); });
+    if (revoke_of(c)) {
+      // An active (pending or ready) secret chat. deleteChatHistory would only flush its history and take it from the
+      // list: the secret chat itself would stay open on Telegram (MessageQueryManager::delete_dialog_history_on_server
+      // does SecretChatsManager::delete_all_messages and nothing else), and the other side's next message would bring
+      // it back. deleteChat closes it (SecretChatActor::cancel_chat: messages.discardEncryption with delete_history, so
+      // the other side's history goes too) and then takes the chat out (DialogManager::delete_dialog).
+      tdlib.send(make_object<td_api::deleteChat>(chat), [conn, id](Obj o) { answer(conn, id, o); });
+    } else if (person_of(c)) {
+      tdlib.send(make_object<td_api::deleteChatHistory>(chat, true, false), [conn, id](Obj o) { answer(conn, id, o); });
     } else {
       leave(conn, id, chat, basic_group_of(c) != 0);
     }

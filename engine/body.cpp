@@ -19,6 +19,23 @@ std::string or_default(const std::string &text, const char *fallback) {
   return text.empty() ? fallback : text;
 }
 
+// A timer as Telegram's apps word it: the largest unit that divides it, "5 seconds", "1 day", "1 month" (31 days: the
+// longest auto-delete time).
+std::string span(int secs) {
+  static const struct {
+    int length;
+    const char *one, *many;
+  } units[] = {{2678400, "month", "months"}, {604800, "week", "weeks"}, {86400, "day", "days"},
+               {3600, "hour", "hours"},      {60, "minute", "minutes"}, {1, "second", "seconds"}};
+  for (const auto &u : units) {
+    if (secs % u.length == 0) {
+      const int n = secs / u.length;
+      return std::to_string(n) + " " + (n == 1 ? u.one : u.many);
+    }
+  }
+  return std::to_string(secs) + " seconds";  // not reached: every time is a whole number of seconds
+}
+
 // The service messages: "Anna joined", "Anna removed Bob". Unknown people read "Someone".
 std::string service_text(const td_api::message &m, const std::string &who, std::int64_t sender_id) {
   auto name_of = [](std::int64_t user_id) { return or_default(user_name(user_id, false), "Someone"); };
@@ -53,6 +70,18 @@ std::string service_text(const td_api::message &m, const std::string &who, std::
       return who + " pinned a message";
     case td_api::messageContactRegistered::ID:
       return who + " joined Telegram";
+    case td_api::messageScreenshotTaken::ID:  // a secret chat's
+      return who + " took a screenshot!";
+    case td_api::messageChatSetMessageAutoDeleteTime::ID: {  // a secret chat's timer is a self-destruct timer
+      const auto &timer = static_cast<const td_api::messageChatSetMessageAutoDeleteTime &>(*m.content_);
+      const int secs = timer.message_auto_delete_time_;
+      ChatBrief chat = {};
+      const bool secret = chat_brief(m.chat_id_, chat) && chat.secret != 0;
+      if (secs <= 0) {
+        return who + (secret ? " disabled the self-destruct timer" : " disabled the auto-delete timer");
+      }
+      return who + (secret ? " set the self-destruct timer to " : " set messages to auto-delete in ") + span(secs);
+    }
     default:
       return "";
   }

@@ -133,7 +133,13 @@ void send_parameters(bool default_key = false) {
   p->use_file_database_ = true;
   p->use_chat_info_database_ = true;
   p->use_message_database_ = true;
-  p->use_secret_chats_ = false;
+  // Secret chats: TDLib does the crypto (SecretChatsManager); the engine mirrors their state in chats.secret (chats.cpp).
+  // A database made with this off needs nothing: the flag only decides whether the SecretChatsManager works (Td.cpp,
+  // SecretChatsManager.cpp start_up, on_update_chat, on_new_message). Off, it ignored every updateEncryption and
+  // encrypted message and erased a secret chat's binlog events when it replayed them (replay_binlog_event), so the
+  // old database holds no secret chat, and no schema change or reset is involved. Requests from other devices that
+  // came while it was off are gone; TDLib accepts a new one itself, 2 s (online) or 3 s after it arrives.
+  p->use_secret_chats_ = true;
   p->api_id_ = api_id;
   p->api_hash_ = api_hash;
   p->system_language_code_ = "en";

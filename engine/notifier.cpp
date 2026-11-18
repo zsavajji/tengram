@@ -83,9 +83,12 @@ void load() {
   say("hub: account %s, %zu items from the last run", account ? "known" : "not added", chats.size());
 }
 
-// 0 for a Messages group, 1 for Mentions, -1 for the others (a secret chat's, a call's), logged once each.
+// 0 for a Messages group, 1 for Mentions, -1 for the others (a call's), logged once each. A new secret chat's group is
+// the chat's Messages group under another type (MessagesManager.cpp: message_notification_group_), so it counts as 0:
+// its one notification says "New secret chat" (body_of), and the first message of the chat replaces it.
 int group_index(const td_api::NotificationGroupType *type) {
-  if (type && type->get_id() == td_api::notificationGroupTypeMessages::ID) {
+  if (type && (type->get_id() == td_api::notificationGroupTypeMessages::ID ||
+               type->get_id() == td_api::notificationGroupTypeSecretChat::ID)) {
     return 0;
   }
   if (type && type->get_id() == td_api::notificationGroupTypeMentions::ID) {
@@ -108,17 +111,6 @@ const td_api::notification *newest(const std::vector<td_api::object_ptr<td_api::
   return best;
 }
 
-// What the item says: the chat list's preview of the message, or a fixed line when the preview is not wanted.
-std::string body_of(const td_api::notification *n) {
-  if (n && n->type_ && n->type_->get_id() == td_api::notificationTypeNewMessage::ID && mode_notify_preview()) {
-    const auto &t = static_cast<const td_api::notificationTypeNewMessage &>(*n->type_);
-    if (t.show_preview_ && t.message_) {
-      return message_preview(*t.message_);
-    }
-  }
-  return "New message";
-}
-
 // A column of the chat's row in chats.db, "" when there is none. The mirror in memory is empty for the first seconds
 // of a run (and holds only the chats TDLib has sent since), while the last run's items are rewritten at once: every
 // one said "Telegram / New message" after an engine restart (the user, 2026-11-17).
@@ -132,6 +124,32 @@ std::string stored(std::int64_t chat, const char *sql) {
   return s.view_string(0).str();
 }
 
+// A secret chat's content is never in a notification, as in Telegram's apps.
+bool secret_chat(std::int64_t chat) {
+  ChatBrief brief = {};
+  if (chat_brief(chat, brief)) {
+    return brief.secret != 0;
+  }
+  const std::string value = stored(chat, "SELECT secret FROM chats WHERE jid = ?1");
+  return !value.empty() && value != "0";
+}
+
+// What the item says: the chat list's preview of the message, or a fixed line when the preview is not wanted or the
+// chat is a secret one. A new secret chat's notification says so.
+std::string body_of(const td_api::notification *n) {
+  const std::int32_t type = n && n->type_ ? n->type_->get_id() : 0;
+  if (type == td_api::notificationTypeNewSecretChat::ID) {
+    return "New secret chat";
+  }
+  if (type == td_api::notificationTypeNewMessage::ID && mode_notify_preview()) {
+    const auto &t = static_cast<const td_api::notificationTypeNewMessage &>(*n->type_);
+    if (t.show_preview_ && t.message_ && !secret_chat(t.message_->chat_id_)) {
+      return message_preview(*t.message_);
+    }
+  }
+  return "New message";
+}
+
 std::string title_of(std::int64_t chat) {
   std::string title = chat_title(chat);
   if (title.empty()) {
@@ -143,7 +161,7 @@ std::string title_of(std::int64_t chat) {
 // What an item said before this run, which hub.json doesn't keep: the chat's last preview.
 std::string last_body(std::int64_t chat, const ChatState &s) {
   std::string body = s.body.empty() ? stored(chat, "SELECT last_preview FROM chats WHERE jid = ?1") : s.body;
-  return body.empty() || !mode_notify_preview() ? "New message" : body;
+  return body.empty() || !mode_notify_preview() || secret_chat(chat) ? "New message" : body;
 }
 
 // Adds or updates the chat's item. The account goes in before the first item ever; hub.json is written when

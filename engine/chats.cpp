@@ -30,6 +30,7 @@ struct Row {
   std::int64_t muted_until = 0;
   std::int64_t read_inbox = 0;
   int forum = 0;
+  int secret = 0;  // 0 not a secret chat, 1 pending, 2 ready, 3 closed
 };
 
 // muted_until is the time the mute was learned plus what was left of it, so the same mute learned again a
@@ -40,7 +41,7 @@ bool same(const Row &a, const Row &b) {
   return a.kind == b.kind && a.name == b.name && a.photo == b.photo && a.last_ts == b.last_ts &&
          a.has_last == b.has_last && a.preview == b.preview && a.last_out == b.last_out &&
          a.last_state == b.last_state && a.unread == b.unread && a.pinned == b.pinned && a.archived == b.archived &&
-         a.read_inbox == b.read_inbox && a.forum == b.forum &&
+         a.read_inbox == b.read_inbox && a.forum == b.forum && a.secret == b.secret &&
          (timed ? gap <= 2 : a.muted_until == b.muted_until);
 }
 
@@ -49,7 +50,8 @@ struct Chat {
   int kind = 0;  // chats.kind: 0 a person, 1 a group, 3 a channel
   std::int64_t supergroup = 0;  // the supergroup's id in a supergroup chat, else 0
   bool forum = false;           // a supergroup with topics (updateSupergroup)
-  std::int64_t peer = 0;  // the other person's user id in a private chat (chatTypePrivate), else 0
+  std::int64_t peer = 0;  // the other person's user id in a private or a secret chat, else 0
+  std::int32_t secret_chat = 0;  // the secret chat's id in a secret chat (chatTypeSecret), else 0
   std::string title;
   int photo_file = 0;  // the small photo's file id, 0 for none
   std::string photo_path;
@@ -84,6 +86,7 @@ struct UserNames {
 std::unordered_map<std::int64_t, Chat> chats;
 std::unordered_map<std::int64_t, UserNames> users;
 std::unordered_map<std::int64_t, bool> forums;    // supergroup id -> is_forum, from updateSupergroup
+std::unordered_map<std::int32_t, int> secret_states;  // secret chat id -> chats.secret (1 to 3), from updateSecretChat
 std::unordered_map<int, std::int64_t> downloads;  // photo file id -> chat id, for each download asked for
 std::unordered_map<int, std::int64_t> user_downloads;  // the same for the users' small profile photos
 std::unordered_map<int, int> accent_colors;       // a server accent colour's id -> the built-in one (0 to 6) to use for it
@@ -239,9 +242,14 @@ void new_chat(const td_api::chat &t) {
                      ? static_cast<const td_api::chatTypeSupergroup &>(*t.type_).supergroup_id_
                      : 0;
   c.forum = forums.count(c.supergroup) && forums[c.supergroup];
-  c.peer = t.type_ && t.type_->get_id() == td_api::chatTypePrivate::ID
-               ? static_cast<const td_api::chatTypePrivate &>(*t.type_).user_id_
-               : 0;
+  c.peer = 0;
+  c.secret_chat = 0;
+  if (t.type_ && t.type_->get_id() == td_api::chatTypePrivate::ID) {
+    c.peer = static_cast<const td_api::chatTypePrivate &>(*t.type_).user_id_;
+  } else if (t.type_ && t.type_->get_id() == td_api::chatTypeSecret::ID) {
+    c.peer = static_cast<const td_api::chatTypeSecret &>(*t.type_).user_id_;
+    c.secret_chat = static_cast<const td_api::chatTypeSecret &>(*t.type_).secret_chat_id_;
+  }
   c.title = t.title_;
   c.unread = t.unread_count_;
   c.marked_unread = t.is_marked_as_unread_;
@@ -331,6 +339,16 @@ std::int64_t muted_until(const Chat &c) {
   return mute >= kForeverFrom ? kForever : learned + mute;
 }
 
+// chats.secret of a chat: what updateSecretChat last said of its secret chat. TDLib sends that update before the chat, so
+// 1 (pending) for a secret chat it has not named is only a guard.
+int secret_of(const Chat &c) {
+  if (!c.secret_chat) {
+    return 0;
+  }
+  const auto it = secret_states.find(c.secret_chat);
+  return it == secret_states.end() ? 1 : it->second;
+}
+
 Row row_of(const Chat &c) {
   Row r;
   r.kind = c.kind;
@@ -353,6 +371,7 @@ Row row_of(const Chat &c) {
   r.archived = c.in_archive && !c.in_main;
   r.read_inbox = c.read_inbox;
   r.forum = c.forum;
+  r.secret = secret_of(c);
   return r;
 }
 
@@ -360,8 +379,8 @@ bool prepare() {
   if (insert_row.empty()) {
     insert_row = db.prepare(
         "INSERT OR REPLACE INTO chats(jid, kind, name, photo, last_ts, last_preview, last_out, last_state, unread, "
-        "muted_until, pinned, archived, read_inbox, forum) "
-        "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)");
+        "muted_until, pinned, archived, read_inbox, forum, secret) "
+        "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)");
   }
   if (delete_row.empty()) {
     delete_row = db.prepare("DELETE FROM chats WHERE jid = ?1");
@@ -369,7 +388,7 @@ bool prepare() {
   if (select_row.empty()) {
     select_row = db.prepare(
         "SELECT kind, name, photo, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, "
-        "archived, read_inbox, forum FROM chats WHERE jid = ?1");
+        "archived, read_inbox, forum, secret FROM chats WHERE jid = ?1");
   }
   return !insert_row.empty() && !delete_row.empty() && !select_row.empty();
 }
@@ -399,6 +418,7 @@ td::Status load_row(Chat &c) {
     r.archived = s.view_int32(10);
     r.read_inbox = s.view_int64(11);
     r.forum = s.view_int32(12);
+    r.secret = s.view_int32(13);
     c.stored = Chat::Stored::Present;
   }
   select_row.reset();
@@ -423,6 +443,7 @@ td::Status write_row(const Chat &c, const Row &r) {
   TRY_STATUS(s.bind_int32(12, r.archived));
   TRY_STATUS(s.bind_int64(13, r.read_inbox));
   TRY_STATUS(s.bind_int32(14, r.forum));
+  TRY_STATUS(s.bind_int32(15, r.secret));
   auto status = s.step();
   s.reset();
   return status;
@@ -519,8 +540,8 @@ bool chat_brief(std::int64_t chat_id, ChatBrief &out) {
   if (it == chats.end()) {
     return false;
   }
-  out = {it->second.kind,  it->second.has_last, it->second.last_id,
-         it->second.read_outbox, it->second.peer,   it->second.forum};
+  out = {it->second.kind,  it->second.has_last, it->second.last_id, it->second.read_outbox,
+         it->second.peer,  it->second.forum,    secret_of(it->second)};
   return true;
 }
 
@@ -715,6 +736,21 @@ void chats_update(td_api::Object &update) {
       }
       break;
     }
+    case td_api::updateSecretChat::ID: {  // a secret chat's state: its chat's row says so (also one that comes later)
+      const auto &s = static_cast<td_api::updateSecretChat &>(update).secret_chat_;
+      if (!s) {
+        break;
+      }
+      const std::int32_t state = s->state_ ? s->state_->get_id() : 0;
+      secret_states[s->id_] =
+          state == td_api::secretChatStateReady::ID ? 2 : state == td_api::secretChatStateClosed::ID ? 3 : 1;
+      for (auto &entry : chats) {
+        if (entry.second.secret_chat == s->id_) {
+          touch(entry.second);
+        }
+      }
+      break;
+    }
     case td_api::updateAccentColors::ID:
       set_accent_colors(static_cast<td_api::updateAccentColors &>(update));
       break;
@@ -865,6 +901,7 @@ void chats_reset() {
   chats.clear();
   users.clear();
   forums.clear();
+  secret_states.clear();
   downloads.clear();
   user_downloads.clear();
   unknown_chats.clear();

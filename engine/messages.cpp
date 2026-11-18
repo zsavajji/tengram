@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 #include <functional>
 #include <map>
 #include <memory>
@@ -557,6 +558,17 @@ void content(Row &r, const td_api::message &m) {
   if (m.forward_info_) {
     append_extra(r, "\"forwarded\":true");
   }
+  // A self-destructing message (a secret chat's, or a private chat's photo with a timer): the timer it carries, and when
+  // it ends once the countdown runs, as unix seconds, so the UI counts down without the row being written again. Rounded
+  // up: TDLib never says 0 for a countdown that has not ended.
+  if (m.self_destruct_type_ && m.self_destruct_type_->get_id() == td_api::messageSelfDestructTypeTimer::ID) {
+    const auto &timer = static_cast<const td_api::messageSelfDestructTypeTimer &>(*m.self_destruct_type_);
+    append_extra(r, "\"ttl\":" + std::to_string(timer.self_destruct_time_));
+  }
+  if (m.self_destruct_in_ > 0) {
+    append_extra(r, "\"expiresAt\":" + std::to_string(static_cast<std::int64_t>(std::time(nullptr)) +
+                                                     static_cast<std::int64_t>(std::ceil(m.self_destruct_in_))));
+  }
   add_reactions(r, m);
   add_entities(r, shown_text(c));
 }
@@ -1073,6 +1085,7 @@ void messages_update(td_api::Object &update) {
     case td_api::updateMessageContentOpened::ID: {
       auto &u = static_cast<td_api::updateMessageContentOpened &>(update);
       ops.push_back([chat = u.chat_id_, id = u.message_id_] { opened(chat, id); });
+      refresh.insert({u.chat_id_, u.message_id_});  // opening starts a self-destruct countdown: extra.expiresAt
       mark_dirty();
       break;
     }

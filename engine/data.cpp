@@ -326,7 +326,8 @@ void gallery_save(const td_api::message &m, const std::string &path) {
     return;
   }
   const DataPrefs &p = mode_data_prefs();
-  if (!(chat.kind == 3 ? p.gallery_channels : chat.kind == 1 ? p.gallery_groups : p.gallery_private)) {
+  // Never a secret chat's: its media stay inside Tengram, as Telegram's apps keep them.
+  if (chat.secret || !(chat.kind == 3 ? p.gallery_channels : chat.kind == 1 ? p.gallery_groups : p.gallery_private)) {
     return;
   }
   const std::string dir = std::string("/accounts/1000/shared/") + (video ? "videos" : "photos") + "/Tengram";

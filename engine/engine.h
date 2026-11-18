@@ -75,8 +75,9 @@ struct ChatBrief {
   bool has_last;
   std::int64_t last_id;
   std::int64_t read_outbox;  // last_read_outbox_message_id_
-  std::int64_t peer;         // the other person's user id in a private chat, else 0
+  std::int64_t peer;         // the other person's user id in a private or a secret chat, else 0
   bool forum;                // a supergroup with topics (chats.forum)
+  int secret;                // chats.secret: 0 not a secret chat, 1 pending, 2 ready, 3 closed
 };
 bool chat_brief(std::int64_t chat_id, ChatBrief &out);  // false when the chat is not mirrored
 void chats_last_message(const td_api::message &m);      // m is the chat's newest message now: refresh its preview
@@ -209,8 +210,9 @@ std::int64_t supergroup_of(const td_api::chat &c, bool channel);
 void with_chat(std::uint64_t conn, const std::string &id, std::int64_t chat,
                std::function<void(const td_api::chat &)> next);
 
-// manage.cpp: contact.block, group.participants, group.create, poll.create, invite.info, invite.accept and chat.export,
-// what the UI does to people, groups and invite links, and the chat's export to a text file.
+// manage.cpp: contact.block, group.participants, group.create, poll.create, invite.info, invite.accept, secret.start,
+// chat.ttl and chat.export, what the UI does to people, groups and invite links, starting a secret chat, the chat's
+// self-destruct or auto-delete timer, and the chat's export to a text file.
 bool manage_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // account.cpp: privacy.get, privacy.set, password.*, autodelete.set, blocked.*, account.ttl, websites.*, payments.clear,

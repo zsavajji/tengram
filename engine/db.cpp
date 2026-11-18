@@ -33,9 +33,9 @@ std::string read_key(const std::string &path) {
   return n == 64 && raw.is_ok() ? raw.move_as_ok() : "";
 }
 
-// The version-5 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
+// The version-6 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
 // without its reactions and poll_votes tables (a message's reactions and a poll's counts are in messages.extra),
-// and with the engine's own messages.sig, chats.read_inbox, chats.forum and messages.topic.
+// and with the engine's own messages.sig, chats.read_inbox, chats.forum, chats.secret and messages.topic.
 // Column order is theirs, in case the UI reads by position; the engine's own come last, where ALTER TABLE
 // puts them in a migrated file. The first line removes the table that SqliteDb::change_key leaves in a
 // database it has just encrypted.
@@ -52,7 +52,8 @@ CREATE TABLE chats(
   pinned INTEGER NOT NULL DEFAULT 0,
   archived INTEGER NOT NULL DEFAULT 0,
   read_inbox INTEGER NOT NULL DEFAULT 0,
-  forum INTEGER NOT NULL DEFAULT 0);
+  forum INTEGER NOT NULL DEFAULT 0,
+  secret INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE messages(
   chat TEXT NOT NULL, id TEXT NOT NULL,
   ts INTEGER NOT NULL,
@@ -144,14 +145,15 @@ bool Db::try_open(const std::string &raw_key) {
     return false;
   }
   auto v = db_.user_version();
-  if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3 && v.ok() != 4 && v.ok() != 5)) {
+  if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3 && v.ok() != 4 && v.ok() != 5 && v.ok() != 6)) {
     say("chats.db: user_version %d is not ours", v.is_ok() ? v.ok() : -1);
     db_.close();
     return false;
   }
   if ((v.ok() == 0 && !create_schema()) || (v.ok() == 2 && !migrate_2_to_3()) ||
       ((v.ok() == 2 || v.ok() == 3) && !migrate_3_to_4()) ||
-      ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4) && !migrate_4_to_5())) {
+      ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4) && !migrate_4_to_5()) ||
+      ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4 || v.ok() == 5) && !migrate_5_to_6())) {
     db_.close();
     return false;
   }
@@ -161,7 +163,7 @@ bool Db::try_open(const std::string &raw_key) {
 bool Db::create_schema() {
   // One transaction, user_version inside it: a crash leaves either nothing or all of it.
   return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) && exec(kTopics) &&
-         ok(db_.set_user_version(5), "user_version") && ok(db_.commit_transaction(), "commit");
+         ok(db_.set_user_version(6), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 // Version 2 had no chats.read_inbox. One transaction with user_version inside it, as create_schema: a crash
@@ -192,6 +194,14 @@ bool Db::migrate_4_to_5() {
   return ok(db_.begin_write_transaction(), "begin") &&
          exec("DROP TABLE IF EXISTS reactions; DROP TABLE IF EXISTS poll_votes") &&
          ok(db_.set_user_version(5), "user_version") && ok(db_.commit_transaction(), "commit");
+}
+
+// Version 5 had no chats.secret. Same shape as the others. Every row keeps 0, which is right: the engine ran with secret
+// chats off until version 6, so no chat in the file is one.
+bool Db::migrate_5_to_6() {
+  return ok(db_.begin_write_transaction(), "begin") &&
+         exec("ALTER TABLE chats ADD COLUMN secret INTEGER NOT NULL DEFAULT 0") &&
+         ok(db_.set_user_version(6), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 void Db::close() {
