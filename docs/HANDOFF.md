@@ -245,6 +245,12 @@ user batches: build one package when the round is ready, then ask to install it.
    arrives downloaded), nothing on mobile data, a download stopped when Wi-Fi goes; Save to gallery puts a received
    photo in Pictures → Tengram; the media cap prunes 2 minutes after start (tengramd.log).
 
+10. **Secret chats** (`74c1d59` and the UI after it; chats.db migrates to v6 at the first start): Start secret chat from a
+    person's page (the other side on the user's Android phone: Telegram Desktop has none); the lock and green; "Waiting
+    for … to get online" until it is accepted; send and receive; the self-destruct timer, a message's countdown, the
+    message going; a timed photo's countdown starting when it is opened; Delete chat ends it on both sides; the Hub says
+    "New message" only; nothing of it in Pictures → Tengram. Requests that came while secret chats were off are lost.
+
 **Saved for later (the user, 2026-11-18): video streaming.** Possible, not built. bbtube plays a local MP4 while it
 fills (moov written first, the file at its final size). For Tengram the planned route is a small HTTP server in the
 engine on 127.0.0.1 serving a video by byte ranges: a range not downloaded yet is asked of TDLib (downloadFile with
