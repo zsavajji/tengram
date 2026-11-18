@@ -80,6 +80,7 @@ struct ChatBrief {
 };
 bool chat_brief(std::int64_t chat_id, ChatBrief &out);  // false when the chat is not mirrored
 void chats_last_message(const td_api::message &m);      // m is the chat's newest message now: refresh its preview
+void chats_rewrite(std::int64_t chat, bool emptied);    // the row again; emptied: chat.clear took its history
 std::string message_preview(const td_api::message &m);  // the chat list's one line for a message, sender prefix and all
 // muted_until of a topic's own notification settings: 0 when they follow the chat's (or there is no mute).
 std::int64_t topic_muted_until(const td_api::chatNotificationSettings &n);

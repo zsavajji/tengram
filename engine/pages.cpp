@@ -451,8 +451,12 @@ void leave(std::uint64_t conn, const std::string &id, std::int64_t chat, bool ba
 void chat_clear(std::uint64_t conn, const std::string &id, std::int64_t chat) {
   with_chat(conn, id, chat, [conn, id, chat](const td_api::chat &c) {
     // The chat stays in the list; the messages go with TDLib's updateDeleteMessages, as msg.delete's do.
-    tdlib.send(make_object<td_api::deleteChatHistory>(chat, false, revoke_of(c)),
-               [conn, id](Obj o) { answer(conn, id, o); });
+    tdlib.send(make_object<td_api::deleteChatHistory>(chat, false, revoke_of(c)), [conn, id, chat](Obj o) {
+      if (!as_error(o)) {
+        chats_rewrite(chat, true);  // the old preview goes: TDLib's empty last message alone looks like a loading chat
+      }
+      answer(conn, id, o);
+    });
   });
 }
 

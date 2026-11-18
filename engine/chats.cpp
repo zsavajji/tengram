@@ -55,6 +55,7 @@ struct Chat {
   std::string photo_path;
   bool photo_wanted = false;  // not here yet and downloadable: fetched once the chat has a row
   bool has_last = false;
+  bool emptied = false;  // chat.clear took the history: no last message is really none, until the next one
   std::int64_t last_id = 0;
   int last_date = 0;
   bool last_out = false;
@@ -124,6 +125,21 @@ void touch(Chat &c) {
   mark_dirty();
 }
 
+}  // namespace
+
+// Writes the chat's row again at the next flush: our own id has come (Saved Messages' name, chats announced before
+// getMe answered were written with ours), or chat.clear emptied the history (`emptied`: the preview goes).
+void chats_rewrite(std::int64_t chat, bool emptied) {
+  auto it = chats.find(chat);
+  if (it == chats.end()) {
+    return;
+  }
+  it->second.emptied = it->second.emptied || emptied;
+  touch(it->second);
+}
+
+namespace {
+
 Chat *find(std::int64_t id) {
   auto it = chats.find(id);
   if (it != chats.end()) {
@@ -156,6 +172,7 @@ void set_last(Chat &c, const td_api::message *m) {
   if (!m) {
     return;
   }
+  c.emptied = false;
   c.last_id = m->id_;
   c.last_date = m->date_;
   c.last_out = m->is_outgoing_;
@@ -784,10 +801,13 @@ void chats_write() {
         fetch_photo(c);
       }
       Row r = row_of(c);
-      if (!c.has_last && c.stored == Chat::Stored::Present) {
+      if (!c.has_last && c.stored == Chat::Stored::Present && c.emptied) {
+        r.last_ts = c.written.last_ts;  // cleared here: no preview, and the chat keeps its place in the list
+      } else if (!c.has_last && c.stored == Chat::Stored::Present) {
         // TDLib announces a chat it is still loading with no last message, and sends the message a moment
         // later: the row keeps what it has, so the list does not flicker and the page is not written twice.
-        // ponytail: a chat whose history really became empty keeps its old preview until its next message.
+        // ponytail: a chat whose history became empty elsewhere (another device's clear) keeps its old preview until
+        // its next message; chat.clear here says so (chats_rewrite).
         r.has_last = c.written.has_last;
         r.last_ts = c.written.last_ts;
         r.preview = c.written.preview;
