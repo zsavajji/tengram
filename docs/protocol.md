@@ -376,7 +376,7 @@ for theirs; in a group or a channel the sender's full name (the channel's title 
 caption; a media with none (photo, video, GIF, voice or video message, audio, file, sticker) is `<Media omitted>`; a service
 message is worded as the chat list words it ("Anna joined"), which holds the name, so it has no `Name: `; a poll, a place or a contact
 likewise. A text of several lines keeps them. The history is read with `getChatHistory`, 100 a call from the newest message down
-until a call brings nothing, so the engine asks Telegram for what it does not hold; it stops at the newest 50 000 messages or 6 MiB of
+until a call brings nothing, so the engine asks Telegram for what it does not hold; it stops at the newest 200 000 messages or 24 MiB of
 text, whichever comes first. The file is `Telegram Chat with <the chat's title>.txt` (each of `/\:*?"<>|` becomes `_`), written over an
 older one of that name, in `/accounts/1000/shared/downloads`, else in `downloads` in the data folder. The reply `{path}` is its
 absolute path and comes when the file is written; a file that cannot be written is `write_failed`. An unknown chat is `bad_chat`, a

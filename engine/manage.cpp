@@ -20,10 +20,11 @@ constexpr std::size_t kGroupName = 128;  // Telegram's longest group name, in ch
 // poll_answer_count_max in OptionManager.cpp: 12 until Telegram's config says otherwise, and then TDLib refuses.
 constexpr std::size_t kPollOptions = 12;
 // ponytail: an export keeps its lines in memory (the history comes newest first and the file is oldest first), so it
-// stops at the newest 50 000 messages or 6 MiB of text, whichever comes first (the engine runs near a 30 MB cap).
-// A longer one would page into a temporary file and be reversed on the way out.
-constexpr std::size_t kExportMessages = 50000;
-constexpr std::size_t kExportBytes = std::size_t{6} << 20;
+// stops at the newest 200 000 messages or 24 MiB of text, whichever comes first: the engine's cap is 128 MiB with the
+// rlimit-patch addon, and TDLib also holds the messages a walk loads until it unloads them. A longer one would page into
+// a temporary file and be reversed on the way out.
+constexpr std::size_t kExportMessages = 200000;
+constexpr std::size_t kExportBytes = std::size_t{24} << 20;
 
 void td_failed(std::uint64_t conn, const std::string &id, const td_api::error &e) {
   say("td error: %d %s", e.code_, e.message_.c_str());
