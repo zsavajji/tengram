@@ -117,6 +117,7 @@ private slots:
     void onNotFullscreen();
 
 private:
+    void toFront(const QString &chat);
     void startEngine();
     QString post(const QString &cmd, const QVariantMap &args);
     void send(const QVariantMap &map);

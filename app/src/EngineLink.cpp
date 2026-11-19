@@ -169,6 +169,25 @@ void EngineLink::startEngine()
     connect(reply, SIGNAL(finished()), this, SLOT(invokeFinished()));
 }
 
+// A ringing call brings the app to the front, as the phone's own calls come (the user, 2026-11-19). The engine can't:
+// the navigator refuses a headless service's invoke of an app ("target of different type"), so the app invokes itself.
+// The uri names the call's Hub item, so OpenRequests opens the chat under the call sheet. A closed app is opened by a
+// tap on the Hub's banner.
+void EngineLink::toFront(const QString &chat)
+{
+    InvokeRequest request;
+    request.setTarget("com.zsavajji.tengram");
+    request.setAction("bb.action.OPEN");
+    request.setMimeType("application/vnd.zsavajji.tengram.chat");
+    request.setUri("pim:call_chat_" + chat);
+    InvokeTargetReply *reply = m_invoker->invoke(request);
+    qDebug() << "call: to the front" << (reply ? "asked" : "refused");
+    if (reply) {
+        reply->setParent(this);
+        connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
+    }
+}
+
 void EngineLink::invokeFinished()
 {
     InvokeTargetReply *reply = qobject_cast<InvokeTargetReply *>(sender());
@@ -257,6 +276,8 @@ void EngineLink::readLines()
                 m_call = map;
                 m_call.remove("ev");
                 emit callChanged();
+                if (map["state"].toString() == "ringing" && !fullscreen())
+                    toFront(map["chat"].toString());
             } else if (ev == "presence")
                 emit presence(map["chat"].toString(), map["online"].toBool(),
                               map["lastSeen"].toLongLong());
