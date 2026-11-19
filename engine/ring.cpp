@@ -4,6 +4,10 @@
 // call into mm-renderer is made on the main thread except by the join in ring_stop, and the thread's calls are fast.
 
 #include "engine.h"
+#include "hub.h"
+
+#include <bps/bps.h>
+#include <bps/navigator_invoke.h>
 
 #include <mm/renderer.h>
 #include <mm/renderer/events.h>
@@ -199,11 +203,38 @@ void stop_tone() {
   player.join();
 }
 
+// Tengram's screen to the front for a ringing call, as the phone's own calls come (the user, 2026-11-19: with the UI in
+// the background the call showed only when it was brought back), or launched when it isn't running; it connects and
+// gets the call (calls_hello). The uri names the call's item, so the chat opens under the call sheet. On a thread of its
+// own: BPS is per thread, and bb10.cpp's is busy with its events.
+void open_ui(std::int64_t chat) {
+  if (bps_initialize() != BPS_SUCCESS) {
+    say("call: no BPS to bring the UI to the front");
+    return;
+  }
+  const std::string uri = "pim:" + hub_item_id(chat, true);
+  navigator_invoke_invocation_t *inv = nullptr;
+  int rc = navigator_invoke_invocation_create(&inv);
+  if (rc == BPS_SUCCESS) {
+    navigator_invoke_invocation_set_target(inv, "com.zsavajji.tengram");
+    navigator_invoke_invocation_set_action(inv, "bb.action.OPEN");
+    navigator_invoke_invocation_set_type(inv, "application/vnd.zsavajji.tengram.chat");
+    navigator_invoke_invocation_set_uri(inv, uri.c_str());
+    rc = navigator_invoke_invocation_send(inv);
+    navigator_invoke_invocation_destroy(inv);
+  }
+  say("call: the UI to the front: %s", rc == BPS_SUCCESS ? "asked" : "refused");
+  bps_shutdown();
+}
+
 }  // namespace
 
 void ring_start(std::int64_t chat) {
   stop_tone();
   notifier_call(chat, true);
+  if (service) {  // a run from a shell has no app to open
+    std::thread(open_ui, chat).detach();
+  }
   {
     std::lock_guard<std::mutex> lock(mu);
     stopping = false;
