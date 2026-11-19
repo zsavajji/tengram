@@ -718,7 +718,7 @@ To find out where before the audio link. tgcalls v2's FinalState traffic counter
   Opus packets (ptime 60): 1749 datagrams, against 2821 forced to 20 ms, which cost ~49 % (+~15-20 points). 120 ms
   (`patches/tgcalls/0001-qnx-opus-120ms.patch`, QNX only): ~1100 datagrams, **28.6 % against 34.1 %** in four
   interleaved runs each (the 120 ms runs also far steadier). Our voice reaches the peer 60 ms later and a lost packet
-  takes 120 ms; to be judged on a real call. What is left at 120 ms is ~18 datagrams/s an end that aren't audio (~26 in all, ~8 audio)
+  takes 120 ms; on a real call (0.1.0.46) the user found it fine, delay included. What is left at 120 ms is ~18 datagrams/s an end that aren't audio (~26 in all, ~8 audio)
   (RTCP, transport feedback, keep-alives).
 - **Not verified yet:** Opus complexity 5 (as Android) against the default 9.
 - **Incoming calls and the delivery mode (the user, 2026-11-19):** no special case. Ringing in batched mode would
