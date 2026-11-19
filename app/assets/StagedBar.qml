@@ -78,25 +78,32 @@ Container {
             textStyle.color: ui.palette.secondaryTextOnPlain
         }
     }
-    // A button, not a toggle: always grey, as As file's off.
+    // A button, not a toggle: always grey, as As file's off. A pill in Round mode (the user's ask, 2026-11-19), as As file is.
     Container {
         visible: canEdit
         verticalAlignment: VerticalAlignment.Center
         leftMargin: ui.du(1)
-        leftPadding: ui.du(1.5)
-        rightPadding: ui.du(1.5)
-        topPadding: ui.du(1)
-        bottomPadding: ui.du(1)
-        background: Color.create("#33808080")
+        background: settings.round ? Color.Transparent : Color.create("#33808080")
+        layout: DockLayout {}
         gestureHandlers: TapHandler {
             onTapped: edit()
         }
-        Label {
-            text: qsTr("Edit")
-            textFormat: TextFormat.Plain
-            textStyle.fontSize: FontSize.PercentageValue
-            textStyle.fontSizeValue: nav.smallSize
-            textStyle.color: ui.palette.textOnPlain
+        RoundFill {
+            pill: true
+            filterColor: Color.create("#33808080")
+        }
+        Container {
+            leftPadding: ui.du(1.5)
+            rightPadding: ui.du(1.5)
+            topPadding: ui.du(1)
+            bottomPadding: ui.du(1)
+            Label {
+                text: qsTr("Edit")
+                textFormat: TextFormat.Plain
+                textStyle.fontSize: FontSize.PercentageValue
+                textStyle.fontSizeValue: nav.smallSize
+                textStyle.color: ui.palette.textOnPlain
+            }
         }
     }
     // A PNG goes as a photo unless this is on (the page clears it for each file). A square toggle, as the call screen's,
@@ -105,20 +112,27 @@ Container {
         visible: canFile
         verticalAlignment: VerticalAlignment.Center
         leftMargin: ui.du(1)
-        leftPadding: ui.du(1.5)
-        rightPadding: ui.du(1.5)
-        topPadding: ui.du(1)
-        bottomPadding: ui.du(1)
-        background: bar.asFile ? ui.palette.primary : Color.create("#33808080")
+        background: settings.round ? Color.Transparent : bar.asFile ? ui.palette.primary : Color.create("#33808080")
+        layout: DockLayout {}
         gestureHandlers: TapHandler {
             onTapped: bar.asFile = !bar.asFile
         }
-        Label {
-            text: qsTr("As file")
-            textFormat: TextFormat.Plain
-            textStyle.fontSize: FontSize.PercentageValue
-            textStyle.fontSizeValue: nav.smallSize
-            textStyle.color: bar.asFile ? Color.White : ui.palette.textOnPlain
+        RoundFill {
+            pill: true
+            filterColor: bar.asFile ? ui.palette.primary : Color.create("#33808080")
+        }
+        Container {
+            leftPadding: ui.du(1.5)
+            rightPadding: ui.du(1.5)
+            topPadding: ui.du(1)
+            bottomPadding: ui.du(1)
+            Label {
+                text: qsTr("As file")
+                textFormat: TextFormat.Plain
+                textStyle.fontSize: FontSize.PercentageValue
+                textStyle.fontSizeValue: nav.smallSize
+                textStyle.color: bar.asFile ? Color.White : ui.palette.textOnPlain
+            }
         }
     }
     // The cross has its own padding so the tap has a finger's size.

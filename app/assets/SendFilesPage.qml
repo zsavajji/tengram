@@ -69,7 +69,7 @@ Page {
         }
         return list
     }
-    // A square toggle: the primary colour when on (the UI is square, the user).
+    // A square toggle: the primary colour when on (the UI is square, the user); a pill in Round mode (the user's ask, 2026-11-19).
     function chipColor(on) {
         return on ? ui.palette.primary : Color.create("#40808080")
     }
@@ -93,6 +93,8 @@ Page {
             property real smallSize: nav.smallSize
             property real cellWidth: 0
             property int count: 0
+            // The pencil and the cross are discs in Round mode: a list item reaches settings only through its view.
+            property bool round: settings.round
             attachedObjects: LayoutUpdateHandler {
                 onLayoutFrameChanged: carousel.cellWidth = layoutFrame.width - carousel.peek
             }
@@ -203,42 +205,57 @@ Page {
                                 }
                             }
                             // A tap edits a picture or a video: a pencil, a square in the lower right corner, says so (the user, 2026-11-18).
+                            // The padded box is inside a Container of its own, so that the disc of Round mode covers the padding too.
                             Container {
                                 visible: ListItemData.kind <= 1
                                 horizontalAlignment: HorizontalAlignment.Right
                                 verticalAlignment: VerticalAlignment.Bottom
-                                leftPadding: ui.du(1)
-                                rightPadding: ui.du(1)
-                                topPadding: ui.du(1)
-                                bottomPadding: ui.du(1)
-                                background: Color.create("#99000000")
+                                background: cell.ListItem.view.round ? Color.Transparent : Color.create("#99000000")
+                                layout: DockLayout {}
                                 gestureHandlers: TapHandler {
                                     onTapped: cell.ListItem.view.edit(cell.ListItem.indexPath[0])
                                 }
-                                ImageView {
-                                    imageSource: "file:///usr/share/icons/ic_edit.png"
-                                    preferredWidth: ui.du(5)
-                                    preferredHeight: ui.du(5)
-                                    scalingMethod: ScalingMethod.AspectFit
-                                    filterColor: Color.White
+                                RoundFill {
+                                    visible: cell.ListItem.view.round
+                                    filterColor: Color.create("#99000000")
+                                }
+                                Container {
+                                    leftPadding: ui.du(1)
+                                    rightPadding: ui.du(1)
+                                    topPadding: ui.du(1)
+                                    bottomPadding: ui.du(1)
+                                    ImageView {
+                                        imageSource: "file:///usr/share/icons/ic_edit.png"
+                                        preferredWidth: ui.du(5)
+                                        preferredHeight: ui.du(5)
+                                        scalingMethod: ScalingMethod.AspectFit
+                                        filterColor: Color.White
+                                    }
                                 }
                             }
-                            // The cross, a square in the corner; a sibling of the picture, so its tap isn't the picture's.
+                            // The cross, a square in the corner, as the pencil is; a sibling of the picture, so its tap isn't the picture's.
                             Container {
                                 horizontalAlignment: HorizontalAlignment.Right
                                 verticalAlignment: VerticalAlignment.Top
-                                leftPadding: ui.du(2)
-                                rightPadding: ui.du(2)
-                                topPadding: ui.du(1.5)
-                                bottomPadding: ui.du(1.5)
-                                background: Color.create("#99000000")
+                                background: cell.ListItem.view.round ? Color.Transparent : Color.create("#99000000")
+                                layout: DockLayout {}
                                 gestureHandlers: TapHandler {
                                     onTapped: cell.ListItem.view.drop(cell.ListItem.indexPath[0])
                                 }
-                                Label {
-                                    text: "✕"
-                                    textFormat: TextFormat.Plain
-                                    textStyle.color: Color.White
+                                RoundFill {
+                                    visible: cell.ListItem.view.round
+                                    filterColor: Color.create("#99000000")
+                                }
+                                Container {
+                                    leftPadding: ui.du(2)
+                                    rightPadding: ui.du(2)
+                                    topPadding: ui.du(1.5)
+                                    bottomPadding: ui.du(1.5)
+                                    Label {
+                                        text: "✕"
+                                        textFormat: TextFormat.Plain
+                                        textStyle.color: Color.White
+                                    }
                                 }
                             }
                         }
@@ -246,7 +263,7 @@ Page {
                 }
             ]
         }
-        // The two choices, square toggles on one row.
+        // The two choices, square toggles on one row; pills in Round mode.
         Container {
             horizontalAlignment: HorizontalAlignment.Fill
             leftPadding: ui.du(1)
@@ -257,37 +274,51 @@ Page {
             }
             Container {
                 rightMargin: ui.du(1)
-                leftPadding: ui.du(2)
-                rightPadding: ui.du(2)
-                topPadding: ui.du(1)
-                bottomPadding: ui.du(1)
-                background: page.chipColor(page.group)
+                background: settings.round ? Color.Transparent : page.chipColor(page.group)
+                layout: DockLayout {}
                 gestureHandlers: TapHandler {
                     onTapped: page.group = !page.group
                 }
-                Label {
-                    text: (page.group ? "✓ " : "") + qsTr("Album")
-                    textFormat: TextFormat.Plain
-                    textStyle.color: page.group ? Color.White : ui.palette.textOnPlain
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: nav.bodySize
+                RoundFill {
+                    pill: true
+                    filterColor: page.chipColor(page.group)
+                }
+                Container {
+                    leftPadding: ui.du(2)
+                    rightPadding: ui.du(2)
+                    topPadding: ui.du(1)
+                    bottomPadding: ui.du(1)
+                    Label {
+                        text: (page.group ? "✓ " : "") + qsTr("Album")
+                        textFormat: TextFormat.Plain
+                        textStyle.color: page.group ? Color.White : ui.palette.textOnPlain
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: nav.bodySize
+                    }
                 }
             }
             Container {
-                leftPadding: ui.du(2)
-                rightPadding: ui.du(2)
-                topPadding: ui.du(1)
-                bottomPadding: ui.du(1)
-                background: page.chipColor(page.asFile)
+                background: settings.round ? Color.Transparent : page.chipColor(page.asFile)
+                layout: DockLayout {}
                 gestureHandlers: TapHandler {
                     onTapped: page.asFile = !page.asFile
                 }
-                Label {
-                    text: (page.asFile ? "✓ " : "") + qsTr("As files")
-                    textFormat: TextFormat.Plain
-                    textStyle.color: page.asFile ? Color.White : ui.palette.textOnPlain
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: nav.bodySize
+                RoundFill {
+                    pill: true
+                    filterColor: page.chipColor(page.asFile)
+                }
+                Container {
+                    leftPadding: ui.du(2)
+                    rightPadding: ui.du(2)
+                    topPadding: ui.du(1)
+                    bottomPadding: ui.du(1)
+                    Label {
+                        text: (page.asFile ? "✓ " : "") + qsTr("As files")
+                        textFormat: TextFormat.Plain
+                        textStyle.color: page.asFile ? Color.White : ui.palette.textOnPlain
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: nav.bodySize
+                    }
                 }
             }
         }

@@ -241,6 +241,7 @@ Page {
                 property int bodySize: nav.bodySize
                 property int smallSize: nav.smallSize
                 property string pressColor: nav.pressColor
+                property variant look: settings // the tiles' Shape (Tile.qml)
                 // The rows' long-press menu reaches the page through the view, as the message cards' do.
                 property bool admin: page.amAdmin
                 function change(p, action) {
@@ -289,30 +290,15 @@ Page {
                             layout: StackLayout {
                                 orientation: LayoutOrientation.LeftToRight
                             }
-                            Container {
+                            Tile {
                                 verticalAlignment: VerticalAlignment.Center
                                 preferredWidth: ui.du(7)
                                 preferredHeight: ui.du(7)
-                                background: Color.create(ListItemData.color)
-                                layout: DockLayout {}
-                                Label {
-                                    horizontalAlignment: HorizontalAlignment.Center
-                                    verticalAlignment: VerticalAlignment.Center
-                                    text: ListItemData.initials
-                                    textFormat: TextFormat.Plain
-                                    textStyle.base: row.ListItem.view.emojiStyle
-                                    textStyle.fontSize: FontSize.PercentageValue
-                                    textStyle.fontSizeValue: 118
-                                    textStyle.color: Color.White
-                                }
-                                ImageView {
-                                    visible: !!ListItemData.photo
-                                    horizontalAlignment: HorizontalAlignment.Fill
-                                    verticalAlignment: VerticalAlignment.Fill
-                                    imageSource: ListItemData.photo ? "file://" + ListItemData.photo : ""
-                                    scalingMethod: ScalingMethod.AspectFill
-                                    loadEffect: ImageViewLoadEffect.None
-                                }
+                                look: row.ListItem.view.look
+                                tint: ListItemData.color
+                                initials: ListItemData.initials
+                                photo: ListItemData.photo || ""
+                                emojiStyle: row.ListItem.view.emojiStyle
                             }
                             Label {
                                 verticalAlignment: VerticalAlignment.Center

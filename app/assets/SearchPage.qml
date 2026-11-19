@@ -5,7 +5,7 @@ import tengram 1.0
 // Search (the user's ask, 2026-11-19): Telegram's own search, as its Android app has it, in place of the chat list's
 // filter. Tabs Chats, Channels and Apps in the title bar. With no text, the people the user writes to most in a strip and
 // the chats found before ("Recent"); with text, the chats Tengram knows and then Telegram's "Global search". The tiles
-// are squares, as everywhere.
+// are squares, as everywhere, or discs in Round mode (Tile.qml).
 Page {
     id: page
     // The text in the field. Not the field's own `text`, which does not tell a binding while the user types.
@@ -106,6 +106,7 @@ Page {
                 property variant emojiStyle: nav.emojiStyle
                 property int smallSize: nav.smallSize
                 property string pressColor: nav.pressColor
+                property variant look: settings // the tiles' Shape (Tile.qml)
                 visible: page.typed == "" && search.hasTop
                 horizontalAlignment: HorizontalAlignment.Fill
                 preferredHeight: ui.du(15)
@@ -123,30 +124,15 @@ Page {
                         topPadding: ui.du(1)
                         bottomPadding: ui.du(1)
                         background: cell.ListItem.active ? Color.create(cell.ListItem.view.pressColor) : Color.Transparent
-                        Container {
+                        Tile {
                             horizontalAlignment: HorizontalAlignment.Center
                             preferredWidth: ui.du(9)
                             preferredHeight: ui.du(9)
-                            background: Color.create(ListItemData.color)
-                            layout: DockLayout {}
-                            Label {
-                                horizontalAlignment: HorizontalAlignment.Center
-                                verticalAlignment: VerticalAlignment.Center
-                                text: ListItemData.initials
-                                textFormat: TextFormat.Plain
-                                textStyle.base: cell.ListItem.view.emojiStyle
-                                textStyle.fontSize: FontSize.PercentageValue
-                                textStyle.fontSizeValue: 118
-                                textStyle.color: Color.White
-                            }
-                            ImageView {
-                                visible: !!ListItemData.photo
-                                horizontalAlignment: HorizontalAlignment.Fill
-                                verticalAlignment: VerticalAlignment.Fill
-                                imageSource: ListItemData.photo ? "file://" + ListItemData.photo : ""
-                                scalingMethod: ScalingMethod.AspectFill
-                                loadEffect: ImageViewLoadEffect.None
-                            }
+                            look: cell.ListItem.view.look
+                            tint: ListItemData.color
+                            initials: ListItemData.initials
+                            photo: ListItemData.photo || ""
+                            emojiStyle: cell.ListItem.view.emojiStyle
                         }
                         Label {
                             horizontalAlignment: HorizontalAlignment.Fill
@@ -166,6 +152,7 @@ Page {
                 property int bodySize: nav.bodySize
                 property int smallSize: nav.smallSize
                 property string pressColor: nav.pressColor
+                property variant look: settings // the tiles' Shape (Tile.qml)
                 dataModel: search.results
                 // A list item sees the page's ids no more than its `nav`: "Clear all" comes through the view.
                 function clearRecent() {

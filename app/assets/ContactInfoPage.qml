@@ -164,30 +164,14 @@ Page {
                     layout: StackLayout {
                         orientation: LayoutOrientation.LeftToRight
                     }
-                    Container {
+                    Tile {
                         verticalAlignment: VerticalAlignment.Center
                         preferredWidth: ui.du(7)
                         preferredHeight: ui.du(7)
-                        background: row.group ? Color.create(row.group.color) : Color.Transparent
-                        layout: DockLayout {}
-                        Label {
-                            horizontalAlignment: HorizontalAlignment.Center
-                            verticalAlignment: VerticalAlignment.Center
-                            text: row.group ? row.group.initials : ""
-                            textFormat: TextFormat.Plain
-                            textStyle.base: nav.emojiStyle
-                            textStyle.fontSize: FontSize.PercentageValue
-                            textStyle.fontSizeValue: 118
-                            textStyle.color: Color.White
-                        }
-                        ImageView {
-                            horizontalAlignment: HorizontalAlignment.Fill
-                            verticalAlignment: VerticalAlignment.Fill
-                            visible: row.photo != ""
-                            imageSource: row.photo != "" ? "file://" + row.photo : ""
-                            scalingMethod: ScalingMethod.AspectFill
-                            loadEffect: ImageViewLoadEffect.None
-                        }
+                        tint: row.group ? row.group.color : ""
+                        initials: row.group ? row.group.initials : ""
+                        photo: row.photo
+                        emojiStyle: nav.emojiStyle
                     }
                     Label {
                         verticalAlignment: VerticalAlignment.Center

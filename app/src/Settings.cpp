@@ -11,16 +11,23 @@
 #include <bb/system/InvokeReply>
 #include <bb/system/InvokeReplyError>
 #include <bb/system/InvokeTimerRequest>
+#include <QCryptographicHash>
 #include <QDate>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QHash>
+#include <QImage>
+#include <QImageReader>
+#include <QPainter>
 #include <QTime>
 
 #include "EngineLink.h"
 #include "sizes.h"
+
+bool Settings::s_roundShape = false;
 
 Settings::Settings(EngineLink *engine, QObject *parent)
     : QObject(parent),
@@ -28,6 +35,7 @@ Settings::Settings(EngineLink *engine, QObject *parent)
       m_engine(engine),
       m_region(bb::system::LocaleType::Region)
 {
+    s_roundShape = round();
     // Dark is the bar descriptor's theme (CASCADES_THEME): nothing to apply, and no reload.
     if (theme() == 1)
         applyTheme();
@@ -57,6 +65,7 @@ QString Settings::deliveryMode() const { return m_file.value("deliveryMode", "au
 int Settings::textSize() const { return qBound(0, m_file.value("textSize", 1).toInt(), 2); }
 int Settings::videoQuality() const { return qBound(0, m_file.value("videoQuality", 0).toInt(), 3); }
 bool Settings::compact() const { return m_file.value("compact", false).toBool(); }
+bool Settings::round() const { return m_file.value("round", false).toBool(); }
 int Settings::callHints() const { return qMax(0, m_file.value("callHints", 0).toInt()); }
 bool Settings::syncContacts() const { return m_file.value("syncContacts", false).toBool(); }
 
@@ -311,6 +320,15 @@ void Settings::setCompact(bool on)
     emit compactChanged();
 }
 
+void Settings::setRound(bool on)
+{
+    if (on == round())
+        return;
+    store("round", on);
+    s_roundShape = on;
+    emit roundChanged();
+}
+
 void Settings::setCallHints(int count)
 {
     count = qMax(0, count);
@@ -327,6 +345,10 @@ void Settings::setSyncContacts(bool on)
     store("syncContacts", on);
     emit syncContactsChanged();
 }
+
+// The round copies roundPhoto has made, by the picture's path: a list scrolling asks again and again. Emptied with the
+// cache, which holds the files.
+static QHash<QString, QString> s_round;
 
 // The cache is data/cache/ except upload/, which holds an upload in progress. Everything else in
 // it is made again when needed (a voice note's WAV on its next play, a photo's preview on its next
@@ -361,6 +383,7 @@ QString Settings::cacheSize()
 // Returns the size freed; a file that can't be removed is skipped. Empty directories stay.
 QString Settings::clearCache()
 {
+    s_round.clear();
     qint64 freed = 0;
     foreach (const QString &path, cacheFiles()) {
         const qint64 size = QFileInfo(path).size();
@@ -368,4 +391,56 @@ QString Settings::clearCache()
             freed += size;
     }
     return cacheText(freed, m_region.locale());
+}
+
+// Round mode's pictures (the user's ask, 2026-11-19): the file is read scaled to 160 px on its short side at most (a tile is
+// 74 px on the Classic), cut to its centre square and painted into a transparent image through an ellipse brush, which has
+// anti-aliased edges where a clip path has none. Named by an md5 of the path and the file's time, in data/cache/round/: a
+// new picture is a new file, and one already made is not drawn again.
+// ponytail: never pruned (about 15 KB a picture); Clear cache empties it. Prune it with the other caches if it ever grows.
+QString roundPhoto(const QString &path)
+{
+    const QString known = s_round.value(path);
+    if (!known.isEmpty())
+        return known;
+    const QFileInfo file(path);
+    if (!file.isFile())
+        return QString();
+    const QString dir = QDir::homePath() + "/cache/round/";
+    const QByteArray name = QCryptographicHash::hash((path + QString::number(file.lastModified().toTime_t())).toUtf8(),
+                                                     QCryptographicHash::Md5).toHex();
+    const QString out = dir + QString::fromLatin1(name) + ".png";
+    if (!QFile::exists(out)) {
+        QImageReader reader(path);
+        QSize to = reader.size(); // from the header
+        if (!to.isValid())
+            return QString();
+        if (qMin(to.width(), to.height()) > 160) {
+            to.scale(160, 160, Qt::KeepAspectRatioByExpanding);
+            reader.setScaledSize(to);
+        }
+        const QImage image = reader.read();
+        if (image.isNull())
+            return QString();
+        const int side = qMin(image.width(), image.height());
+        QImage disc(side, side, QImage::Format_ARGB32);
+        disc.fill(0);
+        QPainter painter(&disc);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QBrush(image.copy((image.width() - side) / 2, (image.height() - side) / 2, side, side)));
+        painter.drawEllipse(QRectF(0, 0, side, side));
+        painter.end();
+        if (!QDir().mkpath(dir) || !disc.save(out, "PNG")) {
+            QFile::remove(out);
+            return QString();
+        }
+    }
+    s_round.insert(path, out);
+    return out;
+}
+
+QString Settings::roundPhoto(const QString &path)
+{
+    return ::roundPhoto(path);
 }

@@ -37,6 +37,15 @@ Page {
                 ]
                 onSelectedIndexChanged: settings.compact = selectedIndex == 1
             }
+            // Round has the pictures in the lists, the buttons and the message cards rounded (the user's ask, 2026-11-19).
+            DropDown {
+                title: qsTr("Shape")
+                options: [
+                    Option { text: qsTr("Square"); selected: !settings.round },
+                    Option { text: qsTr("Round"); selected: settings.round }
+                ]
+                onSelectedIndexChanged: settings.round = selectedIndex == 1
+            }
         }
     }
 }

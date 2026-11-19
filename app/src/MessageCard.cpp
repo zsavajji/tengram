@@ -31,6 +31,7 @@
 #include "CardStyle.h"
 #include "MediaBubble.h"
 #include "PollBubble.h"
+#include "Settings.h"
 #include "VoiceBubble.h"
 
 using namespace bb::cascades;
@@ -54,12 +55,14 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_swipe(0)
     , m_styled(false)
     , m_restyledOut(false)
+    , m_round(false)
     , m_scale(0)
     , m_body(0)
     , m_small(0)
     , m_row(0)
     , m_avatar(0)
     , m_photo(0)
+    , m_disc(0)
     , m_initials(0)
     , m_nameLine(0)
     , m_names(0)
@@ -362,15 +365,22 @@ void MessageCard::restyle(bool out)
     const int body = Card::bodySize(m_list);
     const int small = Card::smallSize(m_list);
     const Color plain = m_ui->palette()->plain();
-    if (m_styled && scale == m_scale && body == m_body && small == m_small && plain == m_plain && out == m_restyledOut)
+    const bool round = Card::isRound(m_list);
+    if (m_styled && scale == m_scale && body == m_body && small == m_small && plain == m_plain && out == m_restyledOut
+        && round == m_round)
         return;
     m_styled = true;
     m_restyledOut = out;
+    m_round = round;
     m_scale = scale;
     m_body = body;
     m_small = small;
     m_plain = plain;
 
+    // Round mode (the user's ask, 2026-11-19): 20 px corners on the card, but not the one at the tail, which is the side's
+    // (theirs left, ours right); the tail stays and the accent bar goes (fillFoot), a 1 du bar can't carry a 20 px corner.
+    m_bg->setImageSource(Card::url(!round ? "asset:///images/card.amd"
+                                   : out ? "asset:///images/card_round_r.amd" : "asset:///images/card_round_l.amd"));
     const Color quiet = out ? Card::color(Card::outMeta(m_list)) : m_ui->palette()->secondaryTextOnPlain();
     m_barL->setFilterColor(m_ui->palette()->secondaryTextOnPlain());
     // The primary 20 % darker, quieter under our cards (the user, 2026-11-17).
@@ -476,6 +486,13 @@ void MessageCard::makeTile()
     m_avatar->setVerticalAlignment(VerticalAlignment::Bottom);
     m_avatar->setRightMargin(m_ui->du(1));
     m_avatar->setLayout(new DockLayout());
+    // Round mode's colour: a tinted disc under the picture, as ChatRows.cpp's tile has.
+    m_disc = new ImageView();
+    m_disc->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_disc->setVerticalAlignment(VerticalAlignment::Fill);
+    m_disc->setScalingMethod(ScalingMethod::AspectFit);
+    m_disc->setLoadEffect(ImageViewLoadEffect::None);
+    m_disc->setImageSource(Card::url("asset:///images/circle.png"));
     m_photo = new ImageView();
     m_photo->setHorizontalAlignment(HorizontalAlignment::Fill);
     m_photo->setVerticalAlignment(VerticalAlignment::Fill);
@@ -484,6 +501,7 @@ void MessageCard::makeTile()
     m_initials = new Label();
     m_initials->setHorizontalAlignment(HorizontalAlignment::Center);
     m_initials->setVerticalAlignment(VerticalAlignment::Center);
+    m_avatar->add(m_disc);
     m_avatar->add(m_photo);
     m_avatar->add(m_initials);
     m_row->insert(0, m_avatar);
@@ -507,16 +525,30 @@ void MessageCard::fillTile(bool on)
     m_avatar->setVisible(on);
     const bool tile = on && flag("showTile");
     const QString photo = tile ? str("senderPhoto") : QString();
-    if (photo != m_photoPath) {
-        m_photoPath = photo;
-        m_photo->setImageSource(photo.isEmpty() ? QUrl() : QUrl(QString::fromLatin1("file://") + photo));
+    // Round mode: a disc, and the picture's round copy (roundPhoto; the square picture if it can't be made).
+    const bool round = Card::isRound(m_list);
+    QString shown = photo;
+    if (round && !photo.isEmpty()) {
+        const QString disc = roundPhoto(photo);
+        if (!disc.isEmpty())
+            shown = disc;
+    }
+    if (shown != m_photoPath) {
+        m_photoPath = shown;
+        m_photo->setImageSource(shown.isEmpty() ? QUrl() : QUrl(QString::fromLatin1("file://") + shown));
     }
     m_photo->setVisible(!photo.isEmpty());
+    m_disc->setVisible(round && tile && photo.isEmpty());
     m_initials->setVisible(tile && photo.isEmpty());
     m_initials->setText(tile ? str("senderInitials") : QString());
     if (tile) {
         m_avatar->setPreferredHeight(m_ui->du(7 * m_scale));
-        m_avatar->setBackground(Card::color(str("senderColor")));
+        if (round) {
+            m_avatar->resetBackground();
+            m_disc->setFilterColor(Card::color(str("senderColor")));
+        } else {
+            m_avatar->setBackground(Card::color(str("senderColor")));
+        }
     } else {
         m_avatar->resetPreferredHeight(); // the spacer is only as tall as the card
         m_avatar->resetBackground();
@@ -910,8 +942,9 @@ void MessageCard::fillFoot()
         }
     }
 
-    m_barL->setVisible(!out);
-    m_barR->setVisible(out);
+    // No bar in Round mode: the tail alone hangs under the card's square corner (restyle).
+    m_barL->setVisible(!out && !m_round);
+    m_barR->setVisible(out && !m_round);
     m_foot->setVisible(str("media") != "sticker");
     m_tailL->setVisible(!out);
     m_tailR->setVisible(out);

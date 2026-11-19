@@ -84,7 +84,7 @@ private:
     bb::cascades::UIConfig *m_ui;
     QVariantMap m_chat;
     bool m_pressed;
-    QString m_photoPath; // the picture last given to m_photo
+    QString m_photoPath; // the picture last given to m_photo: the file, or in Round mode its round copy
     bool m_styled;
     float m_scale; // the text scale the sizes below were last set for
     bool m_compact; // and the interface
@@ -94,6 +94,7 @@ private:
     bb::cascades::Container *m_row;
     bb::cascades::Container *m_col; // the name and preview lines
     bb::cascades::Container *m_tile;
+    bb::cascades::ImageView *m_disc; // Round mode's colour of the tile
     bb::cascades::ImageView *m_photo;
     bb::cascades::Label *m_initials;
     bb::cascades::Label *m_name;

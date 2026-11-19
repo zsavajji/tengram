@@ -13,6 +13,8 @@ ListView {
     property int smallSize
     property real textScale: settings.textScale
     property bool compact: settings.compact
+    // Round mode (ChatRows.cpp): the rows' pictures are discs.
+    property bool round: settings.round
     property string pressColor: nav.pressColor
     property string secretColor: nav.secretColor
     // True on the Archived page, where "Archive" reads "Unarchive".

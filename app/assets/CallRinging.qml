@@ -17,7 +17,8 @@ Container {
     function px(n) {
         return ui.px(n * screenWidth / 720)
     }
-    // A square button: its box and the white glyph on it.
+    // A square button: its box and the white glyph on it. In Round mode (the user's ask, 2026-11-19) the box is a disc in
+    // its near black (call_btn.png is #040404 with a faint edge).
     Container {
         layoutProperties: AbsoluteLayoutProperties {
             positionX: ringing.px(308)
@@ -26,10 +27,16 @@ Container {
         visible: ringing.video
         layout: DockLayout {}
         ImageView {
+            visible: !settings.round
             preferredWidth: ringing.px(104)
             preferredHeight: ringing.px(104)
             scalingMethod: ScalingMethod.AspectFit
             imageSource: "asset:///images/call_btn.png"
+        }
+        RoundFill {
+            preferredWidth: ringing.px(104)
+            preferredHeight: ringing.px(104)
+            filterColor: Color.create("#060606")
         }
         ImageView {
             horizontalAlignment: HorizontalAlignment.Center
@@ -43,7 +50,7 @@ Container {
             onTapped: ringing.withVideo = !ringing.withVideo
         }
     }
-    // The message button, a square as well.
+    // The message button, a square as well, or a disc.
     Container {
         layoutProperties: AbsoluteLayoutProperties {
             positionX: ringing.px(588)
@@ -51,10 +58,16 @@ Container {
         }
         layout: DockLayout {}
         ImageView {
+            visible: !settings.round
             preferredWidth: ringing.px(104)
             preferredHeight: ringing.px(104)
             scalingMethod: ScalingMethod.AspectFit
             imageSource: "asset:///images/call_btn.png"
+        }
+        RoundFill {
+            preferredWidth: ringing.px(104)
+            preferredHeight: ringing.px(104)
+            filterColor: Color.create("#060606")
         }
         ImageView {
             horizontalAlignment: HorizontalAlignment.Center

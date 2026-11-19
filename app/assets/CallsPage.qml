@@ -9,6 +9,10 @@ Page {
     property variant list: calllog.list
     property bool loaded: calllog.loaded
     property variant call: engine.call
+    // Round mode (the user's ask, 2026-11-19): the rows' pictures are the round copies (a StandardListItem's image can't be
+    // clipped, so they are made as the rows are filled), and fill() runs again when the Shape changes.
+    property bool round: settings.round
+    onRoundChanged: fill()
     titleBar: TitleBar {
         title: qsTr("Calls")
     }
@@ -33,7 +37,7 @@ Page {
             var name = chat.name || list[i].name || ""
             calls.append({"chat": list[i].chat, "name": name, "title": name || qsTr("Unknown"),
                           "detail": list[i].detail, "video": list[i].video, "time": list[i].time,
-                          "photo": chat.photo ? "file://" + chat.photo : ""})
+                          "photo": chat.photo ? "file://" + (page.round ? (settings.roundPhoto(chat.photo) || chat.photo) : chat.photo) : ""})
         }
     }
     // The chat's row for nav.openRow: the row we have, else one built as main.qml's showPerson builds a person's.

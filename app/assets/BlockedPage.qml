@@ -64,6 +64,7 @@ Page {
             property int bodySize: nav.bodySize
             property int smallSize: nav.smallSize
             property string pressColor: nav.pressColor
+            property variant look: settings // the tiles' Shape (Tile.qml)
             dataModel: privacy.blocked
             onTriggered: page.askUnblock(dataModel.data(indexPath))
             listItemComponents: ListItemComponent {

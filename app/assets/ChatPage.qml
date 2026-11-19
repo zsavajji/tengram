@@ -880,6 +880,8 @@ Page {
                     property int bodySize: nav.bodySize
                     property int smallSize: nav.smallSize
                     property real textScale: settings.textScale
+                    // Round mode (MessageCard.cpp): the cards' corners and the sender's tile.
+                    property bool round: settings.round
                     // A quote's background: white at 8 % lifts it off a dark card, black at 5 % off
                     // a bright one.
                     property string quoteTint: settings.theme == 1 ? "#0D000000" : "#14FFFFFF"
@@ -932,7 +934,7 @@ Page {
                     model: ctl.messages
                 }
                 // To the newest message, when the list is in a window of history or far above it. Square and
-                // opaque, as the cards are.
+                // opaque, as the cards are; a disc in Round mode (the user's ask, 2026-11-19).
                 // ponytail: entries, not pixels (~2 screens on the 720x720 Classic); measure in pixels if it
                 // misfires on tall photo runs.
                 Container {
@@ -946,7 +948,7 @@ Page {
                     bottomMargin: ui.du(2)
                     preferredWidth: ui.du(11)
                     preferredHeight: ui.du(11)
-                    background: Color.create(nav.inColor)
+                    background: settings.round ? Color.Transparent : Color.create(nav.inColor)
                     layout: DockLayout {
                     }
                     gestureHandlers: TapHandler {
@@ -955,6 +957,9 @@ Page {
                             list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.Default)
                             page.startAim("bottom", "")
                         }
+                    }
+                    RoundFill {
+                        filterColor: Color.create(nav.inColor)
                     }
                     ImageView {
                         horizontalAlignment: HorizontalAlignment.Center

@@ -20,11 +20,13 @@ MessageCards::MessageCards(QObject *parent)
 
 VisualNode *MessageCards::createItem(ListView *list, const QString &type)
 {
-    // A text size change refills every card: its paddings and sizes were set from the old one.
+    // A text size or Shape change refills every card: its paddings, sizes and corners were set from the old one.
     if (m_list != list) {
         m_list = list;
         if (!connect(list, SIGNAL(textScaleChanged()), this, SIGNAL(itemUpdatesNeeded())))
             qWarning("cards: the list has no textScaleChanged");
+        if (!connect(list, SIGNAL(roundChanged()), this, SIGNAL(itemUpdatesNeeded())))
+            qWarning("cards: the list has no roundChanged");
     }
     // Telegram's floating date pill, for the day headers too (the user's ask, 2026-11-18).
     if (type == "header")

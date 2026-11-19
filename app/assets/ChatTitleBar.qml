@@ -152,35 +152,19 @@ TitleBar {
                 }
             }
             // The chat's picture (chat.photo, the engine's preview file) where the stock app has
-            // it, over the initials tile.
-            Container {
+            // it, over the initials tile; a disc in Round mode (Tile.qml).
+            Tile {
                 verticalAlignment: VerticalAlignment.Center
                 leftMargin: ui.du(1.5)
                 preferredWidth: ui.px(81)
                 preferredHeight: ui.px(81)
-                background: bar.chat ? Color.create(bar.chat.color) : Color.Transparent
-                layout: DockLayout {}
+                tint: bar.chat ? bar.chat.color : ""
+                initials: bar.chat ? bar.chat.initials : ""
+                photo: bar.photo
+                emojiStyle: nav.emojiStyle
+                initialsSize: 150
                 gestureHandlers: TapHandler {
                     onTapped: bar.tapped()
-                }
-                ImageView {
-                    visible: bar.hasPhoto
-                    horizontalAlignment: HorizontalAlignment.Fill
-                    verticalAlignment: VerticalAlignment.Fill
-                    imageSource: bar.hasPhoto ? "file://" + bar.photo : ""
-                    scalingMethod: ScalingMethod.AspectFill
-                    loadEffect: ImageViewLoadEffect.None
-                }
-                Label {
-                    visible: !bar.hasPhoto
-                    horizontalAlignment: HorizontalAlignment.Center
-                    verticalAlignment: VerticalAlignment.Center
-                    text: bar.chat ? bar.chat.initials : ""
-                    textFormat: TextFormat.Plain
-                    textStyle.base: nav.emojiStyle
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: 150
-                    textStyle.color: Color.White
                 }
             }
         }

@@ -29,6 +29,8 @@ namespace Card {
 inline int bodySize(bb::cascades::ListView *list) { return list->property("bodySize").toInt(); }
 inline int smallSize(bb::cascades::ListView *list) { return list->property("smallSize").toInt(); }
 inline float textScale(bb::cascades::ListView *list) { return list->property("textScale").toFloat(); }
+// Round mode (Settings > Appearance > Shape): the cards' corners, the tiles beside them.
+inline bool isRound(bb::cascades::ListView *list) { return list->property("round").toBool(); }
 inline QString quoteTint(bb::cascades::ListView *list) { return list->property("quoteTint").toString(); }
 inline QString pressColor(bb::cascades::ListView *list) { return list->property("pressColor").toString(); }
 // Telegram's secret green for the theme (main.qml's nav.secretColor): a secret chat's lock and name.

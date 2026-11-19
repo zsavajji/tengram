@@ -23,6 +23,7 @@
 #include "CardStyle.h"
 #include "ChatListModel.h"
 #include "Markup.h"
+#include "Settings.h"
 
 using namespace bb::cascades;
 
@@ -46,13 +47,15 @@ ChatRows::ChatRows(QObject *parent)
 
 VisualNode *ChatRows::createItem(ListView *list, const QString &type)
 {
-    // A text size change refills every row: its sizes were set from the old one.
+    // A text size, interface or Shape change refills every row: its sizes and tile were set from the old one.
     if (m_list != list) {
         m_list = list;
         if (!connect(list, SIGNAL(textScaleChanged()), this, SIGNAL(itemUpdatesNeeded())))
             qWarning("chat rows: the list has no textScaleChanged");
         if (!connect(list, SIGNAL(compactChanged()), this, SIGNAL(itemUpdatesNeeded())))
             qWarning("chat rows: the list has no compactChanged");
+        if (!connect(list, SIGNAL(roundChanged()), this, SIGNAL(itemUpdatesNeeded())))
+            qWarning("chat rows: the list has no roundChanged");
     }
     if (type == "header")
         return new Header();
@@ -101,6 +104,14 @@ ChatRow::ChatRow(ListView *list)
     m_tile = new Container();
     m_tile->setVerticalAlignment(VerticalAlignment::Center);
     m_tile->setLayout(new DockLayout());
+    // Round mode's colour (the user's ask, 2026-11-19): a Container's background can't be round, so the tile's colour is
+    // a white disc tinted by show(), under the picture, shown while there is none.
+    m_disc = new ImageView();
+    m_disc->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_disc->setVerticalAlignment(VerticalAlignment::Fill);
+    m_disc->setScalingMethod(ScalingMethod::AspectFit);
+    m_disc->setLoadEffect(ImageViewLoadEffect::None);
+    m_disc->setImageSource(Card::url("asset:///images/circle.png"));
     m_photo = new ImageView();
     m_photo->setHorizontalAlignment(HorizontalAlignment::Fill);
     m_photo->setVerticalAlignment(VerticalAlignment::Fill);
@@ -109,6 +120,7 @@ ChatRow::ChatRow(ListView *list)
     m_initials = new Label();
     m_initials->setHorizontalAlignment(HorizontalAlignment::Center);
     m_initials->setVerticalAlignment(VerticalAlignment::Center);
+    m_tile->add(m_disc);
     m_tile->add(m_photo);
     m_tile->add(m_initials);
 
@@ -254,12 +266,27 @@ void ChatRow::show(const QVariantMap &chat)
     paintBackground();
 
     // The tile: the picture, or the initials on the chat's colour (a topic with none: the accent). Given the
-    // picture again only when it changed, as a binding would.
-    m_tile->setBackground(str("color").isEmpty() ? primary : Card::color(str("color")));
+    // picture again only when it changed, as a binding would. Round mode: a disc and the picture's round copy
+    // (roundPhoto; the square picture if it can't be made), but a forum's topics keep their square tiles.
+    const bool round = !m_topics && Card::isRound(m_list);
     const QString photo = str("photo");
-    if (photo != m_photoPath) {
-        m_photoPath = photo;
-        m_photo->setImageSource(photo.isEmpty() ? QUrl() : QUrl(QString::fromLatin1("file://") + photo));
+    const Color tint = str("color").isEmpty() ? primary : Card::color(str("color"));
+    if (round) {
+        m_tile->resetBackground();
+        m_disc->setFilterColor(tint);
+    } else {
+        m_tile->setBackground(tint);
+    }
+    m_disc->setVisible(round && photo.isEmpty());
+    QString shown = photo;
+    if (round && !photo.isEmpty()) {
+        const QString disc = roundPhoto(photo);
+        if (!disc.isEmpty())
+            shown = disc;
+    }
+    if (shown != m_photoPath) {
+        m_photoPath = shown;
+        m_photo->setImageSource(shown.isEmpty() ? QUrl() : QUrl(QString::fromLatin1("file://") + shown));
     }
     m_photo->setVisible(!photo.isEmpty());
     m_initials->setVisible(photo.isEmpty());

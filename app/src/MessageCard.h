@@ -139,6 +139,7 @@ private:
     // What the styling was last set from: restyle() runs again when one of them changes.
     bool m_styled;
     bool m_restyledOut; // the side restyle() last styled: a recycled card changes it
+    bool m_round; // and the Shape (Round has other corners)
     float m_scale;
     int m_body;
     int m_small;
@@ -159,8 +160,9 @@ private:
     bb::cascades::Container *m_row;
     bb::cascades::Container *m_avatar;
     bb::cascades::ImageView *m_photo;
+    bb::cascades::ImageView *m_disc; // Round mode's colour of the tile, under the picture
     bb::cascades::Label *m_initials;
-    QString m_photoPath; // what m_photo was last given, "" for none
+    QString m_photoPath; // what m_photo was last given, "" for none; in Round mode the picture's round copy
     // The name line: the name and, docked at its right end, the tag. m_tagRoom is a transparent copy of the tag after
     // the name, which keeps the two apart when the line is as narrow as both.
     bb::cascades::Container *m_nameLine;

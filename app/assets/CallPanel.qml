@@ -3,7 +3,9 @@ import bb.cascades 1.4
 // The controls of a call that isn't ringing (step 7.4): the black panel with Speaker, Mute, Video,
 // Switch camera and Hide preview (a Telegram call has no keypad, note or second call; Video turns a voice
 // call into a video one), and the red End call bar. Over the call screen's 720 px stage, whose size px()
-// scales. On a video call the panel is see-through, over the peer's picture.
+// scales. On a video call the panel is see-through, over the peer's picture. In Round mode (the user's ask, 2026-11-19) the
+// End call bar is a pill (rounded ends at their 20 px radius: it is a wide bar, not a square) and the cells are discs
+// behind their icons (CallToggle).
 Container {
     id: panel
     property bool ended: false
@@ -132,33 +134,42 @@ Container {
         preferredHeight: panel.tall ? panel.px(181) : panel.px(93)
         enabled: !panel.ended
         opacity: panel.ended ? 0.5 : 1
-        background: panel.pressed ? Color.create("#b3181a") : Color.create("#ff3334")
-        // Padding and a row, not margins in a DockLayout: margins only space siblings, never from
-        // the container's edge (pitfalls.md), which left icon and label on top of each other at the
-        // bar's edge on the Q10 (0.0.1.187). The stock handset at x 32 and the label at x 114.
-        leftPadding: panel.tall ? 0 : panel.px(14)
-        topPadding: panel.tall ? panel.px(48) : 0
-        layout: StackLayout {
-            orientation: panel.tall ? LayoutOrientation.TopToBottom : LayoutOrientation.LeftToRight
+        background: settings.round ? Color.Transparent : panel.pressed ? Color.create("#b3181a") : Color.create("#ff3334")
+        layout: DockLayout {}
+        RoundFill {
+            pill: true
+            filterColor: panel.pressed ? Color.create("#b3181a") : Color.create("#ff3334")
         }
-        ImageView {
-            horizontalAlignment: HorizontalAlignment.Center
-            verticalAlignment: VerticalAlignment.Center
-            preferredWidth: panel.px(62)
-            preferredHeight: panel.px(22)
-            scalingMethod: ScalingMethod.AspectFit
-            imageSource: "asset:///images/call_end.png"
-        }
-        Label {
-            horizontalAlignment: HorizontalAlignment.Center
-            verticalAlignment: VerticalAlignment.Center
-            leftMargin: panel.tall ? 0 : panel.px(20)
-            topMargin: panel.tall ? panel.px(24) : 0
-            text: qsTr("End call")
-            textFormat: TextFormat.Plain
-            textStyle.fontSize: FontSize.PercentageValue
-            textStyle.fontSizeValue: 80
-            textStyle.color: Color.White
+        // The content in a Container of its own, over the pill. Padding and a row, not margins in a DockLayout: margins only
+        // space siblings, never from the container's edge (pitfalls.md), which left icon and label on top of each other at
+        // the bar's edge on the Q10 (0.0.1.187). The stock handset at x 32 and the label at x 114.
+        Container {
+            horizontalAlignment: HorizontalAlignment.Fill
+            verticalAlignment: VerticalAlignment.Fill
+            leftPadding: panel.tall ? 0 : panel.px(14)
+            topPadding: panel.tall ? panel.px(48) : 0
+            layout: StackLayout {
+                orientation: panel.tall ? LayoutOrientation.TopToBottom : LayoutOrientation.LeftToRight
+            }
+            ImageView {
+                horizontalAlignment: HorizontalAlignment.Center
+                verticalAlignment: VerticalAlignment.Center
+                preferredWidth: panel.px(62)
+                preferredHeight: panel.px(22)
+                scalingMethod: ScalingMethod.AspectFit
+                imageSource: "asset:///images/call_end.png"
+            }
+            Label {
+                horizontalAlignment: HorizontalAlignment.Center
+                verticalAlignment: VerticalAlignment.Center
+                leftMargin: panel.tall ? 0 : panel.px(20)
+                topMargin: panel.tall ? panel.px(24) : 0
+                text: qsTr("End call")
+                textFormat: TextFormat.Plain
+                textStyle.fontSize: FontSize.PercentageValue
+                textStyle.fontSizeValue: 80
+                textStyle.color: Color.White
+            }
         }
         onTouch: panel.pressed = event.isDown() || event.isMove()
         onTouchExit: panel.pressed = false

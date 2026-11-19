@@ -4,7 +4,7 @@ import bb.cascades 1.4
 // the tile the chat will have in the chat list, its picture over it when the row has one, the name,
 // a 2 px separator, a check when the contact is chosen and, for the rows that carry a time, when (a story's
 // viewers), and a second line under the name when the row has a `sub`. contact is a row of ContactPicker's model; the
-// view supplies the emoji style and sizes as the chat list's.
+// view supplies the emoji style and sizes as the chat list's, and `look: settings` for the tile's Shape (Tile.qml).
 Container {
     property variant contact
     id: row
@@ -18,32 +18,17 @@ Container {
         layout: StackLayout {
             orientation: LayoutOrientation.LeftToRight
         }
-        Container {
+        // The picture over the initials, when the row has one (a group's members do, from group.info: the call picker's
+        // and the group page's). A disc in Round mode: the view carries `look` (Tile.qml).
+        Tile {
             verticalAlignment: VerticalAlignment.Center
             preferredWidth: ui.du(7)
             preferredHeight: ui.du(7)
-            background: Color.create(row.contact.color)
-            layout: DockLayout {}
-            Label {
-                horizontalAlignment: HorizontalAlignment.Center
-                verticalAlignment: VerticalAlignment.Center
-                text: row.contact.initials
-                textFormat: TextFormat.Plain
-                textStyle.base: row.ListItem.view.emojiStyle
-                textStyle.fontSize: FontSize.PercentageValue
-                textStyle.fontSizeValue: 118
-                textStyle.color: Color.White
-            }
-            // The picture over the initials, when the row has one (a group's members do, from
-            // group.info: the call picker's and the group page's).
-            ImageView {
-                visible: !!row.contact.photo
-                horizontalAlignment: HorizontalAlignment.Fill
-                verticalAlignment: VerticalAlignment.Fill
-                imageSource: row.contact.photo ? "file://" + row.contact.photo : ""
-                scalingMethod: ScalingMethod.AspectFill
-                loadEffect: ImageViewLoadEffect.None
-            }
+            look: row.ListItem.view.look
+            tint: row.contact.color
+            initials: row.contact.initials
+            photo: row.contact.photo || ""
+            emojiStyle: row.ListItem.view.emojiStyle
         }
         Container {
             verticalAlignment: VerticalAlignment.Center

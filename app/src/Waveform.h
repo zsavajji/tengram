@@ -8,9 +8,10 @@
 namespace Waveform {
 // 64 bars, 3 px wide with a 3 px gap, 45 px tall (the Q10's 5 du), white on transparent so QML
 // tints it with filterColor. The BLOB is 64 values of 0 to 100; another length is resampled,
-// an empty one gives all-minimum bars.
+// an empty one gives all-minimum bars. In Round mode (Settings::roundShape, the user's ask, 2026-11-19): 32 bars, 6 px
+// wide with a 6 px gap and rounded ends, each the higher of the two 64ths it covers, in the same 381 px.
 QVariant image(const QByteArray &values);
-// Only the first `bars` bars, at their places: the played part, laid over the grey whole.
+// Only the first `bars` bars (of 64, in Round mode too), at their places: the played part, laid over the grey whole.
 QVariant image(const QByteArray &values, int bars);
 }
 

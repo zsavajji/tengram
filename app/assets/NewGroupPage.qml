@@ -96,6 +96,7 @@ Page {
                 property int bodySize: nav.bodySize
                 property int smallSize: nav.smallSize
                 property string pressColor: nav.pressColor
+                property variant look: settings // the tiles' Shape (Tile.qml)
                 dataModel: picker.model
                 onTriggered: picker.toggle(indexPath)
                 listItemComponents: ListItemComponent {
