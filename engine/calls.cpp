@@ -117,8 +117,14 @@ void emit(const std::string &reason = "") {
 
 void set_state(const char *s) {
   if (live->state != s) {
+    const bool was_ringing = live->state == "ringing";
     live->state = s;
     emit();
+    if (live->state == "ringing") {  // only an incoming call gets this state
+      ring_start(live->chat);
+    } else if (was_ringing) {
+      ring_stop(live->chat);
+    }
   }
 }
 
@@ -126,6 +132,9 @@ void set_state(const char *s) {
 // main thread to be deleted (never on tgcalls' thread).
 void end(const char *reason) {
   say("call %d: ended (%s)", live->id, reason);
+  if (live->state == "ringing") {
+    ring_stop(live->chat);
+  }
   live->state = "ended";
   emit(reason);
   {
@@ -602,6 +611,12 @@ bool calls_handle(std::uint64_t conn, const std::string &id, const std::string &
 
 bool calls_live() {
   return live.has_value();
+}
+
+void calls_hello() {
+  if (live) {
+    emit();  // the connections that know the call see its state again
+  }
 }
 
 bool calls_audio_wanted(const std::string &call_id) {

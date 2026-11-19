@@ -19,12 +19,12 @@ void hub_item(const HubItem &item, bool is_new) {
   service ? hubuds_item(item, is_new) : hublog_item(item, is_new);
 }
 
-void hub_remove(std::int64_t chat) {
-  service ? hubuds_remove(chat) : hublog_remove(chat);
+void hub_remove(std::int64_t chat, bool call) {
+  service ? hubuds_remove(chat, call) : hublog_remove(chat, call);
 }
 
-std::string hub_item_id(std::int64_t chat) {
-  std::string id = "chat_";
+std::string hub_item_id(std::int64_t chat, bool call) {
+  std::string id = call ? "call_chat_" : "chat_";
   if (chat < 0) {
     id += 'n';
     id += std::to_string(chat).substr(1);

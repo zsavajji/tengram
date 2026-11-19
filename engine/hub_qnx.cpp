@@ -150,7 +150,7 @@ void hubuds_account(bool add) {
 
 void hubuds_item(const HubItem &item, bool is_new) {
   // The source id rides in the user data too.
-  const std::string source = hub_item_id(item.chat);
+  const std::string source = hub_item_id(item.chat, item.call);
   uds_inbox_item_data_t *i = uds.inbox_item_data_create();
   uds.inbox_item_data_set_account_id(i, kAccount);
   uds.inbox_item_data_set_source_id(i, const_cast<char *>(source.c_str()));
@@ -167,12 +167,12 @@ void hubuds_item(const HubItem &item, bool is_new) {
   uds.inbox_item_data_set_notification_state(i, item.alert);  // true: the Hub banners and flashes the LED
   const int rc = is_new ? uds.item_added(context, i) : uds.item_updated(context, i);
   uds.inbox_item_data_destroy(i);
-  say("hub: item %lld unread=%d alert=%d new=%d uds %d", static_cast<long long>(item.chat), item.unread,
-      item.alert ? 1 : 0, is_new ? 1 : 0, rc);
+  say("hub: %sitem %lld unread=%d alert=%d new=%d uds %d", item.call ? "call " : "", static_cast<long long>(item.chat),
+      item.unread, item.alert ? 1 : 0, is_new ? 1 : 0, rc);
 }
 
-void hubuds_remove(std::int64_t chat) {
-  const std::string source = hub_item_id(chat);
+void hubuds_remove(std::int64_t chat, bool call) {
+  const std::string source = hub_item_id(chat, call);
   const int rc = uds.item_removed(context, kAccount, const_cast<char *>(source.c_str()));
-  say("hub: remove %lld: uds %d", static_cast<long long>(chat), rc);
+  say("hub: remove %s%lld: uds %d", call ? "call " : "", static_cast<long long>(chat), rc);
 }

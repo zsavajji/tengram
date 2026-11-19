@@ -18,7 +18,7 @@ $L/libtgcalls.a $L/libtg_owt.a $L/libssl.a $L/libcrypto.a $L/libopus.a -Wl,--end
 KEYS=
 if [ -n "$TG_API_ID" ] && [ -n "$TG_API_HASH" ]; then KEYS="-DTENGRAM_API_ID=$TG_API_ID -DTENGRAM_API_HASH=\"$TG_API_HASH\""; fi
 STRIP=/opt/bb10-toolchain/bin/arm-unknown-nto-qnx6.5.0eabi-strip
-bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $KEYS $INC engine/*.cpp -o build/tengramd.unstripped $LIBS -lbps &&
+bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $KEYS $INC engine/*.cpp -o build/tengramd.unstripped $LIBS -lbps -lmmrndclient -lstrm &&
 $STRIP -o build/tengramd build/tengramd.unstripped &&
 bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $INC tests/dbq.cpp -o build/dbq $LIBS &&
 $STRIP build/dbq &&

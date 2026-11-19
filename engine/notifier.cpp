@@ -293,6 +293,27 @@ void notifier_reset() {
   save();
 }
 
+// A ringing call's item, apart from the chat's own. It lasts as long as the ringing and isn't kept in hub.json, so an
+// engine that dies while a call rings leaves it in the Hub, and the add for the next call from that chat may fail
+// (the log line says so).
+void notifier_call(std::int64_t chat, bool ringing) {
+  if (!usable) {
+    return;
+  }
+  if (!ringing) {
+    hub_remove(chat, true);
+    return;
+  }
+  if (!account) {
+    hub_account(true);
+    account = true;
+    glyph = kGlyph;
+    save();
+  }
+  hub_item(HubItem{chat, title_of(chat), "Incoming voice call", 1, std::int64_t{std::time(nullptr)} * 1000, true, true},
+           true);
+}
+
 void notifier_action(const std::string &action, std::int64_t chat) {
   if (!usable) {
     return;

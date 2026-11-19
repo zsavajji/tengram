@@ -13,10 +13,10 @@ void hublog_account(bool add) {
 }
 
 void hublog_item(const HubItem &item, bool is_new) {
-  say("hub: item %lld unread=%d alert=%d new=%d body=%zu bytes", static_cast<long long>(item.chat), item.unread,
-      item.alert ? 1 : 0, is_new ? 1 : 0, item.body.size());
+  say("hub: %sitem %lld unread=%d alert=%d new=%d body=%zu bytes", item.call ? "call " : "",
+      static_cast<long long>(item.chat), item.unread, item.alert ? 1 : 0, is_new ? 1 : 0, item.body.size());
 }
 
-void hublog_remove(std::int64_t chat) {
-  say("hub: remove %lld", static_cast<long long>(chat));
+void hublog_remove(std::int64_t chat, bool call) {
+  say("hub: remove %s%lld", call ? "call " : "", static_cast<long long>(chat));
 }
