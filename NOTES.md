@@ -708,6 +708,12 @@ To find out where before the audio link. tgcalls v2's FinalState traffic counter
   the way: the audio link never attached (QNX's `F_SETFD` returns the previous flags, which `set_nonblock` took for an
   error), and the peer's audio stuttered (tgcalls' fake device slept a fixed 10 ms a tick: 90.3 % of real time, 23
   underruns in 10 s); paced by a steady clock it is 100.1 %, 3 underruns in 28 s (the start, and a route change).
+- **Ringing (the Q10, 0.1.0.40-44, 2026-11-19):** the stock ringtone through mm-renderer (the user's own and the mode
+  name are in /pps/services/notify/settings, an ACL apps can't read; the user: the stock one is fine), off when the
+  notify status says sound off (Silent: verified); an alerting Hub item while it rings, removed on answer (verified).
+  The navigator refuses a headless service's invoke of the app ("target of different type, expected 72, actual 1"), so
+  only the UI brings itself to the front (a minimised UI); a closed one is opened by the Hub banner: a cold start, the
+  link now up before the QML (1.75 s), the scene at 2.0 s, the sheet sliding in over the chat list (the user: fine).
 - **Not verified yet:** Opus complexity 5 (as Android) against the default 9; 60 ms Opus packets (a third of the
   packets, so of the encryption and network work) as the next CPU lever.
 - **Incoming calls and the delivery mode (the user, 2026-11-19):** no special case. Ringing in batched mode would
