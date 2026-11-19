@@ -722,7 +722,9 @@ two tgcalls ends connected peer to peer over the phone's own network, each sendi
   audio threads do, so it over-counts what runs right after a wake (`TimerTimeout`, the first step of each frame:
   first the noise suppressor, ~31 %; with it off, `RmsLevel::Analyze`, 18 %). A/B runs with the spinners are the
   measure: **noise suppression off saves ~1 point** for both ends (42.6 → 41.3 %), gain control in Android's
-  fixed-digital mode 0, all outgoing processing off ~10. Noise suppression stays off on QNX (the user's ask).
+  fixed-digital mode 0, all outgoing processing off ~10. **All of it is off on QNX now** (echo, noise, gain, high-pass:
+  the user, 2026-11-19, to try on a real call): the bench is at 31.7-32.7 % for both ends, ~16 % an end. If a real
+  call has echo or a voice too quiet, gain control or echo cancellation comes back first.
 - **libopus is fixed point now** (`--enable-fixed-point`, NEON intrinsics and ARM asm; Android and WebRTC build it so
   on ARM): the float build's `silk_*_FLP` functions were in the profile. Small, steady gain; voice notes pass
   `voice_check`.
