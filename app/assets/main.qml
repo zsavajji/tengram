@@ -1,5 +1,6 @@
 import bb.cascades 1.4
 import bb.system 1.2
+import "errors.js" as Errors
 
 // The app's root (PLAN.md §7): the NavigationPane `nav` of every earlier step (pages reach it by that id,
 // and everything that pushes onto it), with the application menu. It shows the chat list when linked, else the
@@ -86,7 +87,25 @@ NavigationPane {
     property string pendingMsg
     // The Share menu's {path, text}, or {paths} for several files, held like pendingChat until the chat list is up.
     property variant pendingShare: ({})
+    // The sheet's own `call` reads the event that made it, so it opens for it as it did for the others.
+    property variant callSheet
+    property variant liveCall: engine.call
+    onLiveCallChanged: {
+        if (!callSheet && engine.call.state) {
+            callSheet = callSheetDef.createObject(nav)
+        }
+    }
     attachedObjects: [
+        // The call screen, over everything (step 7.4); it opens itself on a `call` event. Made at the first call event that
+        // has a state, not at the start: it and its four pieces are QML read and built before the first frame for a screen
+        // nobody had asked for (HyperBerry's Q10, 0.1.1.308).
+        ComponentDefinition {
+            id: callSheetDef
+            source: "CallSheet.qml"
+        },
+        SystemToast {
+            id: callFailed
+        },
         ComponentDefinition {
             id: chatsDef
             source: "ChatsPage.qml"
@@ -262,6 +281,15 @@ NavigationPane {
                               : code == "request_sent" ? qsTr("Request sent: an admin of the group has to let you in.")
                               : qsTr("Couldn't open this invite. Try again in a moment.")
             inviteFailed.show()
+        }
+    }
+
+    // Not failedCmd: a call is started from a chat's title bar.
+    property string callFailure: engine.failure.cmd || ""
+    onCallFailureChanged: {
+        if (callFailure == "call.start") {
+            callFailed.body = Errors.callError(engine.failure)
+            callFailed.show()
         }
     }
 

@@ -20,6 +20,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "CallAudio.h"
 #include "ChatController.h"
 #include "ChatRows.h"
 #include <bb/ApplicationInfo>
@@ -158,6 +159,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     ContactBook book(&engine, &settings, &app);
     ChatListModel chats(&engine, ChatListModel::Chats, &app);
     ChatListModel archivedChats(&engine, ChatListModel::Archived, &app);
+    CallAudio callAudio(&engine, &app);
     Proximity proximity(&app);
     // One for the run: the picker's table is built once, not per chat.
     EmojiModel emojis(&app);
@@ -195,6 +197,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     document->setContextProperty("engine", &engine);
     document->setContextProperty("chats", &chats);
     document->setContextProperty("archivedChats", &archivedChats);
+    document->setContextProperty("callAudio", &callAudio);
     // About shows it where a profile shows the number: versionNumber.buildId, from the .bar.
     document->documentContext()->setContextProperty("appVersion", bb::ApplicationInfo().version());
     // The pages' px(): a 720 px stage scaled to the screen's width.

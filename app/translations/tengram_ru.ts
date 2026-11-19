@@ -158,20 +158,24 @@
 <context>
     <name>CallPanel</name>
     <message>
+        <location filename="../assets/CallPanel.qml" line="38"/>
         <source>Speaker</source>
-        <translation type="obsolete">Динамик</translation>
+        <translation>Динамик</translation>
     </message>
     <message>
+        <location filename="../assets/CallPanel.qml" line="49"/>
         <source>Mute</source>
-        <translation type="obsolete">Выкл. микрофон</translation>
+        <translation>Выкл. микрофон</translation>
     </message>
     <message>
-        <source>End call</source>
-        <translation type="obsolete">Завершить звонок</translation>
-    </message>
-    <message>
+        <location filename="../assets/CallPanel.qml" line="51"/>
         <source>Unmute</source>
-        <translation type="obsolete">Вкл. микрофон</translation>
+        <translation>Вкл. микрофон</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallPanel.qml" line="86"/>
+        <source>End call</source>
+        <translation>Завершить звонок</translation>
     </message>
     <message>
         <source>Stop video</source>
@@ -251,12 +255,59 @@
 <context>
     <name>CallSheet</name>
     <message>
+        <location filename="../assets/CallSheet.qml" line="53"/>
         <source>Calling…</source>
-        <translation type="obsolete">Вызов…</translation>
+        <translation>Вызов…</translation>
     </message>
     <message>
+        <location filename="../assets/CallSheet.qml" line="55"/>
         <source>Incoming voice call</source>
-        <translation type="obsolete">Входящий аудиозвонок</translation>
+        <translation>Входящий аудиозвонок</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="57"/>
+        <source>Connecting…</source>
+        <translation>Подключение…</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="60"/>
+        <source>Call ended</source>
+        <translation>Звонок завершён</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="67"/>
+        <source>Declined</source>
+        <translation>Отклонено</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="69"/>
+        <source>Busy</source>
+        <translation>Занято</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="71"/>
+        <source>No answer</source>
+        <translation>Нет ответа</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="73"/>
+        <source>Missed</source>
+        <translation>Пропущено</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="75"/>
+        <source>Call failed</source>
+        <translation>Звонок не удался</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="220"/>
+        <source>Unknown</source>
+        <translation>Неизвестный</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="288"/>
+        <source>Telegram: voice call</source>
+        <translation>Telegram: аудиозвонок</translation>
     </message>
     <message>
         <source>Incoming video call</source>
@@ -271,40 +322,12 @@
         <translation type="obsolete">Входящий групповой аудиозвонок · %1</translation>
     </message>
     <message>
-        <source>Connecting…</source>
-        <translation type="obsolete">Подключение…</translation>
-    </message>
-    <message>
         <source>Reconnecting…</source>
         <translation type="obsolete">Повторное подключение…</translation>
     </message>
     <message>
-        <source>Call ended</source>
-        <translation type="obsolete">Звонок завершён</translation>
-    </message>
-    <message>
-        <source>Declined</source>
-        <translation type="obsolete">Отклонено</translation>
-    </message>
-    <message>
-        <source>Busy</source>
-        <translation type="obsolete">Занято</translation>
-    </message>
-    <message>
-        <source>No answer</source>
-        <translation type="obsolete">Нет ответа</translation>
-    </message>
-    <message>
-        <source>Call failed</source>
-        <translation type="obsolete">Звонок не удался</translation>
-    </message>
-    <message>
         <source>Offline</source>
         <translation type="obsolete">Не в сети</translation>
-    </message>
-    <message>
-        <source>Telegram: voice call</source>
-        <translation type="obsolete">Telegram: аудиозвонок</translation>
     </message>
     <message>
         <source>Telegram: video call</source>
@@ -3684,6 +3707,7 @@
     </message>
     <message>
         <location filename="../assets/errors.js" line="9"/>
+        <location filename="../assets/errors.js" line="41"/>
         <source>Tengram&apos;s engine isn&apos;t running yet. Try again in a moment.</source>
         <translation>Движок Tengram ещё не запущен. Повторите попытку чуть позже.</translation>
     </message>
@@ -3723,8 +3747,24 @@
         <translation>Не получилось: %1</translation>
     </message>
     <message>
+        <location filename="../assets/errors.js" line="35"/>
         <source>You&apos;re already on a call.</source>
-        <translation type="obsolete">Вы уже разговариваете.</translation>
+        <translation>Вы уже разговариваете.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="37"/>
+        <source>Log in to Telegram to call.</source>
+        <translation>Войдите в Telegram, чтобы позвонить.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="39"/>
+        <source>You can only call a person.</source>
+        <translation>Можно позвонить только человеку.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="43"/>
+        <source>Couldn&apos;t place the call: %1</source>
+        <translation>Не удалось совершить звонок: %1</translation>
     </message>
     <message>
         <source>You&apos;re offline. Connect to call.</source>
@@ -3741,10 +3781,6 @@
     <message>
         <source>You can only call a person, not a group.</source>
         <translation type="obsolete">Можно позвонить только человеку, но не группе.</translation>
-    </message>
-    <message>
-        <source>Couldn&apos;t place the call: %1</source>
-        <translation type="obsolete">Не удалось совершить звонок: %1</translation>
     </message>
 </context>
 <context>

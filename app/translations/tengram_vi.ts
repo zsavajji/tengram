@@ -158,20 +158,24 @@
 <context>
     <name>CallPanel</name>
     <message>
+        <location filename="../assets/CallPanel.qml" line="38"/>
         <source>Speaker</source>
-        <translation type="obsolete">Loa</translation>
+        <translation>Loa</translation>
     </message>
     <message>
+        <location filename="../assets/CallPanel.qml" line="49"/>
         <source>Mute</source>
-        <translation type="obsolete">Tắt tiếng</translation>
+        <translation>Tắt tiếng</translation>
     </message>
     <message>
-        <source>End call</source>
-        <translation type="obsolete">Kết thúc cuộc gọi</translation>
-    </message>
-    <message>
+        <location filename="../assets/CallPanel.qml" line="51"/>
         <source>Unmute</source>
-        <translation type="obsolete">Bật tiếng</translation>
+        <translation>Bật tiếng</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallPanel.qml" line="86"/>
+        <source>End call</source>
+        <translation>Kết thúc cuộc gọi</translation>
     </message>
     <message>
         <source>Stop video</source>
@@ -251,12 +255,59 @@
 <context>
     <name>CallSheet</name>
     <message>
+        <location filename="../assets/CallSheet.qml" line="53"/>
         <source>Calling…</source>
-        <translation type="obsolete">Đang gọi…</translation>
+        <translation>Đang gọi…</translation>
     </message>
     <message>
+        <location filename="../assets/CallSheet.qml" line="55"/>
         <source>Incoming voice call</source>
-        <translation type="obsolete">Cuộc gọi thoại đến</translation>
+        <translation>Cuộc gọi thoại đến</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="57"/>
+        <source>Connecting…</source>
+        <translation>Đang kết nối…</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="60"/>
+        <source>Call ended</source>
+        <translation>Cuộc gọi đã kết thúc</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="67"/>
+        <source>Declined</source>
+        <translation>Đã từ chối</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="69"/>
+        <source>Busy</source>
+        <translation>Máy bận</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="71"/>
+        <source>No answer</source>
+        <translation>Không trả lời</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="73"/>
+        <source>Missed</source>
+        <translation>Nhỡ</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="75"/>
+        <source>Call failed</source>
+        <translation>Cuộc gọi thất bại</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="220"/>
+        <source>Unknown</source>
+        <translation>Không xác định</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="288"/>
+        <source>Telegram: voice call</source>
+        <translation>Telegram: cuộc gọi thoại</translation>
     </message>
     <message>
         <source>Incoming video call</source>
@@ -271,40 +322,12 @@
         <translation type="obsolete">Cuộc gọi thoại nhóm đến · %1</translation>
     </message>
     <message>
-        <source>Connecting…</source>
-        <translation type="obsolete">Đang kết nối…</translation>
-    </message>
-    <message>
         <source>Reconnecting…</source>
         <translation type="obsolete">Đang kết nối lại…</translation>
     </message>
     <message>
-        <source>Call ended</source>
-        <translation type="obsolete">Cuộc gọi đã kết thúc</translation>
-    </message>
-    <message>
-        <source>Declined</source>
-        <translation type="obsolete">Đã từ chối</translation>
-    </message>
-    <message>
-        <source>Busy</source>
-        <translation type="obsolete">Máy bận</translation>
-    </message>
-    <message>
-        <source>No answer</source>
-        <translation type="obsolete">Không trả lời</translation>
-    </message>
-    <message>
-        <source>Call failed</source>
-        <translation type="obsolete">Cuộc gọi thất bại</translation>
-    </message>
-    <message>
         <source>Offline</source>
         <translation type="obsolete">Ngoại tuyến</translation>
-    </message>
-    <message>
-        <source>Telegram: voice call</source>
-        <translation type="obsolete">Telegram: cuộc gọi thoại</translation>
     </message>
     <message>
         <source>Telegram: video call</source>
@@ -3674,6 +3697,7 @@
     </message>
     <message>
         <location filename="../assets/errors.js" line="9"/>
+        <location filename="../assets/errors.js" line="41"/>
         <source>Tengram&apos;s engine isn&apos;t running yet. Try again in a moment.</source>
         <translation>Engine của Tengram chưa chạy. Hãy thử lại sau giây lát.</translation>
     </message>
@@ -3713,8 +3737,24 @@
         <translation>Không thành công: %1</translation>
     </message>
     <message>
+        <location filename="../assets/errors.js" line="35"/>
         <source>You&apos;re already on a call.</source>
-        <translation type="obsolete">Bạn đang trong một cuộc gọi.</translation>
+        <translation>Bạn đang trong một cuộc gọi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="37"/>
+        <source>Log in to Telegram to call.</source>
+        <translation>Hãy đăng nhập Telegram để gọi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="39"/>
+        <source>You can only call a person.</source>
+        <translation>Bạn chỉ có thể gọi một người.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="43"/>
+        <source>Couldn&apos;t place the call: %1</source>
+        <translation>Không thể gọi: %1</translation>
     </message>
     <message>
         <source>You&apos;re offline. Connect to call.</source>
@@ -3731,10 +3771,6 @@
     <message>
         <source>You can only call a person, not a group.</source>
         <translation type="obsolete">Bạn chỉ có thể gọi một người, không gọi được cả nhóm.</translation>
-    </message>
-    <message>
-        <source>Couldn&apos;t place the call: %1</source>
-        <translation type="obsolete">Không thể gọi: %1</translation>
     </message>
 </context>
 <context>

@@ -27,3 +27,18 @@ function errorText(f) {
     }
     return qsTr("That didn't work: %1").arg(f.message)
 }
+
+// A failed call.start (docs/protocol.md, "Calls"), worded for a toast.
+function callError(f) {
+    switch (f.code) {
+    case "busy":
+        return qsTr("You're already on a call.")
+    case "unlinked":
+        return qsTr("Log in to Telegram to call.")
+    case "bad_chat":
+        return qsTr("You can only call a person.")
+    case "no_engine":
+        return qsTr("Tengram's engine isn't running yet. Try again in a moment.")
+    }
+    return qsTr("Couldn't place the call: %1").arg(f.message)
+}

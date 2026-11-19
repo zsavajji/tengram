@@ -17,6 +17,10 @@ TitleBar {
     property bool hasPhoto: photo != ""
     // How many are in the group, us included (ChatPage reads it from the group info); 0 until known.
     property int members: 0
+    // A call button (step 7.4) for a person's chat, not our own: Saved Messages has our user id (link.me) for its id. A
+    // secret chat is a person's too, and calls them.
+    property bool canCall: !!bar.chat && engine.linked && !!engine.link.me && bar.chat.kind == 0
+        && String(engine.link.me) != String(bar.chat.jid)
     signal tapped
     signal back
     kind: TitleBarKind.FreeForm
@@ -108,6 +112,29 @@ TitleBar {
                     textStyle.fontSize: FontSize.PercentageValue
                     textStyle.fontSizeValue: 75
                     textStyle.color: Color.create(nav.headerQuiet)
+                }
+            }
+            // The call button, outside the two parts that open the info page. A tap places a voice call (there is
+            // no video); call.start's failure is worded by main.qml's toast.
+            Container {
+                visible: bar.canCall
+                verticalAlignment: VerticalAlignment.Center
+                leftPadding: ui.du(1.5)
+                rightPadding: ui.du(1.5)
+                minHeight: ui.px(81)
+                layout: DockLayout {}
+                gestureHandlers: TapHandler {
+                    onTapped: engine.request("call.start", {"chat": bar.chat.jid})
+                }
+                // The stock white handset, tinted with the primary colour as the bar's other live
+                // marks are; 45 px in an 81 px bar.
+                ImageView {
+                    verticalAlignment: VerticalAlignment.Center
+                    imageSource: "file:///usr/share/icons/ic_phone.png"
+                    filterColor: ui.palette.primary
+                    preferredWidth: ui.du(5)
+                    preferredHeight: ui.du(5)
+                    scalingMethod: ScalingMethod.AspectFit
                 }
             }
             // The chat's picture (chat.photo, the engine's preview file) where the stock app has

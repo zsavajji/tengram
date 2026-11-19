@@ -158,20 +158,24 @@
 <context>
     <name>CallPanel</name>
     <message>
+        <location filename="../assets/CallPanel.qml" line="38"/>
         <source>Speaker</source>
-        <translation type="obsolete">Speaker</translation>
+        <translation>Speaker</translation>
     </message>
     <message>
+        <location filename="../assets/CallPanel.qml" line="49"/>
         <source>Mute</source>
-        <translation type="obsolete">Bisukan</translation>
+        <translation>Bisukan</translation>
     </message>
     <message>
-        <source>End call</source>
-        <translation type="obsolete">Akhiri panggilan</translation>
-    </message>
-    <message>
+        <location filename="../assets/CallPanel.qml" line="51"/>
         <source>Unmute</source>
-        <translation type="obsolete">Suarakan</translation>
+        <translation>Suarakan</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallPanel.qml" line="86"/>
+        <source>End call</source>
+        <translation>Akhiri panggilan</translation>
     </message>
     <message>
         <source>Stop video</source>
@@ -251,12 +255,59 @@
 <context>
     <name>CallSheet</name>
     <message>
+        <location filename="../assets/CallSheet.qml" line="53"/>
         <source>Calling…</source>
-        <translation type="obsolete">Memanggil…</translation>
+        <translation>Memanggil…</translation>
     </message>
     <message>
+        <location filename="../assets/CallSheet.qml" line="55"/>
         <source>Incoming voice call</source>
-        <translation type="obsolete">Panggilan suara masuk</translation>
+        <translation>Panggilan suara masuk</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="57"/>
+        <source>Connecting…</source>
+        <translation>Menyambungkan…</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="60"/>
+        <source>Call ended</source>
+        <translation>Panggilan berakhir</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="67"/>
+        <source>Declined</source>
+        <translation>Ditolak</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="69"/>
+        <source>Busy</source>
+        <translation>Sibuk</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="71"/>
+        <source>No answer</source>
+        <translation>Tidak dijawab</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="73"/>
+        <source>Missed</source>
+        <translation>Tak terjawab</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="75"/>
+        <source>Call failed</source>
+        <translation>Panggilan gagal</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="220"/>
+        <source>Unknown</source>
+        <translation>Tidak dikenal</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallSheet.qml" line="288"/>
+        <source>Telegram: voice call</source>
+        <translation>Telegram: panggilan suara</translation>
     </message>
     <message>
         <source>Incoming video call</source>
@@ -271,40 +322,12 @@
         <translation type="obsolete">Panggilan suara grup masuk · %1</translation>
     </message>
     <message>
-        <source>Connecting…</source>
-        <translation type="obsolete">Menyambungkan…</translation>
-    </message>
-    <message>
         <source>Reconnecting…</source>
         <translation type="obsolete">Menyambungkan ulang…</translation>
     </message>
     <message>
-        <source>Call ended</source>
-        <translation type="obsolete">Panggilan berakhir</translation>
-    </message>
-    <message>
-        <source>Declined</source>
-        <translation type="obsolete">Ditolak</translation>
-    </message>
-    <message>
-        <source>Busy</source>
-        <translation type="obsolete">Sibuk</translation>
-    </message>
-    <message>
-        <source>No answer</source>
-        <translation type="obsolete">Tidak dijawab</translation>
-    </message>
-    <message>
-        <source>Call failed</source>
-        <translation type="obsolete">Panggilan gagal</translation>
-    </message>
-    <message>
         <source>Offline</source>
         <translation type="obsolete">Offline</translation>
-    </message>
-    <message>
-        <source>Telegram: voice call</source>
-        <translation type="obsolete">Telegram: panggilan suara</translation>
     </message>
     <message>
         <source>Telegram: video call</source>
@@ -3674,6 +3697,7 @@
     </message>
     <message>
         <location filename="../assets/errors.js" line="9"/>
+        <location filename="../assets/errors.js" line="41"/>
         <source>Tengram&apos;s engine isn&apos;t running yet. Try again in a moment.</source>
         <translation>Mesin Tengram belum berjalan. Coba lagi sebentar lagi.</translation>
     </message>
@@ -3713,8 +3737,24 @@
         <translation>Gagal: %1</translation>
     </message>
     <message>
+        <location filename="../assets/errors.js" line="35"/>
         <source>You&apos;re already on a call.</source>
-        <translation type="obsolete">Anda sudah dalam panggilan.</translation>
+        <translation>Anda sudah dalam panggilan.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="37"/>
+        <source>Log in to Telegram to call.</source>
+        <translation>Masuk ke Telegram untuk menelepon.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="39"/>
+        <source>You can only call a person.</source>
+        <translation>Anda hanya dapat menelepon satu orang.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="43"/>
+        <source>Couldn&apos;t place the call: %1</source>
+        <translation>Tidak dapat melakukan panggilan: %1</translation>
     </message>
     <message>
         <source>You&apos;re offline. Connect to call.</source>
@@ -3731,10 +3771,6 @@
     <message>
         <source>You can only call a person, not a group.</source>
         <translation type="obsolete">Anda hanya dapat menelepon satu orang, bukan grup.</translation>
-    </message>
-    <message>
-        <source>Couldn&apos;t place the call: %1</source>
-        <translation type="obsolete">Tidak dapat melakukan panggilan: %1</translation>
     </message>
 </context>
 <context>
