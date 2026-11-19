@@ -723,7 +723,7 @@ To find out where before the audio link. tgcalls v2's FinalState traffic counter
   from our answer to the peer's audio: 34.1 packets/s. CPU in interleaved runs: 60 ms with feedback ~34 %, 120 ms with
   ~28 %, **60 ms without ~29 % (shipped, 0.1.0.47)**, 120 ms without ~25.5 % (the user prefers 60 ms's delay). The
   120 ms build (0.1.0.46) was fine on a real call. The answer filter only matters against a real peer (the bench's
-  two ends both offer none): to check on a call that it connects and sounds right.
+  two ends both offer none): a call to the user's Android on 0.1.0.47 connected and sounded right (the user).
 - **Not verified yet:** Opus complexity 5 (as Android) against the default 9.
 - **Incoming calls and the delivery mode (the user, 2026-11-19):** no special case. Ringing in batched mode would
   mean keeping the connection open, which is instant mode; in batched mode a call rings on the other devices and
