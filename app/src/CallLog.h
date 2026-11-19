@@ -19,7 +19,7 @@ class CallLog : public QObject
     // The EngineLink, set as Sessions' link is.
     Q_PROPERTY(QObject *link READ link WRITE setLink)
     // The last calls.list result, a row for each call with its lines ready for the page, newest first:
-    // {chat, name, out, missed, detail, time}. Empty until it comes.
+    // {chat, name, out, missed, video, detail, time}. Empty until it comes.
     Q_PROPERTY(QVariantList list READ list NOTIFY listChanged)
     // True once a list has come.
     Q_PROPERTY(bool loaded READ loaded NOTIFY listChanged)

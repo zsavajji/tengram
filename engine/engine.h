@@ -272,7 +272,7 @@ bool notifier_active();                                // the Hub opened: TDLib 
 void notifier_update(td_api::Object &update);          // the notification updates; anything else is ignored
 void notifier_reset();                                 // a logout: the account goes, everything is forgotten
 void notifier_action(const std::string &action, std::int64_t chat);  // "read", "unread" or "delete", from a Hub item
-void notifier_call(std::int64_t chat, bool ringing);  // the "Incoming voice call" item: put in the Hub, or taken out
+void notifier_call(std::int64_t chat, bool ringing, bool video);  // the incoming call item: put in the Hub, or taken out
 
 // bb10.cpp (--service only): the navigator's and the network status's events, from a thread of its own.
 void bb10_start(int wake_fd);  // the thread writes to wake_fd when it has something: main calls bb10_drain()
@@ -294,7 +294,7 @@ void calls_hello();                                   // a connection said hello
 
 // ring.cpp: what an incoming call does until it stops ringing: the phone's ringtone, and the Hub's call item. Both from
 // the main thread; the tone plays on a thread of its own.
-void ring_start(std::int64_t chat);  // the call from this chat rings (a tone already playing is stopped first)
+void ring_start(std::int64_t chat, bool video);  // the call from this chat rings (a tone already playing is stopped first)
 void ring_stop(std::int64_t chat);   // it stopped ringing, however: the tone ends, the item goes. Safe if nothing rings
 
 // live.cpp: typing and presence for the chats the UI has open.

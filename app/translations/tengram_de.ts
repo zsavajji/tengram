@@ -158,27 +158,52 @@
 <context>
     <name>CallLog</name>
     <message>
-        <location filename="../src/CallLog.cpp" line="91"/>
+        <location filename="../src/CallLog.cpp" line="94"/>
+        <source>Outgoing video, %1</source>
+        <translation>Ausgehender Videoanruf, %1</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="94"/>
+        <source>Incoming video, %1</source>
+        <translation>Eingehender Videoanruf, %1</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="96"/>
         <source>Outgoing, %1</source>
         <translation>Ausgehend, %1</translation>
     </message>
     <message>
-        <location filename="../src/CallLog.cpp" line="91"/>
+        <location filename="../src/CallLog.cpp" line="96"/>
         <source>Incoming, %1</source>
         <translation>Eingehend, %1</translation>
     </message>
     <message>
-        <location filename="../src/CallLog.cpp" line="93"/>
+        <location filename="../src/CallLog.cpp" line="98"/>
+        <source>Declined video call</source>
+        <translation>Abgelehnter Videoanruf</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="98"/>
         <source>Declined call</source>
         <translation>Abgelehnter Anruf</translation>
     </message>
     <message>
-        <location filename="../src/CallLog.cpp" line="95"/>
+        <location filename="../src/CallLog.cpp" line="100"/>
+        <source>Cancelled video call</source>
+        <translation>Abgebrochener Videoanruf</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="100"/>
         <source>Cancelled call</source>
         <translation>Abgebrochener Anruf</translation>
     </message>
     <message>
-        <location filename="../src/CallLog.cpp" line="95"/>
+        <location filename="../src/CallLog.cpp" line="102"/>
+        <source>Missed video call</source>
+        <translation>Verpasster Videoanruf</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="102"/>
         <source>Missed call</source>
         <translation>Verpasster Anruf</translation>
     </message>
@@ -425,17 +450,22 @@
         <translation>Unbekannt</translation>
     </message>
     <message>
-        <location filename="../assets/CallsPage.qml" line="93"/>
+        <location filename="../assets/CallsPage.qml" line="96"/>
         <source>Call</source>
         <translation>Anrufen</translation>
     </message>
     <message>
-        <location filename="../assets/CallsPage.qml" line="98"/>
+        <location filename="../assets/CallsPage.qml" line="101"/>
+        <source>Video call</source>
+        <translation>Videoanruf</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallsPage.qml" line="106"/>
         <source>Open chat</source>
         <translation>Chat öffnen</translation>
     </message>
     <message>
-        <location filename="../assets/CallsPage.qml" line="112"/>
+        <location filename="../assets/CallsPage.qml" line="120"/>
         <source>No calls yet</source>
         <translation>Noch keine Anrufe</translation>
     </message>
@@ -855,20 +885,24 @@
 <context>
     <name>ChatTitleBar</name>
     <message>
+        <location filename="../assets/ChatTitleBar.qml" line="131"/>
         <source>Call</source>
-        <translation type="obsolete">Anrufen</translation>
+        <translation>Anrufen</translation>
     </message>
     <message>
+        <location filename="../assets/ChatTitleBar.qml" line="132"/>
         <source>Audio only</source>
-        <translation type="obsolete">Nur Audio</translation>
+        <translation>Nur Audio</translation>
     </message>
     <message>
+        <location filename="../assets/ChatTitleBar.qml" line="133"/>
         <source>Video</source>
-        <translation type="obsolete">Video</translation>
+        <translation>Video</translation>
     </message>
     <message>
+        <location filename="../assets/ChatTitleBar.qml" line="134"/>
         <source>Cancel</source>
-        <translation type="obsolete">Abbrechen</translation>
+        <translation>Abbrechen</translation>
     </message>
 </context>
 <context>
@@ -1095,11 +1129,11 @@
     </message>
     <message>
         <source>Voice call</source>
-        <translation type="obsolete">Sprachanruf</translation>
+        <translation>Sprachanruf</translation>
     </message>
     <message>
         <source>Video call</source>
-        <translation type="obsolete">Videoanruf</translation>
+        <translation>Videoanruf</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="114"/>

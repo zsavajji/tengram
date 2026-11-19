@@ -82,17 +82,24 @@ QVariantMap CallLog::row(const QVariantMap &c) const
     const bool out = c["out"].toBool();
     const int duration = c["duration"].toInt();
     const bool declined = c["reason"].toString() == "declined";
+    const bool video = c["video"].toBool();
     QVariantMap r;
     r["chat"] = c["chat"];
     r["name"] = c["name"];
     r["out"] = out;
     r["missed"] = !out && duration <= 0 && !declined;
-    if (duration > 0)
+    r["video"] = video;
+    // A video call is worded as such, each phrase whole: a language may inflect the noun.
+    if (duration > 0 && video)
+        r["detail"] = (out ? tr("Outgoing video, %1") : tr("Incoming video, %1")).arg(clock(duration));
+    else if (duration > 0)
         r["detail"] = (out ? tr("Outgoing, %1") : tr("Incoming, %1")).arg(clock(duration));
     else if (declined)
-        r["detail"] = tr("Declined call");
+        r["detail"] = video ? tr("Declined video call") : tr("Declined call");
+    else if (out)
+        r["detail"] = video ? tr("Cancelled video call") : tr("Cancelled call");
     else
-        r["detail"] = out ? tr("Cancelled call") : tr("Missed call");
+        r["detail"] = video ? tr("Missed video call") : tr("Missed call");
     r["time"] = whenText(c["date"].toLongLong());
     return r;
 }

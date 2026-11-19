@@ -731,7 +731,7 @@ units over the link; when it is off the engine drops them. `videoTheirs` says wh
 picture comes to the UI over the link, and the event is sent again when `videoTheirs` or `videoOurs` changes.
 
 An incoming call rings until it stops ringing, whatever stops it (answered, declined, ended, missed): the phone's
-ringtone, unless the phone's notification mode is silent, and an alerting Hub item "Incoming voice call". A connection
+ringtone, unless the phone's notification mode is silent, and an alerting Hub item, "Incoming voice call" or "Incoming video call". A connection
 that says `hello` while a call is live gets its `call` event at once, after the `hello` reply.
 
 `state`:
@@ -832,7 +832,7 @@ read on another device, and the delay while another device is in use are all Tel
   false (default true), Telegram hides the preview, or the chat is a secret chat (their content is never shown). A new
   secret chat's request is an item "New secret chat".
 - `hub.json` in the data folder records the account and the chats that have items.
-- An incoming call has an alerting item of its own, "Incoming voice call", for as long as it rings (see "Calls").
+- An incoming call has an alerting item of its own, "Incoming voice call" or "Incoming video call", for as long as it rings (see "Calls").
 
 ## chats.db, as the UI reads it
 

@@ -114,8 +114,8 @@ TitleBar {
                     textStyle.color: Color.create(nav.headerQuiet)
                 }
             }
-            // The call button, outside the two parts that open the info page. A tap places a voice call (there is
-            // no video); call.start's failure is worded by main.qml's toast.
+            // The call button, outside the two parts that open the info page: it asks audio or video in a dialog of
+            // buttons (the user's ask, 2026-11-19). call.start's failure is worded by main.qml's toast.
             Container {
                 visible: bar.canCall
                 verticalAlignment: VerticalAlignment.Center
@@ -124,7 +124,21 @@ TitleBar {
                 minHeight: ui.px(81)
                 layout: DockLayout {}
                 gestureHandlers: TapHandler {
-                    onTapped: engine.request("call.start", {"chat": bar.chat.jid})
+                    onTapped: callKind.show()
+                }
+                attachedObjects: SystemDialog {
+                    id: callKind
+                    title: qsTr("Call")
+                    confirmButton.label: qsTr("Audio only")
+                    customButton.label: qsTr("Video")
+                    cancelButton.label: qsTr("Cancel")
+                    onFinished: {
+                        if (value == SystemUiResult.ConfirmButtonSelection) {
+                            engine.request("call.start", {"chat": bar.chat.jid})
+                        } else if (value == SystemUiResult.CustomButtonSelection) {
+                            engine.request("call.start", {"chat": bar.chat.jid, "video": true})
+                        }
+                    }
                 }
                 // The stock white handset, tinted with the primary colour as the bar's other live
                 // marks are; 45 px in an 81 px bar.

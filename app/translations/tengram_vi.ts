@@ -158,27 +158,52 @@
 <context>
     <name>CallLog</name>
     <message>
-        <location filename="../src/CallLog.cpp" line="91"/>
+        <location filename="../src/CallLog.cpp" line="94"/>
+        <source>Outgoing video, %1</source>
+        <translation>Cuộc gọi video đi, %1</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="94"/>
+        <source>Incoming video, %1</source>
+        <translation>Cuộc gọi video đến, %1</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="96"/>
         <source>Outgoing, %1</source>
         <translation>Cuộc gọi đi, %1</translation>
     </message>
     <message>
-        <location filename="../src/CallLog.cpp" line="91"/>
+        <location filename="../src/CallLog.cpp" line="96"/>
         <source>Incoming, %1</source>
         <translation>Cuộc gọi đến, %1</translation>
     </message>
     <message>
-        <location filename="../src/CallLog.cpp" line="93"/>
+        <location filename="../src/CallLog.cpp" line="98"/>
+        <source>Declined video call</source>
+        <translation>Cuộc gọi video bị từ chối</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="98"/>
         <source>Declined call</source>
         <translation>Cuộc gọi bị từ chối</translation>
     </message>
     <message>
-        <location filename="../src/CallLog.cpp" line="95"/>
+        <location filename="../src/CallLog.cpp" line="100"/>
+        <source>Cancelled video call</source>
+        <translation>Cuộc gọi video đã hủy</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="100"/>
         <source>Cancelled call</source>
         <translation>Cuộc gọi đã hủy</translation>
     </message>
     <message>
-        <location filename="../src/CallLog.cpp" line="95"/>
+        <location filename="../src/CallLog.cpp" line="102"/>
+        <source>Missed video call</source>
+        <translation>Cuộc gọi video nhỡ</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="102"/>
         <source>Missed call</source>
         <translation>Cuộc gọi nhỡ</translation>
     </message>
@@ -425,17 +450,22 @@
         <translation>Không xác định</translation>
     </message>
     <message>
-        <location filename="../assets/CallsPage.qml" line="93"/>
+        <location filename="../assets/CallsPage.qml" line="96"/>
         <source>Call</source>
         <translation>Gọi</translation>
     </message>
     <message>
-        <location filename="../assets/CallsPage.qml" line="98"/>
+        <location filename="../assets/CallsPage.qml" line="101"/>
+        <source>Video call</source>
+        <translation>Cuộc gọi video</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallsPage.qml" line="106"/>
         <source>Open chat</source>
         <translation>Mở đoạn chat</translation>
     </message>
     <message>
-        <location filename="../assets/CallsPage.qml" line="112"/>
+        <location filename="../assets/CallsPage.qml" line="120"/>
         <source>No calls yet</source>
         <translation>Chưa có cuộc gọi nào</translation>
     </message>
@@ -854,20 +884,24 @@
 <context>
     <name>ChatTitleBar</name>
     <message>
+        <location filename="../assets/ChatTitleBar.qml" line="131"/>
         <source>Call</source>
-        <translation type="obsolete">Gọi</translation>
+        <translation>Gọi</translation>
     </message>
     <message>
+        <location filename="../assets/ChatTitleBar.qml" line="132"/>
         <source>Audio only</source>
-        <translation type="obsolete">Chỉ âm thanh</translation>
+        <translation>Chỉ âm thanh</translation>
     </message>
     <message>
+        <location filename="../assets/ChatTitleBar.qml" line="133"/>
         <source>Video</source>
-        <translation type="obsolete">Video</translation>
+        <translation>Video</translation>
     </message>
     <message>
+        <location filename="../assets/ChatTitleBar.qml" line="134"/>
         <source>Cancel</source>
-        <translation type="obsolete">Hủy</translation>
+        <translation>Hủy</translation>
     </message>
 </context>
 <context>
@@ -1093,11 +1127,11 @@
     </message>
     <message>
         <source>Voice call</source>
-        <translation type="obsolete">Cuộc gọi thoại</translation>
+        <translation>Cuộc gọi thoại</translation>
     </message>
     <message>
         <source>Video call</source>
-        <translation type="obsolete">Cuộc gọi video</translation>
+        <translation>Cuộc gọi video</translation>
     </message>
     <message>
         <location filename="../assets/ContactInfoPage.qml" line="114"/>

@@ -41,6 +41,8 @@ Page {
         // Not for our own chat, Saved Messages (its id is our user id, link.me), which has no one to share a secret with.
         // ponytail: a bot is offered it too (the page doesn't know it is one); Telegram's answer is the toast.
         if (String(engine.link.me) != String(chat.jid)) {
+            addAction(voiceAction, ActionBarPlacement.OnBar)
+            addAction(videoAction, ActionBarPlacement.OnBar)
             addAction(secretAction, ActionBarPlacement.InOverflow)
         }
     }
@@ -106,6 +108,24 @@ Page {
         ContactInfo {
             id: contact
             link: engine
+        },
+        // The calls, as HyperBerry's contact page has them; added in onChatChanged for a person other than ourselves
+        // (the engine would answer bad_chat). call.start's failure is worded by main.qml's toast.
+        ActionItem {
+            id: voiceAction
+            title: qsTr("Voice call")
+            imageSource: "file:///usr/share/icons/ic_phone.png"
+            enabled: engine.linked
+            ActionBar.placement: ActionBarPlacement.OnBar
+            onTriggered: engine.request("call.start", {"chat": page.chat.jid})
+        },
+        ActionItem {
+            id: videoAction
+            title: qsTr("Video call")
+            imageSource: "file:///usr/share/icons/ic_chat_video.png"
+            enabled: engine.linked
+            ActionBar.placement: ActionBarPlacement.OnBar
+            onTriggered: engine.request("call.start", {"chat": page.chat.jid, "video": true})
         },
         // Added in onChatChanged for a person other than ourselves (ActionItem has no visible). A secret chat's page
         // names the chat itself (the person's id isn't its jid): a closed one is started again from it.

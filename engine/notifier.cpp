@@ -295,8 +295,8 @@ void notifier_reset() {
 
 // A ringing call's item, apart from the chat's own. It lasts as long as the ringing and isn't kept in hub.json, so an
 // engine that dies while a call rings leaves it in the Hub, and the add for the next call from that chat may fail
-// (the log line says so).
-void notifier_call(std::int64_t chat, bool ringing) {
+// (the log line says so). A video call's item says so, as its ringing screen does.
+void notifier_call(std::int64_t chat, bool ringing, bool video) {
   if (!usable) {
     return;
   }
@@ -310,7 +310,8 @@ void notifier_call(std::int64_t chat, bool ringing) {
     glyph = kGlyph;
     save();
   }
-  hub_item(HubItem{chat, title_of(chat), "Incoming voice call", 1, std::int64_t{std::time(nullptr)} * 1000, true, true},
+  hub_item(HubItem{chat, title_of(chat), video ? "Incoming video call" : "Incoming voice call", 1,
+                   std::int64_t{std::time(nullptr)} * 1000, true, true},
            true);
 }
 

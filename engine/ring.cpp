@@ -186,9 +186,9 @@ void stop_tone() {
 
 }  // namespace
 
-void ring_start(std::int64_t chat) {
+void ring_start(std::int64_t chat, bool video) {
   stop_tone();
-  notifier_call(chat, true);
+  notifier_call(chat, true, video);
   {
     std::lock_guard<std::mutex> lock(mu);
     stopping = false;
@@ -198,5 +198,5 @@ void ring_start(std::int64_t chat) {
 
 void ring_stop(std::int64_t chat) {
   stop_tone();
-  notifier_call(chat, false);
+  notifier_call(chat, false, false);
 }

@@ -339,7 +339,7 @@ void set_state(const char *s) {
     live->state = s;
     emit();
     if (live->state == "ringing") {  // only an incoming call gets this state
-      ring_start(live->chat);
+      ring_start(live->chat, live->video);
     } else if (was_ringing) {
       ring_stop(live->chat);
     }

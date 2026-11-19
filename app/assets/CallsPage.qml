@@ -1,9 +1,9 @@
 import bb.cascades 1.4
 import tengram 1.0
 
-// Chats > Calls: Telegram's call log, newest first. A tap calls the person back; a long press offers Call and Open
-// chat. The page asks the engine itself (calls.list) through its own CallLog, so the answer goes with the page, and
-// asks again when a call ends while it is open.
+// Chats > Calls: Telegram's call log, newest first. A tap calls the person back as the call was (a video call back with
+// video); a long press offers Call, Video call and Open chat. The page asks the engine itself (calls.list) through its
+// own CallLog, so the answer goes with the page, and asks again when a call ends while it is open.
 Page {
     id: page
     property variant list: calllog.list
@@ -32,7 +32,7 @@ Page {
             var chat = chats.chat(list[i].chat)
             var name = chat.name || list[i].name || ""
             calls.append({"chat": list[i].chat, "name": name, "title": name || qsTr("Unknown"),
-                          "detail": list[i].detail, "time": list[i].time,
+                          "detail": list[i].detail, "video": list[i].video, "time": list[i].time,
                           "photo": chat.photo ? "file://" + chat.photo : ""})
         }
     }
@@ -67,8 +67,8 @@ Page {
         verticalAlignment: VerticalAlignment.Fill
         ListView {
             // The rows' menu and tap reach the engine and the page through the view, as the message cards' do.
-            function dial(chat) {
-                engine.request("call.start", {"chat": chat})
+            function dial(chat, video) {
+                engine.request("call.start", {"chat": chat, "video": !!video})
             }
             function openChat(entry) {
                 nav.openRow(page.callerRow(entry))
@@ -76,7 +76,10 @@ Page {
             dataModel: ArrayDataModel {
                 id: calls
             }
-            onTriggered: dial(dataModel.data(indexPath).chat)
+            onTriggered: {
+                var entry = dataModel.data(indexPath)
+                dial(entry.chat, entry.video)
+            }
             listItemComponents: ListItemComponent {
                 StandardListItem {
                     id: item
@@ -92,7 +95,12 @@ Page {
                             ActionItem {
                                 title: qsTr("Call")
                                 imageSource: "file:///usr/share/icons/ic_phone.png"
-                                onTriggered: item.ListItem.view.dial(item.entry.chat)
+                                onTriggered: item.ListItem.view.dial(item.entry.chat, false)
+                            }
+                            ActionItem {
+                                title: qsTr("Video call")
+                                imageSource: "file:///usr/share/icons/ic_chat_video.png"
+                                onTriggered: item.ListItem.view.dial(item.entry.chat, true)
                             }
                             ActionItem {
                                 title: qsTr("Open chat")
