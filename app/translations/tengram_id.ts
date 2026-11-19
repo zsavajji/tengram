@@ -1360,6 +1360,36 @@
         <source>Voice notes&apos; decoded audio and photo previews; they&apos;re made again when needed.</source>
         <translation>Audio pesan suara yang sudah didekode dan pratinjau foto; keduanya dibuat lagi saat diperlukan.</translation>
     </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="387"/>
+        <source>Calls</source>
+        <translation>Panggilan</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="397"/>
+        <source>Video calls</source>
+        <translation>Panggilan video</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="399"/>
+        <source>Automatic</source>
+        <translation>Otomatis</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="400"/>
+        <source>High (1280x720)</source>
+        <translation>Tinggi (1280x720)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="401"/>
+        <source>Medium (640x480)</source>
+        <translation>Sedang (640x480)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="402"/>
+        <source>Low (320x240)</source>
+        <translation>Rendah (320x240)</translation>
+    </message>
 </context>
 <context>
     <name>DevicesPage</name>

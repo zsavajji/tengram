@@ -8,8 +8,9 @@
 #   CLEAN=1 scripts/build-calls.sh     start build/calls over
 #
 # The pins are the pair Telegram Desktop builds (its prepare.py and its tgcalls submodule). The QNX changes are
-# patches/tg_owt/*.patch (and patches/tgcalls/*.patch when there are any). calls/CMakeLists.txt builds both; video
-# codecs are left out (calls/QnxInterface.cpp offers none), so libvpx, openh264, ffmpeg and libjpeg aren't needed.
+# patches/tg_owt/*.patch (and patches/tgcalls/*.patch when there are any). calls/CMakeLists.txt builds both; software
+# video codecs are left out (calls/QnxInterface.cpp's are pass-through), so libvpx, openh264, ffmpeg and libjpeg aren't
+# needed.
 set -euo pipefail
 
 readonly TG_OWT_REPO="https://github.com/desktop-app/tg_owt.git"

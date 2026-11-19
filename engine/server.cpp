@@ -215,7 +215,7 @@ void Server::on_line(Conn &c, std::string &line) {
 
 void Server::hello(Conn &c, const std::string &id, const std::string &cmd, td::JsonObject *req) {
   const char *refused = nullptr, *why = nullptr;
-  td::JsonValue audio;
+  td::JsonValue audio, video;
   if (!req || cmd != "hello") {
     refused = "auth", why = "hello with the token first";
   } else if (auto token = string_field(*req, "token"); token.is_error() || !same(token.ok(), token_)) {
@@ -225,7 +225,13 @@ void Server::hello(Conn &c, const std::string &id, const std::string &cmd, td::J
     refused = "proto", why = "this engine speaks proto 1";
   } else if (optional_field(*req, "audio", td::JsonValue::Type::String, audio) < 0) {
     refused = "bad_request", why = "audio is a string: the call's id";
+  } else if (optional_field(*req, "video", td::JsonValue::Type::String, video) < 0) {
+    refused = "bad_request", why = "video is a string: the call's id";
+  } else if (audio.type() == td::JsonValue::Type::String && video.type() == td::JsonValue::Type::String) {
+    refused = "bad_request", why = "audio or video, not both";
   } else if (audio.type() == td::JsonValue::Type::String && !calls_audio_wanted(audio.get_string().str())) {
+    refused = "not_found", why = "no such call";
+  } else if (video.type() == td::JsonValue::Type::String && !calls_video_wanted(video.get_string().str())) {
     refused = "not_found", why = "no such call";
   }
   if (refused) {
@@ -234,9 +240,10 @@ void Server::hello(Conn &c, const std::string &id, const std::string &cmd, td::J
     reply_error(c.id, id, refused, why);
     return;
   }
-  if (audio.type() == td::JsonValue::Type::String) {
-    // The audio link of the live call is not a UI connection: no events, and nothing to undo when it closes. The ok
-    // line must be out before the call takes the fd, and it is a short line on an empty loopback socket.
+  const bool is_audio = audio.type() == td::JsonValue::Type::String;
+  if (is_audio || video.type() == td::JsonValue::Type::String) {
+    // The audio or video link of the live call is not a UI connection: no events, and nothing to undo when it closes.
+    // The ok line must be out before the call takes the fd, and it is a short line on an empty loopback socket.
     reply_ok(c.id, id);
     for (int i = 0; i < 10 && c.fd >= 0 && !c.out.empty(); ++i) {
       pollfd p = {c.fd, POLLOUT, 0};
@@ -244,11 +251,15 @@ void Server::hello(Conn &c, const std::string &id, const std::string &cmd, td::J
       flush(c);
     }
     if (c.fd >= 0 && c.out.empty()) {
-      say("conn %llu: audio link", num(c.id));
+      say("conn %llu: %s link", num(c.id), is_audio ? "audio" : "video");
       const int fd = c.fd;
       c.fd = -1;  // dropped from the server, not closed
       c.in.clear();
-      calls_audio_attach(fd);
+      if (is_audio) {
+        calls_audio_attach(fd);
+      } else {
+        calls_video_attach(fd);
+      }
     } else {
       close_conn(c);
     }

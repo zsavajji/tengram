@@ -65,6 +65,8 @@ Page {
         if (at >= 0) {
             keepDrop.selectedIndex = at
         }
+        // 0 is Automatic, then the sizes from the largest down: the option's place is the setting.
+        qualityDrop.selectedIndex = settings.videoQuality
         filling = false
     }
     // The choices of the size drop-downs, in MB; 0 is Never (the downloads) or No limit (the media kept).
@@ -379,6 +381,31 @@ Page {
                     text: qsTr("New photos and videos you receive are copied to the Tengram album in Pictures and Videos.")
                     textStyle.base: SystemDefaults.TextStyles.SubtitleText
                     textStyle.color: ui.palette.secondaryTextOnPlain
+                }
+            }
+            Header {
+                title: qsTr("Calls")
+            }
+            Container {
+                horizontalAlignment: HorizontalAlignment.Fill
+                leftPadding: ui.du(2)
+                rightPadding: ui.du(2)
+                // Automatic follows the network: the picture sharpens when it can and softens when it can't. The others
+                // keep their size whatever the network does; the bit rate follows it either way.
+                DropDown {
+                    id: qualityDrop
+                    title: qsTr("Video calls")
+                    options: [
+                        Option { text: qsTr("Automatic") },
+                        Option { text: qsTr("High (1280x720)") },
+                        Option { text: qsTr("Medium (640x480)") },
+                        Option { text: qsTr("Low (320x240)") }
+                    ]
+                    onSelectedIndexChanged: {
+                        if (!page.filling && selectedIndex >= 0) {
+                            settings.videoQuality = selectedIndex
+                        }
+                    }
                 }
             }
             Header {

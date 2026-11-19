@@ -756,3 +756,79 @@ two tgcalls ends connected peer to peer over the phone's own network, each sendi
   resampled); the call screen, ringing (Hub item, mm-renderer ringtone) and the Calls list from HyperBerry;
   an engine stop or logout during a call.
 
+
+### Video calls (2026-11-19)
+
+**The plan (the user's):** no CPU bench (HyperBerry's video calls ran fine on the Q10); V1 the engine alone on a
+real call, V2 HyperBerry's video call screen in Tengram's blue (`CallVideo`, `CameraEncoder`, the OMX decoder),
+V3 a bad network.
+
+**The design:** the phone's H.264 is hardware and lives in the UI process (camera encoder, OMX decoder), so tgcalls
+gets **pass-through codecs** (`calls/QnxInterface.cpp`): one format, H.264 constrained baseline (`42e01f`,
+packetization-mode 1), which tgcalls v2 prefers after H.265. Our access units enter WebRTC as frames with a native
+buffer (`EncodedBuffer`) through a source that never scales or drops; the "encoder" hands the bytes on
+(`supports_native_handle`, `has_trusted_rate_controller`); a keyframe request on a delta unit asks the capturer for
+the next keyframe. The "decoder" gives each assembled unit (Annex-B) and its CVO rotation to a sink
+(`calls/QnxVideo.h`) and returns a black 16x16 frame for WebRTC's counts. The capture device is a string:
+`file:<path>` for V1; the camera link replaces it in V2. Video keeps transport-wide sequence numbers (the
+congestion feedback is for video, not audio). Engine +28 KB.
+
+**Gate V1, passed on the Classic (0.1.0.48, installed by the root PPS route at the user's word).** Test arrangement:
+a video call sends `video-test.h264` from the data folder (ffmpeg testsrc, 640x480, 15 fps, constrained baseline,
+IDR every 2 s with SPS/PPS, 400 kbit/s) and writes the peer's units to `call-<id>-in.h264`.
+- **Incoming video call from the Android, answered in the UI as usual:** TDLib's `is_video` set, the clip went out
+  after the answer (keyframe request answered), the Android's video came in: 480x240 High, ~24 fps, ~300 kbit/s,
+  CVO 270; 596 frames decoded on the Mac, none with an error. (A first incoming call was a voice call: the user
+  had pressed Call, not Video.)
+- **Outgoing video call** (`call.start {video: true}` through `tests/engine_client.py`): H.264 agreed both ways,
+  established 0.5 s after ready. Ours: 15 fps, ~200 kbit/s, WebRTC's target 907 kbit/s (max 1024), keyframe
+  requests answered. **The Android showed the test pattern fine (the user).** Theirs: 320x176, 27-30 fps,
+  ~560-630 kbit/s, an IDR every ~5 s, CVO 270 (upright turned 90° anticlockwise: right); 400 frames decoded on
+  the Mac, one with a macroblock error (the first, likely).
+- **The Android sends High profile with CABAC** although we offered constrained baseline only: the OMX decoder
+  must take High (V2 checks it first). The width and height of received units are 0 in WebRTC's EncodedImage
+  (only the SPS has them).
+
+**Gate V2, passed on the Classic (0.1.0.49; the user: "works fine!").** HyperBerry's video call screen in Tengram's blue
+(`CallVideo` with one tile, `CameraEncoder`, `CallVideoView`, the panel's Video / Switch camera / Hide preview, the
+ringing screen's square answer-with-video toggle); the video link (protocol.md "Video link", HyperBerry's record format,
+orientation clockwise both ways: no reversal, unlike WhatsApp's); `call.answer {video}`, `call.video {id, on}`, the
+event's `videoOurs`/`videoTheirs`; a link that attaches asks the peer for a keyframe (the decoder answers
+`WEBRTC_VIDEO_CODEC_OK_REQUEST_KEYFRAME`), and so does the UI's decoder when it loses its place.
+- **The OMX decoder takes the Android's High profile** (CABAC) and its size steps (320x176, 480x240, 640x352, 640x360
+  landscape) by output-port reconfiguration; ~55-65 ms decode latency, nothing refused. UI process 7-14 % of a core with
+  camera and decoder running. Pictures upright both ways, front and rear camera (the Classic's camera says native
+  orientation 0; `CalibrationTurns` stays 0).
+- Stop/Start video and Switch camera work (the camera reopens in ~1 s); a voice call turned into video from the Classic
+  works. **Seen once:** turned on mid-call, only 6 of ~100 units passed in the first ~7 s, then full rate as the
+  Android's media state changed: probably WebRTC holding our frames until tgcalls' renegotiation is answered. To time.
+- 640x480 at 400 kbit/s looked low-res on the Android (the user): V3.
+
+**Gate V3, passed on the Classic (0.1.0.50): our camera follows WebRTC's target.** `PassthroughEncoder::SetRates` hands the
+target (the bandwidth estimate, capped at 1024 kbit/s by tgcalls) to the engine (`qnx::setTargetRates`), which sends it to
+the UI as a type-3 record on the video link (u32 bit/s; only when it moves 10 % from the last one sent on that link). The
+UI's camera thread (`CallVideo::cameraLoop`) picks a step and a bit rate from it, all at 15 fps with an IDR every 2 s:
+step 0 is 1280x720 (bit rate capped at 1000 kbit/s), 1 is 640x480 (600), 2 is 320x240 (300). **Auto** starts at step 1,
+goes down when the target stays below the step's floor for 2 s (700 kbit/s at step 0, 250 at step 1) and up when it stays
+at the next step's entry for 8 s (850 into step 0, 400 into step 1), at most one change of resolution per 8 s; a change
+restarts the camera, as the front/rear switch does. Settings > Data and storage > Calls > Video calls (`videoQuality`:
+Automatic, 1280x720, 640x480, 320x240) fixes the step instead. The bit rate is min(target, the step's cap), at least
+100 kbit/s, 2/3 of the cap before any target (400 kbit/s at step 1, as in V2); it is set at each camera start and, while
+encoding, by `camera_set_videoencoder_parameter(CAMERA_H264AVC_BITRATE)` when it differs 15 % from what the camera has,
+at most every 2 s. Whether the Classic's camera takes a bit rate change mid-encode is **unknown**: each try logs its
+answer (`camera: bit rate ... while encoding: ...`), and a refusal stops the tries for that call (the bit rate then applies
+at the next start). The UI tells the engine the size of its units (type 3, u16 x u16) from inside `CameraEncoder::start`,
+before `camera_start_encode`, so ahead of the first unit of every run; the engine sizes WebRTC's frames by it
+(`qnx::setCameraSize`) and WebRTC reconfigures its encoder by itself. The 10 s `call video:` line now has the step, the
+target and the camera's bit rate setting. **To check on a call:** the steps follow a throttled link both ways; the peer's
+decoder takes a size change (Android, the Q10's own); the self-view window at 1280x720 (16:9, the viewfinder was 4:3);
+whether `setBitrate` is accepted mid-encode.
+- **On a call (Wi-Fi, 2026-11-19):** the target reached 1022 kbit/s within a second; **the camera takes a bit rate change
+  mid-encode** (400 -> 600 kbit/s: EOK, and the output followed); Auto stepped up to 1280x720 8 s after the camera opened,
+  WebRTC reconfigured its encoder to the new size by itself, no keyframe requests; then 15 fps at ~1000 kbit/s, as set,
+  the rear camera too. Still to see: a step down on a throttled link; the self-view's 16:9 shape (`CallVideo::wide`,
+  added after the agent's build: the finder control is 200x113 at step 0, else 200x150).
+- A call hung up from the user's Telegram on the computer (not a party to it) ended as `failed`: TDLib's reason was
+  `callDiscardReasonDisconnected`. Not ours; worth a softer word if it confuses.
+- **V4 (next):** place a video call from the chat's title bar and the Calls list; the ringing Hub item says "Incoming
+  video call"; a video mark on video calls in the Calls list (`calls.list` has `video`), its tap calling back with video.

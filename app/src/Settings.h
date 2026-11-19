@@ -35,6 +35,9 @@ class Settings : public QObject
     Q_PROPERTY(QString deliveryMode READ deliveryMode WRITE setDeliveryMode NOTIFY deliveryModeChanged)
     Q_PROPERTY(int textSize READ textSize WRITE setTextSize NOTIFY textSizeChanged) // 0..2
     Q_PROPERTY(qreal textScale READ textScale NOTIFY textSizeChanged)
+    // Video calls: 0 follows the network (resolution by steps), 1 is 1280x720, 2 is 640x480, 3 is 320x240 (CallVideo's quality).
+    // The bit rate follows the network either way. Not sent to the engine: the UI's camera is what it sets.
+    Q_PROPERTY(int videoQuality READ videoQuality WRITE setVideoQuality NOTIFY videoQualityChanged) // 0..3
     // Interface: Normal (false) has the chat rows' bigger pictures and padding, Compact the old rows (ChatRows.cpp).
     Q_PROPERTY(bool compact READ compact WRITE setCompact NOTIFY compactChanged)
     // How many group calls showed the people drawer's first-time hint (CallDrawer.qml shows it in the first 2).
@@ -61,6 +64,7 @@ public:
     int cacheLimit() const;
     QString deliveryMode() const;
     int textSize() const;
+    int videoQuality() const;
     qreal textScale() const;
     bool compact() const;
     int callHints() const;
@@ -81,6 +85,7 @@ public:
     void setCacheLimit(int mb);
     void setDeliveryMode(const QString &mode);
     void setTextSize(int size);
+    void setVideoQuality(int quality);
     void setCompact(bool on);
     void setCallHints(int count);
     void setSyncContacts(bool on);
@@ -107,6 +112,7 @@ signals:
     void cacheLimitChanged();
     void deliveryModeChanged();
     void textSizeChanged();
+    void videoQualityChanged(int quality); // the new value, for CallVideo::setQuality (main.cpp connects them)
     void compactChanged();
     void callHintsChanged();
     void syncContactsChanged();

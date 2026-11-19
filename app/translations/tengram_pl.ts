@@ -1366,6 +1366,36 @@
         <source>Voice notes&apos; decoded audio and photo previews; they&apos;re made again when needed.</source>
         <translation>Zdekodowany dźwięk wiadomości głosowych i miniatury zdjęć; w razie potrzeby powstają ponownie.</translation>
     </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="387"/>
+        <source>Calls</source>
+        <translation>Połączenia</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="397"/>
+        <source>Video calls</source>
+        <translation>Połączenia wideo</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="399"/>
+        <source>Automatic</source>
+        <translation>Automatycznie</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="400"/>
+        <source>High (1280x720)</source>
+        <translation>Wysoka (1280x720)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="401"/>
+        <source>Medium (640x480)</source>
+        <translation>Średnia (640x480)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="402"/>
+        <source>Low (320x240)</source>
+        <translation>Niska (320x240)</translation>
+    </message>
 </context>
 <context>
     <name>DevicesPage</name>

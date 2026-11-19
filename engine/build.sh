@@ -10,7 +10,7 @@ L=build/prefix/lib
 # The engine uses TDLib'"'"'s internal headers (SqliteDb, JsonBuilder): -isystem keeps their warnings out of the output.
 INC="-isystem build/prefix/include -isystem third_party/td/tddb -isystem third_party/td/tdutils \
 -isystem build/td-bb10/tdutils -isystem third_party/td -isystem third_party/td/sqlite \
--isystem third_party/tgcalls -isystem third_party/tgcalls/tgcalls -DTGCALLS_USE_STD_OPTIONAL"
+-isystem calls -isystem third_party/tgcalls -isystem third_party/tgcalls/tgcalls -DTGCALLS_USE_STD_OPTIONAL"
 LIBS="-Wl,--gc-sections -Wl,--start-group $L/libtdclient.a $L/libtdcore.a $L/libtdapi.a $L/libtdmtproto.a \
 $L/libtdnet.a $L/libtddb.a $L/libtdsqlite.a $L/libtdactor.a $L/libtde2e.a $L/libtdutils.a \
 $L/libtgcalls.a $L/libtg_owt.a $L/libssl.a $L/libcrypto.a $L/libopus.a -Wl,--end-group \

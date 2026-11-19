@@ -119,6 +119,11 @@ properties; from the `.pro` their sources plus `CameraEncoder`, `Nv12Rotate`. Th
 - **`CallsModel` and `StoriesModel` each open `chats.db`** under their own connection name: not
   copying them also removes two of the four database opens (§3.4).
 
+**Video call pieces are back (2026-11-19, `feature/calling`):** `CallVideo` (1:1: `Tiles = 1`), `CameraEncoder`, `CallVideoView`
+(HyperBerry's 1:1 form before its group grid) and the video parts of `CallSheet`, `CallPanel` and `CallRinging`, without the
+groups, `videoAsked` and `reconnecting`. **Orientation changes:** HyperBerry reverses WhatsApp's anticlockwise quarter turns
+(`(4 - n) & 3`); Telegram's are WebRTC's, clockwise like `VideoWindow`'s, so `CallVideo::readLoop` uses the record's number as it is.
+
 ### 3.4 The encrypted database
 
 **What:** `chats.db` is SQLCipher. `ChatListModel.cpp:77` and `MessageRows.cpp:192` open it with

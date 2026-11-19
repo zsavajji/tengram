@@ -3,13 +3,17 @@ import tengram 1.0
 
 // The call screen (step 7.4), in the look of the stock Phone app: one Sheet owned by main.qml, over
 // everything. It opens on any `call` event that isn't `ended` and closes 2 s after `ended`. While the
-// call rings: message and the slide bar (CallRinging); else Speaker, Mute and End call (CallPanel).
-// engine.call is {id, chat, out, state, reason, since} (docs/protocol.md, "Calls"). The stage is the
+// call rings: video or not, message and the slide bar (CallRinging); else Speaker, Mute, Video, Switch
+// camera, Hide preview and End call (CallPanel). engine.call is {id, chat, out, video, videoOurs,
+// videoTheirs, state, reason, since} (docs/protocol.md, "Calls"). The stage is the
 // Q10's 720 px screen, kept to the bottom, so what the stock app measures from there stays where it
 // was; px() scales its px to the screen's width (not by du: the Classic is 8 px/du to the Q10's 9,
 // which left the stage 640 px wide on a Q20). On a tall screen (the Z10) the stage runs up to the top
 // and its contents move down by shift, as the stock app's do; the caller's picture fills from the
-// top, and the panel lays its controls out as the stock Z10 grid.
+// top, and the panel lays its controls out as the stock Z10 grid. A call with video puts CallVideoView
+// over the stage and under the panel: the peer's picture fills the sheet, and the controls hide a few
+// seconds after it shows. (Ported back from HyperBerry's, whose group calls and WhatsApp's video
+// requests are not here; the orientation is clockwise, see CallVideo.cpp.)
 Sheet {
     id: sheet
     property variant call: engine.call
@@ -22,13 +26,23 @@ Sheet {
     // hang-up (and released when the sheet closes, whatever the state).
     property bool held: false
     // At the ear: the screen goes black and takes no touch. Never on the loudspeaker, where the phone
-    // is held away.
+    // is held away (a video call starts there).
     property bool atEar: held && proximity.near && !callAudio.speaker && settings.earSensor // off in Settings for a sensor that misreads
+    // Our own preview hidden by the panel's toggle (the user's ask); our video still goes out. Shown
+    // again with each call.
+    property bool previewHidden: false
     // The call the audio link was started for, so connecting -> active doesn't restart it.
     property string audioFor: ""
+    // The call the video link was started for.
+    property string videoFor: ""
+    // The call has video: the screen takes the video look.
+    property bool isVideo: !ringing && !!(call.video || call.videoOurs || call.videoTheirs)
+    // The peer's picture is on screen: it is the background, and the controls may hide.
+    property bool showPicture: isVideo && !!call.videoTheirs && callVideo.pictureWidth > 0
+    property bool controlsShown: true
     property string clock: "0:00"
     // What wording reads is passed in, so a change in any of it redraws the line.
-    property string line: wording(phase, call.reason)
+    property string line: wording(phase, call.reason, call.video)
     // The clock shows from the answer to the hang-up, and stays at the end.
     property bool timed: (phase == "active" || ended) && call.since > 0
     // The caller's picture: the chat's preview.
@@ -47,12 +61,12 @@ Sheet {
         return ui.px(n * screenWidth / 720)
     }
 
-    function wording(phase, reason) {
+    function wording(phase, reason, video) {
         switch (phase) {
         case "calling":
             return qsTr("Calling…")
         case "ringing":
-            return qsTr("Incoming voice call")
+            return video ? qsTr("Incoming video call") : qsTr("Incoming voice call")
         case "connecting":
             return qsTr("Connecting…")
         case "ended":
@@ -101,10 +115,41 @@ Sheet {
             proximity.release(sheet)
         }
     }
+    // Shows the controls and starts their countdown to hiding (the hider says when it is allowed).
+    function wake() {
+        controlsShown = true
+        hider.start()
+    }
+    function toggleControls() {
+        if (!showPicture) {
+            return
+        }
+        if (controlsShown) {
+            controlsShown = false
+            hider.stop()
+        } else {
+            wake()
+        }
+    }
+    function stopVideo() {
+        callVideo.stop()
+        videoFor = ""
+        previewHidden = false
+    }
+    // Without a picture the controls stay; with it they count down.
+    onShowPictureChanged: {
+        if (showPicture) {
+            wake()
+        } else {
+            controlsShown = true
+            hider.stop()
+        }
+    }
     onClosed: {
         syncHolds(false)
         callAudio.stop()
         audioFor = ""
+        stopVideo()
     }
     // The state is read from call itself, never from phase, ended or ringing: in Qt 4.8 this
     // handler can run before those bindings catch up with the same change. Reading them left the
@@ -115,6 +160,16 @@ Sheet {
             return
         }
         syncHolds(st == "calling" || st == "connecting" || st == "active")
+        // Answered without video, ours stays off while connecting too: the engine turns it off only
+        // as the call goes active, and the camera mustn't show the user meanwhile.
+        callVideo.sending = !!call.videoOurs && (call.out || st == "active" || ringControls.withVideo)
+        // The controls stay while the call isn't on; else they count down.
+        if (st != "active") {
+            controlsShown = true
+            hider.stop()
+        } else if (controlsShown) {
+            hider.start()
+        }
         if (st == "ended") {
             if (call.since > 0) {
                 refreshClock()
@@ -123,6 +178,7 @@ Sheet {
             closer.start()
             callAudio.stop()
             audioFor = ""
+            stopVideo()
             return
         }
         if ((st == "connecting" || st == "active") && audioFor != call.id) {
@@ -139,8 +195,17 @@ Sheet {
         }
         if (!opened) {
             callAudio.muted = false
-            callAudio.speaker = false
+            callAudio.speaker = !!call.video
+            ringControls.withVideo = !!call.video
             open()
+        }
+        // After open(), so the controls the windows bind to are in the sheet. Video goes to the
+        // loudspeaker, once per call (a voice call that gets video included).
+        if ((st == "connecting" || st == "active") && (call.video || call.videoOurs || call.videoTheirs) && videoFor != call.id) {
+            videoFor = call.id
+            callVideo.front = true
+            callAudio.speaker = true
+            callVideo.start(call.id, videoView.remoteIds, videoView.finderId)
         }
     }
     attachedObjects: [
@@ -148,6 +213,17 @@ Sheet {
             id: ticker
             interval: 1000
             onTimeout: sheet.refreshClock()
+        },
+        // The controls hide 5 s after the last touch, once the peer's picture shows.
+        Timer {
+            id: hider
+            interval: 5000
+            singleShot: true
+            onTimeout: {
+                if (sheet.showPicture && sheet.call.state == "active") {
+                    sheet.controlsShown = false
+                }
+            }
         },
         Timer {
             id: closer
@@ -162,7 +238,9 @@ Sheet {
         Container {
             horizontalAlignment: HorizontalAlignment.Fill
             verticalAlignment: VerticalAlignment.Fill
-            background: Color.Black
+            // The peer's picture shows through the sheet's hole: no background over it, here or in any
+            // ancestor of the video view or the controls (HyperBerry 0.0.1.190).
+            background: sheet.showPicture ? Color.Transparent : Color.Black
             layout: DockLayout {}
             Container {
                 horizontalAlignment: HorizontalAlignment.Center
@@ -177,12 +255,13 @@ Sheet {
                         positionX: 0
                         positionY: 0
                     }
-                    visible: sheet.shift > 0
+                    visible: !sheet.showPicture && sheet.shift > 0
                     preferredWidth: sheet.px(720)
                     preferredHeight: sheet.shift
                     background: Color.create("#13222a") // the stock #1b132a in the primary colour's hue (#24A1DE)
                 }
                 ImageView {
+                    visible: !sheet.showPicture
                     layoutProperties: AbsoluteLayoutProperties {
                         positionY: sheet.shift
                     }
@@ -193,7 +272,7 @@ Sheet {
                 }
                 // The picture fills the area above the controls and fades to black at its foot.
                 ImageView {
-                    visible: sheet.hasPhoto
+                    visible: sheet.hasPhoto && !sheet.showPicture
                     preferredWidth: sheet.px(720)
                     preferredHeight: (sheet.ringing ? sheet.px(510) : sheet.px(415)) + sheet.shift
                     scalingMethod: ScalingMethod.AspectFill
@@ -201,7 +280,7 @@ Sheet {
                     imageSource: sheet.hasPhoto ? "file://" + sheet.who.photo : ""
                 }
                 ImageView {
-                    visible: sheet.hasPhoto
+                    visible: sheet.hasPhoto && !sheet.showPicture
                     layoutProperties: AbsoluteLayoutProperties {
                         positionY: (sheet.ringing ? sheet.px(250) : sheet.px(155)) + sheet.shift
                     }
@@ -210,7 +289,9 @@ Sheet {
                     scalingMethod: ScalingMethod.AspectFit
                     imageSource: "asset:///images/call_fade.png"
                 }
+                // The video view's top band says the name, the line and the clock of a call with video.
                 Label {
+                    visible: !sheet.isVideo
                     layoutProperties: AbsoluteLayoutProperties {
                         positionX: sheet.px(30)
                         positionY: (sheet.ringing ? sheet.px(284) : sheet.px(312)) + sheet.shift
@@ -225,6 +306,7 @@ Sheet {
                     textStyle.color: Color.White
                 }
                 Label {
+                    visible: !sheet.isVideo
                     layoutProperties: AbsoluteLayoutProperties {
                         positionX: sheet.px(29)
                         positionY: (sheet.ringing ? sheet.px(360) : sheet.px(372)) + sheet.shift
@@ -236,7 +318,7 @@ Sheet {
                     textStyle.color: Color.White
                 }
                 Label {
-                    visible: sheet.timed
+                    visible: sheet.timed && !sheet.isVideo
                     layoutProperties: AbsoluteLayoutProperties {
                         positionX: sheet.px(467)
                         positionY: sheet.px(373) + sheet.shift
@@ -255,7 +337,9 @@ Sheet {
                         positionY: sheet.shift
                     }
                     visible: sheet.ringing
-                    onAnswered: engine.request("call.answer", {"id": sheet.call.id})
+                    video: !!sheet.call.video
+                    // A voice call is answered as one; a video call with or without ours.
+                    onAnswered: engine.request("call.answer", sheet.call.video ? {"id": sheet.call.id, "video": ringControls.withVideo} : {"id": sheet.call.id})
                     onDeclined: engine.request("call.reject", {"id": sheet.call.id})
                     // Declines, then the caller's chat opens with the composer, as a contact page's
                     // Message does, for a chat we may not have yet.
@@ -266,18 +350,30 @@ Sheet {
                     }
                 }
             }
+            // Over the stage, under the panel: the panel's taps and picture are above the video's.
+            CallVideoView {
+                id: videoView
+            }
             CallPanel {
                 horizontalAlignment: HorizontalAlignment.Center
                 verticalAlignment: VerticalAlignment.Bottom
-                visible: !sheet.ringing
+                visible: !sheet.ringing && (!sheet.isVideo || sheet.controlsShown)
                 ended: sheet.ended
                 lift: sheet.lift
+                video: sheet.isVideo
+                videoOn: !!sheet.call.videoOurs
+                previewHidden: sheet.previewHidden
+                onTouched: sheet.wake()
                 onHangup: engine.request("call.hangup", {"id": sheet.call.id})
+                onVideoTapped: engine.request("call.video", {"id": sheet.call.id, "on": !sheet.call.videoOurs})
+                onSwitchTapped: callVideo.front = !callVideo.front
+                onPreviewTapped: sheet.previewHidden = !sheet.previewHidden
             }
             // The header band, as the stock app's, under no status bar here.
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 verticalAlignment: VerticalAlignment.Top
+                visible: !sheet.isVideo
                 preferredHeight: sheet.px(55)
                 background: Color.create("#0b1419") // the stock #0f0b19 in the primary colour's hue (#24A1DE)
                 // Padding, not a margin: a margin doesn't count from the container's edge.
@@ -285,14 +381,15 @@ Sheet {
                 layout: DockLayout {}
                 Label {
                     verticalAlignment: VerticalAlignment.Center
-                    text: qsTr("Telegram: voice call")
+                    text: sheet.call.video ? qsTr("Telegram: video call") : qsTr("Telegram: voice call")
                     textFormat: TextFormat.Plain
                     textStyle.fontSize: FontSize.PercentageValue
                     textStyle.fontSizeValue: 85
                     textStyle.color: Color.create("#e8e8e8")
                 }
             }
-            // At the ear: black, and every touch stops here, so a cheek presses nothing.
+            // At the ear: black, and every touch stops here, so a cheek presses nothing. Our camera's
+            // viewfinder is a window above Cascades that this can't cover: it hides itself (CallVideoView).
             Container {
                 visible: sheet.atEar
                 horizontalAlignment: HorizontalAlignment.Fill

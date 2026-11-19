@@ -278,9 +278,9 @@ void notifier_call(std::int64_t chat, bool ringing);  // the "Incoming voice cal
 void bb10_start(int wake_fd);  // the thread writes to wake_fd when it has something: main calls bb10_drain()
 void bb10_drain();
 
-// calls.cpp: call.start, call.answer, call.reject and call.hangup, calls.list (the call log), and the `call` event: 1:1
-// voice calls, TDLib's call states and signalling with Telegram's tgcalls library (docs/protocol.md, "Calls"). One call
-// at a time.
+// calls.cpp: call.start, call.answer, call.video, call.reject and call.hangup, calls.list (the call log), and the `call`
+// event: 1:1 voice and video calls, TDLib's call states and signalling with Telegram's tgcalls library
+// (docs/protocol.md, "Calls"). One call at a time.
 void calls_start(int wake_fd);              // registers the tgcalls versions; keeps the wake fd for its threads
 void calls_drain();                         // runs what tgcalls' threads posted (main thread)
 void calls_update(td_api::Object &update);  // updateCall, updateNewCallSignalingData; anything else is ignored
@@ -288,6 +288,8 @@ bool calls_handle(std::uint64_t conn, const std::string &id, const std::string &
 bool calls_live();                          // a call is ringing, being placed or under way: the network must stay on
 bool calls_audio_wanted(const std::string &call_id);  // the audio link's hello names the live call (server.cpp asks)
 void calls_audio_attach(int fd);                      // the audio link, after its ok reply: the call owns the fd now
+bool calls_video_wanted(const std::string &call_id);  // the same for the video link's hello
+void calls_video_attach(int fd);                      // the video link, after its ok reply: the call owns the fd now
 void calls_hello();                                   // a connection said hello: it gets the live call's event, if any
 
 // ring.cpp: what an incoming call does until it stops ringing: the phone's ringtone, and the Hub's call item. Both from

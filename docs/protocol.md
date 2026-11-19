@@ -38,7 +38,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 
 | cmd | fields | result | own errors |
 |---|---|---|---|
-| `hello` | `token`, `proto: 1`; `audio` (a call's id, string) for the audio link | the link body; nothing for the audio link | `auth`, `proto`, `bad_request` (`audio` is not a string), `not_found` (the audio link's call is not live) |
+| `hello` | `token`, `proto: 1`; `audio` or `video` (a call's id, string; not both) for the call's audio or video link | the link body; nothing for the audio and video links | `auth`, `proto`, `bad_request` (`audio` or `video` is not a string, or both are there), `not_found` (the link's call is not live) |
 | `link.qr` | — (states `unlinked`, `code`, `password`) | — (the code comes as a `link` event, state `qr`) | `linked`, `bad_state` |
 | `link.phone` | `phone` (international, non-digits ignored; states `unlinked`, `code`, `password`) | — (then state `code`) | `linked`, `bad_state`, `bad_phone` |
 | `link.code` | `code` | — (then `password` or `ready`) | `bad_state`, `bad_code` |
@@ -116,10 +116,11 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `network.get` | — | `{since, mobile: {sent, received}, wifi: {sent, received}, other: {sent, received}}`: bytes since `since` (unix seconds) | |
 | `network.reset` | — | — | |
 | `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `language` (string), `cacheMB` (64 to 512), `autoNet` (`none`, `wifi` or `all`), `autoPhotos` (bool), `autoVideoMB`, `autoFileMB` (0 to 2000), `galleryPrivate`, `galleryGroups`, `galleryChannels` (bool), `keepMB` (0, or 256 to 20000); each optional, at least one | — | |
-| `call.start` | `chat` (a person: a private or a secret chat) | `{id}`, the call's id (a string); the call itself is told by `call` events | `unlinked`, `busy`, `bad_chat` |
-| `call.answer` | `id` (the id of a ringing call, a string) | — | `not_found` |
+| `call.start` | `chat` (a person: a private or a secret chat); `video` (bool, default false: place a video call) | `{id}`, the call's id (a string); the call itself is told by `call` events | `unlinked`, `busy`, `bad_chat`, `bad_request` (`video` is not a bool) |
+| `call.answer` | `id` (the id of a ringing call, a string); `video` (bool, optional: with our video; absent, a video call is answered with it and a voice call without) | — | `not_found`, `bad_request` (`video` is not a bool) |
 | `call.reject` | `id` (the id of a ringing call, a string) | — | `not_found` |
 | `call.hangup` | `id` (the id of the call, a string; any state before `ended`) | — | `not_found` |
+| `call.video` | `id` (the id of the call, a string; any state before `ended`), `on` (bool) | — | `not_found`, `bad_request` |
 | `calls.list` | — | `{calls: [{chat, msg, date, out, reason, duration, video, name}]}`, the call log: see "Calls" | `unlinked` |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
@@ -688,7 +689,7 @@ All four answer TDLib's error as `td` when it has one.
 | `presence` | `chat`, `online`, `lastSeen` (unix seconds, 0 when hidden) | the other person's online status in a 1:1 chat, once after `chat.open` and at every change until `chat.close` |
 | `photo` | `jid` (a user id), `photo` (the absolute path of the user's small profile photo) | a photo that `group.info`, `contacts.list` or `senders.get` left out is downloaded: put it on that person's row |
 | `media.progress` | `chat`, `id` (the message), `done`, `size` (bytes, numbers; `size` is the expected size when TDLib has no exact one yet) | the file a `media.get` (not a preview) is downloading has grown; at most every 200 ms per file, so a fast download may skip some; none after the file is complete or cancelled |
-| `call` | `id` (the call, a string), `chat` (the person's chat key), `out` (bool: we placed it), `state`, `reason` (only with `ended`), `since` (unix ms the call became `active`, 0 before) | the call changed state; see "Calls" |
+| `call` | `id` (the call, a string), `chat` (the person's chat key), `out` (bool: we placed it), `video` (bool: a video call), `videoOurs` (bool: our video is on), `videoTheirs` (bool: the other person's video is on), `state`, `reason` (only with `ended`), `since` (unix ms the call became `active`, 0 before) | the call changed state or either video went on or off; see "Calls" |
 
 `chats`, `msgs` and `topics` come after the engine commits, at most every 50 ms. `photo` does not wait for that: it comes when
 TDLib has downloaded the photo, which is always after the reply that left it out.
@@ -714,12 +715,20 @@ the first time (a `link` event without it follows). The UI waits on the linking 
 
 ## Calls
 
-One 1:1 voice call at a time, between us and a person. The engine talks to Telegram through TDLib and runs Telegram's
+One 1:1 call at a time, voice or video, between us and a person. The engine talks to Telegram through TDLib and runs Telegram's
 tgcalls library for the media; every change of the call is a `call` event to every connection. `call.start` places a
 call (`busy` while another is under way; its reply is the call's `id`), `call.answer` accepts one that rings, `call.reject`
 and `call.hangup` end one (the same request: TDLib turns it into a decline or a hang-up by the state). Their replies
 only say the request was taken: the call ends with the `ended` event. A second call that comes in while one is under way
-is declined by the engine at once and tells the UI nothing.
+is declined by the engine at once and tells the UI nothing. `call.start` places a video call with `video: true`; the `call`
+event's `video` tells whether the call is one, for incoming calls too.
+
+Video is H.264 and the engine only carries it: the camera, the encoder, the decoder and the screen are the UI's, and the
+compressed frames go between them and the engine over the video link (see "Video link"). `videoOurs` says whether our video is
+on: a call placed with `video: true` starts with it on, `call.answer` sets it (`video`, or as the call was offered when
+absent) and `call.video {id, on}` turns it on or off at any time. Our video goes out only while it is on and the UI sends
+units over the link; when it is off the engine drops them. `videoTheirs` says whether the other person's video is on: their
+picture comes to the UI over the link, and the event is sent again when `videoTheirs` or `videoOurs` changes.
 
 An incoming call rings until it stops ringing, whatever stops it (answered, declined, ended, missed): the phone's
 ringtone, unless the phone's notification mode is silent, and an alerting Hub item "Incoming voice call". A connection
@@ -769,6 +778,33 @@ when fewer than 10 ms are there. It writes the peer's voice without blocking and
 not read (the oldest go). It closes the link when the call ends. If the link closes during a call (EOF or an error) and no
 new one comes within 3 seconds, the engine hangs the call up as `call.hangup` does, with is_disconnected set: the UI was
 closed, and nothing can be played or recorded.
+
+### Video link
+
+The picture goes over a third connection, as the sound does over the audio link: one per call, opened by the UI when the call
+reaches `connecting` or `active` (and any time after, while the call is live). Its first line is `hello` with the token, `proto`
+and `video`: the call's `id` (not with `audio`: that is `bad_request`). The engine answers `{"@":"…","ok":true}` (no result)
+and the connection then carries binary records both ways; the UI sends nothing before it has read the reply. The errors are the
+audio link's. This connection gets no events and takes no requests: it is not a UI connection.
+
+A record is a 16-byte little-endian header and the payload: `u32` payload length, `u8` type, `u8` orientation (quarter turns,
+0 to 3), `u16` flags (bit 0: keyframe), `i64` timestamp in microseconds.
+
+| type | UI → engine | engine → UI |
+|---|---|---|
+| 1 access unit (Annex-B) | our camera's, at the size the last type 3 record said (640x480 until one came); orientation: the quarter turns clockwise that make the picture upright; bit 0 set when it holds an IDR slice; sent to the other person while `videoOurs` is true, dropped otherwise | the other person's, as WebRTC assembled it; orientation: the quarter turns clockwise that make it upright (from their RTP video-orientation extension); bit 0 set when it holds an IDR slice; the timestamp is the engine's steady clock |
+| 2 keyframe request (no payload) | the UI's decoder lost its place (it starts at a keyframe, so a link that attaches mid-call asks at once): the engine asks the other person's side for a keyframe | WebRTC wants a keyframe of ours (a new receiver, a lost packet): the UI's encoder makes an IDR next; sent once for each run of delta units |
+| 3 camera settings | the size the camera was (re)started at: `u16` width, `u16` height (little-endian), sent before the first unit of each run; the engine sizes the units that follow by it. A payload under 4 bytes or a size of 0 is ignored | the target bit rate WebRTC's bandwidth estimate gives our video: `u32` in bit/s (little-endian), for the camera's encoder (and its resolution) to follow. Sent when it differs by 10 % or more from the last one sent on this link, and at the first estimate on a link (a new link starts over) |
+
+Orientation is quarter turns **clockwise** in both directions, as WebRTC's video orientation is. HyperBerry's WhatsApp peer
+counts anticlockwise and its UI reverses the number; Tengram's UI must not.
+
+Records to the UI go through a queue of 30; when it is full the oldest record not yet started is dropped and the UI is told
+nothing (its decoder should ask for a keyframe when it sees a gap). Records from the UI are used as they come; one with a
+payload over 1 MiB closes the link, and one of an unknown type is skipped. The engine never waits for the link. One video link
+per call: a new one replaces the old, whose socket the engine closes (what was queued for the old one is dropped). The engine
+closes it when the call ends. A call without its video link just has no picture, and no one sees ours: if the link closes
+during a call the call goes on, unlike the audio link's.
 
 ## Delivery mode
 

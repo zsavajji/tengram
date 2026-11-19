@@ -1363,6 +1363,36 @@
         <source>Voice notes&apos; decoded audio and photo previews; they&apos;re made again when needed.</source>
         <translation>L&apos;audio decodificato dei vocali e le anteprime delle foto; si rifanno quando servono.</translation>
     </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="387"/>
+        <source>Calls</source>
+        <translation>Chiamate</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="397"/>
+        <source>Video calls</source>
+        <translation>Videochiamate</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="399"/>
+        <source>Automatic</source>
+        <translation>Automatica</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="400"/>
+        <source>High (1280x720)</source>
+        <translation>Alta (1280x720)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="401"/>
+        <source>Medium (640x480)</source>
+        <translation>Media (640x480)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="402"/>
+        <source>Low (320x240)</source>
+        <translation>Bassa (320x240)</translation>
+    </message>
 </context>
 <context>
     <name>DevicesPage</name>

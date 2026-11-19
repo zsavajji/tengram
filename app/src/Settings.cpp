@@ -55,6 +55,7 @@ int Settings::cacheLimit() const { return qBound(64, m_file.value("cacheLimit", 
 QString Settings::deliveryMode() const { return m_file.value("deliveryMode", "auto").toString(); }
 // Larger (3, 140 %) went at the user's word (2026-11-01); a saved 3 reads as Large.
 int Settings::textSize() const { return qBound(0, m_file.value("textSize", 1).toInt(), 2); }
+int Settings::videoQuality() const { return qBound(0, m_file.value("videoQuality", 0).toInt(), 3); }
 bool Settings::compact() const { return m_file.value("compact", false).toBool(); }
 int Settings::callHints() const { return qMax(0, m_file.value("callHints", 0).toInt()); }
 bool Settings::syncContacts() const { return m_file.value("syncContacts", false).toBool(); }
@@ -291,6 +292,15 @@ void Settings::setTextSize(int size)
         return;
     store("textSize", size);
     emit textSizeChanged();
+}
+
+void Settings::setVideoQuality(int quality)
+{
+    quality = qBound(0, quality, 3);
+    if (quality == videoQuality())
+        return;
+    store("videoQuality", quality);
+    emit videoQualityChanged(quality);
 }
 
 void Settings::setCompact(bool on)

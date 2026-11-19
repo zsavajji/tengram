@@ -22,6 +22,7 @@
 
 #include "CallAudio.h"
 #include "CallLog.h"
+#include "CallVideo.h"
 #include "ChatController.h"
 #include "ChatRows.h"
 #include <bb/ApplicationInfo>
@@ -161,6 +162,10 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     ChatListModel chats(&engine, ChatListModel::Chats, &app);
     ChatListModel archivedChats(&engine, ChatListModel::Archived, &app);
     CallAudio callAudio(&engine, &app);
+    CallVideo callVideo(&engine, &app);
+    // The camera's resolution follows Settings > Data and storage > Video calls.
+    callVideo.setQuality(settings.videoQuality());
+    QObject::connect(&settings, SIGNAL(videoQualityChanged(int)), &callVideo, SLOT(setQuality(int)));
     Proximity proximity(&app);
     // One for the run: the picker's table is built once, not per chat.
     EmojiModel emojis(&app);
@@ -202,6 +207,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     document->setContextProperty("chats", &chats);
     document->setContextProperty("archivedChats", &archivedChats);
     document->setContextProperty("callAudio", &callAudio);
+    document->setContextProperty("callVideo", &callVideo);
     // About shows it where a profile shows the number: versionNumber.buildId, from the .bar.
     document->documentContext()->setContextProperty("appVersion", bb::ApplicationInfo().version());
     // The pages' px(): a 720 px stage scaled to the screen's width.
