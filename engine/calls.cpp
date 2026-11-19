@@ -585,8 +585,10 @@ void calls_list(std::uint64_t conn, const std::string &id) {
     }
     server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&rows](auto &r) {
                       r("calls", td::json_array(rows, [](const td_api::message *m) {
-                        const auto &call = static_cast<const td_api::messageCall &>(*m->content_);
-                        return td::json_object([&](auto &o) {
+                        // m by value: the object is written out after this returns (by reference, every row read
+                        // freed stack: chats, dates and names were garbage; Q10, 2026-11-19).
+                        return td::json_object([m](auto &o) {
+                          const auto &call = static_cast<const td_api::messageCall &>(*m->content_);
                           o("chat", std::to_string(m->chat_id_));
                           o("msg", std::to_string(m->id_));
                           o("date", m->date_);
