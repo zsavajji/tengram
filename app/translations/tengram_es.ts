@@ -2604,6 +2604,11 @@
 <context>
     <name>PrivacyPage</name>
     <message>
+        <location filename="../assets/PrivacyPage.qml" line="325"/>
+        <source>Who can see my:</source>
+        <translation>Quién puede ver mi:</translation>
+    </message>
+    <message>
         <location filename="../assets/PrivacyPage.qml" line="21"/>
         <source>Privacy and security</source>
         <translation>Privacidad y seguridad</translation>

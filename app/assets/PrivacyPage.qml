@@ -152,6 +152,7 @@ Page {
                 property alias selectedIndex: ruleDropDown.selectedIndex
                 property alias exceptions: ruleNote.visible
                 horizontalAlignment: HorizontalAlignment.Fill
+                bottomPadding: ui.du(2)
                 DropDown {
                     id: ruleDropDown
                     options: [
@@ -182,6 +183,7 @@ Page {
                 property alias selectedIndex: findDropDown.selectedIndex
                 property alias exceptions: findNote.visible
                 horizontalAlignment: HorizontalAlignment.Fill
+                bottomPadding: ui.du(2)
                 DropDown {
                     id: findDropDown
                     options: [
@@ -312,12 +314,17 @@ Page {
                 Header {
                     title: qsTr("Privacy")
                 }
+                // The rules' rows are added under this line (onCreationCompleted).
                 Container {
                     id: rulesBox
                     horizontalAlignment: HorizontalAlignment.Fill
                     topPadding: ui.du(1)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
+                    Label {
+                        text: qsTr("Who can see my:")
+                        textStyle.color: ui.palette.secondaryTextOnPlain
+                    }
                 }
                 Header {
                     title: qsTr("Delete my account")
