@@ -714,8 +714,13 @@ To find out where before the audio link. tgcalls v2's FinalState traffic counter
   The navigator refuses a headless service's invoke of the app ("target of different type, expected 72, actual 1"), so
   only the UI brings itself to the front (a minimised UI); a closed one is opened by the Hub banner: a cold start, the
   link now up before the QML (1.75 s), the scene at 2.0 s, the sheet sliding in over the chat list (the user: fine).
-- **Not verified yet:** Opus complexity 5 (as Android) against the default 9; 60 ms Opus packets (a third of the
-  packets, so of the encryption and network work) as the next CPU lever.
+- **Packet length (2026-11-19, the bench, both ends, udp6 datagrams in a 20 s call):** tgcalls v2 already sends 60 ms
+  Opus packets (ptime 60): 1749 datagrams, against 2821 forced to 20 ms, which cost ~49 % (+~15-20 points). 120 ms
+  (`patches/tgcalls/0001-qnx-opus-120ms.patch`, QNX only): ~1100 datagrams, **28.6 % against 34.1 %** in four
+  interleaved runs each (the 120 ms runs also far steadier). Our voice reaches the peer 60 ms later and a lost packet
+  takes 120 ms; to be judged on a real call. What is left at 120 ms is ~25 datagrams/s an end that aren't audio
+  (RTCP, transport feedback, keep-alives).
+- **Not verified yet:** Opus complexity 5 (as Android) against the default 9.
 - **Incoming calls and the delivery mode (the user, 2026-11-19):** no special case. Ringing in batched mode would
   mean keeping the connection open, which is instant mode; in batched mode a call rings on the other devices and
   shows here as missed.
