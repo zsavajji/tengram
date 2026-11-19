@@ -302,6 +302,12 @@ user batches: build one package when the round is ready, then ask to install it.
     member shows under the tiles; 2 tiles side by side, 3 as two over one wide. Old rows group once the engine writes
     them again (opening the chat). Check: a received album of 2 and 3, one with a caption, 4 separate photos stay apart.
 
+20. **Stall detector** (2026-11-19, not built): the user saw the UI freeze ~5 s at 21:55, just after opening a group's
+    chat (the engine answered at once; the UI went silent 3.5 s, then left the front). `EngineLink::beat()` ticks every
+    500 ms while in front and writes `ui: stalled N ms` to ui.log when a tick is over 1 s late. After a freeze, read the
+    lines before it. Remove once the cause is found. Also seen: opening a chat at 20:22:37 took 1971 ms (`chat: first
+    page`), likely photo previews made on the UI thread (`MediaData.cpp` `preview()`).
+
 **Saved for later (the user, 2026-11-18): video streaming.** Possible, not built. bbtube plays a local MP4 while it
 fills (moov written first, the file at its final size). For Tengram the planned route is a small HTTP server in the
 engine on 127.0.0.1 serving a video by byte ranges: a range not downloaded yet is asked of TDLib (downloadFile with

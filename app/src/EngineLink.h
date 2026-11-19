@@ -118,6 +118,7 @@ private slots:
     void invokeFinished();
     void onFullscreen();
     void onNotFullscreen();
+    void beat();
 
 private:
     void toFront(const QString &chat);
@@ -150,6 +151,8 @@ private:
     QVariantMap m_call;
     bool m_fullscreen;
     QString m_openChat;
+    QTimer m_beat; // the stall detector, while in front (beat())
+    QElapsedTimer m_beatAt;
 };
 
 #endif

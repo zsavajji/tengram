@@ -20,6 +20,11 @@ using namespace bb::system;
 // refused STARTs). Each refusal doubles the wait, and coming back to fullscreen retries at once.
 static const int RetryMinMs = 500;
 static const int RetryMaxMs = 60000;
+// The stall detector (the user's 5 s freeze, 2026-11-19): a beat every BeatMs while the app is in front; one that comes
+// more than StallMs late means the UI thread was busy that long, and ui.log says so with the time.
+// ponytail: a diagnostic, two wake-ups a second while the screen is on anyway; remove once the freezes are found.
+static const int BeatMs = 500;
+static const int StallMs = 1000;
 
 EngineLink::EngineLink(QObject *parent)
     : QObject(parent)
@@ -43,6 +48,9 @@ EngineLink::EngineLink(QObject *parent)
     // One loss can fire both; lost() copes.
     connect(&m_socket, SIGNAL(disconnected()), this, SLOT(lost()));
     connect(&m_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(lost()));
+    connect(&m_beat, SIGNAL(timeout()), this, SLOT(beat()));
+    m_beat.start(BeatMs);
+    m_beatAt.start();
 }
 
 // The socket is a member: its destructor aborts a live connection and emits disconnected(),
@@ -99,11 +107,27 @@ void EngineLink::onFullscreen()
 
 void EngineLink::onNotFullscreen() { setFullscreen(false); }
 
+void EngineLink::beat()
+{
+    if (!m_beat.isActive())
+        return;
+    const qint64 late = m_beatAt.restart() - BeatMs;
+    if (late > StallMs)
+        qDebug("ui: stalled %lld ms", late);
+}
+
 void EngineLink::setFullscreen(bool on)
 {
     if (on == m_fullscreen)
         return;
+    beat(); // a stall that ends with leaving the app is still told
     m_fullscreen = on;
+    if (on) {
+        m_beat.start(BeatMs);
+        m_beatAt.restart();
+    } else {
+        m_beat.stop();
+    }
     sendUiState();
     emit fullscreenChanged();
 }
