@@ -122,6 +122,9 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `call.hangup` | `id` (the id of the call, a string; any state before `ended`) | — | `not_found` |
 | `call.video` | `id` (the id of the call, a string; any state before `ended`), `on` (bool) | — | `not_found`, `bad_request` |
 | `calls.list` | — | `{calls: [{chat, msg, date, out, reason, duration, video, name}]}`, the call log: see "Calls" | `unlinked` |
+| `search.chats` | `query` (a string, trimmed; "" for the suggestions), `tab` (`chats`, `channels` or `apps`) | with `query` empty `{top, recent}` (the people, channels or bots the user writes to most, and the chats found before), else `{local, global}` (what TDLib knows by title or username, and on the chats tab the address book; then Telegram's public chats, less those in `local`); each a list of `{jid, name, kind, username, count, member, photo}`: `kind` is `person`, `bot`, `group` or `channel`; `username` "" for none; `count` the members or subscribers, 0 for a person, a bot or when unknown; `member` true for a chat of our list; `photo` is absent when not here yet (a person's or a bot's comes as a `photo` event). Only the tab's kinds: `chats` has person and group, `channels` channel, `apps` bot; secret chats are never in it. A list TDLib or Telegram refuses (top chats turned off, a text too short for the public search) is empty | `unlinked`, `bad_request` |
+| `search.recentAdd` | `chat` (a chat key) | — | `unlinked`, `bad_request`, `td` |
+| `search.recentClear` | — | — | `unlinked` |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
 (`requestQrCodeAuthentication`); `link.phone`, `link.code` and `link.password` are the phone
@@ -261,7 +264,9 @@ beside a different file of that name; one of the same size is taken for this fil
 message that isn't a document or audio file, or the copy failed. Without `save` the file stays where TDLib keeps it.
 
 While a `media.get` without `preview` downloads, the engine sends `media.progress` events (see Events). A preview is
-never watched.
+never watched. The same event comes while a message of ours with a file (a photo, video or document sent by `msg.send`,
+`media.send` or `media.album`) uploads, with `up: true` and `done` the bytes uploaded; its last one has `done` equal to
+`size`. A download's has no `up`.
 
 **`media.cancel`:** stops the download of the message's file (`cancelDownloadFile`) and answers when TDLib has. The
 `media.get` still waiting on that file answers the error `cancelled` instead of `download_failed`. It is not an error
@@ -688,7 +693,7 @@ All four answer TDLib's error as `td` when it has one.
 | `typing` | `chat`, `who` (first name in a group, "" in a 1:1 chat), `on`, `voice` (recording a voice note), `topic` (the forum topic it happens in, 0 when it is not in a topic) | someone started or stopped typing; only for chats between their `chat.open` and `chat.close` |
 | `presence` | `chat`, `online`, `lastSeen` (unix seconds, 0 when hidden) | the other person's online status in a 1:1 chat, once after `chat.open` and at every change until `chat.close` |
 | `photo` | `jid` (a user id), `photo` (the absolute path of the user's small profile photo) | a photo that `group.info`, `contacts.list` or `senders.get` left out is downloaded: put it on that person's row |
-| `media.progress` | `chat`, `id` (the message), `done`, `size` (bytes, numbers; `size` is the expected size when TDLib has no exact one yet) | the file a `media.get` (not a preview) is downloading has grown; at most every 200 ms per file, so a fast download may skip some; none after the file is complete or cancelled |
+| `media.progress` | `chat`, `id` (the message), `done`, `size` (bytes, numbers; `size` is the expected size when TDLib has no exact one yet), `up` (true for an upload, absent for a download) | the file a `media.get` (not a preview) is downloading has grown, or the file of a message of ours still sending (`id` is its temporary id) has gone up further; at most every 200 ms per file, so a fast transfer may skip some; an upload's last event has `done` equal to `size`; none after a download is complete or cancelled, or once the message is sent |
 | `call` | `id` (the call, a string), `chat` (the person's chat key), `out` (bool: we placed it), `video` (bool: a video call), `videoOurs` (bool: our video is on), `videoTheirs` (bool: the other person's video is on), `state`, `reason` (only with `ended`), `since` (unix ms the call became `active`, 0 before) | the call changed state or either video went on or off; see "Calls" |
 
 `chats`, `msgs` and `topics` come after the engine commits, at most every 50 ms. `photo` does not wait for that: it comes when

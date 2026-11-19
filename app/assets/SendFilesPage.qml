@@ -2,7 +2,7 @@ import bb.cascades 1.4
 
 // Several files picked to send (the user's ask, 2026-11-18): a carousel of them, one large at a time with the next
 // peeking (a 3-column grid made them small on the Classic, and the checkboxes under it didn't fit), a cross on each
-// that drops it, a tap on a picture opens the system's editor. Under it two square toggles, Album and As files, on one
+// that drops it, a tap on a picture or a video opens the system's editor. Under it two square toggles, Album and As files, on one
 // row, and the caption. No title bar: it didn't fit with one.
 // The page only collects: send() goes to the chat page (ChatPage.sendFiles), which sends and pops this one.
 // items are {path, png, info} (png: the PNG a JPEG was made from, "" for none; info: MediaOpener.fileInfo's), caption
@@ -147,9 +147,12 @@ Page {
                                     onTapped: cell.ListItem.view.edit(cell.ListItem.indexPath[0])
                                 }
                             }
-                            // A video, a document or an audio file: its mark, name and size.
+                            // A video, a document or an audio file: its mark, name and size. A tap edits a video.
                             Container {
                                 visible: ListItemData.kind != 0
+                                gestureHandlers: TapHandler {
+                                    onTapped: if (ListItemData.kind == 1) cell.ListItem.view.edit(cell.ListItem.indexPath[0])
+                                }
                                 horizontalAlignment: HorizontalAlignment.Fill
                                 verticalAlignment: VerticalAlignment.Center
                                 leftPadding: ui.du(2)
@@ -199,9 +202,9 @@ Page {
                                     textStyle.fontSizeValue: cell.ListItem.view.bodySize
                                 }
                             }
-                            // A tap edits a picture: a pencil, a square in the lower right corner, says so (the user, 2026-11-18).
+                            // A tap edits a picture or a video: a pencil, a square in the lower right corner, says so (the user, 2026-11-18).
                             Container {
-                                visible: ListItemData.kind == 0
+                                visible: ListItemData.kind <= 1
                                 horizontalAlignment: HorizontalAlignment.Right
                                 verticalAlignment: VerticalAlignment.Bottom
                                 leftPadding: ui.du(1)

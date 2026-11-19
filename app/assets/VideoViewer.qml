@@ -27,13 +27,16 @@ Page {
     property bool scrubbing: false
     property bool settling: false
     property real at: 0
+    // The video played to its end: the last position the player reports is a little short of it (the dot stopped at
+    // 96 % of a 6 s clip, the user's screenshot 2026-11-19), so the fill is full until it plays or seeks again.
+    property bool ended: false
     property bool playing: player.mediaState == MediaState.Started
     // The length in ms, 0 until the player knows it.
     property real dur: player.duration > 0 ? player.duration : 0
     property real frac: page.scrubbing || page.settling ? page.at
-                        : page.dur > 0 ? Math.min(player.position / page.dur, 1) : 0
-    // The timeline's side margin and its dot's size: the finger's x is measured inside the margin and half a dot, so the
-    // dot is under the finger.
+                        : page.ended ? 1 : page.dur > 0 ? Math.min(player.position / page.dur, 1) : 0
+    // The bar's side padding and the timeline dot's size: the finger's x is measured inside the padding and half a dot, so
+    // the dot is under the finger.
     property real side: ui.du(2)
     property real dot: ui.du(3)
     // The stock action bar's height, which our bar stands above: 97 px on the Q10 (a screenshot of the Back / Install bar), 11 du, and a du of slack.
@@ -106,7 +109,7 @@ Page {
                 console.log("video scrub: down at " + Math.round(event.windowX) + " of " + Math.round(width))
             }
             page.scrubbing = true
-            page.at = Math.max(0, Math.min(1, (event.windowX - page.side - page.dot / 2) / (width - 2 * page.side - page.dot)))
+            page.at = Math.max(0, Math.min(1, (event.windowX - page.side - page.dot / 2) / (width - page.dot)))
             stale.start()
         } else {
             console.log("video scrub: " + (event.isCancel() ? "cancel" : "up") + " at " + Math.round(page.at * 1000) / 1000)
@@ -120,6 +123,7 @@ Page {
             return
         }
         page.scrubbing = false
+        page.ended = false
         page.settling = true
         if (player.seekTime(Math.round(page.at * page.dur)) != 0) {
             page.settling = false
@@ -139,6 +143,12 @@ Page {
             statusInterval: 250
             repeatMode: page.gif ? RepeatMode.Track : RepeatMode.None
             onPositionChanged: page.settling = false
+            onPlaybackCompleted: page.ended = true
+            onMediaStateChanged: {
+                if (mediaState == MediaState.Started) {
+                    page.ended = false
+                }
+            }
             // The video's own shape, once the player has read it: mm-renderer stretches the picture to the window,
             // and the message's width and height can be wrong (a TikTok clip came out square, the user 2026-11-17).
             onVideoDimensionsChanged: {
@@ -225,9 +235,13 @@ Page {
                     duration: 200
                 }
             ]
-            // The dark band, with the timeline, play/pause and the time.
+            // The dark band, with the timeline, play/pause and the time, inset by side: as padding, since the timeline's
+            // children are docked and a margin there was ignored (the track and fill ran edge to edge, the user's
+            // screenshot 2026-11-19).
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
+                leftPadding: page.side
+                rightPadding: page.side
                 background: Color.create(0.0, 0.0, 0.0, 0.55)
                 // The timeline: the whole 8 du band takes the touch, the track is the thin line in it, the fill is the
                 // accent and the dot sits at its end. The finger's x is a window x (as CallSlider's), which is the
@@ -246,8 +260,6 @@ Page {
                     Container {
                         horizontalAlignment: HorizontalAlignment.Fill
                         verticalAlignment: VerticalAlignment.Center
-                        leftMargin: page.side
-                        rightMargin: page.side
                         preferredHeight: ui.px(6)
                         background: Color.create(1.0, 1.0, 1.0, 0.25)
                     }
@@ -258,8 +270,6 @@ Page {
                     Container {
                         horizontalAlignment: HorizontalAlignment.Fill
                         verticalAlignment: VerticalAlignment.Center
-                        leftMargin: page.side
-                        rightMargin: page.side
                         implicitLayoutAnimationsEnabled: false
                         layout: StackLayout {
                             orientation: LayoutOrientation.LeftToRight

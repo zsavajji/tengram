@@ -25,6 +25,7 @@
 #include "CallVideo.h"
 #include "ChatController.h"
 #include "ChatRows.h"
+#include "ChatSearch.h"
 #include <bb/ApplicationInfo>
 #include <bb/device/DisplayInfo>
 #include <QDeclarativeContext>
@@ -188,6 +189,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     qmlRegisterType<CallLog>("tengram", 1, 0, "CallLog");
     qmlRegisterType<ChatController>("tengram", 1, 0, "ChatController");
     qmlRegisterType<ChatRows>("tengram", 1, 0, "ChatRows");
+    qmlRegisterType<ChatSearch>("tengram", 1, 0, "ChatSearch");
     qmlRegisterType<ContactInfo>("tengram", 1, 0, "ContactInfo");
     qmlRegisterType<ContactPicker>("tengram", 1, 0, "ContactPicker");
     qmlRegisterType<MapChooser>("tengram", 1, 0, "MapChooser");

@@ -3,8 +3,8 @@ import bb.cascades 1.4
 // One row of the address book (NewChatPage, NewGroupPage) or of a group's members:
 // the tile the chat will have in the chat list, its picture over it when the row has one, the name,
 // a 2 px separator, a check when the contact is chosen and, for the rows that carry a time, when (a story's
-// viewers). contact is a row of ContactPicker's model; the view supplies the emoji style and sizes as the
-// chat list's.
+// viewers), and a second line under the name when the row has a `sub`. contact is a row of ContactPicker's model; the
+// view supplies the emoji style and sizes as the chat list's.
 Container {
     property variant contact
     id: row
@@ -45,17 +45,30 @@ Container {
                 loadEffect: ImageViewLoadEffect.None
             }
         }
-        Label {
+        Container {
             verticalAlignment: VerticalAlignment.Center
             leftMargin: ui.du(1.5)
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1
             }
-            text: row.contact.name
-            textFormat: TextFormat.Plain
-            textStyle.base: row.ListItem.view.emojiStyle
-            textStyle.fontSize: FontSize.PercentageValue
-            textStyle.fontSizeValue: row.ListItem.view.bodySize
+            Label {
+                horizontalAlignment: HorizontalAlignment.Fill
+                text: row.contact.name
+                textFormat: TextFormat.Plain
+                textStyle.base: row.ListItem.view.emojiStyle
+                textStyle.fontSize: FontSize.PercentageValue
+                textStyle.fontSizeValue: row.ListItem.view.bodySize
+            }
+            // A second line, for the rows that have one (the search page's: @username, members).
+            Label {
+                visible: !!row.contact.sub
+                horizontalAlignment: HorizontalAlignment.Fill
+                text: row.contact.sub ? row.contact.sub : ""
+                textFormat: TextFormat.Plain
+                textStyle.fontSize: FontSize.PercentageValue
+                textStyle.fontSizeValue: row.ListItem.view.smallSize
+                textStyle.color: ui.palette.secondaryTextOnPlain
+            }
         }
         // When, at the right, for the rows that say (a story's viewers).
         Label {

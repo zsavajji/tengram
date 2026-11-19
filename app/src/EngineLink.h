@@ -95,8 +95,9 @@ signals:
     void typing(const QString &chat, const QString &who, bool on, bool voice, int topic);
     // A presence event; lastSeen in unix seconds, 0 when hidden.
     void presence(const QString &chat, bool online, qint64 lastSeen);
-    // A media.progress event: the file of message id of the chat has done of size bytes (size 0 when unknown).
-    void mediaProgress(const QString &chat, const QString &id, qint64 done, qint64 size);
+    // A media.progress event: the file of message id of the chat has done of size bytes (size 0 when unknown). With up
+    // it is a message of ours being sent (id is its temporary id) and done the bytes uploaded.
+    void mediaProgress(const QString &chat, const QString &id, qint64 done, qint64 size, bool up);
     // A photo event: a group member's small picture arrived, "" when they have none.
     void photo(const QString &jid, const QString &path);
     // A successful reply to a request, hello's excepted: its id (request()'s return value), the

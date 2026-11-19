@@ -45,8 +45,8 @@ void MediaOpener::setLink(QObject *link)
         connect(m_engine, SIGNAL(replied(QString, QString, QVariant)), this,
                 SLOT(onReplied(QString, QString, QVariant)));
         connect(m_engine, SIGNAL(failureChanged()), this, SLOT(onFailure()));
-        connect(m_engine, SIGNAL(mediaProgress(QString, QString, qint64, qint64)), this,
-                SLOT(onProgress(QString, QString, qint64, qint64)));
+        connect(m_engine, SIGNAL(mediaProgress(QString, QString, qint64, qint64, bool)), this,
+                SLOT(onProgress(QString, QString, qint64, qint64, bool)));
     }
 }
 
@@ -63,6 +63,11 @@ qreal MediaOpener::progress() const
 QString MediaOpener::progressText() const
 {
     return m_progressText;
+}
+
+QVariantMap MediaOpener::uploads() const
+{
+    return m_uploads;
 }
 
 void MediaOpener::setLoadingId(const QString &id)
@@ -99,8 +104,20 @@ bool MediaOpener::saving() const
 }
 
 // The engine's media.progress. Until the first one comes the bubble keeps its spinner.
-void MediaOpener::onProgress(const QString &chat, const QString &id, qint64 done, qint64 size)
+void MediaOpener::onProgress(const QString &chat, const QString &id, qint64 done, qint64 size, bool up)
 {
+    if (up) {
+        if (done >= size) {
+            m_uploads.remove(id);
+        } else {
+            QVariantMap entry;
+            entry["progress"] = qMin<qreal>(1, qreal(done) / size);
+            entry["text"] = sizeText(done, m_region.locale()) + " / " + sizeText(size, m_region.locale());
+            m_uploads[id] = entry;
+        }
+        emit uploadsChanged();
+        return;
+    }
     if (id != m_loadingId || chat != m_chat || done <= 0 || size <= 0)
         return;
     m_progress = qMin<qreal>(1, qreal(done) / size);
@@ -163,15 +180,24 @@ bool MediaOpener::openFile(const QString &path)
 }
 
 // The picture editor's manifest (read on the phone, 10.3.3) takes bb.action.EDIT for image/jpeg, png, gif and bmp
-// with file:// uris, as a card. What it returns is logged by onCardDone.
+// with file:// uris, as a card. The video editor's (sys.video_editor.card, read on the phone 2026-11-19) takes
+// bb.action.EDIT for video/* with videoeditor:// uris (its own example: videoeditor:///accounts/1000/shared/camera/
+// VID_00000001.mp4): trim and crop. What either returns is logged by onCardDone.
 void MediaOpener::editPicture(const QString &path)
 {
     const QString ext = QFileInfo(path).suffix().toLower();
+    QUrl uri = QUrl::fromLocalFile(path);
     InvokeRequest request;
-    request.setTarget("sys.pictureeditor.cardeditor");
     request.setAction("bb.action.EDIT");
-    request.setMimeType(ext == "jpg" || ext == "jpeg" ? "image/jpeg" : "image/" + ext);
-    request.setUri(QUrl::fromLocalFile(path));
+    if (ext == "mp4" || ext == "3gp" || ext == "mov") {
+        request.setTarget("sys.video_editor.card");
+        request.setMimeType(ext == "mp4" ? "video/mp4" : ext == "3gp" ? "video/3gpp" : "video/quicktime");
+        uri.setScheme("videoeditor");
+    } else {
+        request.setTarget("sys.pictureeditor.cardeditor");
+        request.setMimeType(ext == "jpg" || ext == "jpeg" ? "image/jpeg" : "image/" + ext);
+    }
+    request.setUri(uri);
     InvokeTargetReply *reply = m_invoker.invoke(request);
     if (!reply) {
         qWarning() << "media: no reply from the system to EDIT" << path;
@@ -232,8 +258,8 @@ void MediaOpener::onCardDone(const CardDoneMessage &done)
         const QVariantList list = json.loadFromBuffer(path.toUtf8()).toList();
         path = list.isEmpty() ? QString() : list.first().toMap().value("uri").toString();
     }
-    if (path.startsWith("file://"))
-        path = QUrl::fromPercentEncoding(path.mid(7).toUtf8());
+    if (path.contains("://")) // file://, or the video editor's videoeditor://
+        path = QUrl::fromPercentEncoding(path.mid(path.indexOf("://") + 3).toUtf8());
     if (QFileInfo(path).isFile())
         emit pictureEdited(path);
     else

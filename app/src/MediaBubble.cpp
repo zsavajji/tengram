@@ -222,6 +222,8 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     if (!connect(list, SIGNAL(mediaProgressChanged()), this, SLOT(refresh()))
         || !connect(list, SIGNAL(mediaProgressTextChanged()), this, SLOT(refresh())))
         qWarning("cards: the list has no mediaProgressChanged");
+    if (!connect(list, SIGNAL(mediaUploadsChanged()), this, SLOT(refresh())))
+        qWarning("cards: the list has no mediaUploadsChanged");
 }
 
 // What the text size and the theme's colours decide, set again only when one of them changed.
@@ -324,15 +326,21 @@ void MediaBubble::show(const QVariantMap &msg)
     refresh();
 }
 
-// The fetch: the spinner of whichever part is shown, the ring once bytes have arrived, and the text of how many.
+// The fetch, or the upload of a message being sent: the spinner of whichever part is shown, the ring once bytes have
+// arrived, and the text of how many.
 void MediaBubble::refresh()
 {
     if (m_msg.isEmpty())
         return;
-    const bool loading = m_list->property("mediaLoadingId").toString() == str("id");
-    const qreal progress = loading ? m_list->property("mediaProgress").toReal() : 0;
+    // A send that failed (state 4) keeps its last entry: the ring is for state 0, sending, only.
+    const QVariantMap up = m_msg.value("state").toInt() == 0
+        ? m_list->property("mediaUploads").toMap().value(str("id")).toMap() : QVariantMap();
+    const bool loading = !up.isEmpty() || m_list->property("mediaLoadingId").toString() == str("id");
+    const qreal progress = !up.isEmpty() ? up.value("progress").toReal()
+                           : loading ? m_list->property("mediaProgress").toReal() : 0;
     const bool filling = progress > 0;
-    const QString words = loading ? m_list->property("mediaProgressText").toString() : QString();
+    const QString words = !up.isEmpty() ? up.value("text").toString()
+                          : loading ? m_list->property("mediaProgressText").toString() : QString();
     const bool video = str("media") == "video" && !flag("spoiler");
     const bool file = !m_picture && !m_sticker;
     m_photoSpin->setRunning(loading && m_picture && !filling);

@@ -203,7 +203,7 @@ Page {
             StagedBar {
                 info: page.stagedInfo
                 canFile: page.stagedPng != "" || page.stagedJpeg
-                canEdit: page.stagedPng != "" || /\.(jpe?g|png|gif|bmp)$/i.test(page.staged)
+                canEdit: page.stagedPng != "" || /\.(jpe?g|png|gif|bmp|mp4|3gp|mov)$/i.test(page.staged)
                 // The original PNG when the staged JPEG was made from one.
                 onEdit: media.editPicture(page.stagedPng != "" ? page.stagedPng : page.staged)
                 onCancelled: page.unstage()
@@ -841,12 +841,16 @@ Page {
                     // How far the fetch is, 0 until bytes arrive, and its text ("1.2 MB / 23 MB"), for the ring.
                     property real mediaProgress: media.progress
                     property string mediaProgressText: media.progressText
+                    // The same for the files of our messages being sent, by message id: {progress, text}.
+                    property variant mediaUploads: media.uploads
                     property variant joiner: invites // for the cards, which see no context objects
                     function openMedia(msg) {
                         if (msg.media == "location") {
                             maps.choose(msg.lat, msg.lon, msg.place)
                         } else if (msg.media == "contact") {
                             media.importContact(msg.vcard)
+                        } else if (mediaUploads[msg.id]) {
+                            ctl.deleteForMe(msg.id) // a tap on one being sent stops it: TDLib cancels the upload with the message
                         } else if (media.loadingId == msg.id) {
                             media.cancel() // a tap on the one being fetched stops it
                         } else {

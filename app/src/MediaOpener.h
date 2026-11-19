@@ -23,6 +23,11 @@ class MediaOpener : public QObject
     // How much of that message's file is here, 0 to 1: 0 until bytes arrive. And "1.2 MB / 23 MB", "" until then.
     Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(QString progressText READ progressText NOTIFY progressChanged)
+    // The messages of ours being sent whose file is going up: message id -> {progress: 0 to 1, text: "1.2 MB / 23 MB"}.
+    // An entry goes when its last bytes are up. Keyed by the message id alone, whatever the chat.
+    // ponytail: ids from two chats could collide (a temporary id is not reused across chats in practice); key by chat
+    // too if it ever matters.
+    Q_PROPERTY(QVariantMap uploads READ uploads NOTIFY uploadsChanged)
 public:
     explicit MediaOpener(QObject *parent = 0);
 
@@ -31,6 +36,7 @@ public:
     QString loadingId() const;
     qreal progress() const;
     QString progressText() const;
+    QVariantMap uploads() const;
 
     // Asks the engine for the file of message id (media.get); ready() follows. A failure shows in
     // the engine's failure. A newer get replaces an older one, whose reply is dropped. With save the engine also copies
@@ -44,7 +50,8 @@ public:
     // an app opens it is not known.
     Q_INVOKABLE bool openFile(const QString &path);
     // Opens the system's picture editor card (sys.pictureeditor.cardeditor, bb.action.EDIT) on a .jpg, .png, .gif or
-    // .bmp; pictureEdited() follows when it hands an edited file back, openFailed() when the system gave no reply.
+    // .bmp, its video editor card (sys.video_editor.card: trim, crop) on a .mp4, .3gp or .mov; pictureEdited() follows
+    // when it hands an edited file back, openFailed() when the system gave no reply.
     Q_INVOKABLE void editPicture(const QString &path);
     // Opens the Contacts app's import screen on a shared contact's vCard text (step 6.5d). A failure
     // is logged, and shows as openFailed().
@@ -75,6 +82,7 @@ public:
 signals:
     void loadingIdChanged();
     void progressChanged();
+    void uploadsChanged();
     // The file of message id is at path; kind is what get() was given.
     void ready(const QString &id, const QString &kind, const QString &path);
     // The save asked of get() is done: the copy in Downloads is at path.
@@ -87,7 +95,7 @@ signals:
 private slots:
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onFailure();
-    void onProgress(const QString &chat, const QString &id, qint64 done, qint64 size);
+    void onProgress(const QString &chat, const QString &id, qint64 done, qint64 size, bool up);
     void onInvoked();
     void onCardDone(const bb::system::CardDoneMessage &done);
 
@@ -100,6 +108,7 @@ private:
     QString m_chat; // of m_loadingId
     qreal m_progress;
     QString m_progressText;
+    QVariantMap m_uploads; // the uploads' progress, by message id
     QString m_kind;
     QString m_reqId; // the media.get request we wait for
     bool m_saving; // that request is a save: its reply is saved(), not ready()

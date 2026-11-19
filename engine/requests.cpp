@@ -16,6 +16,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
+#include <iterator>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -872,6 +873,8 @@ struct Watched {
 };
 std::unordered_map<std::int32_t, Watched> watched;
 std::unordered_set<std::int32_t> cancelled;
+// The files of our messages still sending (upload_watch), for media.progress: the sending message and its last event.
+std::unordered_map<std::int32_t, Watched> uploads;
 
 void download_failed(std::uint64_t conn, const std::string &id, const std::string &why) {
   say("media.get: %s", why.c_str());
@@ -993,22 +996,53 @@ void media_cancel(std::uint64_t conn, const std::string &id, td::JsonObject &req
 }  // namespace
 
 void media_progress(const td_api::file &f) {
-  auto w = watched.find(f.id_);
-  if (w == watched.end() || !f.local_ || f.local_->is_downloading_completed_) {
-    return;
-  }
   const auto now = std::chrono::steady_clock::now();
-  if (now - w->second.sent < std::chrono::milliseconds(200)) {
+  const std::int64_t size = f.size_ ? f.size_ : f.expected_size_;
+  auto event = [&](const Watched &w, std::int64_t done, bool up) {
+    server.broadcast(td::json_encode<std::string>(td::json_object([&](auto &o) {
+      o("ev", "media.progress");
+      o("chat", std::to_string(w.chat));
+      o("id", std::to_string(w.message));
+      o("done", done);
+      o("size", size);
+      if (up) {
+        o("up", td::JsonBool(true));
+      }
+    })));
+  };
+  auto w = watched.find(f.id_);
+  if (w != watched.end() && f.local_ && !f.local_->is_downloading_completed_ &&
+      now - w->second.sent >= std::chrono::milliseconds(200)) {
+    w->second.sent = now;
+    event(w->second, f.local_->downloaded_size_, false);
+  }
+  auto u = uploads.find(f.id_);
+  if (u == uploads.end() || !f.remote_ || size == 0) {
     return;
   }
-  w->second.sent = now;
-  server.broadcast(td::json_encode<std::string>(td::json_object([&](auto &o) {
-    o("ev", "media.progress");
-    o("chat", std::to_string(w->second.chat));
-    o("id", std::to_string(w->second.message));
-    o("done", f.local_->downloaded_size_);
-    o("size", f.size_ ? f.size_ : f.expected_size_);
-  })));
+  if (f.remote_->is_uploading_completed_) {  // the last event is never throttled: the bar ends full
+    event(u->second, size, true);
+    uploads.erase(u);
+  } else if (now - u->second.sent >= std::chrono::milliseconds(200)) {
+    u->second.sent = now;
+    event(u->second, f.remote_->uploaded_size_, true);
+  }
+}
+
+void upload_watch(const td_api::message &m) {
+  if (!m.sending_state_ || m.sending_state_->get_id() != td_api::messageSendingStatePending::ID) {
+    return;
+  }
+  const td_api::file *file = message_file(m);
+  if (file && file->remote_ && !file->remote_->is_uploading_completed_) {
+    uploads[file->id_] = {m.chat_id_, m.id_, {}};
+  }
+}
+
+void upload_forget(std::int64_t chat, std::int64_t message) {
+  for (auto u = uploads.begin(); u != uploads.end();) {
+    u = u->second.chat == chat && u->second.message == message ? uploads.erase(u) : std::next(u);
+  }
 }
 
 void bad_request(std::uint64_t conn, const std::string &id, const std::string &what) {

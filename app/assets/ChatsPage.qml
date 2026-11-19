@@ -9,9 +9,6 @@ Page {
     property variant picker
     // The new group page while it's open, so creating can remove it from the stack.
     property variant groupPage
-    // The filter field is over the list. The letter shortcuts are off meanwhile, or they would
-    // eat the letters typed into it (bb10-pitfalls).
-    property bool searching: false
     attachedObjects: [
         ComponentDefinition {
             id: chatDef
@@ -39,6 +36,10 @@ Page {
         ComponentDefinition {
             id: callsDef
             source: "CallsPage.qml"
+        },
+        ComponentDefinition {
+            id: searchDef
+            source: "SearchPage.qml"
         }
     ]
     actions: [
@@ -50,9 +51,8 @@ Page {
             ActionBar.placement: ActionBarPlacement.OnBar
             shortcuts: SystemShortcut {
                 type: SystemShortcuts.Search
-                enabled: !page.searching
             }
-            onTriggered: page.toggleSearch()
+            onTriggered: page.openSearch()
         },
         ActionItem {
             title: qsTr("New chat")
@@ -61,7 +61,6 @@ Page {
             ActionBar.placement: ActionBarPlacement.Signature
             shortcuts: SystemShortcut {
                 type: SystemShortcuts.CreateNew
-                enabled: !page.searching
             }
             onTriggered: page.newChat()
         },
@@ -77,7 +76,6 @@ Page {
             ActionBar.placement: ActionBarPlacement.InOverflow
             shortcuts: SystemShortcut {
                 type: SystemShortcuts.JumpToTop
-                enabled: !page.searching
             }
             onTriggered: list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
         },
@@ -87,7 +85,6 @@ Page {
             ActionBar.placement: ActionBarPlacement.InOverflow
             shortcuts: SystemShortcut {
                 type: SystemShortcuts.JumpToBottom
-                enabled: !page.searching
             }
             onTriggered: list.scrollToPosition(ScrollPosition.End, ScrollAnimation.None)
         },
@@ -136,21 +133,15 @@ Page {
         chatPage.focusComposer()
         return chatPage
     }
-    // Search again with text in the field goes back to typing; with none, it closes.
-    function toggleSearch() {
-        if (!searching) {
-            searching = true
-            search.requestFocus()
-        } else if (search.text == "") {
-            closeSearch()
-        } else {
-            search.requestFocus()
-        }
+    // Telegram's search, on a page of its own (the user's ask, 2026-11-19); the filter is the Send to page's now.
+    function openSearch() {
+        var searchPage = searchDef.createObject()
+        nav.push(searchPage)
+        searchPage.focusSearch()
     }
+    // main.qml calls it as the Send to page goes: that page's field filtered the chat list's model.
     function closeSearch() {
-        search.text = ""
         chats.setFilter("")
-        searching = false
     }
     function newChat() {
         picker = newChatDef.createObject()
@@ -230,50 +221,6 @@ Page {
     Container {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
-        // The field and a ✕ that closes it in one tap: the Q10 has no Escape, and the menu's
-        // Search was the only other way out (Q10, 2026-11-01).
-        Container {
-            visible: page.searching
-            horizontalAlignment: HorizontalAlignment.Fill
-            layout: StackLayout {
-                orientation: LayoutOrientation.LeftToRight
-            }
-            TextField {
-                id: search
-                verticalAlignment: VerticalAlignment.Center
-                layoutProperties: StackLayoutProperties {
-                    spaceQuota: 1
-                }
-                hintText: qsTr("Search chats")
-                input.submitKey: SubmitKey.Search
-                onTextChanging: chats.setFilter(text)
-                keyListeners: KeyListener {
-                    onKeyPressed: {
-                        if (event.key == 27) {
-                            page.closeSearch()
-                        }
-                    }
-                }
-            }
-            // A touch target the size of an action column (9 du), the ✕ as the reply bar's.
-            Container {
-                verticalAlignment: VerticalAlignment.Center
-                preferredWidth: ui.du(9)
-                preferredHeight: ui.du(9)
-                layout: DockLayout {
-                }
-                gestureHandlers: TapHandler {
-                    onTapped: page.closeSearch()
-                }
-                Label {
-                    horizontalAlignment: HorizontalAlignment.Center
-                    verticalAlignment: VerticalAlignment.Center
-                    text: "✕"
-                    textFormat: TextFormat.Plain
-                    textStyle.color: ui.palette.secondaryTextOnPlain
-                }
-            }
-        }
         Container {
             layout: DockLayout {}
             horizontalAlignment: HorizontalAlignment.Fill
@@ -293,7 +240,7 @@ Page {
                 horizontalAlignment: HorizontalAlignment.Center
                 verticalAlignment: VerticalAlignment.Center
                 textStyle.color: ui.palette.secondaryTextOnPlain
-                text: page.searching ? qsTr("No chat matches.") : qsTr("No chats yet")
+                text: qsTr("No chats yet")
             }
         }
     }

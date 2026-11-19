@@ -1030,6 +1030,7 @@ void messages_update(td_api::Object &update) {
         if (!u.message_->sending_state_) {  // ours, still sending: the topic is fetched when it is sent
           topics_note(u.message_->chat_id_, topic_of(*u.message_));
         } else {
+          upload_watch(*u.message_);  // media.progress while its file goes up
           mark_dirty(true);  // just sent here: its bubble shows without the 50 ms wait
         }
       }
@@ -1045,6 +1046,7 @@ void messages_update(td_api::Object &update) {
       if (!sent) {
         break;
       }
+      upload_forget(sent->chat_id_, old_id);
       ops.push_back([chat = sent->chat_id_, old_id, row = row_of(*sent)] {
         erase(chat, old_id, true);
         put(row);

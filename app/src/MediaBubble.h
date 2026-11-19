@@ -31,7 +31,9 @@ class UIConfig;
 // picture card, a photo or video spans the card with no air around it, and stamp() is the corner
 // at its bottom right where the card puts the time when there's no caption. A fetch shows a spinner until bytes
 // arrive, then a ring that fills (ring/ring_NN.png, the list's mediaProgress) with a cross in it: a tap cancels; its
-// text ("1.2 MB / 23 MB", mediaProgressText) takes the place of a video's length and of a file's size line.
+// text ("1.2 MB / 23 MB", mediaProgressText) takes the place of a video's length and of a file's size line. The upload
+// of a message of ours being sent shows the same, from the list's mediaUploads (by message id): a tap on it stops the
+// send.
 class MediaBubble : public bb::cascades::CustomControl
 {
     Q_OBJECT
