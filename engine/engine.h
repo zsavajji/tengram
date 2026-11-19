@@ -284,6 +284,8 @@ void calls_drain();                         // runs what tgcalls' threads posted
 void calls_update(td_api::Object &update);  // updateCall, updateNewCallSignalingData; anything else is ignored
 bool calls_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 bool calls_live();                          // a call is ringing, being placed or under way: the network must stay on
+bool calls_audio_wanted(const std::string &call_id);  // the audio link's hello names the live call (server.cpp asks)
+void calls_audio_attach(int fd);                      // the audio link, after its ok reply: the call owns the fd now
 
 // live.cpp: typing and presence for the chats the UI has open.
 void live_open(std::uint64_t conn, std::int64_t chat);   // chat.open succeeded: the chat is open for this connection

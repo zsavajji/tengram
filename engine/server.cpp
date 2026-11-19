@@ -215,6 +215,7 @@ void Server::on_line(Conn &c, std::string &line) {
 
 void Server::hello(Conn &c, const std::string &id, const std::string &cmd, td::JsonObject *req) {
   const char *refused = nullptr, *why = nullptr;
+  td::JsonValue audio;
   if (!req || cmd != "hello") {
     refused = "auth", why = "hello with the token first";
   } else if (auto token = string_field(*req, "token"); token.is_error() || !same(token.ok(), token_)) {
@@ -222,11 +223,35 @@ void Server::hello(Conn &c, const std::string &id, const std::string &cmd, td::J
   } else if (auto proto = req->extract_required_field("proto", td::JsonValue::Type::Number);
              proto.is_error() || proto.ok().get_number() != td::Slice("1")) {
     refused = "proto", why = "this engine speaks proto 1";
+  } else if (optional_field(*req, "audio", td::JsonValue::Type::String, audio) < 0) {
+    refused = "bad_request", why = "audio is a string: the call's id";
+  } else if (audio.type() == td::JsonValue::Type::String && !calls_audio_wanted(audio.get_string().str())) {
+    refused = "not_found", why = "no such call";
   }
   if (refused) {
     say("conn %llu: hello refused (%s)", num(c.id), refused);
     c.close_after = true;  // after the error line
     reply_error(c.id, id, refused, why);
+    return;
+  }
+  if (audio.type() == td::JsonValue::Type::String) {
+    // The audio link of the live call is not a UI connection: no events, and nothing to undo when it closes. The ok
+    // line must be out before the call takes the fd, and it is a short line on an empty loopback socket.
+    reply_ok(c.id, id);
+    for (int i = 0; i < 10 && c.fd >= 0 && !c.out.empty(); ++i) {
+      pollfd p = {c.fd, POLLOUT, 0};
+      poll(&p, 1, 10);
+      flush(c);
+    }
+    if (c.fd >= 0 && c.out.empty()) {
+      say("conn %llu: audio link", num(c.id));
+      const int fd = c.fd;
+      c.fd = -1;  // dropped from the server, not closed
+      c.in.clear();
+      calls_audio_attach(fd);
+    } else {
+      close_conn(c);
+    }
     return;
   }
   reply_ok(c.id, id, link_body());  // queued before authed is set, so no event comes first

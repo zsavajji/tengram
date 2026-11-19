@@ -1,20 +1,22 @@
 // 1:1 voice calls: TDLib's call states and signalling on one side, Telegram's tgcalls library on the other
 // (docs/protocol.md, "Calls"). One call at a time. tgcalls runs on threads of its own: its callbacks only post a
 // closure to the main thread, as bb10.cpp does for the navigator, and every closure checks that its call is still
-// the live one. Gate T0: no UI and no real audio yet, a test tone is the microphone (see Tone and Peer).
+// the live one. The sound goes to and from the UI over a second connection (AudioLink).
 
 #include "engine.h"
 
+#include <sys/socket.h>
 #include <unistd.h>
 
 #include <algorithm>
 #include <array>
-#include <cmath>
+#include <cerrno>
 #include <cstring>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <set>
+#include <thread>
 
 #include "tgcalls/FakeAudioDeviceModule.h"
 #include "tgcalls/Instance.h"
@@ -25,6 +27,30 @@ namespace {
 
 using td_api::make_object;
 
+// The audio link to the UI (docs/protocol.md, "Audio link"): 16 kHz mono s16le on a socket, in frames of 60 ms. One per
+// live call, shared by the call and by tgcalls' audio threads, which run Mic and Speaker every 10 ms.
+constexpr int kRate = 16000;
+constexpr std::size_t kTick = kRate / 100 * 2;  // 10 ms, in bytes
+constexpr std::size_t kFrame = 1920;            // 60 ms
+constexpr std::size_t kMicKeep = 3 * kFrame, kPeerKeep = 8 * kFrame;
+
+struct AudioLink {
+  explicit AudioLink(std::int32_t c) : call(c) {
+  }
+  void close_fd() {  // with m held
+    if (fd >= 0) {
+      ::close(fd);
+      fd = -1;
+    }
+  }
+  const std::int32_t call;
+  std::mutex m;        // guards the rest
+  int fd = -1;         // -1 when there is no link
+  std::string mic;     // the microphone's bytes, waiting for tgcalls
+  std::string gather;  // the peer's bytes, gathering into a frame
+  std::string out;     // whole frames (the first may be half sent) waiting to be written to the UI
+};
+
 struct Live {
   std::int32_t id = 0;
   std::int64_t user = 0, chat = 0;
@@ -32,6 +58,7 @@ struct Live {
   std::string state;  // ringing, calling, connecting, active or ended: the `call` event's
   std::int64_t since_ms = 0;  // unix ms when it became active, 0 before
   std::unique_ptr<tgcalls::Instance> inst;
+  std::shared_ptr<AudioLink> audio;
   bool hanging = false;                          // discardCall is sent
   std::vector<std::vector<std::uint8_t>> early;  // signalling that came before the instance, in order
 };
@@ -63,48 +90,6 @@ std::int64_t now_ms() {
   return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
       .count();
 }
-
-// ---- the test audio of gate T0, until the audio link to the UI: the microphone is a 440 Hz tone, and what the peer says
-// is not played but measured, its level in the log.
-
-constexpr int kRate = 48000, kFrame = kRate / 100;  // 10 ms of mono
-
-class Tone final : public tgcalls::FakeAudioDeviceModule::Recorder {
- public:
-  tgcalls::AudioFrame Record() override {
-    for (int i = 0; i < kFrame; ++i, phase_ = (phase_ + 1) % kRate) {  // 440 whole cycles in kRate samples
-      buf_[i] = static_cast<std::int16_t>(6000 * std::sin(6.283185307179586 * 440 * phase_ / kRate));
-    }
-    return {buf_, kFrame, 2, 1, kRate, 0, 0};
-  }
-
- private:
-  std::int16_t buf_[kFrame];
-  int phase_ = 0;
-};
-
-class Peer final : public tgcalls::FakeAudioDeviceModule::Renderer {
- public:
-  bool Render(const tgcalls::AudioFrame &f) override {  // tgcalls' audio thread
-    const std::size_t n = f.num_samples * f.num_channels;
-    for (std::size_t i = 0; i < n; ++i) {
-      sum_ += static_cast<double>(f.audio_samples[i]) * f.audio_samples[i];
-    }
-    count_ += n;
-    if (++frames_ == 200) {  // 2 s
-      say("call audio: peer rms %ld", count_ ? std::lround(std::sqrt(sum_ / static_cast<double>(count_))) : 0L);
-      sum_ = 0;
-      count_ = 0;
-      frames_ = 0;
-    }
-    return true;
-  }
-
- private:
-  double sum_ = 0;
-  std::size_t count_ = 0;
-  int frames_ = 0;
-};
 
 // ---- TDLib's side
 
@@ -142,6 +127,10 @@ void end(const char *reason) {
   say("call %d: ended (%s)", live->id, reason);
   live->state = "ended";
   emit(reason);
+  {
+    std::lock_guard<std::mutex> lock(live->audio->m);  // the instance's audio threads may run until it has stopped
+    live->audio->close_fd();
+  }
   if (tgcalls::Instance *raw = live->inst.release()) {
     raw->stop([raw](tgcalls::FinalState f) {
       const auto &t = f.trafficStats;
@@ -163,6 +152,113 @@ void hang_up(bool disconnected, Td::Callback cb = nullptr) {
                                               live->inst ? live->inst->getPreferredRelayId() : 0),
              std::move(cb));
 }
+
+// The UI is gone, or its audio link is: nothing can play or record. It gets 3 s to open a new one, then the call ends.
+void audio_lost(std::int32_t id) {
+  if (!is_live(id) || live->hanging) {
+    return;
+  }
+  say("call %d: audio link lost", id);
+  std::thread([id] {
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    post([id] {
+      if (!is_live(id) || live->hanging) {
+        return;
+      }
+      {
+        std::lock_guard<std::mutex> lock(live->audio->m);
+        if (live->audio->fd >= 0) {
+          return;
+        }
+      }
+      say("call %d: no audio link for 3 s, hanging up", id);
+      hang_up(true);
+    });
+  }).detach();
+}
+
+// With a.m held, from an audio thread: the link failed or the UI closed it.
+void lose(AudioLink &a) {
+  a.close_fd();
+  const std::int32_t id = a.call;
+  post([id] { audio_lost(id); });
+}
+
+// The microphone: what the UI sent, 10 ms at a time; silence when it has not sent enough.
+class Mic final : public tgcalls::FakeAudioDeviceModule::Recorder {
+ public:
+  explicit Mic(std::shared_ptr<AudioLink> a) : a_(std::move(a)) {
+  }
+  tgcalls::AudioFrame Record() override {  // tgcalls' audio thread
+    std::lock_guard<std::mutex> lock(a_->m);
+    char chunk[kFrame];
+    while (a_->fd >= 0) {
+      const ssize_t n = read(a_->fd, chunk, sizeof chunk);
+      if (n > 0) {
+        a_->mic.append(chunk, static_cast<std::size_t>(n));
+        if (a_->mic.size() > kMicKeep) {  // the oldest go, in whole ticks so the samples stay aligned
+          a_->mic.erase(0, (a_->mic.size() - kMicKeep + kTick - 1) / kTick * kTick);
+        }
+      } else if (n < 0 && errno == EINTR) {
+        continue;
+      } else if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+        break;
+      } else {
+        lose(*a_);
+      }
+    }
+    if (a_->mic.size() >= kTick) {
+      std::memcpy(buf_, a_->mic.data(), kTick);
+      a_->mic.erase(0, kTick);
+    } else {
+      std::memset(buf_, 0, kTick);
+    }
+    return {buf_, kTick / 2, 2, 1, kRate, 0, 0};
+  }
+
+ private:
+  std::shared_ptr<AudioLink> a_;
+  std::int16_t buf_[kTick / 2];
+};
+
+// The peer: gathered into frames and written to the UI without ever blocking; what the UI does not read is dropped.
+class Speaker final : public tgcalls::FakeAudioDeviceModule::Renderer {
+ public:
+  explicit Speaker(std::shared_ptr<AudioLink> a) : a_(std::move(a)) {
+  }
+  bool Render(const tgcalls::AudioFrame &f) override {  // tgcalls' audio thread
+    std::lock_guard<std::mutex> lock(a_->m);
+    if (a_->fd < 0) {
+      return true;
+    }
+    for (std::size_t i = 0; i < f.num_samples; ++i) {  // the left channel, if there are two
+      a_->gather.append(reinterpret_cast<const char *>(f.audio_samples + i * f.num_channels), 2);
+    }
+    for (; a_->gather.size() >= kFrame; a_->gather.erase(0, kFrame)) {
+      a_->out.append(a_->gather, 0, kFrame);
+    }
+    while (a_->out.size() > kPeerKeep) {
+      // The oldest frame not yet started: one half sent is finished, so the UI's frames stay whole.
+      a_->out.erase(a_->out.size() % kFrame, kFrame);
+    }
+    while (a_->fd >= 0 && !a_->out.empty()) {
+      const ssize_t n = send(a_->fd, a_->out.data(), a_->out.size(), MSG_NOSIGNAL);
+      if (n > 0) {
+        a_->out.erase(0, static_cast<std::size_t>(n));
+      } else if (n < 0 && errno == EINTR) {
+        continue;
+      } else if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+        break;
+      } else {
+        lose(*a_);
+      }
+    }
+    return true;
+  }
+
+ private:
+  std::shared_ptr<AudioLink> a_;
+};
 
 std::string hex(const std::string &bytes) {
   static const char digits[] = "0123456789abcdef";
@@ -289,8 +385,8 @@ bool make_instance(const td_api::call &c, const td_api::callStateReady &r) {
   tgcalls::FakeAudioDeviceModule::Options audio;
   audio.samples_per_sec = kRate;
   audio.num_channels = 1;
-  d.createAudioDeviceModule =
-      tgcalls::FakeAudioDeviceModule::Creator(std::make_shared<Peer>(), std::make_shared<Tone>(), audio);
+  d.createAudioDeviceModule = tgcalls::FakeAudioDeviceModule::Creator(std::make_shared<Speaker>(live->audio),
+                                                                      std::make_shared<Mic>(live->audio), audio);
 
   say("call %d: version %s, p2p %d, %zu endpoints, %zu rtc servers", id, version.c_str(), d.config.enableP2P ? 1 : 0,
       n_endpoints, n_servers);
@@ -340,6 +436,7 @@ void on_call(const td_api::call &c) {
     }
     live.emplace();
     live->id = c.id_;
+    live->audio = std::make_shared<AudioLink>(c.id_);
     live->user = live->chat = c.user_id_;  // a private chat's id is the user's
     live->out = c.is_outgoing_;
     mode_evaluate();  // the network must be on
@@ -480,4 +577,26 @@ bool calls_handle(std::uint64_t conn, const std::string &id, const std::string &
 
 bool calls_live() {
   return live.has_value();
+}
+
+bool calls_audio_wanted(const std::string &call_id) {
+  std::int64_t id = 0;
+  return parse_i64(call_id, id) && live && live->id == id && live->state != "ended";
+}
+
+void calls_audio_attach(int fd) {
+  if (!live || !set_nonblock(fd)) {
+    ::close(fd);
+    return;
+  }
+  AudioLink &a = *live->audio;
+  {
+    std::lock_guard<std::mutex> lock(a.m);
+    a.close_fd();  // a new link replaces the old
+    a.fd = fd;
+    a.mic.clear();
+    a.gather.clear();
+    a.out.clear();
+  }
+  say("call %d: audio link attached", live->id);
 }

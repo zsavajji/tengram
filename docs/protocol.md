@@ -38,7 +38,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 
 | cmd | fields | result | own errors |
 |---|---|---|---|
-| `hello` | `token`, `proto: 1` | the link body | `auth`, `proto` |
+| `hello` | `token`, `proto: 1`; `audio` (a call's id, string) for the audio link | the link body; nothing for the audio link | `auth`, `proto`, `bad_request` (`audio` is not a string), `not_found` (the audio link's call is not live) |
 | `link.qr` | — (states `unlinked`, `code`, `password`) | — (the code comes as a `link` event, state `qr`) | `linked`, `bad_state` |
 | `link.phone` | `phone` (international, non-digits ignored; states `unlinked`, `code`, `password`) | — (then state `code`) | `linked`, `bad_state`, `bad_phone` |
 | `link.code` | `code` | — (then `password` or `ready`) | `bad_state`, `bad_code` |
@@ -736,8 +736,25 @@ side is in a call), `failed` (the connection was lost or never made, or Telegram
 
 While a call is live the network stays on, whatever the delivery mode says.
 
-**Gate T0:** there is no audio link to the UI yet. The engine's microphone is a 440 Hz tone, and what the other side says is
-not played: the engine logs its level (`call audio: peer rms N`) every 2 seconds instead.
+### Audio link
+
+The sound of a call does not go through the JSON connection. The UI owns the microphone and the earpiece and opens a
+second connection to the engine's port when the call reaches `connecting` or `active`, one per call; a new one replaces
+the old, whose socket the engine closes. Its first line is `hello` with the token, `proto` and `audio`: the call's `id`.
+The engine answers `{"@":"…","ok":true}` (no result) and the connection then carries raw PCM both ways, **16 kHz mono
+s16le in frames of 1920 bytes (960 samples, 60 ms)**, with no other framing: the microphone from the UI, the other
+person's voice to the UI. The UI sends nothing before it has read the reply (the engine drops what follows the `hello`
+line). This connection gets no events and takes no requests: it is not a UI connection, and its closing changes nothing
+else.
+
+A wrong token is `auth` and an `audio` that is not the live call (before `ended`) is `not_found`; both close the
+connection after the error line, as does a wrong `proto`.
+
+The engine never waits for the link. It keeps the last 3 frames of microphone (the oldest go) and gives the call silence
+when fewer than 10 ms are there. It writes the peer's voice without blocking and keeps up to 8 frames for a UI that does
+not read (the oldest go). It closes the link when the call ends. If the link closes during a call (EOF or an error) and no
+new one comes within 3 seconds, the engine hangs the call up as `call.hangup` does, with is_disconnected set: the UI was
+closed, and nothing can be played or recorded.
 
 ## Delivery mode
 
