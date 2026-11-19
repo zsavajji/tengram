@@ -703,8 +703,13 @@ To find out where before the audio link. tgcalls v2's FinalState traffic counter
 - **Incoming calls need the engine online:** in batched delivery (the main account online elsewhere) the
   Q10 was offline and only saw the ringing call at its next connection (108 s later, the caller still
   waiting). The Q10 was set to instant for the test (`prefs.set mode instant`).
-- **Not verified yet:** echo with real audio (WebRTC's software AEC is off, the iOS way, on the guess that
-  BB10's voice path cancels echo itself); Opus complexity 5 (as Android) against the default 9.
+- **Real audio works (the Q10, 0.1.0.39, 2026-11-19):** a call to the user's Android, both ways; the user: no echo
+  (speaker included), loudness fine, with all of WebRTC's processing off: BB10's voice path does the echo. Two bugs on
+  the way: the audio link never attached (QNX's `F_SETFD` returns the previous flags, which `set_nonblock` took for an
+  error), and the peer's audio stuttered (tgcalls' fake device slept a fixed 10 ms a tick: 90.3 % of real time, 23
+  underruns in 10 s); paced by a steady clock it is 100.1 %, 3 underruns in 28 s (the start, and a route change).
+- **Not verified yet:** Opus complexity 5 (as Android) against the default 9; 60 ms Opus packets (a third of the
+  packets, so of the encryption and network work) as the next CPU lever.
 - **Incoming calls and the delivery mode (the user, 2026-11-19):** no special case. Ringing in batched mode would
   mean keeping the connection open, which is instant mode; in batched mode a call rings on the other devices and
   shows here as missed.
