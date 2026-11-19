@@ -110,6 +110,7 @@ private:
     void setKeys(bool on);
 
     void restyle(bool out);
+    void paintCorners(const bb::cascades::Color &card);
     void fillColumn();
     void fillFoot();
     bb::cascades::ImageView *makeTail(const char *source);

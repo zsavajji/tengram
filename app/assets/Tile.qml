@@ -17,6 +17,12 @@ Container {
     property string photo
     property variant emojiStyle
     property int initialsSize: 118
+    // The side in px of the round copy of the picture: 160 for a list's tile; a profile page's big picture (20 du) asks for
+    // more, the user, 2026-11-19.
+    property int photoSize: 160
+    // "?" and a number after the picture's URL, for a file rewritten under the same path (the profile's own), which the view
+    // would otherwise keep as it first loaded it; "" for none.
+    property string reload
     property bool round: !!tile.look && tile.look.round
     layout: DockLayout {}
     background: tile.round || tile.tint == "" ? Color.Transparent : Color.create(tile.tint)
@@ -45,7 +51,7 @@ Container {
         visible: tile.photo != ""
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
-        imageSource: tile.photo == "" ? "" : "file://" + (tile.round ? (tile.look.roundPhoto(tile.photo) || tile.photo) : tile.photo)
+        imageSource: tile.photo == "" ? "" : "file://" + (tile.round ? (tile.look.roundPhoto(tile.photo, tile.photoSize) || tile.photo) : tile.photo) + tile.reload
         scalingMethod: ScalingMethod.AspectFill
         loadEffect: ImageViewLoadEffect.None
     }

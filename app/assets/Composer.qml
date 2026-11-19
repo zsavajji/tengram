@@ -49,8 +49,7 @@ Container {
         layout: StackLayout {
             orientation: LayoutOrientation.LeftToRight
         }
-        // Emoji, or Discard while recording. In Round mode (the user's ask, 2026-11-19) it sits on a grey disc, as the bar's
-        // grey (#808080 at 20 %) shows on the dark and on the bright theme alike.
+        // Emoji, or Discard while recording.
         Container {
             verticalAlignment: VerticalAlignment.Center
             preferredWidth: ui.du(9 * bar.big)
@@ -59,13 +58,6 @@ Container {
             layout: DockLayout {}
             gestureHandlers: TapHandler {
                 onTapped: bar.recording ? bar.discard() : bar.emoji()
-            }
-            RoundFill {
-                horizontalAlignment: HorizontalAlignment.Center
-                verticalAlignment: VerticalAlignment.Center
-                preferredWidth: ui.du(8 * bar.big)
-                preferredHeight: ui.du(8 * bar.big)
-                filterColor: Color.create("#33808080")
             }
             ImageView {
                 horizontalAlignment: HorizontalAlignment.Center

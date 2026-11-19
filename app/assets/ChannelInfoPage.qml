@@ -60,32 +60,22 @@ Page {
                 topPadding: ui.du(3)
                 leftPadding: ui.du(1.5)
                 rightPadding: ui.du(1.5)
-                Container {
+                // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19).
+                Tile {
                     horizontalAlignment: HorizontalAlignment.Center
                     preferredWidth: ui.du(20)
                     preferredHeight: ui.du(20)
-                    background: page.chat ? Color.create(page.chat.color) : Color.Transparent
-                    layout: DockLayout {}
-                    Label {
-                        visible: !page.hasPicture
-                        horizontalAlignment: HorizontalAlignment.Center
-                        verticalAlignment: VerticalAlignment.Center
-                        text: page.chat ? page.chat.initials : ""
-                        textFormat: TextFormat.Plain
-                        textStyle.base: nav.emojiStyle
-                        textStyle.fontSize: FontSize.PercentageValue
-                        textStyle.fontSizeValue: 300
-                        textStyle.color: Color.White
-                    }
-                    ImageView {
-                        visible: page.hasPicture
-                        horizontalAlignment: HorizontalAlignment.Fill
-                        verticalAlignment: VerticalAlignment.Fill
-                        imageSource: page.hasPicture ? "file://" + page.picture : ""
-                        scalingMethod: ScalingMethod.AspectFill
-                        loadEffect: ImageViewLoadEffect.None
-                        gestureHandlers: TapHandler {
-                            onTapped: nav.showPhoto(page.picture)
+                    tint: page.chat ? page.chat.color : ""
+                    initials: page.chat ? page.chat.initials : ""
+                    photo: page.picture
+                    emojiStyle: nav.emojiStyle
+                    initialsSize: 300
+                    photoSize: 400
+                    gestureHandlers: TapHandler {
+                        onTapped: {
+                            if (page.hasPicture) {
+                                nav.showPhoto(page.picture)
+                            }
                         }
                     }
                 }

@@ -146,6 +146,19 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_photo->add(m_length);
     m_photo->add(m_cover);
     m_photo->add(m_dim);
+    // The corners' masks (setCorner), over the picture and what dims it, under the time and the spinner. One image, the top
+    // left's, turned by 90 degrees (clockwise) for each next corner: a turned square keeps its box, so the dock still puts it.
+    for (int i = 0; i < 4; i++) {
+        m_corner[i] = new ImageView();
+        m_corner[i]->setHorizontalAlignment(i == 0 || i == 3 ? HorizontalAlignment::Left : HorizontalAlignment::Right);
+        m_corner[i]->setVerticalAlignment(i < 2 ? VerticalAlignment::Top : VerticalAlignment::Bottom);
+        m_corner[i]->setScalingMethod(ScalingMethod::Fill);
+        m_corner[i]->setLoadEffect(ImageViewLoadEffect::None);
+        m_corner[i]->setImageSource(Card::url("asset:///images/corner.png"));
+        m_corner[i]->setRotationZ(90 * i);
+        m_corner[i]->setVisible(false);
+        m_photo->add(m_corner[i]);
+    }
     // The time's corner, 1 du in from the edges; empty unless the card puts the time in it.
     m_stamp = new Container();
     m_stamp->setHorizontalAlignment(HorizontalAlignment::Right);
@@ -224,6 +237,16 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
         qWarning("cards: the list has no mediaProgressChanged");
     if (!connect(list, SIGNAL(mediaUploadsChanged()), this, SLOT(refresh())))
         qWarning("cards: the list has no mediaUploadsChanged");
+}
+
+void MediaBubble::setCorner(int corner, const Color &behind, int radius)
+{
+    ImageView *mask = m_corner[corner];
+    mask->setVisible(radius > 0);
+    if (radius > 0) {
+        mask->setPreferredSize(m_ui->px(radius), m_ui->px(radius));
+        mask->setFilterColor(behind);
+    }
 }
 
 // What the text size and the theme's colours decide, set again only when one of them changed.

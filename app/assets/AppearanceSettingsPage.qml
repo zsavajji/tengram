@@ -46,6 +46,17 @@ Page {
                 ]
                 onSelectedIndexChanged: settings.round = selectedIndex == 1
             }
+            // The Dark theme's page: pure black, or #181818 like Android's (the user's ask, 2026-11-19). The Bright theme has one
+            // page colour, so there it is not offered.
+            DropDown {
+                visible: settings.theme == 0
+                title: qsTr("Dark background")
+                options: [
+                    Option { text: qsTr("Black"); selected: !settings.darkGrey },
+                    Option { text: qsTr("Grey"); selected: settings.darkGrey }
+                ]
+                onSelectedIndexChanged: settings.darkGrey = selectedIndex == 1
+            }
         }
     }
 }

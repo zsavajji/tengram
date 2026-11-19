@@ -130,31 +130,19 @@ Page {
                 topPadding: ui.du(3)
                 leftPadding: ui.du(1.5)
                 rightPadding: ui.du(1.5)
-                Container {
+                // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19); before the engine answers it
+                // is the stock plain grey, as the palette's (#323232 dark, #F0F0F0 bright).
+                Tile {
                     horizontalAlignment: HorizontalAlignment.Center
                     preferredWidth: ui.du(20)
                     preferredHeight: ui.du(20)
-                    background: page.loaded ? Color.create(page.info.color) : ui.palette.plain
-                    layout: DockLayout {}
-                    Label {
-                        visible: !page.hasPicture
-                        horizontalAlignment: HorizontalAlignment.Center
-                        verticalAlignment: VerticalAlignment.Center
-                        text: page.loaded ? page.info.initials : ""
-                        textFormat: TextFormat.Plain
-                        textStyle.base: nav.emojiStyle
-                        textStyle.fontSize: FontSize.PercentageValue
-                        textStyle.fontSizeValue: 300
-                        textStyle.color: Color.White
-                    }
-                    ImageView {
-                        visible: page.hasPicture
-                        horizontalAlignment: HorizontalAlignment.Fill
-                        verticalAlignment: VerticalAlignment.Fill
-                        imageSource: page.hasPicture ? "file://" + page.info.picture + "?" + page.rev : ""
-                        scalingMethod: ScalingMethod.AspectFill
-                        loadEffect: ImageViewLoadEffect.None
-                    }
+                    tint: page.loaded ? page.info.color : settings.theme == 1 ? "#F0F0F0" : "#323232"
+                    initials: page.loaded ? page.info.initials : ""
+                    photo: page.hasPicture ? page.info.picture : ""
+                    reload: "?" + page.rev
+                    emojiStyle: nav.emojiStyle
+                    initialsSize: 300
+                    photoSize: 400
                     gestureHandlers: TapHandler {
                         onTapped: page.changePhoto()
                     }

@@ -43,6 +43,9 @@ class Settings : public QObject
     // Shape (the user's ask, 2026-11-19): Square (false) is the look so far; Round has the pictures in the lists as discs, the
     // buttons as discs and pills, and the message cards with 20 px corners (roundPhoto and the images of scripts/gen-round.py).
     Q_PROPERTY(bool round READ round WRITE setRound NOTIFY roundChanged)
+    // The Dark theme's page background (the user's ask, 2026-11-19): pure black (false, the look so far) or #181818, like Android's.
+    // main.qml's pageColor reads it; the Bright theme has no such choice.
+    Q_PROPERTY(bool darkGrey READ darkGrey WRITE setDarkGrey NOTIFY darkGreyChanged)
     // How many group calls showed the people drawer's first-time hint (CallDrawer.qml shows it in the first 2).
     Q_PROPERTY(int callHints READ callHints WRITE setCallHints NOTIFY callHintsChanged)
     // Privacy and security > Sync contacts: the phone's address book goes to Telegram (contacts.book) only while this
@@ -71,6 +74,7 @@ public:
     qreal textScale() const;
     bool compact() const;
     bool round() const;
+    bool darkGrey() const;
     int callHints() const;
     bool syncContacts() const;
     void setTheme(int theme);
@@ -92,6 +96,7 @@ public:
     void setVideoQuality(int quality);
     void setCompact(bool on);
     void setRound(bool on);
+    void setDarkGrey(bool on);
     // The Shape as the code that has no QML list to read it from has it (Waveform): kept in step by the constructor's load and
     // setRound.
     static bool roundShape() { return s_roundShape; }
@@ -103,8 +108,9 @@ public:
     Q_INVOKABLE QString cacheSize();
     Q_INVOKABLE QString clearCache();
     // The round copy of a picture's file for Round mode (the free function below), "" when it can't be made: QML falls back to
-    // the square picture.
+    // the square picture. Two overloads, not a default argument: QML calls either by its argument count (160 px, or `size`).
     Q_INVOKABLE QString roundPhoto(const QString &path);
+    Q_INVOKABLE QString roundPhoto(const QString &path, int size);
 
 signals:
     void themeChanged();
@@ -126,6 +132,7 @@ signals:
     void videoQualityChanged(int quality); // the new value, for CallVideo::setQuality (main.cpp connects them)
     void compactChanged();
     void roundChanged();
+    void darkGreyChanged();
     void callHintsChanged();
     void syncContactsChanged();
 
@@ -145,7 +152,8 @@ private:
 };
 
 // A copy of the picture at `path` cut to a disc, for Round mode: Cascades has no clipping, so the corners are transparent in
-// the file. "" when the picture can't be read or the copy written; the callers then show the picture as it is.
-QString roundPhoto(const QString &path);
+// the file. "" when the picture can't be read or the copy written; the callers then show the picture as it is. `size` is the
+// px the copy's side is at most: 160 for a tile, more for the profile pages' big pictures.
+QString roundPhoto(const QString &path, int size = 160);
 
 #endif

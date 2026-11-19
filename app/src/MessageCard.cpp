@@ -262,6 +262,9 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     // The search match is tinted: the page sets foundId.
     if (!connect(list, SIGNAL(foundIdChanged()), this, SLOT(paintBackground())))
         qWarning("cards: the list has no foundIdChanged");
+    // The picture's corners are masks in the page's colour (paintCorners): a theme or Dark background change paints them again.
+    if (!connect(list, SIGNAL(pageColorChanged()), this, SLOT(paintBackground())))
+        qWarning("cards: the list has no pageColorChanged");
 }
 
 ImageView *MessageCard::makeTail(const char *source)
@@ -335,6 +338,34 @@ void MessageCard::paintBackground()
     m_bg->setFilterColor(c);
     m_tailL->setFilterColor(c);
     m_tailR->setFilterColor(c);
+    if (m_media)
+        paintCorners(c);
+}
+
+// The picture's rounded corners (the user, 2026-11-19: they were square in both shapes), as masks in what is behind each
+// (MediaBubble::setCorner); `card` is the card's colour as painted. A picture that is not wide (not in the picture card) has
+// the card's padding around it: all four corners are in the card's colour, 4 px in Square mode and 12 in Round. A wide picture
+// spans the card's width, so a corner of it is the card's own where the head isn't above it (top) or the caption isn't under it
+// (bottom; the time sits on the picture then): in the page's colour, with the radius the card's corner has there. That is, in
+// Square mode, card.png's 7 px at the top and none at the bottom, where the foot's bar goes on; in Round mode 20 px, but none at
+// the tail's corner (the bottom one on the card's side). With the head above or the caption under it a corner is on the card's
+// straight side: square.
+void MessageCard::paintCorners(const Color &card)
+{
+    int radii[4];
+    if (!m_head) {
+        radii[0] = radii[1] = radii[2] = radii[3] = m_round ? 12 : 4;
+    } else {
+        const int top = m_head->isVisible() ? 0 : m_round ? 20 : 7;
+        const int bottom = m_card->isVisible() || !m_round ? 0 : 20;
+        const bool out = flag("out");
+        radii[0] = radii[1] = top;
+        radii[2] = out ? 0 : bottom; // bottom right: ours has the tail there
+        radii[3] = out ? bottom : 0;
+    }
+    const Color behind = m_head ? Card::color(Card::pageColor(m_list)) : card;
+    for (int i = 0; i < 4; i++)
+        m_media->setCorner(i, behind, radii[i]);
 }
 
 void MessageCard::select(bool)

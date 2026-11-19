@@ -1,12 +1,17 @@
 #include "MessageCards.h"
 
 #include <bb/cascades/Container>
+#include <bb/cascades/DockLayout>
 #include <bb/cascades/HorizontalAlignment>
+#include <bb/cascades/ImageView>
+#include <bb/cascades/ImageViewLoadEffect>
 #include <bb/cascades/Label>
 #include <bb/cascades/ListView>
+#include <bb/cascades/ScalingMethod>
 #include <bb/cascades/TextAlign>
 #include <bb/cascades/UIConfig>
 #include <bb/cascades/UIPalette>
+#include <bb/cascades/VerticalAlignment>
 
 #include "CardStyle.h"
 #include "MessageCard.h"
@@ -52,7 +57,9 @@ void MessageCards::updateItem(ListView *, VisualNode *listItem, const QString &t
 // A list item is as wide as its content, so Center alone left it on the left: the spacers'
 // spaceQuota stretches the row across the list, as the cards' text column does. Telegram's pill: one
 // square container in the list's serviceColor with white text (the user's ask, 2026-11-18; it had a
-// 2 px border), the colour set in show() so a theme change shows.
+// 2 px border), the colour set in show() so a theme change shows. In Round mode (the user's ask, 2026-11-19) it is a pill:
+// Cascades has no corner radius, so the colour is pill.amd stretched under the text (m_pill, tinted), and the Container's
+// own background is off; the text's paddings are on an inner Container, so the pill covers them too.
 ServiceCard::ServiceCard(ListView *list)
     : m_list(list)
 {
@@ -69,10 +76,19 @@ ServiceCard::ServiceCard(ListView *list)
     Card::quota(left, 1);
 
     m_chip = new Container();
-    m_chip->setLeftPadding(ui->du(2));
-    m_chip->setRightPadding(ui->du(2));
-    m_chip->setTopPadding(ui->du(1));
-    m_chip->setBottomPadding(ui->du(1));
+    m_chip->setLayout(new DockLayout());
+    m_pill = new ImageView();
+    m_pill->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_pill->setVerticalAlignment(VerticalAlignment::Fill);
+    m_pill->setScalingMethod(ScalingMethod::Fill);
+    m_pill->setLoadEffect(ImageViewLoadEffect::None);
+    m_pill->setImageSource(Card::url("asset:///images/pill.amd"));
+    m_pill->setVisible(false);
+    Container *padded = new Container();
+    padded->setLeftPadding(ui->du(2));
+    padded->setRightPadding(ui->du(2));
+    padded->setTopPadding(ui->du(1));
+    padded->setBottomPadding(ui->du(1));
 
     m_text = new Label();
     m_text->setHorizontalAlignment(HorizontalAlignment::Center);
@@ -82,7 +98,9 @@ ServiceCard::ServiceCard(ListView *list)
     Container *right = new Container();
     Card::quota(right, 1);
 
-    m_chip->add(m_text);
+    padded->add(m_text);
+    m_chip->add(m_pill);
+    m_chip->add(padded);
     root->add(left);
     root->add(m_chip);
     root->add(right);
@@ -96,7 +114,14 @@ void ServiceCard::show(const QVariantMap &msg)
 
 void ServiceCard::showText(const QString &text)
 {
-    m_chip->setBackground(Card::color(Card::serviceColor(m_list)));
+    const Color service = Card::color(Card::serviceColor(m_list));
+    const bool round = Card::isRound(m_list);
+    m_pill->setVisible(round);
+    m_pill->setFilterColor(service);
+    if (round)
+        m_chip->resetBackground();
+    else
+        m_chip->setBackground(service);
     Card::style(m_text, m_list, Card::smallSize(m_list));
     m_text->textStyle()->setColor(Color::White); // after the base, as the message card does
     m_text->setText(text);

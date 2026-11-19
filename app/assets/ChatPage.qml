@@ -761,11 +761,13 @@ Page {
                 id: partSlot
                 visible: false
             }
-            // The list, and over it the note of an empty chat. No wallpaper (taken off at the user's ask, 2026-11-18).
+            // The list, and over it the note of an empty chat. No wallpaper (taken off at the user's ask, 2026-11-18): the page's
+            // own colour, painted here so that the picture cards' corner masks (MediaBubble) match what is behind the cards.
             Container {
                 layoutProperties: StackLayoutProperties {
                     spaceQuota: 1
                 }
+                background: Color.create(nav.pageColor)
                 layout: DockLayout {}
                 horizontalAlignment: HorizontalAlignment.Fill
                 verticalAlignment: VerticalAlignment.Fill
@@ -891,6 +893,8 @@ Page {
                     property string outColor: nav.outColor
                     property string outMeta: nav.outMeta
                     property string serviceColor: nav.serviceColor
+                    // What is behind the cards, for a picture's rounded corners (MessageCard::paintBackground).
+                    property string pageColor: nav.pageColor
                     dataModel: ctl.messages
                     // The user's own scroll wins over an aim still running (page.aim).
                     onTouch: {
@@ -934,7 +938,9 @@ Page {
                     model: ctl.messages
                 }
                 // To the newest message, when the list is in a window of history or far above it. Square and
-                // opaque, as the cards are; a disc in Round mode (the user's ask, 2026-11-19).
+                // opaque, as the cards are; a disc in Round mode (the user's ask, 2026-11-19). 5 px in from the right and the
+                // bottom in both modes (the user, 2026-11-19): a docked control's margins are ignored, so the button sits in
+                // a transparent Container docked in the corner, whose padding is the gap.
                 // ponytail: entries, not pixels (~2 screens on the 720x720 Classic); measure in pixels if it
                 // misfires on tall photo runs.
                 Container {
@@ -944,30 +950,32 @@ Page {
                     visible: !!ctl.messages && (ctl.messages.window || far)
                     horizontalAlignment: HorizontalAlignment.Right
                     verticalAlignment: VerticalAlignment.Bottom
-                    rightMargin: ui.du(2)
-                    bottomMargin: ui.du(2)
-                    preferredWidth: ui.du(11)
-                    preferredHeight: ui.du(11)
-                    background: settings.round ? Color.Transparent : Color.create(nav.inColor)
-                    layout: DockLayout {
-                    }
-                    gestureHandlers: TapHandler {
-                        onTapped: {
-                            ctl.messages.toLiveEnd()
-                            list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.Default)
-                            page.startAim("bottom", "")
+                    rightPadding: ui.px(5)
+                    bottomPadding: ui.px(5)
+                    Container {
+                        preferredWidth: ui.du(11)
+                        preferredHeight: ui.du(11)
+                        background: settings.round ? Color.Transparent : Color.create(nav.inColor)
+                        layout: DockLayout {
                         }
-                    }
-                    RoundFill {
-                        filterColor: Color.create(nav.inColor)
-                    }
-                    ImageView {
-                        horizontalAlignment: HorizontalAlignment.Center
-                        verticalAlignment: VerticalAlignment.Center
-                        preferredWidth: ui.du(5)
-                        preferredHeight: ui.du(5)
-                        imageSource: "asset:///images/bottom.png"
-                        filterColor: ui.palette.textOnPlain
+                        gestureHandlers: TapHandler {
+                            onTapped: {
+                                ctl.messages.toLiveEnd()
+                                list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.Default)
+                                page.startAim("bottom", "")
+                            }
+                        }
+                        RoundFill {
+                            filterColor: Color.create(nav.inColor)
+                        }
+                        ImageView {
+                            horizontalAlignment: HorizontalAlignment.Center
+                            verticalAlignment: VerticalAlignment.Center
+                            preferredWidth: ui.du(5)
+                            preferredHeight: ui.du(5)
+                            imageSource: "asset:///images/bottom.png"
+                            filterColor: ui.palette.textOnPlain
+                        }
                     }
                 }
             }

@@ -9,6 +9,10 @@ ImageView.filterColor, as the cards' and the call screen's are.
   card_round_l.png, card_round_r.png, and their .amd   a 48 x 48 white card with a 20 px radius on three corners and
                 none on the fourth, the one at the tail (l: bottom left, theirs; r: bottom right, ours), sliceMargins 20.
                 MessageCard puts them in place of card.png in Round mode.
+  corner.png    a 64 x 64 mask for a picture's corner (the user, 2026-11-19: the photo and video bubbles had square corners):
+                white outside a quarter circle of radius 64 centred at the bottom right, transparent inside, so it is the
+                top left corner. MediaBubble scales it to the radius, turns it by 90, 180 and 270 degrees for the others and
+                tints it with what is behind the corner (the card's colour, or the page's): Cascades can't clip a picture.
 
 They're white on transparent. Each is drawn at 4x as a mask and scaled down, so the edge is anti-aliased, and only the
 alpha is scaled: the colour is white everywhere, so nothing bleeds into the edge. Run by hand when the look changes,
@@ -42,6 +46,14 @@ def rounded(size, radius, corners=(True, True, True, True)):
     return mask
 
 
+def corner():
+    """The top left corner's mask: everything but the quarter disc whose centre is the image's bottom right."""
+    size = 64
+    mask = Image.new("L", (size * S, size * S), 255)
+    ImageDraw.Draw(mask).ellipse((0, 0, 2 * size * S - 1, 2 * size * S - 1), 0)
+    return mask
+
+
 def main(out):
     mask = Image.new("L", (256 * S, 256 * S), 0)
     ImageDraw.Draw(mask).ellipse((0, 0, 256 * S - 1, 256 * S - 1), 255)
@@ -54,6 +66,8 @@ def main(out):
     amd(out, "card_round_l", "20 20 20 20")
     save(rounded(48, 20, (True, True, False, True)), out, "card_round_r")
     amd(out, "card_round_r", "20 20 20 20")
+
+    save(corner(), out, "corner")
 
 
 if __name__ == "__main__":

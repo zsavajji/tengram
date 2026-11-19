@@ -167,32 +167,20 @@ Page {
                 layout: StackLayout {
                     orientation: LayoutOrientation.LeftToRight
                 }
-                Container {
+                // A disc in Round mode (the user, 2026-11-19).
+                Tile {
                     verticalAlignment: VerticalAlignment.Center
                     preferredWidth: ui.du(7)
                     preferredHeight: ui.du(7)
-                    background: page.chat ? Color.create(page.chat.color) : Color.Transparent
-                    layout: DockLayout {}
-                    Label {
-                        visible: !page.hasPicture
-                        horizontalAlignment: HorizontalAlignment.Center
-                        verticalAlignment: VerticalAlignment.Center
-                        text: page.chat ? page.chat.initials : ""
-                        textFormat: TextFormat.Plain
-                        textStyle.base: nav.emojiStyle
-                        textStyle.fontSize: FontSize.PercentageValue
-                        textStyle.fontSizeValue: 118
-                        textStyle.color: Color.White
-                    }
-                    ImageView {
-                        visible: page.hasPicture
-                        horizontalAlignment: HorizontalAlignment.Fill
-                        verticalAlignment: VerticalAlignment.Fill
-                        imageSource: page.hasPicture ? "file://" + page.info.picture : ""
-                        scalingMethod: ScalingMethod.AspectFill
-                        loadEffect: ImageViewLoadEffect.None
-                        gestureHandlers: TapHandler {
-                            onTapped: nav.showPhoto(page.info.picture)
+                    tint: page.chat ? page.chat.color : ""
+                    initials: page.chat ? page.chat.initials : ""
+                    photo: page.hasPicture ? page.info.picture : ""
+                    emojiStyle: nav.emojiStyle
+                    gestureHandlers: TapHandler {
+                        onTapped: {
+                            if (page.hasPicture) {
+                                nav.showPhoto(page.info.picture)
+                            }
                         }
                     }
                 }

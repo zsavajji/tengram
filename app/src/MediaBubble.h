@@ -42,6 +42,11 @@ public:
 
     bb::cascades::Container *stamp() const { return m_stamp; }
 
+    // A picture's corner (0 top left, 1 top right, 2 bottom right, 3 bottom left) rounded to `radius` px: a mask of
+    // images/corner.png in `behind`, the colour of what is behind the corner (the card's, or the page's where the picture is at
+    // the card's own corner), since Cascades can't clip. 0 shows none. The card sets all four when it paints (MessageCard::paintCorners).
+    void setCorner(int corner, const bb::cascades::Color &behind, int radius);
+
     // msg is a "msg" row of MessageModel with a media: photo, video, sticker, audio, document,
     // location or contact.
     void show(const QVariantMap &msg);
@@ -77,6 +82,7 @@ private:
     bb::cascades::Label *m_length;
     bb::cascades::Container *m_cover;
     bb::cascades::Container *m_dim;
+    bb::cascades::ImageView *m_corner[4];
     bb::cascades::Container *m_stamp;
     bb::cascades::ActivityIndicator *m_photoSpin;
     bb::cascades::ImageView *m_photoRing;

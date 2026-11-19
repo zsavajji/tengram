@@ -66,6 +66,7 @@ int Settings::textSize() const { return qBound(0, m_file.value("textSize", 1).to
 int Settings::videoQuality() const { return qBound(0, m_file.value("videoQuality", 0).toInt(), 3); }
 bool Settings::compact() const { return m_file.value("compact", false).toBool(); }
 bool Settings::round() const { return m_file.value("round", false).toBool(); }
+bool Settings::darkGrey() const { return m_file.value("darkGrey", false).toBool(); }
 int Settings::callHints() const { return qMax(0, m_file.value("callHints", 0).toInt()); }
 bool Settings::syncContacts() const { return m_file.value("syncContacts", false).toBool(); }
 
@@ -329,6 +330,14 @@ void Settings::setRound(bool on)
     emit roundChanged();
 }
 
+void Settings::setDarkGrey(bool on)
+{
+    if (on == darkGrey())
+        return;
+    store("darkGrey", on);
+    emit darkGreyChanged();
+}
+
 void Settings::setCallHints(int count)
 {
     count = qMax(0, count);
@@ -346,8 +355,8 @@ void Settings::setSyncContacts(bool on)
     emit syncContactsChanged();
 }
 
-// The round copies roundPhoto has made, by the picture's path: a list scrolling asks again and again. Emptied with the
-// cache, which holds the files.
+// The round copies roundPhoto has made, by the picture's path, size and time: a list scrolling asks again and again. Emptied
+// with the cache, which holds the files.
 static QHash<QString, QString> s_round;
 
 // The cache is data/cache/ except upload/, which holds an upload in progress. Everything else in
@@ -393,30 +402,32 @@ QString Settings::clearCache()
     return cacheText(freed, m_region.locale());
 }
 
-// Round mode's pictures (the user's ask, 2026-11-19): the file is read scaled to 160 px on its short side at most (a tile is
-// 74 px on the Classic), cut to its centre square and painted into a transparent image through an ellipse brush, which has
-// anti-aliased edges where a clip path has none. Named by an md5 of the path and the file's time, in data/cache/round/: a
-// new picture is a new file, and one already made is not drawn again.
-// ponytail: never pruned (about 15 KB a picture); Clear cache empties it. Prune it with the other caches if it ever grows.
-QString roundPhoto(const QString &path)
+// Round mode's pictures (the user's ask, 2026-11-19): the file is read scaled to `size` px on its short side at most (160 for a
+// tile, 74 px on the Classic; 400 for a profile page's, 20 du, the user, 2026-11-19: 160 was blurred there), cut to its centre
+// square and painted into a transparent image through an ellipse brush, which has anti-aliased edges where a clip path has
+// none. Named by an md5 of the path, the size and the file's time, in data/cache/round/: a new picture is a new file (the
+// profile's own is rewritten under one path), a size has its own, and one already made is not drawn again.
+// ponytail: never pruned (about 15 KB a tile, 100 KB a profile picture); Clear cache empties it. Prune it with the other
+// caches if it ever grows.
+QString roundPhoto(const QString &path, int size)
 {
-    const QString known = s_round.value(path);
-    if (!known.isEmpty())
-        return known;
     const QFileInfo file(path);
     if (!file.isFile())
         return QString();
+    const QString key = path + QChar('@') + QString::number(size) + QChar('@') + QString::number(file.lastModified().toTime_t());
+    const QString known = s_round.value(key);
+    if (!known.isEmpty())
+        return known;
     const QString dir = QDir::homePath() + "/cache/round/";
-    const QByteArray name = QCryptographicHash::hash((path + QString::number(file.lastModified().toTime_t())).toUtf8(),
-                                                     QCryptographicHash::Md5).toHex();
+    const QByteArray name = QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Md5).toHex();
     const QString out = dir + QString::fromLatin1(name) + ".png";
     if (!QFile::exists(out)) {
         QImageReader reader(path);
         QSize to = reader.size(); // from the header
         if (!to.isValid())
             return QString();
-        if (qMin(to.width(), to.height()) > 160) {
-            to.scale(160, 160, Qt::KeepAspectRatioByExpanding);
+        if (qMin(to.width(), to.height()) > size) {
+            to.scale(size, size, Qt::KeepAspectRatioByExpanding);
             reader.setScaledSize(to);
         }
         const QImage image = reader.read();
@@ -436,11 +447,16 @@ QString roundPhoto(const QString &path)
             return QString();
         }
     }
-    s_round.insert(path, out);
+    s_round.insert(key, out);
     return out;
 }
 
 QString Settings::roundPhoto(const QString &path)
 {
     return ::roundPhoto(path);
+}
+
+QString Settings::roundPhoto(const QString &path, int size)
+{
+    return ::roundPhoto(path, size);
 }

@@ -41,6 +41,9 @@ inline QString inColor(bb::cascades::ListView *list) { return list->property("in
 inline QString outColor(bb::cascades::ListView *list) { return list->property("outColor").toString(); }
 inline QString outMeta(bb::cascades::ListView *list) { return list->property("outMeta").toString(); }
 inline QString serviceColor(bb::cascades::ListView *list) { return list->property("serviceColor").toString(); }
+// The page's own colour behind the cards (main.qml's nav.pageColor, the user's ask, 2026-11-19: the Dark theme's black or grey):
+// a picture's corner masks take it where the picture is at the card's rounded corner.
+inline QString pageColor(bb::cascades::ListView *list) { return list->property("pageColor").toString(); }
 inline QString foundId(bb::cascades::ListView *list) { return list->property("foundId").toString(); }
 inline bb::cascades::TextStyle emojiStyle(bb::cascades::ListView *list)
 {

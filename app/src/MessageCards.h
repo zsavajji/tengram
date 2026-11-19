@@ -11,6 +11,7 @@
 namespace bb {
 namespace cascades {
 class Container;
+class ImageView;
 class Label;
 class ListView;
 }
@@ -48,6 +49,7 @@ public:
 private:
     bb::cascades::ListView *m_list;
     bb::cascades::Container *m_chip;
+    bb::cascades::ImageView *m_pill; // Round mode's shape of the chip, under the text
     bb::cascades::Label *m_text;
 };
 
