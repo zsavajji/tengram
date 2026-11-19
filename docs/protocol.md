@@ -120,6 +120,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `call.answer` | `id` (the id of a ringing call, a string) | — | `not_found` |
 | `call.reject` | `id` (the id of a ringing call, a string) | — | `not_found` |
 | `call.hangup` | `id` (the id of the call, a string; any state before `ended`) | — | `not_found` |
+| `calls.list` | — | `{calls: [{chat, msg, date, out, reason, duration, video, name}]}`, the call log: see "Calls" | `unlinked` |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
 (`requestQrCodeAuthentication`); `link.phone`, `link.code` and `link.password` are the phone
@@ -739,6 +740,15 @@ that says `hello` while a call is live gets its `call` event at once, after the 
 side is in a call), `failed` (the connection was lost or never made, or Telegram refused the call).
 
 While a call is live the network stays on, whatever the delivery mode says.
+
+### Call log
+
+`calls.list` is the account's call history: the newest 100 call messages of all chats (`searchCallMessages`), newest first, one
+object each: `chat` (the person's chat key, a string), `msg`
+(the call message's id, a string), `date` (unix seconds), `out` (bool: we placed it), `reason` (why it ended: `missed`,
+`declined`, `disconnected`, `hungup`, or `""` when Telegram gave none), `duration` (seconds talked, 0 when nobody answered),
+`video` (bool) and `name` (the chat's title, `""` when the chat is not mirrored). It is the history only: a call under way is
+told by the `call` events, and its message comes after it ends.
 
 ### Audio link
 

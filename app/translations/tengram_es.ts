@@ -156,6 +156,34 @@
     </message>
 </context>
 <context>
+    <name>CallLog</name>
+    <message>
+        <location filename="../src/CallLog.cpp" line="91"/>
+        <source>Outgoing, %1</source>
+        <translation>Saliente, %1</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="91"/>
+        <source>Incoming, %1</source>
+        <translation>Entrante, %1</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="93"/>
+        <source>Declined call</source>
+        <translation>Llamada rechazada</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="95"/>
+        <source>Cancelled call</source>
+        <translation>Llamada cancelada</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="95"/>
+        <source>Missed call</source>
+        <translation>Llamada perdida</translation>
+    </message>
+</context>
+<context>
     <name>CallPanel</name>
     <message>
         <location filename="../assets/CallPanel.qml" line="38"/>
@@ -387,12 +415,29 @@
 <context>
     <name>CallsPage</name>
     <message>
+        <location filename="../assets/CallsPage.qml" line="13"/>
         <source>Calls</source>
-        <translation type="obsolete">Llamadas</translation>
+        <translation>Llamadas</translation>
     </message>
     <message>
+        <location filename="../assets/CallsPage.qml" line="34"/>
+        <source>Unknown</source>
+        <translation>Desconocido</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallsPage.qml" line="93"/>
+        <source>Call</source>
+        <translation>Llamar</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallsPage.qml" line="98"/>
+        <source>Open chat</source>
+        <translation>Abrir chat</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallsPage.qml" line="112"/>
         <source>No calls yet</source>
-        <translation type="obsolete">Aún no hay llamadas</translation>
+        <translation>Aún no hay llamadas</translation>
     </message>
     <message>
         <source>New call</source>
@@ -865,6 +910,11 @@
         <location filename="../assets/ChatsPage.qml" line="91"/>
         <source>Archived</source>
         <translation>Archivados</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatsPage.qml" line="101"/>
+        <source>Calls</source>
+        <translation>Llamadas</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="99"/>

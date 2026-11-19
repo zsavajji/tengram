@@ -156,6 +156,34 @@
     </message>
 </context>
 <context>
+    <name>CallLog</name>
+    <message>
+        <location filename="../src/CallLog.cpp" line="91"/>
+        <source>Outgoing, %1</source>
+        <translation>Вихідний, %1</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="91"/>
+        <source>Incoming, %1</source>
+        <translation>Вхідний, %1</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="93"/>
+        <source>Declined call</source>
+        <translation>Відхилений дзвінок</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="95"/>
+        <source>Cancelled call</source>
+        <translation>Скасований дзвінок</translation>
+    </message>
+    <message>
+        <location filename="../src/CallLog.cpp" line="95"/>
+        <source>Missed call</source>
+        <translation>Пропущений дзвінок</translation>
+    </message>
+</context>
+<context>
     <name>CallPanel</name>
     <message>
         <location filename="../assets/CallPanel.qml" line="38"/>
@@ -387,12 +415,29 @@
 <context>
     <name>CallsPage</name>
     <message>
+        <location filename="../assets/CallsPage.qml" line="13"/>
         <source>Calls</source>
-        <translation type="obsolete">Дзвінки</translation>
+        <translation>Дзвінки</translation>
     </message>
     <message>
+        <location filename="../assets/CallsPage.qml" line="34"/>
+        <source>Unknown</source>
+        <translation>Невідомий</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallsPage.qml" line="93"/>
+        <source>Call</source>
+        <translation>Зателефонувати</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallsPage.qml" line="98"/>
+        <source>Open chat</source>
+        <translation>Відкрити чат</translation>
+    </message>
+    <message>
+        <location filename="../assets/CallsPage.qml" line="112"/>
         <source>No calls yet</source>
-        <translation type="obsolete">Дзвінків ще немає</translation>
+        <translation>Дзвінків ще немає</translation>
     </message>
     <message>
         <source>New call</source>
@@ -867,6 +912,11 @@
         <location filename="../assets/ChatsPage.qml" line="91"/>
         <source>Archived</source>
         <translation>Архів</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatsPage.qml" line="101"/>
+        <source>Calls</source>
+        <translation>Дзвінки</translation>
     </message>
     <message>
         <location filename="../assets/ChatsPage.qml" line="99"/>

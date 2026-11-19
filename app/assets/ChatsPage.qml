@@ -35,6 +35,10 @@ Page {
         ComponentDefinition {
             id: archivedDef
             source: "ArchivedPage.qml"
+        },
+        ComponentDefinition {
+            id: callsDef
+            source: "CallsPage.qml"
         }
     ]
     actions: [
@@ -92,6 +96,12 @@ Page {
             imageSource: "file:///usr/share/icons/bb_action_archive.png"
             ActionBar.placement: ActionBarPlacement.InOverflow
             onTriggered: nav.push(archivedDef.createObject())
+        },
+        ActionItem {
+            title: qsTr("Calls")
+            imageSource: "file:///usr/share/icons/ic_phone.png"
+            ActionBar.placement: ActionBarPlacement.InOverflow
+            onTriggered: nav.push(callsDef.createObject())
         },
         // Telegram's chat with ourselves: its id is our user id (link.me); the engine names its row Saved Messages.
         // The row may not be in chats.db yet (a chat never used), so the page gets a bare chat then.

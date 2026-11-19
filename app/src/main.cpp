@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include "CallAudio.h"
+#include "CallLog.h"
 #include "ChatController.h"
 #include "ChatRows.h"
 #include <bb/ApplicationInfo>
@@ -179,6 +180,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
 
     // bb.cascades has no Timer: QTimer stands in (Hint.qml, VideoViewer.qml).
     qmlRegisterType<QTimer>("tengram", 1, 0, "Timer");
+    qmlRegisterType<CallLog>("tengram", 1, 0, "CallLog");
     qmlRegisterType<ChatController>("tengram", 1, 0, "ChatController");
     qmlRegisterType<ChatRows>("tengram", 1, 0, "ChatRows");
     qmlRegisterType<ContactInfo>("tengram", 1, 0, "ContactInfo");

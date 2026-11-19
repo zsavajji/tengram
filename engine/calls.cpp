@@ -28,6 +28,11 @@ namespace {
 
 using td_api::make_object;
 
+void td_failed(std::uint64_t conn, const std::string &id, const td_api::error &e) {
+  say("td error: %d %s", e.code_, e.message_.c_str());
+  reply_td_error(conn, id, e);
+}
+
 // The audio link to the UI (docs/protocol.md, "Audio link"): 16 kHz mono s16le on a socket, in frames of 60 ms. One per
 // live call, shared by the call and by tgcalls' audio threads, which run Mic and Speaker every 10 ms.
 constexpr int kRate = 16000;
@@ -550,6 +555,52 @@ void call_start(std::uint64_t conn, const std::string &id, td::JsonObject &req) 
   });
 }
 
+// A call message's discard reason, as calls.list words it: "" for none, or a call that became a group call.
+const char *discard_word(const td_api::CallDiscardReason *r) {
+  switch (r ? r->get_id() : 0) {
+    case td_api::callDiscardReasonMissed::ID:
+      return "missed";
+    case td_api::callDiscardReasonDeclined::ID:
+      return "declined";
+    case td_api::callDiscardReasonDisconnected::ID:
+      return "disconnected";
+    case td_api::callDiscardReasonHungUp::ID:
+      return "hungup";
+    default:
+      return "";
+  }
+}
+
+// The call log: the newest 100 call messages of all chats, as TDLib orders them (newest first).
+void calls_list(std::uint64_t conn, const std::string &id) {
+  tdlib.send(make_object<td_api::searchCallMessages>("", 100, false), [conn, id](Obj o) {
+    if (auto e = as_error(o)) {
+      return td_failed(conn, id, *e);
+    }
+    std::vector<const td_api::message *> rows;
+    for (const auto &m : static_cast<const td_api::foundMessages &>(*o).messages_) {
+      if (m && m->content_ && m->content_->get_id() == td_api::messageCall::ID) {
+        rows.push_back(m.get());
+      }
+    }
+    server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&rows](auto &r) {
+                      r("calls", td::json_array(rows, [](const td_api::message *m) {
+                        const auto &call = static_cast<const td_api::messageCall &>(*m->content_);
+                        return td::json_object([&](auto &o) {
+                          o("chat", std::to_string(m->chat_id_));
+                          o("msg", std::to_string(m->id_));
+                          o("date", m->date_);
+                          o("out", td::JsonBool(m->is_outgoing_));
+                          o("reason", std::string(discard_word(call.discard_reason_.get())));
+                          o("duration", call.duration_);
+                          o("video", td::JsonBool(call.is_video_));
+                          o("name", chat_title(m->chat_id_));  // "" when unknown
+                        });
+                      }));
+                    })));
+  });
+}
+
 }  // namespace
 
 void calls_start(int wake) {
@@ -588,6 +639,14 @@ void calls_update(td_api::Object &update) {
 }
 
 bool calls_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
+  if (cmd == "calls.list") {
+    if (link_ready()) {
+      calls_list(conn, id);
+    } else {
+      server.reply_error(conn, id, "unlinked", "not logged in");
+    }
+    return true;
+  }
   if (cmd == "call.start") {
     call_start(conn, id, req);
     return true;
