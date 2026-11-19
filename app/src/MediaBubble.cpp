@@ -119,19 +119,27 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_play->setImageSource(Card::url("asset:///images/play.png"));
     m_play->setOpacity(0.85f);
     // At the left in the picture card: the time takes the right, as on Android.
-    // In from the corner by padding (a docked label's margins are ignored), so the rounded corner's mask doesn't cut it,
-    // and a size up from small text (the user, 2026-11-19).
+    // The length as the time on a picture (MessageCard::placeTime): a chip of black at 50 %, 1 du in from its corner
+    // (padding: a docked label's margins are ignored), the time's text size (the user, 2026-11-19).
     m_lengthBox = new Container();
     m_lengthBox->setHorizontalAlignment(wide ? HorizontalAlignment::Left : HorizontalAlignment::Right);
     m_lengthBox->setVerticalAlignment(VerticalAlignment::Bottom);
-    m_lengthBox->setLeftPadding(m_ui->du(1.5));
-    m_lengthBox->setRightPadding(m_ui->du(1.5));
+    m_lengthBox->setLeftPadding(m_ui->du(1));
+    m_lengthBox->setRightPadding(m_ui->du(1));
     m_lengthBox->setBottomPadding(m_ui->du(1));
+    Container *lengthChip = new Container();
+    lengthChip->setBackground(Card::color("#80000000"));
+    lengthChip->setLeftPadding(m_ui->du(1));
+    lengthChip->setRightPadding(m_ui->du(1));
+    lengthChip->setTopPadding(m_ui->du(0.5));
+    lengthChip->setBottomPadding(m_ui->du(0.5));
     m_length = new Label();
     m_length->setTextFormat(TextFormat::Plain);
-    m_length->textStyle()->setBase(SystemDefaults::TextStyles::subtitleText());
+    m_length->textStyle()->setBase(SystemDefaults::TextStyles::smallText());
+    m_length->textStyle()->setFontSize(FontSize::PercentageValue);
     m_length->textStyle()->setColor(Color::White);
-    m_lengthBox->add(m_length);
+    lengthChip->add(m_length);
+    m_lengthBox->add(lengthChip);
 
     // A spoiler (step 6.6d): the picture under this is blurred (MediaData) until a tap.
     m_cover = cover();
@@ -272,6 +280,8 @@ void MediaBubble::restyle()
     m_small = small;
     m_plain = plain;
 
+    // 72 % of small text at the list's text size, as the card's time.
+    m_length->textStyle()->setFontSizeValue(qRound(72 * Card::textScale(m_list)));
     const Color quiet = m_ui->palette()->secondaryTextOnPlain();
     m_none->setBackground(Card::color(Card::pageColor(m_list)));
     Card::style(m_noneText, m_list, body);
@@ -385,7 +395,7 @@ void MediaBubble::refresh()
     m_play->setVisible(video && !loading);
     // The video's length gives way to the text, as a file's size line does.
     const QString length = words.isEmpty() ? str("durationText") : words;
-    m_length->setVisible(video && !length.isEmpty());
+    m_lengthBox->setVisible(video && !length.isEmpty());
     m_length->setText(length);
     m_fileSpin->setRunning(loading && file && !filling);
     m_fileSpin->setVisible(!(loading && file && filling));
