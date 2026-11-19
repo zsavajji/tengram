@@ -118,9 +118,11 @@ bool write_file(const std::string &path, const std::string &data) {
   return close(fd) == 0 && ok;
 }
 
+// Only -1 is a failure: QNX's F_SETFD returns the previous flags (1 on a socket that already had FD_CLOEXEC), which
+// made the audio link's second call here fail.
 bool set_nonblock(int fd) {
   int flags = fcntl(fd, F_GETFL);
-  return flags >= 0 && fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0 && fcntl(fd, F_SETFD, FD_CLOEXEC) == 0;
+  return flags >= 0 && fcntl(fd, F_SETFL, flags | O_NONBLOCK) != -1 && fcntl(fd, F_SETFD, FD_CLOEXEC) != -1;
 }
 
 // How many updates of each type came, for the log line a stop writes: what wakes the engine is what costs
