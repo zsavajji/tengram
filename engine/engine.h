@@ -212,7 +212,10 @@ bool pages_handle(std::uint64_t conn, const std::string &id, const std::string &
 std::int64_t person_of(const td_api::chat &c);
 std::int64_t basic_group_of(const td_api::chat &c);
 std::int64_t supergroup_of(const td_api::chat &c, bool channel);
-// getChat, then `next` gets the chat; a chat TDLib does not know is answered `bad_chat`.
+// The request that gives a chat: a private chat's id is its user's, so a positive id is one, and createPrivateChat (force:
+// no network) gives the chat of a person we have none with yet (an address book contact); getChat for the rest.
+td_api::object_ptr<td_api::Function> chat_lookup(std::int64_t chat);
+// chat_lookup, then `next` gets the chat; a chat TDLib does not know is answered `bad_chat`.
 void with_chat(std::uint64_t conn, const std::string &id, std::int64_t chat,
                std::function<void(const td_api::chat &)> next);
 

@@ -31,11 +31,18 @@ void bad_chat(std::uint64_t conn, const std::string &id, const char *what) {
 
 }  // namespace
 
-// getChat, then `next` gets the chat. A chat TDLib does not know is bad_chat. This and the three helpers below are
+// chat_lookup (engine.h), then `next` gets the chat. A chat TDLib does not know is bad_chat. These and the three helpers below are
 // outside the anonymous namespace because manage.cpp uses them too (engine.h).
+td_api::object_ptr<td_api::Function> chat_lookup(std::int64_t chat) {
+  if (chat > 0) {
+    return make_object<td_api::createPrivateChat>(chat, true);
+  }
+  return make_object<td_api::getChat>(chat);
+}
+
 void with_chat(std::uint64_t conn, const std::string &id, std::int64_t chat,
                std::function<void(const td_api::chat &)> next) {
-  tdlib.send(make_object<td_api::getChat>(chat), [conn, id, next](Obj o) {
+  tdlib.send(chat_lookup(chat), [conn, id, next](Obj o) {
     if (as_error(o)) {
       return bad_chat(conn, id, "no such chat");
     }

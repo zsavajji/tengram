@@ -501,16 +501,8 @@ std::string first_username(const td_api::usernames *u) {
   return u && !u->active_usernames_.empty() ? u->active_usernames_[0] : std::string();
 }
 
-// A private chat's id is its user's, so a positive id is one: createPrivateChat (force: no network) gives the chat of an
-// address book person who has none yet, as getChat does for the rest.
 void search_describe(std::int64_t chat, std::function<void(Found)> done) {
-  td_api::object_ptr<td_api::Function> ask;
-  if (chat > 0) {
-    ask = make_object<td_api::createPrivateChat>(chat, true);
-  } else {
-    ask = make_object<td_api::getChat>(chat);
-  }
-  tdlib.send(std::move(ask), [chat, done](Obj o) {
+  tdlib.send(chat_lookup(chat), [chat, done](Obj o) {
     if (as_error(o)) {
       return done(Found());
     }

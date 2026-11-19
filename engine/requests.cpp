@@ -186,7 +186,7 @@ bool parse_limit(std::uint64_t conn, const std::string &id, td::JsonObject &req,
 }
 
 void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat, std::size_t want, std::int32_t topic) {
-  tdlib.send(make_object<td_api::getChat>(chat), [=](Obj o) {
+  tdlib.send(chat_lookup(chat), [=](Obj o) {
     if (as_error(o)) {
       return server.reply_error(conn, id, "bad_chat", "no such chat");
     }
