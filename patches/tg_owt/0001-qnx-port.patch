@@ -1,0 +1,153 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 30ddea65..95f09223 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -2431,6 +2431,29 @@ if (UNIX AND NOT APPLE AND NOT TG_OWT_USE_X11)
+     )
+ endif()
+ 
++if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
++    # BlackBerry 10 (Tengram): no V4L2 camera, and no software video codecs (libvpx, openh264,
++    # ffmpeg are not built). Video comes from the phone's hardware codecs, outside tg_owt.
++    remove_target_sources(tg_owt ${webrtc_loc}
++        modules/video_capture/linux/device_info_linux.cc
++        modules/video_capture/linux/device_info_v4l2.cc
++        modules/video_capture/linux/device_info_v4l2.h
++        modules/video_capture/linux/video_capture_linux.cc
++        modules/video_capture/linux/video_capture_v4l2.cc
++        modules/video_capture/linux/video_capture_v4l2.h
++        modules/video_coding/codecs/h264/h264_color_space.cc
++        modules/video_coding/codecs/h264/h264_decoder_impl.cc
++        modules/video_coding/codecs/h264/h264_encoder_impl.cc
++        modules/video_coding/codecs/interface/libvpx_interface.cc
++        modules/video_coding/codecs/vp8/libvpx_vp8_decoder.cc
++        modules/video_coding/codecs/vp8/libvpx_vp8_encoder.cc
++        modules/video_coding/codecs/vp9/libvpx_vp9_decoder.cc
++        modules/video_coding/codecs/vp9/libvpx_vp9_encoder.cc
++        modules/video_coding/codecs/vp9/vp9.cc
++        modules/video_coding/codecs/vp9/vp9_frame_buffer_pool.cc
++    )
++endif()
++
+ if (NOT TG_OWT_USE_PIPEWIRE)
+     remove_target_sources(tg_owt ${webrtc_loc}
+         modules/desktop_capture/linux/wayland/base_capturer_pipewire.cc
+diff --git a/cmake/libwebrtcbuild.cmake b/cmake/libwebrtcbuild.cmake
+index 50725479..0e8a8494 100644
+--- a/cmake/libwebrtcbuild.cmake
++++ b/cmake/libwebrtcbuild.cmake
+@@ -15,7 +15,6 @@ INTERFACE
+     WEBRTC_OPUS_VARIABLE_COMPLEXITY=0
+     WEBRTC_OPUS_SUPPORT_120MS_PTIME=1
+     WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE
+-    WEBRTC_USE_H264
+     WEBRTC_LIBRARY_IMPL
+     WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=1
+     WEBRTC_HAVE_DCSCTP
+@@ -41,6 +40,14 @@ elseif (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+     )
+ endif()
+ 
++# Not on BlackBerry 10: no openh264/ffmpeg there (CMakeLists.txt, QNX).
++if (NOT CMAKE_SYSTEM_NAME STREQUAL "QNX")
++    target_compile_definitions(libwebrtcbuild
++    INTERFACE
++        WEBRTC_USE_H264
++    )
++endif()
++
+ if (TG_OWT_USE_X11)
+     target_compile_definitions(libwebrtcbuild
+     INTERFACE
+diff --git a/src/api/audio_codecs/opus/audio_encoder_opus_config.cc b/src/api/audio_codecs/opus/audio_encoder_opus_config.cc
+index a9ab924b..39f59626 100644
+--- a/src/api/audio_codecs/opus/audio_encoder_opus_config.cc
++++ b/src/api/audio_codecs/opus/audio_encoder_opus_config.cc
+@@ -14,7 +14,7 @@ namespace webrtc {
+ 
+ namespace {
+ 
+-#if defined(WEBRTC_ANDROID) || defined(WEBRTC_IOS)
++#if defined(WEBRTC_ANDROID) || defined(WEBRTC_IOS) || defined(__QNX__)
+ constexpr int kDefaultComplexity = 5;
+ #else
+ constexpr int kDefaultComplexity = 9;
+diff --git a/src/media/engine/webrtc_voice_engine.cc b/src/media/engine/webrtc_voice_engine.cc
+index 23a1b192..cfb71d96 100644
+--- a/src/media/engine/webrtc_voice_engine.cc
++++ b/src/media/engine/webrtc_voice_engine.cc
+@@ -496,6 +496,9 @@ void WebRtcVoiceEngine::ApplyOptions(const AudioOptions& options_in) {
+     options.echo_cancellation = false;
+     RTC_LOG(LS_INFO) << "Always disable AEC on iOS. Use built-in instead.";
+   }
++#elif defined(__QNX__)
++  // BlackBerry 10 (Tengram): the voice audio path cancels echo itself, as iOS's VPIO does.
++  options.echo_cancellation = false;
+ #elif defined(WEBRTC_ANDROID)
+   use_mobile_software_aec = true;
+ #endif
+diff --git a/src/rtc_base/async_dns_resolver.cc b/src/rtc_base/async_dns_resolver.cc
+index 8cbd21cb..f0ad66fa 100644
+--- a/src/rtc_base/async_dns_resolver.cc
++++ b/src/rtc_base/async_dns_resolver.cc
+@@ -60,7 +60,9 @@ int ResolveHostname(absl::string_view hostname,
+   // Android (source code, not documentation):
+   // https://android.googlesource.com/platform/bionic/+/
+   // 7e0bfb511e85834d7c6cb9631206b62f82701d60/libc/netbsd/net/getaddrinfo.c#1657
++#if defined(AI_ADDRCONFIG)
+   hints.ai_flags = AI_ADDRCONFIG;
++#endif
+   int ret =
+       getaddrinfo(std::string(hostname).c_str(), nullptr, &hints, &result);
+   if (ret != 0) {
+diff --git a/src/rtc_base/byte_order.h b/src/rtc_base/byte_order.h
+index 0ebaaaf5..5f5fa722 100644
+--- a/src/rtc_base/byte_order.h
++++ b/src/rtc_base/byte_order.h
+@@ -38,7 +38,7 @@
+ #define le32toh(v) OSSwapLittleToHostInt32(v)
+ #define le64toh(v) OSSwapLittleToHostInt64(v)
+ 
+-#elif defined(WEBRTC_WIN) || defined(__native_client__)
++#elif defined(WEBRTC_WIN) || defined(__native_client__) || defined(__QNX__)
+ 
+ #if defined(WEBRTC_WIN)
+ #include <stdlib.h>
+@@ -62,7 +62,7 @@
+ #define htobe64(v) _byteswap_uint64(v)
+ #define be64toh(v) _byteswap_uint64(v)
+ #endif  // defined(WEBRTC_WIN)
+-#if defined(__native_client__)
++#if defined(__native_client__) || defined(__QNX__)
+ #define htobe64(v) __builtin_bswap64(v)
+ #define be64toh(v) __builtin_bswap64(v)
+ #endif  // defined(__native_client__)
+diff --git a/src/rtc_base/physical_socket_server.cc b/src/rtc_base/physical_socket_server.cc
+index 727e200e..edbaeca5 100644
+--- a/src/rtc_base/physical_socket_server.cc
++++ b/src/rtc_base/physical_socket_server.cc
+@@ -487,7 +487,12 @@ int PhysicalSocket::DoReadFromSocket(void* buffer,
+       msg.msg_name = addr;
+       msg.msg_namelen = addr_len;
+     }
++#if defined(__QNX__)
++    // QNX's CMSG_SPACE is not a constant expression.
++    alignas(struct cmsghdr) char control[64] = {};
++#else
+     char control[CMSG_SPACE(sizeof(struct timeval))] = {};
++#endif
+     if (timestamp) {
+       *timestamp = -1;
+       msg.msg_control = &control;
+diff --git a/src/rtc_base/platform_thread_types.h b/src/rtc_base/platform_thread_types.h
+index 60462810..06d9878c 100644
+--- a/src/rtc_base/platform_thread_types.h
++++ b/src/rtc_base/platform_thread_types.h
+@@ -39,6 +39,7 @@ typedef DWORD PlatformThreadRef;
+ typedef zx_handle_t PlatformThreadId;
+ typedef zx_handle_t PlatformThreadRef;
+ #elif defined(WEBRTC_POSIX)
++#include <stdint.h>
+ #if defined(WEBRTC_MAC) || defined(WEBRTC_IOS)
+ typedef mach_port_t PlatformThreadId;
+ #elif defined(WEBRTC_LINUX)
