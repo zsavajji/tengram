@@ -9,10 +9,6 @@ Page {
     property variant list: calllog.list
     property bool loaded: calllog.loaded
     property variant call: engine.call
-    // Round mode (the user's ask, 2026-11-19): the rows' pictures are the round copies (a StandardListItem's image can't be
-    // clipped, so they are made as the rows are filled), and fill() runs again when the Shape changes.
-    property bool round: settings.round
-    onRoundChanged: fill()
     titleBar: TitleBar {
         title: qsTr("Calls")
     }
@@ -35,9 +31,11 @@ Page {
         for (var i = 0; i < list.length; i++) {
             var chat = chats.chat(list[i].chat)
             var name = chat.name || list[i].name || ""
-            calls.append({"chat": list[i].chat, "name": name, "title": name || qsTr("Unknown"),
+            var title = name || qsTr("Unknown")
+            calls.append({"chat": list[i].chat, "name": name, "title": title,
                           "detail": list[i].detail, "video": list[i].video, "time": list[i].time,
-                          "photo": chat.photo ? "file://" + (page.round ? (settings.roundPhoto(chat.photo) || chat.photo) : chat.photo) : ""})
+                          "photo": chat.photo || "", "initials": chat.initials || title.charAt(0).toUpperCase() || "#",
+                          "color": chat.color || "#24A1DE"})
         }
     }
     // The chat's row for nav.openRow: the row we have, else one built as main.qml's showPerson builds a person's.
@@ -86,15 +84,76 @@ Page {
                 var entry = dataModel.data(indexPath)
                 dial(entry.chat, entry.video)
             }
+            // What the rows read through the view: a list item's context has no nav or settings.
+            property variant emojiStyle: nav.emojiStyle
+            property int bodySize: nav.bodySize
+            property int smallSize: nav.smallSize
+            property string pressColor: nav.pressColor
+            property variant look: settings // the tiles' Shape (Tile.qml)
+            // A row as the chat list's (ChatRows.cpp, Normal): 2 du in from the sides, an 8.2 du picture, the name over
+            // the call and the time at the right. A StandardListItem put its picture against the screen's edge, with no
+            // way to pad it (the user's screenshot, 2026-11-19).
             listItemComponents: ListItemComponent {
-                StandardListItem {
+                Container {
                     id: item
                     property variant entry: ListItemData
-                    title: ListItemData.title
-                    description: ListItemData.detail
-                    status: ListItemData.time
-                    imageSource: ListItemData.photo
-                    imageSpaceReserved: true
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    background: item.ListItem.active ? Color.create(item.ListItem.view.pressColor) : Color.Transparent
+                    Container {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        minHeight: ui.du(11.4)
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
+                        layout: StackLayout {
+                            orientation: LayoutOrientation.LeftToRight
+                        }
+                        Tile {
+                            verticalAlignment: VerticalAlignment.Center
+                            preferredWidth: ui.du(8.2)
+                            preferredHeight: ui.du(8.2)
+                            look: item.ListItem.view.look
+                            tint: item.entry.color
+                            initials: item.entry.initials
+                            photo: item.entry.photo
+                            emojiStyle: item.ListItem.view.emojiStyle
+                        }
+                        Container {
+                            verticalAlignment: VerticalAlignment.Center
+                            leftMargin: ui.du(1.5)
+                            layoutProperties: StackLayoutProperties {
+                                spaceQuota: 1
+                            }
+                            Label {
+                                bottomMargin: 0
+                                text: item.entry.title
+                                textFormat: TextFormat.Plain
+                                textStyle.base: item.ListItem.view.emojiStyle
+                                textStyle.fontSize: FontSize.PercentageValue
+                                textStyle.fontSizeValue: item.ListItem.view.bodySize
+                            }
+                            Label {
+                                topMargin: 0
+                                text: item.entry.detail
+                                textFormat: TextFormat.Plain
+                                textStyle.fontSize: FontSize.PercentageValue
+                                textStyle.fontSizeValue: item.ListItem.view.smallSize
+                                textStyle.color: ui.palette.secondaryTextOnPlain
+                            }
+                        }
+                        Label {
+                            verticalAlignment: VerticalAlignment.Center
+                            text: item.entry.time
+                            textFormat: TextFormat.Plain
+                            textStyle.fontSize: FontSize.PercentageValue
+                            textStyle.fontSizeValue: item.ListItem.view.smallSize
+                            textStyle.color: ui.palette.secondaryTextOnPlain
+                        }
+                    }
+                    Container {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        preferredHeight: ui.px(2)
+                        background: ui.palette.plain
+                    }
                     contextActions: [
                         ActionSet {
                             title: item.entry.title
