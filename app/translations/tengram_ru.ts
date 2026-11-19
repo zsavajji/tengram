@@ -872,6 +872,11 @@
         <translation>Нет подходящих чатов.</translation>
     </message>
     <message>
+        <location filename="../assets/ChatsPage.qml" line="287"/>
+        <source>No chats yet</source>
+        <translation>Пока нет чатов</translation>
+    </message>
+    <message>
         <source>Channels</source>
         <translation type="obsolete">Каналы</translation>
     </message>

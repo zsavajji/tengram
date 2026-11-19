@@ -870,6 +870,11 @@
         <translation>Nessuna chat corrisponde.</translation>
     </message>
     <message>
+        <location filename="../assets/ChatsPage.qml" line="287"/>
+        <source>No chats yet</source>
+        <translation>Ancora nessuna chat</translation>
+    </message>
+    <message>
         <source>Channels</source>
         <translation type="obsolete">Canali</translation>
     </message>

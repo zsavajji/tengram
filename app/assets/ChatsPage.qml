@@ -277,13 +277,13 @@ Page {
                 onChatTapped: page.openChat(chat)
             }
             // The wait for a new link's chats is on the linking page (main.qml), so an empty list
-            // here is an account with no chats, and shows nothing (the user's, 2026-11-01).
+            // here is an account with no chats: it says so (the user, 2026-11-19; HyperBerry showed nothing).
             Label {
-                visible: chats.empty && page.searching
+                visible: chats.empty
                 horizontalAlignment: HorizontalAlignment.Center
                 verticalAlignment: VerticalAlignment.Center
                 textStyle.color: ui.palette.secondaryTextOnPlain
-                text: qsTr("No chat matches.")
+                text: page.searching ? qsTr("No chat matches.") : qsTr("No chats yet")
             }
         }
     }

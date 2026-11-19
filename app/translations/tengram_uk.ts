@@ -872,6 +872,11 @@
         <translation>Немає відповідних чатів.</translation>
     </message>
     <message>
+        <location filename="../assets/ChatsPage.qml" line="287"/>
+        <source>No chats yet</source>
+        <translation>Поки немає чатів</translation>
+    </message>
+    <message>
         <source>Channels</source>
         <translation type="obsolete">Канали</translation>
     </message>

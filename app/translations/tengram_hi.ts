@@ -870,6 +870,11 @@
         <translation>कोई चैट मेल नहीं खाती।</translation>
     </message>
     <message>
+        <location filename="../assets/ChatsPage.qml" line="287"/>
+        <source>No chats yet</source>
+        <translation>अभी तक कोई चैट नहीं</translation>
+    </message>
+    <message>
         <source>Channels</source>
         <translation type="obsolete">चैनल</translation>
     </message>

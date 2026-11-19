@@ -868,6 +868,11 @@
         <translation>Không có đoạn chat nào khớp.</translation>
     </message>
     <message>
+        <location filename="../assets/ChatsPage.qml" line="287"/>
+        <source>No chats yet</source>
+        <translation>Chưa có cuộc trò chuyện nào</translation>
+    </message>
+    <message>
         <source>Channels</source>
         <translation type="obsolete">Kênh</translation>
     </message>
