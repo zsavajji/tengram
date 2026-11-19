@@ -35,11 +35,6 @@ Page {
     function focusSearch() {
         field.requestFocus()
     }
-    function clearField() {
-        field.text = ""
-        typed = ""
-        search.query = ""
-    }
     // A chat from the lists. One we are in opens from the chat list; a person or a bot opens as a contact page's Message
     // does (the chat may not exist yet); a public group or channel we are not in goes through its link, which asks to
     // join (main.qml's askToJoin).
@@ -63,42 +58,14 @@ Page {
         Container {
             horizontalAlignment: HorizontalAlignment.Fill
             verticalAlignment: VerticalAlignment.Fill
-            // The field and a ✕ that empties it in one tap: the Q10 has no Escape.
-            Container {
-                horizontalAlignment: HorizontalAlignment.Fill
-                layout: StackLayout {
-                    orientation: LayoutOrientation.LeftToRight
-                }
-                TextField {
-                    id: field
-                    verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties {
-                        spaceQuota: 1
-                    }
-                    hintText: qsTr("Search")
-                    input.submitKey: SubmitKey.Search
-                    onTextChanging: {
-                        page.typed = text
-                        search.query = text
-                    }
-                }
-                // A touch target the size of an action column (9 du), the ✕ as the reply bar's.
-                Container {
-                    verticalAlignment: VerticalAlignment.Center
-                    preferredWidth: ui.du(9)
-                    preferredHeight: ui.du(9)
-                    layout: DockLayout {
-                    }
-                    gestureHandlers: TapHandler {
-                        onTapped: page.clearField()
-                    }
-                    Label {
-                        horizontalAlignment: HorizontalAlignment.Center
-                        verticalAlignment: VerticalAlignment.Center
-                        text: "✕"
-                        textFormat: TextFormat.Plain
-                        textStyle.color: ui.palette.secondaryTextOnPlain
-                    }
+            // The field alone: the page is the search, Back leaves it (the user, 2026-11-19: a ✕ had nothing to remove).
+            TextField {
+                id: field
+                hintText: qsTr("Search")
+                input.submitKey: SubmitKey.Search
+                onTextChanging: {
+                    page.typed = text
+                    search.query = text
                 }
             }
             // The people the user writes to most: a square tile and the first name, a tap opens the chat.
