@@ -52,7 +52,7 @@ Page {
         contact.exported.connect(page.exported)
         contact.secretStarted.connect(page.secretStarted)
     }
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Contact info")
     }
     actions: [
@@ -279,6 +279,9 @@ Page {
         ScrollView {
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
+                // A ScrollView's content is as wide as its widest child, not the screen: with only the error text
+                // shown, everything centred in its width, off to the left (the user's screenshot, 2026-11-19).
+                preferredWidth: ui.px(screenWidth)
                 // The tile, name and number; the chat's own until the engine answers.
                 Container {
                     horizontalAlignment: HorizontalAlignment.Fill

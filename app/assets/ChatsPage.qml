@@ -192,7 +192,7 @@ Page {
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 verticalAlignment: VerticalAlignment.Fill
-                // Telegram's title bar colour, with white text on it (the user's ask, 2026-11-18).
+                // The chat page's colour, with white text on it (the user's ask, 2026-11-19).
                 background: Color.create(nav.headerColor)
                 leftPadding: ui.du(2)
                 rightPadding: ui.du(2)
@@ -204,7 +204,7 @@ Page {
                     layoutProperties: StackLayoutProperties {
                         spaceQuota: 1
                     }
-                    text: listBar.waiting ? qsTr("Connecting…") : qsTr("Chats")
+                    text: listBar.waiting ? qsTr("Connecting…") : "Tengram" // the app's name, not translated
                     textStyle.base: SystemDefaults.TextStyles.TitleText
                     textStyle.color: Color.White
                 }

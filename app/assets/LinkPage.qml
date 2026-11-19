@@ -16,7 +16,7 @@ Page {
     // and the engine it restarts reports that. Until then nothing here asks Telegram for anything.
     property bool memBlocked: (engine.link.memMB || 0) > 0 && engine.link.memMB < 128
 
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Link to Telegram")
     }
     actions: [

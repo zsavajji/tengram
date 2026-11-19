@@ -12,7 +12,7 @@ Page {
     property bool failed: !loaded && engine.failure.cmd == "blocked.list"
     // The person the unblock dialog asks about, held until the answer.
     property variant pending: ({})
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: page.loaded ? qsTr("Blocked users (%1)").arg(privacy.blockedTotal) : qsTr("Blocked users")
     }
     onCreationCompleted: {

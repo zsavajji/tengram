@@ -40,7 +40,7 @@ Page {
             changeFailed.show()
         }
     }
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Group info")
     }
     attachedObjects: [

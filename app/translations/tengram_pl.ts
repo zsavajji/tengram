@@ -91,6 +91,61 @@
         <source>Compact</source>
         <translation>Kompaktowy</translation>
     </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Dark or bright colours for the whole app.</source>
+        <translation>Ciemne lub jasne kolory w całej aplikacji.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>The colour behind chats and lists: pure black, or a softer dark grey.</source>
+        <translation>Kolor za czatami i listami: czysta czerń albo łagodniejsza ciemna szarość.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>The size of the text in chats and in the chat list.</source>
+        <translation>Rozmiar tekstu w czatach i na liście czatów.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Compact fits more chats on the screen, with smaller pictures and rows.</source>
+        <translation>Kompaktowy mieści na ekranie więcej czatów, z mniejszymi zdjęciami i wierszami.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Dark background</source>
+        <translation>Ciemne tło</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Black</source>
+        <translation>Czarne</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Grey</source>
+        <translation>Szare</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Shape</source>
+        <translation>Kształt</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Square</source>
+        <translation>Kwadratowy</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Round</source>
+        <translation>Zaokrąglony</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Square or rounded pictures, buttons and message bubbles.</source>
+        <translation>Kwadratowe lub zaokrąglone zdjęcia, przyciski i dymki wiadomości.</translation>
+    </message>
 </context>
 <context>
     <name>ArchivedPage</name>

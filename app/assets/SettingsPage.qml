@@ -4,7 +4,7 @@ import bb.cascades 1.4
 // button. Each setting lives in `settings`.
 Page {
     id: page
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Settings")
     }
     attachedObjects: [

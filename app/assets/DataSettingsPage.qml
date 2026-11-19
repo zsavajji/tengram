@@ -21,7 +21,7 @@ Page {
     // True while the drop-downs are set from `settings`, which they would send back as a change. Also true until the
     // page is made, whose drop-downs choose their first option on their own.
     property bool filling: true
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Data and storage")
     }
     onCreationCompleted: {

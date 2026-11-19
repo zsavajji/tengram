@@ -91,6 +91,61 @@
         <source>Compact</source>
         <translation>Компактний</translation>
     </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Dark or bright colours for the whole app.</source>
+        <translation>Темні або світлі кольори для всього застосунку.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>The colour behind chats and lists: pure black, or a softer dark grey.</source>
+        <translation>Колір позаду чатів і списків: чистий чорний або м'якший темно-сірий.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>The size of the text in chats and in the chat list.</source>
+        <translation>Розмір тексту в чатах і в списку чатів.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Compact fits more chats on the screen, with smaller pictures and rows.</source>
+        <translation>Компактний вигляд: на екрані більше чатів, фото й рядки менші.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Dark background</source>
+        <translation>Темний фон</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Black</source>
+        <translation>Чорний</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Grey</source>
+        <translation>Сірий</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Shape</source>
+        <translation>Форма</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Square</source>
+        <translation>Квадратна</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Round</source>
+        <translation>Заокруглена</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Square or rounded pictures, buttons and message bubbles.</source>
+        <translation>Квадратні або заокруглені зображення, кнопки й бульбашки повідомлень.</translation>
+    </message>
 </context>
 <context>
     <name>ArchivedPage</name>

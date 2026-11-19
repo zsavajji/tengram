@@ -17,7 +17,7 @@ Page {
     property bool isSet: !!pw.set
     // The masked address Telegram sent a code to, "" when none is waiting.
     property string pending: pw.pendingEmail || ""
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Two-step verification")
     }
     onCreationCompleted: {

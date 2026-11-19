@@ -91,6 +91,61 @@
         <source>Compact</source>
         <translation>कॉम्पैक्ट</translation>
     </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Dark or bright colours for the whole app.</source>
+        <translation>पूरे ऐप के लिए डार्क या लाइट रंग।</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>The colour behind chats and lists: pure black, or a softer dark grey.</source>
+        <translation>चैट और लिस्ट के पीछे का रंग: बिल्कुल काला, या थोड़ा नरम गहरा ग्रे।</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>The size of the text in chats and in the chat list.</source>
+        <translation>चैट और चैट लिस्ट में टेक्स्ट का साइज़।</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Compact fits more chats on the screen, with smaller pictures and rows.</source>
+        <translation>कॉम्पैक्ट में स्क्रीन पर ज़्यादा चैट दिखती हैं, फ़ोटो और पंक्तियाँ छोटी होती हैं।</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Dark background</source>
+        <translation>डार्क बैकग्राउंड</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Black</source>
+        <translation>काला</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Grey</source>
+        <translation>ग्रे</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Shape</source>
+        <translation>आकार</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Square</source>
+        <translation>चौकोर</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Round</source>
+        <translation>गोल</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Square or rounded pictures, buttons and message bubbles.</source>
+        <translation>चित्र, बटन और संदेश बबल चौकोर या गोल।</translation>
+    </message>
 </context>
 <context>
     <name>ArchivedPage</name>

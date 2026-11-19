@@ -13,7 +13,7 @@ Page {
     property bool sending: false
     // When "Not a Telegram login code" was last shown (ms since the epoch): a code that is not one is seen on every frame.
     property real lastNote: 0
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Link desktop device")
     }
     onCreationCompleted: {

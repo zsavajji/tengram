@@ -9,7 +9,7 @@ Page {
     signal picked(variant chat)
     // Group info's Add participant picks with it too.
     property string title: qsTr("New chat")
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: page.title
     }
     attachedObjects: ContactPicker {

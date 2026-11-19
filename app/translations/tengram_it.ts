@@ -91,6 +91,61 @@
         <source>Compact</source>
         <translation>Compatta</translation>
     </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Dark or bright colours for the whole app.</source>
+        <translation>Colori scuri o chiari per tutta l'app.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>The colour behind chats and lists: pure black, or a softer dark grey.</source>
+        <translation>Il colore dietro le chat e gli elenchi: nero puro o un grigio scuro più morbido.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>The size of the text in chats and in the chat list.</source>
+        <translation>La dimensione del testo nelle chat e nell'elenco delle chat.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Compact fits more chats on the screen, with smaller pictures and rows.</source>
+        <translation>Compatta mostra più chat sullo schermo, con immagini e righe più piccole.</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Dark background</source>
+        <translation>Sfondo scuro</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Black</source>
+        <translation>Nero</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Grey</source>
+        <translation>Grigio</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Shape</source>
+        <translation>Forma</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Square</source>
+        <translation>Squadrata</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Round</source>
+        <translation>Arrotondata</translation>
+    </message>
+    <message>
+        <location filename="../assets/AppearanceSettingsPage.qml"/>
+        <source>Square or rounded pictures, buttons and message bubbles.</source>
+        <translation>Immagini, pulsanti e fumetti dei messaggi squadrati o arrotondati.</translation>
+    </message>
 </context>
 <context>
     <name>ArchivedPage</name>

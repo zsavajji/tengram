@@ -16,7 +16,7 @@ Page {
             failed.show()
         }
     }
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("New group")
     }
     actions: ActionItem {

@@ -9,7 +9,7 @@ Page {
     id: page
     signal picked(variant country)
 
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Country")
     }
 

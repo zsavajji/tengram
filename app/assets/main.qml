@@ -71,20 +71,24 @@ NavigationPane {
     property string secretColor: settings.theme == 1 ? "#00874A" : "#00A65A"
     // Telegram's chat colours (the user's ask, 2026-11-18); settings.theme 1 is Bright. The card helpers in CardStyle.h
     // read the four bubble and pill ones through properties on the chat page's list.
-    // Telegram's incoming bubble
-    property string inColor: settings.theme == 1 ? "#FFFFFF" : "#182533"
-    // Telegram's outgoing bubble
-    property string outColor: settings.theme == 1 ? "#EFFDDE" : "#2B5278"
-    // Telegram's time, ticks and quiet text on our bubbles
-    property string outMeta: settings.theme == 1 ? "#4FA64C" : "#7DA8D3"
+    // Theirs. Bright: a cool light grey (the user, 2026-11-19: Telegram's white was white on our white page, which has no
+    // wallpaper behind it as Telegram's has)
+    property string inColor: settings.theme == 1 ? "#E3E8ED" : "#182533"
+    // Ours. Bright: a light blue, the bars' blue family, not Telegram's green (the user, 2026-11-19)
+    property string outColor: settings.theme == 1 ? "#D5E6F8" : "#2B5278"
+    // The time, ticks and quiet text on our bubbles. Bright: a blue-grey for the light blue (5:1), as Telegram's green
+    // was for its green
+    property string outMeta: settings.theme == 1 ? "#386392" : "#7DA8D3"
     // Telegram's date and service pills (ARGB, translucent); their text is white
     property string serviceColor: settings.theme == 1 ? "#806E8A9C" : "#CC1D2B3A"
-    // Telegram's title bar of the chat list and the chat
-    property string headerColor: settings.theme == 1 ? "#517DA2" : "#17212B"
-    // Telegram's status line in the chat's title bar
-    property string headerQuiet: settings.theme == 1 ? "#D7E6F2" : "#7F91A4"
-    // Telegram's secret chat lock and name on that title bar
-    property string headerSecret: settings.theme == 1 ? "#A6F0BC" : "#00A65A"
+    // The title bar of the chat list and the chat, in both themes: our Dark bubble's blue (outColor's #2B5278) 15 % darker
+    // (the user, 2026-11-19: Telegram's #517DA2 and then the accent's #1B79A7 were too light; Dark had #17212B)
+    property string headerColor: "#254666"
+    // The status line in the chat's title bar: Telegram's on its blue bar, which reads on this one in both themes (Dark's
+    // #7F91A4 was for its slate bar and doesn't read on blue, the user, 2026-11-19)
+    property string headerQuiet: "#D7E6F2"
+    // The secret chat lock and name on that title bar: the light green, as the status line, on the blue bar in both themes
+    property string headerSecret: "#A6F0BC"
     // The chat a notification tap asked for, until the chat list is up to open it; pendingMsg is the message a Telegram
     // link named in it, "" for none.
     property string pendingChat

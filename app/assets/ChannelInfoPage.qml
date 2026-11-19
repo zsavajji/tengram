@@ -15,7 +15,7 @@ Page {
     property string picture: info.picture || (chat && chat.photo) || ""
     property bool hasPicture: picture != ""
     onChatChanged: channel.ask(chat.jid)
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Channel info")
     }
     actions: [
@@ -60,6 +60,9 @@ Page {
         ScrollView {
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
+                // A ScrollView's content is as wide as its widest child, not the screen: with only the error text
+                // shown, everything centred in its width, off to the left (the user's screenshot, 2026-11-19).
+                preferredWidth: ui.px(screenWidth)
                 Container {
                     horizontalAlignment: HorizontalAlignment.Fill
                     topPadding: ui.du(3)

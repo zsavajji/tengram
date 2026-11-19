@@ -3,13 +3,14 @@ import tengram 1.0
 
 // Chats > Calls: Telegram's call log, newest first. A tap calls the person back as the call was (a video call back with
 // video); a long press offers Call, Video call and Open chat. The page asks the engine itself (calls.list) through its
-// own CallLog, so the answer goes with the page, and asks again when a call ends while it is open.
+// own CallLog, so the answer goes with the page, and asks again when a call ends while it is open. It shows the newest 15
+// calls first and asks for 30 more each time the list is scrolled to its end.
 Page {
     id: page
     property variant list: calllog.list
     property bool loaded: calllog.loaded
     property variant call: engine.call
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Calls")
     }
     onListChanged: fill()
@@ -25,10 +26,16 @@ Page {
             calllog.ask()
         }
     }
-    // The rows: the person's chat when we have it (its name and picture), else what the call log says.
+    // The rows: the person's chat when we have it (its name and picture), else what the call log says. The newest page
+    // replaces them (from is 0), a next page adds its rows at the end.
     function fill() {
-        calls.clear()
-        for (var i = 0; i < list.length; i++) {
+        var first = 0
+        if (calllog.from == 0) {
+            calls.clear()
+        } else {
+            first = calls.size()
+        }
+        for (var i = first; i < list.length; i++) {
             var chat = chats.chat(list[i].chat)
             var name = chat.name || list[i].name || ""
             var title = name || qsTr("Unknown")
@@ -80,6 +87,14 @@ Page {
             dataModel: ArrayDataModel {
                 id: calls
             }
+            // At the end of the list: the next page, if there is one.
+            attachedObjects: ListScrollStateHandler {
+                onAtEndChanged: {
+                    if (atEnd && calllog.more) {
+                        calllog.askMore()
+                    }
+                }
+            }
             onTriggered: {
                 var entry = dataModel.data(indexPath)
                 dial(entry.chat, entry.video)
@@ -90,7 +105,7 @@ Page {
             property int smallSize: nav.smallSize
             property string pressColor: nav.pressColor
             property variant look: settings // the tiles' Shape (Tile.qml)
-            // A row as the chat list's (ChatRows.cpp, Normal): 2 du in from the sides, an 8.2 du picture, the name over
+            // A row as the chat list's (ChatRows.cpp, Normal): 2 du in from the sides, a 9 du picture in a 12.6 du row, the name over
             // the call and the time at the right. A StandardListItem put its picture against the screen's edge, with no
             // way to pad it (the user's screenshot, 2026-11-19).
             listItemComponents: ListItemComponent {
@@ -101,7 +116,7 @@ Page {
                     background: item.ListItem.active ? Color.create(item.ListItem.view.pressColor) : Color.Transparent
                     Container {
                         horizontalAlignment: HorizontalAlignment.Fill
-                        minHeight: ui.du(11.4)
+                        minHeight: ui.du(12.6)
                         leftPadding: ui.du(2)
                         rightPadding: ui.du(2)
                         layout: StackLayout {
@@ -109,8 +124,8 @@ Page {
                         }
                         Tile {
                             verticalAlignment: VerticalAlignment.Center
-                            preferredWidth: ui.du(8.2)
-                            preferredHeight: ui.du(8.2)
+                            preferredWidth: ui.du(9)
+                            preferredHeight: ui.du(9)
                             look: item.ListItem.view.look
                             tint: item.entry.color
                             initials: item.entry.initials

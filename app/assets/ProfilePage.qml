@@ -16,7 +16,7 @@ Page {
     // otherwise show the first one it loaded.
     property int rev: 0
     onInfoChanged: rev++
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Profile")
     }
     onCreationCompleted: {
@@ -129,10 +129,15 @@ Page {
         ScrollView {
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
+                // A ScrollView's content is as wide as its widest child, not the screen: with only the error text
+                // shown, everything centred in its width, off to the left (as on the contact's page, 2026-11-19).
+                preferredWidth: ui.px(screenWidth)
                 // The picture or the tile, the name and the number.
                 Container {
                     horizontalAlignment: HorizontalAlignment.Fill
                     topPadding: ui.du(3)
+                    // Air under the number, which sat on the About header, as on the contact's page (the user, 2026-11-19).
+                    bottomPadding: ui.du(2)
                     leftPadding: ui.du(1.5)
                     rightPadding: ui.du(1.5)
                     // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19); before the engine answers it

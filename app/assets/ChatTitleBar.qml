@@ -26,16 +26,16 @@ TitleBar {
     kind: TitleBarKind.FreeForm
     // The status line must stay; the default let the bar scroll away with the list (Q10).
     scrollBehavior: TitleBarScrollBehavior.Sticky
-    // Sized as the stock Text Messages conversation (Q10, 2026-10-31): an 85 px bar, the
-    // picture 81 px square flush at the right, 2 px from the bar's edges and 7 px from the
-    // screen's.
+    // An 85 px bar (the stock Text Messages conversation's, Q10, 2026-10-31), the picture 69 px square at the right,
+    // 8 px from the bar's top, bottom and the screen's edge (the user, 2026-11-19: at 81 px, 2 px from the edges, it
+    // touched them).
     kindProperties: FreeFormTitleBarKindProperties {
         Container {
             horizontalAlignment: HorizontalAlignment.Fill
             verticalAlignment: VerticalAlignment.Fill
             // Telegram's title bar colour, with white text on it (the user's ask, 2026-11-18).
             background: Color.create(nav.headerColor)
-            rightPadding: ui.px(7)
+            rightPadding: ui.px(8)
             layout: StackLayout {
                 orientation: LayoutOrientation.LeftToRight
             }
@@ -156,8 +156,8 @@ TitleBar {
             Tile {
                 verticalAlignment: VerticalAlignment.Center
                 leftMargin: ui.du(1.5)
-                preferredWidth: ui.px(81)
-                preferredHeight: ui.px(81)
+                preferredWidth: ui.px(69)
+                preferredHeight: ui.px(69)
                 tint: bar.chat ? bar.chat.color : ""
                 initials: bar.chat ? bar.chat.initials : ""
                 photo: bar.photo

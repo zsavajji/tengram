@@ -5,7 +5,7 @@ import bb.cascades 1.4
 // author's GitHub, opening in the browser.
 Page {
     id: page
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("About")
     }
     Container {

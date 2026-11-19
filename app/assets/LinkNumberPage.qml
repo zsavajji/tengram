@@ -18,7 +18,7 @@ Page {
     // When the picker closed: the Enter that chose a country can reach the number field too.
     property double pickedAt: 0
 
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Link with phone number")
     }
     actions: [

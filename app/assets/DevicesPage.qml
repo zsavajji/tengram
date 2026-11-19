@@ -13,7 +13,7 @@ Page {
     property bool failed: !loaded && engine.failure.cmd == "sessions.list"
     // The session the terminate dialog asks about, held until the answer.
     property variant pending: ({})
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Devices")
     }
     onListChanged: fill()

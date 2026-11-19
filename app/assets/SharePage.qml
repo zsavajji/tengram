@@ -8,7 +8,7 @@ Page {
     property variant share
     // A message to forward, {chat, id}, instead of a share: a tap sends it to the chat (a forum asks for its topic first).
     property variant forward
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: page.forward ? qsTr("Forward to") : qsTr("Send to")
         scrollBehavior: TitleBarScrollBehavior.Sticky
     }

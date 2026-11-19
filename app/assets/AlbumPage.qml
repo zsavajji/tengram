@@ -17,7 +17,7 @@ Page {
             album.append(members[i])
         }
     }
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Album")
     }
     Container {

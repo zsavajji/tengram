@@ -97,6 +97,8 @@ Page {
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 verticalAlignment: VerticalAlignment.Fill
+                // The app's bar colour, white text on it (PageBar's; the user, 2026-11-19).
+                background: Color.create(nav.headerColor)
                 leftPadding: ui.du(2)
                 rightPadding: ui.du(2)
                 layout: DockLayout {}
@@ -108,6 +110,7 @@ Page {
                     textStyle.base: nav.emojiStyle
                     textStyle.fontSize: FontSize.PercentageValue
                     textStyle.fontSizeValue: 125
+                    textStyle.color: Color.White
                 }
             }
         }

@@ -13,7 +13,7 @@ Page {
     property bool failed: !loaded && engine.failure.cmd == "websites.list"
     // The website the disconnect dialog asks about, held until the answer.
     property variant pending: ({})
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Connected websites")
     }
     onListChanged: fill()

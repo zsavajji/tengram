@@ -10,7 +10,7 @@ Page {
             source: "ChatPage.qml"
         }
     ]
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Archived")
         scrollBehavior: TitleBarScrollBehavior.Sticky
     }

@@ -21,14 +21,31 @@ Page {
             body: qsTr("This chat can't be opened from here")
         }
     ]
+    // The tabs on the app's bar colour (PageBar's; the user, 2026-11-19): a stock Segmented bar takes no colour, so a FreeForm
+    // bar holds a SegmentedControl.
     titleBar: TitleBar {
-        kind: TitleBarKind.Segmented
-        options: [
-            Option { text: qsTr("Chats"); value: "chats"; selected: true },
-            Option { text: qsTr("Channels"); value: "channels" },
-            Option { text: qsTr("Apps"); value: "apps" }
-        ]
-        onSelectedValueChanged: search.tab = selectedValue
+        kind: TitleBarKind.FreeForm
+        scrollBehavior: TitleBarScrollBehavior.Sticky
+        kindProperties: FreeFormTitleBarKindProperties {
+            Container {
+                horizontalAlignment: HorizontalAlignment.Fill
+                verticalAlignment: VerticalAlignment.Fill
+                background: Color.create(nav.headerColor)
+                leftPadding: ui.du(1)
+                rightPadding: ui.du(1)
+                layout: DockLayout {}
+                SegmentedControl {
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    verticalAlignment: VerticalAlignment.Center
+                    options: [
+                        Option { text: qsTr("Chats"); value: "chats"; selected: true },
+                        Option { text: qsTr("Channels"); value: "channels" },
+                        Option { text: qsTr("Apps"); value: "apps" }
+                    ]
+                    onSelectedValueChanged: search.tab = selectedValue
+                }
+            }
+        }
     }
     onCreationCompleted: search.ask()
     // Called after the push, so on the Q10 typing searches at once (as NewChatPage.focusSearch).

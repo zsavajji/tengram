@@ -17,7 +17,7 @@ Page {
     property bool filling: false
     // The rows of the privacy rules, made in onCreationCompleted.
     property variant ruleRows: []
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Privacy and security")
     }
     onInfoChanged: fill()

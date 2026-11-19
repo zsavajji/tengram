@@ -3,7 +3,7 @@ import bb.cascades 1.4
 // Settings > Chats: saved as they change. Each lives in `settings`.
 Page {
     id: page
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Chats")
     }
     Container {

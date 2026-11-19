@@ -8,7 +8,7 @@ Page {
     id: page
     property string jid
     property int topic: 0
-    titleBar: TitleBar {
+    titleBar: PageBar {
         title: qsTr("Create poll")
     }
     Container {
