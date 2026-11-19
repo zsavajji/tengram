@@ -163,6 +163,7 @@ void handle_update(Obj update) {
       notifier_update(*update);
       live_update(*update);
       data_update(*update);
+      calls_update(*update);
       break;
   }
 }
@@ -172,7 +173,7 @@ void handle_request(std::uint64_t conn, const std::string &id, const std::string
   if (link_request(conn, id, cmd, req) || requests_handle(conn, id, cmd, req) || voice_handle(conn, id, cmd, req) ||
       profile_handle(conn, id, cmd, req) || sessions_handle(conn, id, cmd, req) || pages_handle(conn, id, cmd, req) ||
       manage_handle(conn, id, cmd, req) || account_handle(conn, id, cmd, req) || data_handle(conn, id, cmd, req) ||
-      topics_handle(conn, id, cmd, req) || mode_request(conn, id, cmd, req)) {
+      topics_handle(conn, id, cmd, req) || calls_handle(conn, id, cmd, req) || mode_request(conn, id, cmd, req)) {
     return;
   }
   server.reply_error(conn, id, "unknown_cmd", "unknown cmd " + cmd);
@@ -329,6 +330,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   tdlib.start(wake[1]);
+  calls_start(wake[1]);
   if (service) {
     bb10_start(wake[1]);
   }
@@ -393,6 +395,7 @@ int main(int argc, char **argv) {
         tdlib.send(td_api::make_object<td_api::close>());
       }
       tdlib.drain();
+      calls_drain();
       if (service) {
         bb10_drain();
       }

@@ -277,6 +277,14 @@ void notifier_action(const std::string &action, std::int64_t chat);  // "read", 
 void bb10_start(int wake_fd);  // the thread writes to wake_fd when it has something: main calls bb10_drain()
 void bb10_drain();
 
+// calls.cpp: call.start, call.answer, call.reject and call.hangup, and the `call` event: 1:1 voice calls, TDLib's call
+// states and signalling with Telegram's tgcalls library (docs/protocol.md, "Calls"). One call at a time.
+void calls_start(int wake_fd);              // registers the tgcalls versions; keeps the wake fd for its threads
+void calls_drain();                         // runs what tgcalls' threads posted (main thread)
+void calls_update(td_api::Object &update);  // updateCall, updateNewCallSignalingData; anything else is ignored
+bool calls_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+bool calls_live();                          // a call is ringing, being placed or under way: the network must stay on
+
 // live.cpp: typing and presence for the chats the UI has open.
 void live_open(std::uint64_t conn, std::int64_t chat);   // chat.open succeeded: the chat is open for this connection
 void live_close(std::uint64_t conn, std::int64_t chat);  // chat.close

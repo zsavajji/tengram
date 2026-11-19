@@ -116,6 +116,10 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `network.get` | — | `{since, mobile: {sent, received}, wifi: {sent, received}, other: {sent, received}}`: bytes since `since` (unix seconds) | |
 | `network.reset` | — | — | |
 | `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `language` (string), `cacheMB` (64 to 512), `autoNet` (`none`, `wifi` or `all`), `autoPhotos` (bool), `autoVideoMB`, `autoFileMB` (0 to 2000), `galleryPrivate`, `galleryGroups`, `galleryChannels` (bool), `keepMB` (0, or 256 to 20000); each optional, at least one | — | |
+| `call.start` | `chat` (a person: a private or a secret chat) | `{id}`, the call's id (a string); the call itself is told by `call` events | `unlinked`, `busy`, `bad_chat` |
+| `call.answer` | `id` (the id of a ringing call, a string) | — | `not_found` |
+| `call.reject` | `id` (the id of a ringing call, a string) | — | `not_found` |
+| `call.hangup` | `id` (the id of the call, a string; any state before `ended`) | — | `not_found` |
 
 **`link.*`:** the login. `link.qr` asks Telegram for a login link to show as a QR code
 (`requestQrCodeAuthentication`); `link.phone`, `link.code` and `link.password` are the phone
@@ -683,6 +687,7 @@ All four answer TDLib's error as `td` when it has one.
 | `presence` | `chat`, `online`, `lastSeen` (unix seconds, 0 when hidden) | the other person's online status in a 1:1 chat, once after `chat.open` and at every change until `chat.close` |
 | `photo` | `jid` (a user id), `photo` (the absolute path of the user's small profile photo) | a photo that `group.info`, `contacts.list` or `senders.get` left out is downloaded: put it on that person's row |
 | `media.progress` | `chat`, `id` (the message), `done`, `size` (bytes, numbers; `size` is the expected size when TDLib has no exact one yet) | the file a `media.get` (not a preview) is downloading has grown; at most every 200 ms per file, so a fast download may skip some; none after the file is complete or cancelled |
+| `call` | `id` (the call, a string), `chat` (the person's chat key), `out` (bool: we placed it), `state`, `reason` (only with `ended`), `since` (unix ms the call became `active`, 0 before) | the call changed state; see "Calls" |
 
 `chats`, `msgs` and `topics` come after the engine commits, at most every 50 ms. `photo` does not wait for that: it comes when
 TDLib has downloaded the photo, which is always after the reply that left it out.
@@ -705,6 +710,34 @@ cannot get through a first sync. The UI offers the addon when it sees less than 
 
 `syncing: true` goes with `ready` from a login until the whole chat list is in `chats.db` for
 the first time (a `link` event without it follows). The UI waits on the linking page meanwhile.
+
+## Calls
+
+One 1:1 voice call at a time, between us and a person. The engine talks to Telegram through TDLib and runs Telegram's
+tgcalls library for the media; every change of the call is a `call` event to every connection. `call.start` places a
+call (`busy` while another is under way; its reply is the call's `id`), `call.answer` accepts one that rings, `call.reject`
+and `call.hangup` end one (the same request: TDLib turns it into a decline or a hang-up by the state). Their replies
+only say the request was taken: the call ends with the `ended` event. A second call that comes in while one is under way
+is declined by the engine at once and tells the UI nothing.
+
+`state`:
+
+| `state` | meaning |
+|---|---|
+| `ringing` | an incoming call, not answered yet |
+| `calling` | an outgoing call, placed, the other side not answering yet |
+| `connecting` | accepted; the keys are exchanged and the media connection is being made |
+| `active` | the media connection is up; `since` is when it came up |
+| `ended` | over; `reason` says why. The engine forgets the call: no more events for it |
+
+`reason` (with `ended`): `hangup` (either side hung up), `declined` (the other side declined our call, or we declined theirs),
+`missed` (an incoming call that nobody answered), `no_answer` (our call that the other side did not answer), `busy` (the other
+side is in a call), `failed` (the connection was lost or never made, or Telegram refused the call).
+
+While a call is live the network stays on, whatever the delivery mode says.
+
+**Gate T0:** there is no audio link to the UI yet. The engine's microphone is a 440 Hz tone, and what the other side says is
+not played: the engine logs its level (`call audio: peer rms N`) every 2 seconds instead.
 
 ## Delivery mode
 

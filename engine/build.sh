@@ -9,10 +9,12 @@ docker run --rm -e TD_LTO="${TD_LTO-1}" -e TG_API_ID="${TG_API_ID-}" -e TG_API_H
 L=build/prefix/lib
 # The engine uses TDLib'"'"'s internal headers (SqliteDb, JsonBuilder): -isystem keeps their warnings out of the output.
 INC="-isystem build/prefix/include -isystem third_party/td/tddb -isystem third_party/td/tdutils \
--isystem build/td-bb10/tdutils -isystem third_party/td -isystem third_party/td/sqlite"
+-isystem build/td-bb10/tdutils -isystem third_party/td -isystem third_party/td/sqlite \
+-isystem third_party/tgcalls -isystem third_party/tgcalls/tgcalls -DTGCALLS_USE_STD_OPTIONAL"
 LIBS="-Wl,--gc-sections -Wl,--start-group $L/libtdclient.a $L/libtdcore.a $L/libtdapi.a $L/libtdmtproto.a \
 $L/libtdnet.a $L/libtddb.a $L/libtdsqlite.a $L/libtdactor.a $L/libtde2e.a $L/libtdutils.a \
-$L/libssl.a $L/libcrypto.a $L/libopus.a -Wl,--end-group /opt/bb10-sdk/target/qnx6/armle-v7/usr/lib/libz.so -lsocket -lm"
+$L/libtgcalls.a $L/libtg_owt.a $L/libssl.a $L/libcrypto.a $L/libopus.a -Wl,--end-group \
+/opt/bb10-sdk/target/qnx6/armle-v7/usr/lib/libz.so -lsocket -lm"
 KEYS=
 if [ -n "$TG_API_ID" ] && [ -n "$TG_API_HASH" ]; then KEYS="-DTENGRAM_API_ID=$TG_API_ID -DTENGRAM_API_HASH=\"$TG_API_HASH\""; fi
 STRIP=/opt/bb10-toolchain/bin/arm-unknown-nto-qnx6.5.0eabi-strip

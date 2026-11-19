@@ -83,7 +83,7 @@ bool busy() {
 
 // What the mode asks for, leaving aside whether the engine is busy.
 bool mode_batched() {
-  if (!link_ready() || front() || prefs.mode == "instant") {
+  if (!link_ready() || front() || calls_live() || prefs.mode == "instant") {
     return false;
   }
   return prefs.mode == "batched" || online_elsewhere;
@@ -97,6 +97,9 @@ bool wants_batched() {
 const char *why_online() {
   if (!link_ready()) {
     return "not logged in";
+  }
+  if (calls_live()) {
+    return "call";
   }
   if (front()) {
     return "ui";
