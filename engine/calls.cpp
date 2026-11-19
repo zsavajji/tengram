@@ -18,7 +18,6 @@
 
 #include "tgcalls/FakeAudioDeviceModule.h"
 #include "tgcalls/Instance.h"
-#include "tgcalls/InstanceImpl.h"
 #include "tgcalls/v2/InstanceV2Impl.h"
 #include "tgcalls/v2/InstanceV2ReferenceImpl.h"
 
@@ -424,7 +423,8 @@ void call_start(std::uint64_t conn, const std::string &id, td::JsonObject &req) 
 
 void calls_start(int wake) {
   wake_fd = wake;
-  tgcalls::Register<tgcalls::InstanceImpl>();
+  // Not tgcalls v1 (2.7.7, 5.0.0, InstanceImpl): it crashes on QNX once media flows (tests/calls_check, 2026-11-19),
+  // and every current Telegram app speaks 7.0.0 or newer.
   tgcalls::Register<tgcalls::InstanceV2Impl>();
   tgcalls::Register<tgcalls::InstanceV2ReferenceImpl>();
   std::string versions;

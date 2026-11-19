@@ -705,7 +705,30 @@ To find out where before the audio link. tgcalls v2's FinalState traffic counter
   waiting). The Q10 was set to instant for the test (`prefs.set mode instant`).
 - **Not verified yet:** echo with real audio (WebRTC's software AEC is off, the iOS way, on the guess that
   BB10's voice path cancels echo itself); Opus complexity 5 (as Android) against the default 9.
-- **Next:** where the 25 % goes; the audio link to the UI (HyperBerry's `CallAudio`, at 48 kHz 10 ms or
+- **Incoming calls and the delivery mode (the user, 2026-11-19):** no special case. Ringing in batched mode would
+  mean keeping the connection open, which is instant mode; in batched mode a call rings on the other devices and
+  shows here as missed.
+
+**Where a call's CPU goes (2026-11-19, the Q10, `tests/calls_check`):** the bench is a whole call on the phone,
+two tgcalls ends connected peer to peer over the phone's own network, each sending a tone; CPU from 20 s windows
+(shorter ones vary by several points, and runs drift by ±4 even interleaved). Both ends together, version 8.0.0:
+- 42.6 % at 48 kHz, 39.5 % at 16 kHz (consistent): one end ~20 %, as the real call's ~25 % for the whole phone.
+- Microphones muted (no audio flowing): ~10 %. The cost is the audio pipeline, not the connection.
+- Outgoing audio processing off (tgcalls v2 forces echo cancellation and noise suppression on, whatever Config
+  says): −6 to −15 points. The one large knob; whether BB10's voice path cancels echo and noise itself decides it.
+- Opus complexity 0, 1, 5, 10: no consistent effect.
+- A profile (a /proc sampler that reads each thread's state before holding the process, so only running threads
+  count; spinners filtered out): WebRTC's noise suppressor at 48 kHz with its 3-band filter bank ~31 %, Opus ~20-24 %,
+  thread hand-offs and waits (`SyncCondvarWait_r`, `TimerTimeout`, `MsgSend`) ~11 %, QNX libc's software float
+  helpers (`_FDscalex`, `_FDtest`, from expf/logf) ~5 %, memcpy ~4 %.
+- **libopus is fixed point now** (`--enable-fixed-point`, NEON intrinsics and ARM asm; Android and WebRTC build it so
+  on ARM): the float build's `silk_*_FLP` functions were in the profile. Small, steady gain; voice notes pass
+  `voice_check`.
+- Versions: 7.0.0, 8.0.0, 9.0.0, 12.0.0, 13.0.0 cost 39-41 %, 10.0.0 52 %, 11.0.0 60 % (PeerConnection, DTLS-SRTP).
+  **tgcalls v1 (2.7.7, 5.0.0) crashes once media flows** (Memory fault): no longer offered; every current Telegram
+  app speaks 7.0.0 or newer.
+- **Next:** the audio link at 16 kHz (HyperBerry's `CallAudio` rate; ~1.5 points an end cheaper), then a real-mic
+  call to decide the software processing; the audio link to the UI (HyperBerry's `CallAudio`, at 48 kHz 10 ms or
   resampled); the call screen, ringing (Hub item, mm-renderer ringtone) and the Calls list from HyperBerry;
-  incoming calls in batched mode (decide with the user); an engine stop or logout during a call.
+  an engine stop or logout during a call.
 

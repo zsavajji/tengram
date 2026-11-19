@@ -29,7 +29,7 @@ readonly OPENSSL_CONFIGURE_FLAGS="linux-armv4 no-shared no-tests no-dso no-engin
 # paths are fixed at configure time: NEON is presumed, as every BB10 CPU has it.
 readonly OPUS_VERSION="1.6.1"
 readonly OPUS_SHA256="6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1"
-readonly OPUS_CONFIGURE_FLAGS="--enable-static --disable-shared --disable-rtcd --disable-doc --disable-extra-programs"
+readonly OPUS_CONFIGURE_FLAGS="--enable-static --disable-shared --disable-rtcd --enable-fixed-point --disable-doc --disable-extra-programs"
 
 # td_api's generated translation units take over 1 GB of RAM each.
 readonly JOBS="${JOBS:-4}"
