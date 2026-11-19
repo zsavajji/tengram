@@ -263,7 +263,7 @@ void MediaBubble::restyle()
     m_plain = plain;
 
     const Color quiet = m_ui->palette()->secondaryTextOnPlain();
-    m_none->setBackground(m_ui->palette()->background());
+    m_none->setBackground(Card::color(Card::pageColor(m_list)));
     Card::style(m_noneText, m_list, body);
     m_noneText->textStyle()->setFontStyle(FontStyle::Italic);
     m_noneText->textStyle()->setColor(quiet);

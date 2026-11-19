@@ -172,38 +172,44 @@ Page {
         }
     ]
     // One scrolling column: a ListView holds a handful of rows no better.
-    ScrollView {
-        Container {
-            horizontalAlignment: HorizontalAlignment.Fill
-            Busy {
-                running: !page.loaded && !page.failed
-                topPadding: ui.du(4)
-                text: qsTr("Loading…")
-            }
-            Label {
-                visible: page.failed
-                horizontalAlignment: HorizontalAlignment.Center
-                topMargin: ui.du(3)
-                multiline: true
-                textStyle.textAlign: TextAlign.Center
-                textStyle.color: ui.palette.secondaryTextOnPlain
-                text: qsTr("Couldn't load the devices. Check the connection and try again.")
-            }
-            Header {
-                visible: page.loaded
-                title: qsTr("This device")
-            }
+    Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
+        horizontalAlignment: HorizontalAlignment.Fill
+        verticalAlignment: VerticalAlignment.Fill
+        ScrollView {
             Container {
-                id: currentBox
                 horizontalAlignment: HorizontalAlignment.Fill
-            }
-            Header {
-                visible: sessions.others > 0
-                title: qsTr("Active sessions")
-            }
-            Container {
-                id: othersBox
-                horizontalAlignment: HorizontalAlignment.Fill
+                Busy {
+                    running: !page.loaded && !page.failed
+                    topPadding: ui.du(4)
+                    text: qsTr("Loading…")
+                }
+                Label {
+                    visible: page.failed
+                    horizontalAlignment: HorizontalAlignment.Center
+                    topMargin: ui.du(3)
+                    multiline: true
+                    textStyle.textAlign: TextAlign.Center
+                    textStyle.color: ui.palette.secondaryTextOnPlain
+                    text: qsTr("Couldn't load the devices. Check the connection and try again.")
+                }
+                Header {
+                    visible: page.loaded
+                    title: qsTr("This device")
+                }
+                Container {
+                    id: currentBox
+                    horizontalAlignment: HorizontalAlignment.Fill
+                }
+                Header {
+                    visible: sessions.others > 0
+                    title: qsTr("Active sessions")
+                }
+                Container {
+                    id: othersBox
+                    horizontalAlignment: HorizontalAlignment.Fill
+                }
             }
         }
     }

@@ -52,92 +52,98 @@ Page {
             }
         }
     ]
-    ScrollView {
-        Container {
-            horizontalAlignment: HorizontalAlignment.Fill
+    Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
+        horizontalAlignment: HorizontalAlignment.Fill
+        verticalAlignment: VerticalAlignment.Fill
+        ScrollView {
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
-                topPadding: ui.du(3)
-                leftPadding: ui.du(1.5)
-                rightPadding: ui.du(1.5)
-                // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19).
-                Tile {
-                    horizontalAlignment: HorizontalAlignment.Center
-                    preferredWidth: ui.du(20)
-                    preferredHeight: ui.du(20)
-                    tint: page.chat ? page.chat.color : ""
-                    initials: page.chat ? page.chat.initials : ""
-                    photo: page.picture
-                    emojiStyle: nav.emojiStyle
-                    initialsSize: 300
-                    photoSize: 400
-                    gestureHandlers: TapHandler {
-                        onTapped: {
-                            if (page.hasPicture) {
-                                nav.showPhoto(page.picture)
+                Container {
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    topPadding: ui.du(3)
+                    leftPadding: ui.du(1.5)
+                    rightPadding: ui.du(1.5)
+                    // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19).
+                    Tile {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        preferredWidth: ui.du(20)
+                        preferredHeight: ui.du(20)
+                        tint: page.chat ? page.chat.color : ""
+                        initials: page.chat ? page.chat.initials : ""
+                        photo: page.picture
+                        emojiStyle: nav.emojiStyle
+                        initialsSize: 300
+                        photoSize: 400
+                        gestureHandlers: TapHandler {
+                            onTapped: {
+                                if (page.hasPicture) {
+                                    nav.showPhoto(page.picture)
+                                }
                             }
                         }
                     }
+                    Label {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        multiline: true
+                        textStyle.textAlign: TextAlign.Center
+                        // Saved in the address book while open: the chat keeps the row it opened with.
+                        text: page.chat ? (chats.revision >= 0 && chats.chat(page.chat.jid).name) || page.chat.name : ""
+                        textFormat: TextFormat.Plain
+                        textStyle.base: nav.emojiStyle
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: nav.bodySize * 1.3
+                    }
+                    Label {
+                        visible: page.loaded
+                        horizontalAlignment: HorizontalAlignment.Center
+                        // 0 until channel.info answers: the hidden label is still evaluated, and qsTr's
+                        // count must be a number (undefined logged an error on every open, 0.0.1.178).
+                        text: qsTr("%Ln followers", "", page.info.followers || 0)
+                        textStyle.textAlign: TextAlign.Center
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: nav.bodySize
+                        textStyle.color: ui.palette.secondaryTextOnPlain
+                    }
+                }
+                Busy {
+                    running: !page.loaded && !page.failed
+                    topPadding: ui.du(4)
+                    text: qsTr("Loading…")
                 }
                 Label {
+                    visible: page.failed
                     horizontalAlignment: HorizontalAlignment.Center
+                    topMargin: ui.du(3)
                     multiline: true
                     textStyle.textAlign: TextAlign.Center
-                    // Saved in the address book while open: the chat keeps the row it opened with.
-                    text: page.chat ? (chats.revision >= 0 && chats.chat(page.chat.jid).name) || page.chat.name : ""
-                    textFormat: TextFormat.Plain
-                    textStyle.base: nav.emojiStyle
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: nav.bodySize * 1.3
-                }
-                Label {
-                    visible: page.loaded
-                    horizontalAlignment: HorizontalAlignment.Center
-                    // 0 until channel.info answers: the hidden label is still evaluated, and qsTr's
-                    // count must be a number (undefined logged an error on every open, 0.0.1.178).
-                    text: qsTr("%Ln followers", "", page.info.followers || 0)
-                    textStyle.textAlign: TextAlign.Center
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: nav.bodySize
                     textStyle.color: ui.palette.secondaryTextOnPlain
+                    text: qsTr("Couldn't load the channel's info. Check the connection and try again.")
                 }
-            }
-            Busy {
-                running: !page.loaded && !page.failed
-                topPadding: ui.du(4)
-                text: qsTr("Loading…")
-            }
-            Label {
-                visible: page.failed
-                horizontalAlignment: HorizontalAlignment.Center
-                topMargin: ui.du(3)
-                multiline: true
-                textStyle.textAlign: TextAlign.Center
-                textStyle.color: ui.palette.secondaryTextOnPlain
-                text: qsTr("Couldn't load the channel's info. Check the connection and try again.")
-            }
-            Header {
-                visible: page.loaded && !!page.info.description
-                title: qsTr("Description")
-            }
-            // Padding, not margins: margins only space siblings, never from the container's edge.
-            Container {
-                visible: page.loaded && !!page.info.description
-                horizontalAlignment: HorizontalAlignment.Fill
-                topPadding: ui.du(1.5)
-                leftPadding: ui.du(1.5)
-                rightPadding: ui.du(1.5)
-                bottomPadding: ui.du(1.5)
-                Label {
+                Header {
+                    visible: page.loaded && !!page.info.description
+                    title: qsTr("Description")
+                }
+                // Padding, not margins: margins only space siblings, never from the container's edge.
+                Container {
+                    visible: page.loaded && !!page.info.description
                     horizontalAlignment: HorizontalAlignment.Fill
-                    multiline: true
-                    text: page.info.description || ""
-                    // Active, so a link in it can be tapped.
-                    content.flags: TextContentFlag.ActiveText
-                    textFormat: TextFormat.Plain
-                    textStyle.base: nav.emojiStyle
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: nav.bodySize
+                    topPadding: ui.du(1.5)
+                    leftPadding: ui.du(1.5)
+                    rightPadding: ui.du(1.5)
+                    bottomPadding: ui.du(1.5)
+                    Label {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        multiline: true
+                        text: page.info.description || ""
+                        // Active, so a link in it can be tapped.
+                        content.flags: TextContentFlag.ActiveText
+                        textFormat: TextFormat.Plain
+                        textStyle.base: nav.emojiStyle
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: nav.bodySize
+                    }
                 }
             }
         }

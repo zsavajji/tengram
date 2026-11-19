@@ -77,6 +77,8 @@ Page {
         }
     }
     Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
         ListView {
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1

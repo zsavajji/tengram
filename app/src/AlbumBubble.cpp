@@ -34,9 +34,10 @@ using namespace bb::cascades;
 class AlbumTile : public QObject
 {
 public:
-    AlbumTile(UIConfig *ui, int index, QObject *bubble)
+    AlbumTile(UIConfig *ui, ListView *list, int index, QObject *bubble)
         : QObject(bubble)
         , m_ui(ui)
+        , m_list(list)
     {
         // The page's colour behind a tile with no thumbnail is set by show().
         m_box = new Container();
@@ -89,7 +90,7 @@ public:
     void show(const QVariantMap &member, const QString &more)
     {
         m_id = member.value("id").toString();
-        m_box->setBackground(m_ui->palette()->background());
+        m_box->setBackground(Card::color(Card::pageColor(m_list)));
         m_thumb->setImage(member.value("thumb").value<Image>());
         m_play->setVisible(member.value("media").toString() == "video");
         m_more->setVisible(!more.isEmpty());
@@ -105,6 +106,7 @@ public:
 
 private:
     UIConfig *m_ui;
+    ListView *m_list;
     QString m_id;
     Container *m_box;
     ImageView *m_thumb;
@@ -135,7 +137,7 @@ AlbumBubble::AlbumBubble(ListView *list)
         if (row == 1)
             tiles->setTopMargin(gap);
         for (int column = 0; column < 2; ++column) {
-            AlbumTile *tile = new AlbumTile(m_ui, row * 2 + column, this);
+            AlbumTile *tile = new AlbumTile(m_ui, m_list, row * 2 + column, this);
             if (column == 1)
                 tile->box()->setLeftMargin(gap);
             tiles->add(tile->box());

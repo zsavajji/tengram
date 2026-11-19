@@ -219,6 +219,8 @@ Page {
         }
     }
     Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         Container {

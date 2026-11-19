@@ -234,216 +234,222 @@ Page {
             id: failedToast
         }
     ]
-    ScrollView {
-        Container {
-            horizontalAlignment: HorizontalAlignment.Fill
-            Busy {
-                running: !page.loaded && !page.failed
-                topPadding: ui.du(4)
-                text: qsTr("Loading…")
-            }
+    Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
+        horizontalAlignment: HorizontalAlignment.Fill
+        verticalAlignment: VerticalAlignment.Fill
+        ScrollView {
             Container {
-                visible: page.failed
                 horizontalAlignment: HorizontalAlignment.Fill
-                topPadding: ui.du(3)
-                leftPadding: ui.du(2)
-                rightPadding: ui.du(2)
-                Label {
-                    horizontalAlignment: HorizontalAlignment.Center
-                    multiline: true
-                    textStyle.textAlign: TextAlign.Center
-                    textStyle.color: ui.palette.secondaryTextOnPlain
-                    text: qsTr("Couldn't load your privacy settings. Check the connection and try again.")
-                }
-                Button {
-                    horizontalAlignment: HorizontalAlignment.Center
-                    text: qsTr("Retry")
-                    onClicked: privacy.ask()
-                }
-            }
-            Container {
-                visible: page.loaded
-                horizontalAlignment: HorizontalAlignment.Fill
-                Header {
-                    title: qsTr("Security")
-                }
-                // Without Telegram's answer there is no state to open.
-                SettingRow {
-                    visible: page.info.password !== undefined
-                    title: qsTr("Two-step verification")
-                    subtitle: !page.info.password ? "" : page.info.password.set ? qsTr("On") : qsTr("Off")
-                    onTapped: {
-                        var p = passwordDef.createObject()
-                        // The page starts from what this one has, and asks for nothing.
-                        p.seed = page.info
-                        nav.push(p)
-                    }
+                Busy {
+                    running: !page.loaded && !page.failed
+                    topPadding: ui.du(4)
+                    text: qsTr("Loading…")
                 }
                 Container {
+                    visible: page.failed
                     horizontalAlignment: HorizontalAlignment.Fill
-                    topPadding: ui.du(1)
-                    leftPadding: ui.du(2)
-                    rightPadding: ui.du(2)
-                    DropDown {
-                        id: autoDelete
-                        title: qsTr("Auto-delete messages")
-                        options: [
-                            Option { text: qsTr("Off") },
-                            Option { text: qsTr("1 day") },
-                            Option { text: qsTr("1 week") },
-                            Option { text: qsTr("1 month") }
-                        ]
-                        onSelectedIndexChanged: {
-                            var secs = [0, 86400, 604800, 2678400][selectedIndex]
-                            if (!page.filling && page.loaded && selectedIndex >= 0 && page.info.autoDelete != secs) {
-                                privacy.setAutoDelete(secs)
-                            }
-                        }
-                    }
-                }
-                SettingRow {
-                    visible: page.info.blocked !== undefined
-                    title: qsTr("Blocked users")
-                    subtitle: page.info.blocked > 0 ? String(page.info.blocked) : qsTr("None")
-                    onTapped: nav.push(blockedDef.createObject())
-                }
-                SettingRow {
-                    title: qsTr("Devices")
-                    onTapped: nav.push(devicesDef.createObject())
-                }
-                Header {
-                    title: qsTr("Privacy")
-                }
-                // The rules' rows are added under this line (onCreationCompleted).
-                Container {
-                    id: rulesBox
-                    horizontalAlignment: HorizontalAlignment.Fill
-                    topPadding: ui.du(1)
+                    topPadding: ui.du(3)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
                     Label {
-                        text: qsTr("Who can see my:")
-                        textStyle.color: ui.palette.secondaryTextOnPlain
-                    }
-                }
-                Header {
-                    title: qsTr("Delete my account")
-                }
-                Container {
-                    horizontalAlignment: HorizontalAlignment.Fill
-                    topPadding: ui.du(1)
-                    leftPadding: ui.du(2)
-                    rightPadding: ui.du(2)
-                    DropDown {
-                        id: ttl
-                        title: qsTr("If away for")
-                        options: [
-                            Option { text: qsTr("1 month") },
-                            Option { text: qsTr("3 months") },
-                            Option { text: qsTr("6 months") },
-                            Option { text: qsTr("12 months") },
-                            Option { text: qsTr("18 months") },
-                            Option { text: qsTr("24 months") }
-                        ]
-                        onSelectedIndexChanged: {
-                            var days = [30, 90, 180, 365, 548, 730][selectedIndex]
-                            if (!page.filling && page.loaded && selectedIndex >= 0 && page.info.ttlDays != days) {
-                                privacy.setTtl(days)
-                            }
-                        }
-                    }
-                    Label {
-                        topMargin: 0
+                        horizontalAlignment: HorizontalAlignment.Center
                         multiline: true
-                        text: qsTr("If you don't come online at least once in this period, your account will be deleted along with all messages and contacts.")
-                        textStyle.base: SystemDefaults.TextStyles.SubtitleText
+                        textStyle.textAlign: TextAlign.Center
                         textStyle.color: ui.palette.secondaryTextOnPlain
+                        text: qsTr("Couldn't load your privacy settings. Check the connection and try again.")
                     }
-                }
-                Header {
-                    title: qsTr("Bots and websites")
-                }
-                SettingRow {
-                    title: qsTr("Clear payment and shipping info")
-                    onTapped: paymentsDialog.show()
-                }
-                SettingRow {
-                    title: qsTr("Connected websites")
-                    onTapped: nav.push(websitesDef.createObject())
-                }
-                Header {
-                    title: qsTr("Contacts")
-                }
-                SettingRow {
-                    visible: page.info.imported !== undefined
-                    title: qsTr("Delete synced contacts")
-                    subtitle: qsTr("%Ln contacts", "", page.info.imported || 0)
-                    onTapped: importedDialog.show()
+                    Button {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        text: qsTr("Retry")
+                        onClicked: privacy.ask()
+                    }
                 }
                 Container {
+                    visible: page.loaded
                     horizontalAlignment: HorizontalAlignment.Fill
-                    topPadding: ui.du(2)
-                    leftPadding: ui.du(2)
-                    rightPadding: ui.du(2)
-                    layout: StackLayout {
-                        orientation: LayoutOrientation.LeftToRight
+                    Header {
+                        title: qsTr("Security")
+                    }
+                    // Without Telegram's answer there is no state to open.
+                    SettingRow {
+                        visible: page.info.password !== undefined
+                        title: qsTr("Two-step verification")
+                        subtitle: !page.info.password ? "" : page.info.password.set ? qsTr("On") : qsTr("Off")
+                        onTapped: {
+                            var p = passwordDef.createObject()
+                            // The page starts from what this one has, and asks for nothing.
+                            p.seed = page.info
+                            nav.push(p)
+                        }
                     }
                     Container {
-                        layoutProperties: StackLayoutProperties {
-                            spaceQuota: 1
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        topPadding: ui.du(1)
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
+                        DropDown {
+                            id: autoDelete
+                            title: qsTr("Auto-delete messages")
+                            options: [
+                                Option { text: qsTr("Off") },
+                                Option { text: qsTr("1 day") },
+                                Option { text: qsTr("1 week") },
+                                Option { text: qsTr("1 month") }
+                            ]
+                            onSelectedIndexChanged: {
+                                var secs = [0, 86400, 604800, 2678400][selectedIndex]
+                                if (!page.filling && page.loaded && selectedIndex >= 0 && page.info.autoDelete != secs) {
+                                    privacy.setAutoDelete(secs)
+                                }
+                            }
                         }
-                        verticalAlignment: VerticalAlignment.Center
+                    }
+                    SettingRow {
+                        visible: page.info.blocked !== undefined
+                        title: qsTr("Blocked users")
+                        subtitle: page.info.blocked > 0 ? String(page.info.blocked) : qsTr("None")
+                        onTapped: nav.push(blockedDef.createObject())
+                    }
+                    SettingRow {
+                        title: qsTr("Devices")
+                        onTapped: nav.push(devicesDef.createObject())
+                    }
+                    Header {
+                        title: qsTr("Privacy")
+                    }
+                    // The rules' rows are added under this line (onCreationCompleted).
+                    Container {
+                        id: rulesBox
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        topPadding: ui.du(1)
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
                         Label {
-                            text: qsTr("Sync contacts")
-                            bottomMargin: 0
+                            text: qsTr("Who can see my:")
+                            textStyle.color: ui.palette.secondaryTextOnPlain
+                        }
+                    }
+                    Header {
+                        title: qsTr("Delete my account")
+                    }
+                    Container {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        topPadding: ui.du(1)
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
+                        DropDown {
+                            id: ttl
+                            title: qsTr("If away for")
+                            options: [
+                                Option { text: qsTr("1 month") },
+                                Option { text: qsTr("3 months") },
+                                Option { text: qsTr("6 months") },
+                                Option { text: qsTr("12 months") },
+                                Option { text: qsTr("18 months") },
+                                Option { text: qsTr("24 months") }
+                            ]
+                            onSelectedIndexChanged: {
+                                var days = [30, 90, 180, 365, 548, 730][selectedIndex]
+                                if (!page.filling && page.loaded && selectedIndex >= 0 && page.info.ttlDays != days) {
+                                    privacy.setTtl(days)
+                                }
+                            }
                         }
                         Label {
-                            text: qsTr("Off, your address book stays on this phone. On, Tengram sends its names and numbers to Telegram, so the people you know there become your contacts.")
-                            multiline: true
                             topMargin: 0
+                            multiline: true
+                            text: qsTr("If you don't come online at least once in this period, your account will be deleted along with all messages and contacts.")
                             textStyle.base: SystemDefaults.TextStyles.SubtitleText
                             textStyle.color: ui.palette.secondaryTextOnPlain
                         }
                     }
-                    // Off by default: the address book goes to Telegram only when the user turns this on (ContactBook).
-                    ToggleButton {
-                        verticalAlignment: VerticalAlignment.Center
-                        checked: settings.syncContacts
-                        onCheckedChanged: settings.syncContacts = checked
+                    Header {
+                        title: qsTr("Bots and websites")
                     }
-                }
-                Container {
-                    horizontalAlignment: HorizontalAlignment.Fill
-                    topPadding: ui.du(2)
-                    bottomPadding: ui.du(2)
-                    leftPadding: ui.du(2)
-                    rightPadding: ui.du(2)
-                    layout: StackLayout {
-                        orientation: LayoutOrientation.LeftToRight
+                    SettingRow {
+                        title: qsTr("Clear payment and shipping info")
+                        onTapped: paymentsDialog.show()
+                    }
+                    SettingRow {
+                        title: qsTr("Connected websites")
+                        onTapped: nav.push(websitesDef.createObject())
+                    }
+                    Header {
+                        title: qsTr("Contacts")
+                    }
+                    SettingRow {
+                        visible: page.info.imported !== undefined
+                        title: qsTr("Delete synced contacts")
+                        subtitle: qsTr("%Ln contacts", "", page.info.imported || 0)
+                        onTapped: importedDialog.show()
                     }
                     Container {
-                        layoutProperties: StackLayoutProperties {
-                            spaceQuota: 1
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        topPadding: ui.du(2)
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
+                        layout: StackLayout {
+                            orientation: LayoutOrientation.LeftToRight
                         }
-                        verticalAlignment: VerticalAlignment.Center
-                        Label {
-                            text: qsTr("Suggest frequent contacts")
-                            bottomMargin: 0
+                        Container {
+                            layoutProperties: StackLayoutProperties {
+                                spaceQuota: 1
+                            }
+                            verticalAlignment: VerticalAlignment.Center
+                            Label {
+                                text: qsTr("Sync contacts")
+                                bottomMargin: 0
+                            }
+                            Label {
+                                text: qsTr("Off, your address book stays on this phone. On, Tengram sends its names and numbers to Telegram, so the people you know there become your contacts.")
+                                multiline: true
+                                topMargin: 0
+                                textStyle.base: SystemDefaults.TextStyles.SubtitleText
+                                textStyle.color: ui.palette.secondaryTextOnPlain
+                            }
                         }
-                        Label {
-                            text: qsTr("Show the people you message most at the top of the search.")
-                            multiline: true
-                            topMargin: 0
-                            textStyle.base: SystemDefaults.TextStyles.SubtitleText
-                            textStyle.color: ui.palette.secondaryTextOnPlain
+                        // Off by default: the address book goes to Telegram only when the user turns this on (ContactBook).
+                        ToggleButton {
+                            verticalAlignment: VerticalAlignment.Center
+                            checked: settings.syncContacts
+                            onCheckedChanged: settings.syncContacts = checked
                         }
                     }
-                    ToggleButton {
-                        id: topChats
-                        verticalAlignment: VerticalAlignment.Center
-                        onCheckedChanged: {
-                            if (!page.filling && page.loaded && !!page.info.topChats != checked) {
-                                privacy.setTopChats(checked)
+                    Container {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        topPadding: ui.du(2)
+                        bottomPadding: ui.du(2)
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
+                        layout: StackLayout {
+                            orientation: LayoutOrientation.LeftToRight
+                        }
+                        Container {
+                            layoutProperties: StackLayoutProperties {
+                                spaceQuota: 1
+                            }
+                            verticalAlignment: VerticalAlignment.Center
+                            Label {
+                                text: qsTr("Suggest frequent contacts")
+                                bottomMargin: 0
+                            }
+                            Label {
+                                text: qsTr("Show the people you message most at the top of the search.")
+                                multiline: true
+                                topMargin: 0
+                                textStyle.base: SystemDefaults.TextStyles.SubtitleText
+                                textStyle.color: ui.palette.secondaryTextOnPlain
+                            }
+                        }
+                        ToggleButton {
+                            id: topChats
+                            verticalAlignment: VerticalAlignment.Center
+                            onCheckedChanged: {
+                                if (!page.filling && page.loaded && !!page.info.topChats != checked) {
+                                    privacy.setTopChats(checked)
+                                }
                             }
                         }
                     }

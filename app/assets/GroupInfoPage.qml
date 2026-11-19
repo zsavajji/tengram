@@ -150,6 +150,8 @@ Page {
         amAdmin = admin
     }
     Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
         layout: DockLayout {}
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill

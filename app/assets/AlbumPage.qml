@@ -20,29 +20,35 @@ Page {
     titleBar: TitleBar {
         title: qsTr("Album")
     }
-    ListView {
-        id: grid
-        // The tiles reach the chat list through this page's list (ListItem.view).
-        function open(msg) {
-            page.view.openMedia(msg)
-        }
-        property string loadingId: page.view ? page.view.mediaLoadingId : ""
-        dataModel: ArrayDataModel {
-            id: album
-        }
-        layout: GridListLayout {
-            columnCount: 2
-            cellAspectRatio: 1
-        }
-        listItemComponents: [
-            ListItemComponent {
-                AlbumTile {
-                    id: cell
-                    member: ListItemData
-                    loadingId: cell.ListItem.view.loadingId
-                    onTapped: cell.ListItem.view.open(cell.member)
-                }
+    Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
+        horizontalAlignment: HorizontalAlignment.Fill
+        verticalAlignment: VerticalAlignment.Fill
+        ListView {
+            id: grid
+            // The tiles reach the chat list through this page's list (ListItem.view).
+            function open(msg) {
+                page.view.openMedia(msg)
             }
-        ]
+            property string loadingId: page.view ? page.view.mediaLoadingId : ""
+            dataModel: ArrayDataModel {
+                id: album
+            }
+            layout: GridListLayout {
+                columnCount: 2
+                cellAspectRatio: 1
+            }
+            listItemComponents: [
+                ListItemComponent {
+                    AlbumTile {
+                        id: cell
+                        member: ListItemData
+                        loadingId: cell.ListItem.view.loadingId
+                        onTapped: cell.ListItem.view.open(cell.member)
+                    }
+                }
+            ]
+        }
     }
 }

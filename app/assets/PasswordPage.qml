@@ -123,190 +123,196 @@ Page {
             id: notice
         }
     ]
-    ScrollView {
-        Container {
-            horizontalAlignment: HorizontalAlignment.Fill
-            // The code Telegram sent to the recovery e-mail, for a password or an address that waits for it.
+    Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
+        horizontalAlignment: HorizontalAlignment.Fill
+        verticalAlignment: VerticalAlignment.Fill
+        ScrollView {
             Container {
-                visible: page.pending != ""
                 horizontalAlignment: HorizontalAlignment.Fill
-                topPadding: ui.du(2)
-                leftPadding: ui.du(2)
-                rightPadding: ui.du(2)
-                Label {
-                    multiline: true
-                    textFormat: TextFormat.Plain
-                    text: qsTr("Enter the code sent to %1").arg(page.pending)
-                }
-                TextField {
-                    id: code
-                    inputMode: TextFieldInputMode.NumbersAndPunctuation
-                    hintText: qsTr("Code")
-                    input.submitKey: SubmitKey.Submit
-                    input.onSubmitted: privacy.sendCode(code.text.trim())
-                }
+                // The code Telegram sent to the recovery e-mail, for a password or an address that waits for it.
                 Container {
-                    layout: StackLayout {
-                        orientation: LayoutOrientation.LeftToRight
-                    }
-                    horizontalAlignment: HorizontalAlignment.Center
-                    Button {
-                        text: qsTr("Confirm")
-                        onClicked: privacy.sendCode(code.text.trim())
-                    }
-                    Button {
-                        leftMargin: ui.du(2)
-                        text: qsTr("Send again")
-                        onClicked: privacy.resendCode()
-                    }
-                }
-            }
-            // No password yet, and no code to wait for.
-            Container {
-                visible: !page.isSet && page.pending == ""
-                horizontalAlignment: HorizontalAlignment.Fill
-                topPadding: ui.du(2)
-                bottomPadding: ui.du(2)
-                leftPadding: ui.du(2)
-                rightPadding: ui.du(2)
-                Label {
-                    multiline: true
-                    textStyle.color: ui.palette.secondaryTextOnPlain
-                    text: qsTr("Telegram will ask for this password besides the code when you sign in on a new device.")
-                }
-                TextField {
-                    id: newPass
-                    inputMode: TextFieldInputMode.Password
-                    hintText: qsTr("New password")
-                }
-                TextField {
-                    id: newPass2
-                    inputMode: TextFieldInputMode.Password
-                    hintText: qsTr("Repeat the password")
-                }
-                TextField {
-                    id: newHint
-                    hintText: qsTr("Hint (optional)")
-                }
-                TextField {
-                    id: newEmail
-                    inputMode: TextFieldInputMode.EmailAddress
-                    hintText: qsTr("Recovery e-mail (optional)")
-                }
-                Label {
-                    multiline: true
-                    textStyle.base: SystemDefaults.TextStyles.SubtitleText
-                    textStyle.color: ui.palette.secondaryTextOnPlain
-                    text: qsTr("With a recovery e-mail you can reset the password if you forget it: Telegram sends the e-mail a code.")
-                }
-                Button {
-                    horizontalAlignment: HorizontalAlignment.Center
-                    topMargin: ui.du(2)
-                    text: qsTr("Set password")
-                    onClicked: page.setNew()
-                }
-            }
-            // A password is set.
-            Container {
-                visible: page.isSet
-                horizontalAlignment: HorizontalAlignment.Fill
-                Container {
+                    visible: page.pending != ""
                     horizontalAlignment: HorizontalAlignment.Fill
                     topPadding: ui.du(2)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
                     Label {
                         multiline: true
-                        text: qsTr("Two-step verification is on.")
-                    }
-                    Label {
-                        visible: !!page.pw.hint
-                        multiline: true
                         textFormat: TextFormat.Plain
-                        text: qsTr("Hint: %1").arg(page.pw.hint || "")
-                        textStyle.base: SystemDefaults.TextStyles.SubtitleText
-                        textStyle.color: ui.palette.secondaryTextOnPlain
+                        text: qsTr("Enter the code sent to %1").arg(page.pending)
+                    }
+                    TextField {
+                        id: code
+                        inputMode: TextFieldInputMode.NumbersAndPunctuation
+                        hintText: qsTr("Code")
+                        input.submitKey: SubmitKey.Submit
+                        input.onSubmitted: privacy.sendCode(code.text.trim())
+                    }
+                    Container {
+                        layout: StackLayout {
+                            orientation: LayoutOrientation.LeftToRight
+                        }
+                        horizontalAlignment: HorizontalAlignment.Center
+                        Button {
+                            text: qsTr("Confirm")
+                            onClicked: privacy.sendCode(code.text.trim())
+                        }
+                        Button {
+                            leftMargin: ui.du(2)
+                            text: qsTr("Send again")
+                            onClicked: privacy.resendCode()
+                        }
                     }
                 }
-                Header {
-                    title: qsTr("Change password")
-                }
+                // No password yet, and no code to wait for.
                 Container {
+                    visible: !page.isSet && page.pending == ""
                     horizontalAlignment: HorizontalAlignment.Fill
+                    topPadding: ui.du(2)
+                    bottomPadding: ui.du(2)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
-                    TextField {
-                        id: changeOld
-                        inputMode: TextFieldInputMode.Password
-                        hintText: qsTr("Current password")
+                    Label {
+                        multiline: true
+                        textStyle.color: ui.palette.secondaryTextOnPlain
+                        text: qsTr("Telegram will ask for this password besides the code when you sign in on a new device.")
                     }
                     TextField {
-                        id: changeNew
+                        id: newPass
                         inputMode: TextFieldInputMode.Password
                         hintText: qsTr("New password")
                     }
                     TextField {
-                        id: changeNew2
+                        id: newPass2
                         inputMode: TextFieldInputMode.Password
-                        hintText: qsTr("Repeat the new password")
+                        hintText: qsTr("Repeat the password")
                     }
                     TextField {
-                        id: changeHint
+                        id: newHint
                         hintText: qsTr("Hint (optional)")
                     }
-                    Button {
-                        horizontalAlignment: HorizontalAlignment.Center
-                        topMargin: ui.du(2)
-                        text: qsTr("Change password")
-                        onClicked: page.change()
+                    TextField {
+                        id: newEmail
+                        inputMode: TextFieldInputMode.EmailAddress
+                        hintText: qsTr("Recovery e-mail (optional)")
                     }
-                }
-                Header {
-                    title: qsTr("Recovery e-mail")
-                }
-                Container {
-                    horizontalAlignment: HorizontalAlignment.Fill
-                    leftPadding: ui.du(2)
-                    rightPadding: ui.du(2)
                     Label {
                         multiline: true
-                        text: page.pw.recovery ? qsTr("A recovery e-mail is set.") : qsTr("No recovery e-mail is set.")
-                    }
-                    TextField {
-                        id: emailOld
-                        inputMode: TextFieldInputMode.Password
-                        hintText: qsTr("Current password")
-                    }
-                    TextField {
-                        id: emailNew
-                        inputMode: TextFieldInputMode.EmailAddress
-                        hintText: qsTr("New e-mail")
+                        textStyle.base: SystemDefaults.TextStyles.SubtitleText
+                        textStyle.color: ui.palette.secondaryTextOnPlain
+                        text: qsTr("With a recovery e-mail you can reset the password if you forget it: Telegram sends the e-mail a code.")
                     }
                     Button {
                         horizontalAlignment: HorizontalAlignment.Center
                         topMargin: ui.du(2)
-                        text: qsTr("Set recovery e-mail")
-                        onClicked: page.changeEmail()
+                        text: qsTr("Set password")
+                        onClicked: page.setNew()
                     }
                 }
-                Header {
-                    title: qsTr("Turn off")
-                }
+                // A password is set.
                 Container {
+                    visible: page.isSet
                     horizontalAlignment: HorizontalAlignment.Fill
-                    bottomPadding: ui.du(2)
-                    leftPadding: ui.du(2)
-                    rightPadding: ui.du(2)
-                    TextField {
-                        id: offOld
-                        inputMode: TextFieldInputMode.Password
-                        hintText: qsTr("Current password")
+                    Container {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        topPadding: ui.du(2)
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
+                        Label {
+                            multiline: true
+                            text: qsTr("Two-step verification is on.")
+                        }
+                        Label {
+                            visible: !!page.pw.hint
+                            multiline: true
+                            textFormat: TextFormat.Plain
+                            text: qsTr("Hint: %1").arg(page.pw.hint || "")
+                            textStyle.base: SystemDefaults.TextStyles.SubtitleText
+                            textStyle.color: ui.palette.secondaryTextOnPlain
+                        }
                     }
-                    Button {
-                        horizontalAlignment: HorizontalAlignment.Center
-                        topMargin: ui.du(2)
-                        text: qsTr("Turn off two-step verification")
-                        onClicked: offDialog.show()
+                    Header {
+                        title: qsTr("Change password")
+                    }
+                    Container {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
+                        TextField {
+                            id: changeOld
+                            inputMode: TextFieldInputMode.Password
+                            hintText: qsTr("Current password")
+                        }
+                        TextField {
+                            id: changeNew
+                            inputMode: TextFieldInputMode.Password
+                            hintText: qsTr("New password")
+                        }
+                        TextField {
+                            id: changeNew2
+                            inputMode: TextFieldInputMode.Password
+                            hintText: qsTr("Repeat the new password")
+                        }
+                        TextField {
+                            id: changeHint
+                            hintText: qsTr("Hint (optional)")
+                        }
+                        Button {
+                            horizontalAlignment: HorizontalAlignment.Center
+                            topMargin: ui.du(2)
+                            text: qsTr("Change password")
+                            onClicked: page.change()
+                        }
+                    }
+                    Header {
+                        title: qsTr("Recovery e-mail")
+                    }
+                    Container {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
+                        Label {
+                            multiline: true
+                            text: page.pw.recovery ? qsTr("A recovery e-mail is set.") : qsTr("No recovery e-mail is set.")
+                        }
+                        TextField {
+                            id: emailOld
+                            inputMode: TextFieldInputMode.Password
+                            hintText: qsTr("Current password")
+                        }
+                        TextField {
+                            id: emailNew
+                            inputMode: TextFieldInputMode.EmailAddress
+                            hintText: qsTr("New e-mail")
+                        }
+                        Button {
+                            horizontalAlignment: HorizontalAlignment.Center
+                            topMargin: ui.du(2)
+                            text: qsTr("Set recovery e-mail")
+                            onClicked: page.changeEmail()
+                        }
+                    }
+                    Header {
+                        title: qsTr("Turn off")
+                    }
+                    Container {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        bottomPadding: ui.du(2)
+                        leftPadding: ui.du(2)
+                        rightPadding: ui.du(2)
+                        TextField {
+                            id: offOld
+                            inputMode: TextFieldInputMode.Password
+                            hintText: qsTr("Current password")
+                        }
+                        Button {
+                            horizontalAlignment: HorizontalAlignment.Center
+                            topMargin: ui.du(2)
+                            text: qsTr("Turn off two-step verification")
+                            onClicked: offDialog.show()
+                        }
                     }
                 }
             }

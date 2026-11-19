@@ -11,52 +11,58 @@ Page {
     titleBar: TitleBar {
         title: qsTr("Create poll")
     }
-    ScrollView {
-        Container {
-            topPadding: ui.du(2)
-            bottomPadding: ui.du(2)
-            leftPadding: ui.du(2)
-            rightPadding: ui.du(2)
-            horizontalAlignment: HorizontalAlignment.Fill
-            Label {
-                text: qsTr("Question")
-            }
-            TextField {
-                id: question
-                hintText: qsTr("Ask something")
-                input.submitKey: SubmitKey.Next
-                input.submitKeyFocusBehavior: SubmitKeyFocusBehavior.Next
-            }
-            Label {
-                text: qsTr("Options")
-                topMargin: ui.du(2)
-            }
+    Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
+        horizontalAlignment: HorizontalAlignment.Fill
+        verticalAlignment: VerticalAlignment.Fill
+        ScrollView {
             Container {
-                id: options
+                topPadding: ui.du(2)
+                bottomPadding: ui.du(2)
+                leftPadding: ui.du(2)
+                rightPadding: ui.du(2)
                 horizontalAlignment: HorizontalAlignment.Fill
-            }
-            Button {
-                id: addButton
-                text: qsTr("Add option")
-                topMargin: ui.du(1)
-                horizontalAlignment: HorizontalAlignment.Fill
-                onClicked: page.addOption().requestFocus()
-            }
-            Container {
-                topMargin: ui.du(2)
-                layout: StackLayout {
-                    orientation: LayoutOrientation.LeftToRight
+                Label {
+                    text: qsTr("Question")
+                }
+                TextField {
+                    id: question
+                    hintText: qsTr("Ask something")
+                    input.submitKey: SubmitKey.Next
+                    input.submitKeyFocusBehavior: SubmitKeyFocusBehavior.Next
                 }
                 Label {
-                    text: qsTr("Allow several answers")
-                    verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties {
-                        spaceQuota: 1
-                    }
+                    text: qsTr("Options")
+                    topMargin: ui.du(2)
                 }
-                ToggleButton {
-                    id: several
-                    verticalAlignment: VerticalAlignment.Center
+                Container {
+                    id: options
+                    horizontalAlignment: HorizontalAlignment.Fill
+                }
+                Button {
+                    id: addButton
+                    text: qsTr("Add option")
+                    topMargin: ui.du(1)
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    onClicked: page.addOption().requestFocus()
+                }
+                Container {
+                    topMargin: ui.du(2)
+                    layout: StackLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    Label {
+                        text: qsTr("Allow several answers")
+                        verticalAlignment: VerticalAlignment.Center
+                        layoutProperties: StackLayoutProperties {
+                            spaceQuota: 1
+                        }
+                    }
+                    ToggleButton {
+                        id: several
+                        verticalAlignment: VerticalAlignment.Center
+                    }
                 }
             }
         }

@@ -271,126 +271,132 @@ Page {
         }
     }
     // One scrolling column, groups included: a ListView inside a ScrollView misbehaves.
-    ScrollView {
-        Container {
-            horizontalAlignment: HorizontalAlignment.Fill
-            // The tile, name and number; the chat's own until the engine answers.
+    Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
+        horizontalAlignment: HorizontalAlignment.Fill
+        verticalAlignment: VerticalAlignment.Fill
+        ScrollView {
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
-                topPadding: ui.du(3)
-                leftPadding: ui.du(1.5)
-                rightPadding: ui.du(1.5)
-                // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19).
-                Tile {
-                    horizontalAlignment: HorizontalAlignment.Center
-                    preferredWidth: ui.du(20)
-                    preferredHeight: ui.du(20)
-                    tint: page.chat ? page.chat.color : ""
-                    initials: page.chat ? page.chat.initials : ""
-                    photo: page.hasPicture ? page.info.picture : ""
-                    emojiStyle: nav.emojiStyle
-                    initialsSize: 300
-                    photoSize: 400
-                    gestureHandlers: TapHandler {
-                        onTapped: {
-                            if (page.hasPicture) {
-                                nav.showPhoto(page.info.picture)
+                // The tile, name and number; the chat's own until the engine answers.
+                Container {
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    topPadding: ui.du(3)
+                    leftPadding: ui.du(1.5)
+                    rightPadding: ui.du(1.5)
+                    // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19).
+                    Tile {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        preferredWidth: ui.du(20)
+                        preferredHeight: ui.du(20)
+                        tint: page.chat ? page.chat.color : ""
+                        initials: page.chat ? page.chat.initials : ""
+                        photo: page.hasPicture ? page.info.picture : ""
+                        emojiStyle: nav.emojiStyle
+                        initialsSize: 300
+                        photoSize: 400
+                        gestureHandlers: TapHandler {
+                            onTapped: {
+                                if (page.hasPicture) {
+                                    nav.showPhoto(page.info.picture)
+                                }
                             }
                         }
                     }
+                    Label {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        multiline: true
+                        textStyle.textAlign: TextAlign.Center
+                        // Saved in the address book while open: the chat keeps the row it opened with.
+                        text: page.chat ? (chats.revision >= 0 && chats.chat(page.chat.jid).name) || page.chat.name : ""
+                        textFormat: TextFormat.Plain
+                        textStyle.base: nav.emojiStyle
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: nav.bodySize * 1.3
+                    }
+                    // In the primary colour, as a link: a tap saves the number in the phone's contacts.
+                    Label {
+                        visible: !!page.info.phone
+                        horizontalAlignment: HorizontalAlignment.Center
+                        text: page.info.phone || ""
+                        textFormat: TextFormat.Plain
+                        textStyle.base: nav.emojiStyle
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: nav.bodySize
+                        textStyle.color: ui.palette.primary
+                        gestureHandlers: TapHandler {
+                            onTapped: contact.saveNumber(page.info.phone)
+                        }
+                    }
+                }
+                Busy {
+                    running: !page.loaded && !page.failed
+                    topPadding: ui.du(4)
+                    text: qsTr("Loading…")
                 }
                 Label {
+                    visible: page.failed
                     horizontalAlignment: HorizontalAlignment.Center
+                    topMargin: ui.du(3)
                     multiline: true
                     textStyle.textAlign: TextAlign.Center
-                    // Saved in the address book while open: the chat keeps the row it opened with.
-                    text: page.chat ? (chats.revision >= 0 && chats.chat(page.chat.jid).name) || page.chat.name : ""
-                    textFormat: TextFormat.Plain
-                    textStyle.base: nav.emojiStyle
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: nav.bodySize * 1.3
+                    textStyle.color: ui.palette.secondaryTextOnPlain
+                    text: qsTr("Couldn't load the contact's info. Check the connection and try again.")
                 }
-                // In the primary colour, as a link: a tap saves the number in the phone's contacts.
-                Label {
-                    visible: !!page.info.phone
-                    horizontalAlignment: HorizontalAlignment.Center
-                    text: page.info.phone || ""
-                    textFormat: TextFormat.Plain
-                    textStyle.base: nav.emojiStyle
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: nav.bodySize
-                    textStyle.color: ui.palette.primary
-                    gestureHandlers: TapHandler {
-                        onTapped: contact.saveNumber(page.info.phone)
-                    }
+                Header {
+                    visible: page.loaded && !!page.info.about
+                    title: qsTr("About")
                 }
-            }
-            Busy {
-                running: !page.loaded && !page.failed
-                topPadding: ui.du(4)
-                text: qsTr("Loading…")
-            }
-            Label {
-                visible: page.failed
-                horizontalAlignment: HorizontalAlignment.Center
-                topMargin: ui.du(3)
-                multiline: true
-                textStyle.textAlign: TextAlign.Center
-                textStyle.color: ui.palette.secondaryTextOnPlain
-                text: qsTr("Couldn't load the contact's info. Check the connection and try again.")
-            }
-            Header {
-                visible: page.loaded && !!page.info.about
-                title: qsTr("About")
-            }
-            // Padding, not margins: margins only space siblings, never from the container's edge.
-            Container {
-                visible: page.loaded && !!page.info.about
-                horizontalAlignment: HorizontalAlignment.Fill
-                topPadding: ui.du(1.5)
-                leftPadding: ui.du(1.5)
-                rightPadding: ui.du(1.5)
-                bottomPadding: ui.du(1.5)
-                Label {
+                // Padding, not margins: margins only space siblings, never from the container's edge.
+                Container {
+                    visible: page.loaded && !!page.info.about
                     horizontalAlignment: HorizontalAlignment.Fill
-                    multiline: true
-                    text: page.info.about || ""
-                    textFormat: TextFormat.Plain
-                    textStyle.base: nav.emojiStyle
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: nav.bodySize
-                }
-            }
-            Container {
-                visible: page.hasChat
-                horizontalAlignment: HorizontalAlignment.Fill
-                topPadding: ui.du(1.5)
-                leftPadding: ui.du(1.5)
-                rightPadding: ui.du(1.5)
-                bottomPadding: ui.du(1.5)
-                layout: StackLayout {
-                    orientation: LayoutOrientation.LeftToRight
-                }
-                Label {
-                    verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties {
-                        spaceQuota: 1
+                    topPadding: ui.du(1.5)
+                    leftPadding: ui.du(1.5)
+                    rightPadding: ui.du(1.5)
+                    bottomPadding: ui.du(1.5)
+                    Label {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        multiline: true
+                        text: page.info.about || ""
+                        textFormat: TextFormat.Plain
+                        textStyle.base: nav.emojiStyle
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: nav.bodySize
                     }
-                    text: qsTr("Mute notifications")
                 }
-                ToggleButton {
-                    verticalAlignment: VerticalAlignment.Center
-                    checked: page.muted
-                    onCheckedChanged: page.setMuted(checked)
+                Container {
+                    visible: page.hasChat
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    topPadding: ui.du(1.5)
+                    leftPadding: ui.du(1.5)
+                    rightPadding: ui.du(1.5)
+                    bottomPadding: ui.du(1.5)
+                    layout: StackLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    Label {
+                        verticalAlignment: VerticalAlignment.Center
+                        layoutProperties: StackLayoutProperties {
+                            spaceQuota: 1
+                        }
+                        text: qsTr("Mute notifications")
+                    }
+                    ToggleButton {
+                        verticalAlignment: VerticalAlignment.Center
+                        checked: page.muted
+                        onCheckedChanged: page.setMuted(checked)
+                    }
                 }
-            }
-            Header {
-                visible: page.groupCount > 0
-                title: page.groupCount == 1 ? qsTr("1 group in common") : qsTr("%1 groups in common").arg(page.groupCount)
-            }
-            Container {
-                id: groupsBox
-                horizontalAlignment: HorizontalAlignment.Fill
+                Header {
+                    visible: page.groupCount > 0
+                    title: page.groupCount == 1 ? qsTr("1 group in common") : qsTr("%1 groups in common").arg(page.groupCount)
+                }
+                Container {
+                    id: groupsBox
+                    horizontalAlignment: HorizontalAlignment.Fill
+                }
             }
         }
     }

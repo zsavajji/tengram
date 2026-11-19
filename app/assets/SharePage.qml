@@ -18,6 +18,8 @@ Page {
         search.requestFocus()
     }
     Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
         TextField {
             id: search
             hintText: qsTr("Search chats")

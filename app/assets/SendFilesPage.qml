@@ -76,6 +76,8 @@ Page {
     property bool group: true
     property bool asFile: false
     Container {
+        // The page colour the user picked (Settings > Appearance > Dark background).
+        background: Color.create(nav.pageColor)
         // The carousel takes a share of the page, a little under all that's left (the user, 2026-11-18): 58 % left
         // 140 px empty on the Classic, too small; the toggles and the caption take about 22 %.
         attachedObjects: LayoutUpdateHandler {
