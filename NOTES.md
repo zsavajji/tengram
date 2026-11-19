@@ -47,7 +47,7 @@ Rough split of the UI's ~22.5k lines (13.2k C++, 9.4k QML): about 65% unchanged,
 | Reactions, receipts | small | Telegram gives reaction counts, not a row per reactor. No "delivered" state: sent and read only. |
 | Groups, channels | medium | Supergroups and channels can be huge: the member list must page. Forum topics are new; folders optional. |
 | Stories | medium | TDLib has them, with a different model (story lists, privacy). `StoriesModel` adapts. |
-| Calls | dropped for v1 | TDLib only signals calls. Audio and video need tgcalls/WebRTC, a QNX port of its own. Drops ~3.5k UI lines and HyperBerry's meowcaller code. |
+| Calls | in progress (2026-11-19, branch `feature/calling`) | tgcalls + tg_owt ported to QNX; see "Calls" at the end. HyperBerry's call UI, `CallAudio`, ringing and video pieces are to be ported. |
 
 ## Risks, in order
 
@@ -674,3 +674,38 @@ message with a window of history for long-unread chats, and packaging: commits a
   unpatched engine.
 - The engine never anchors `chat.newer` on the chat's last message (TDLib's `CHECK(!have_a_gap)` aborts).
 - Engine restarts keep the chat list on screen, with a spinner in its title bar.
+
+## Calls (2026-11-19, branch `feature/calling`)
+
+**The stack (the user's choice):** Telegram's own, tgcalls + tg_owt (Telegram's WebRTC fork), ported to QNX.
+Checked that day in the official apps' sources: libtgvoip ("2.4.4") is offered by none of Android, Desktop
+and iOS any more; tgcalls v1 (2.7.7, 5.0.0) still is by all three; 7.0.0 and up need WebRTC (DTLS-SRTP, SCTP).
+Pins: tg_owt `020feec5`, tgcalls `1c236c09` (what Telegram Desktop builds). `scripts/build-calls.sh`,
+`patches/tg_owt/0001-qnx-port.patch` (8 small changes), `calls/` (the CMake project and the QNX platform:
+no video codec). Clean build 2 min 40 s; libtg_owt.a 26.6 MB, libtgcalls.a 4.2 MB; the stripped engine
+goes from ~37 to 44.7 MB.
+
+**Measuring CPU on QNX:** pidin's times are wrong for a thread that wakes every 10 ms (QNX charges CPU by
+clock tick): it said ~28 % of a core for an idle call instance that really used 4-6 %. `tests/cpu_spare`
+(two lowest-priority spinners; the drop against an idle run is the cost, 200 % = both cores) is the
+measure. A /proc PC sampler was tried and dropped: a held thread shows as stopped whether it was running
+or asleep in a kernel call, so it can't attribute CPU.
+
+**Gate T0, passed on the Q10 (0.1.0.35, 2026-11-19).** The Q10's engine (the user's second account) called
+the main account (Android) and answered a call from it; the test tone came through and the peer's voice
+reached the engine (rms 3-11 silent, 100-2000 speaking). Both calls: version **8.0.0** (tgcalls v2), p2p
+allowed, 1 reflector endpoint, 6 servers. Outgoing: key exchange to active 2.0 s after the answer.
+Incoming: `call.answer` to active 0.7 s. Hang-up from either side ends as `hangup`; Telegram's call
+message arrives in the chat. Engine data 18 MB during a call, 17 MB after. **CPU: ~25 % of one Krait core
+for the whole phone during a call** (spare 1.148e9/s idle against 0.996-1.005e9/s in two calls) against
+4-6 % for an instance with no peer: Opus at 48 kHz both ways, NS and AGC, encryption, the network stack.
+To find out where before the audio link. tgcalls v2's FinalState traffic counters are 0.
+- **Incoming calls need the engine online:** in batched delivery (the main account online elsewhere) the
+  Q10 was offline and only saw the ringing call at its next connection (108 s later, the caller still
+  waiting). The Q10 was set to instant for the test (`prefs.set mode instant`).
+- **Not verified yet:** echo with real audio (WebRTC's software AEC is off, the iOS way, on the guess that
+  BB10's voice path cancels echo itself); Opus complexity 5 (as Android) against the default 9.
+- **Next:** where the 25 % goes; the audio link to the UI (HyperBerry's `CallAudio`, at 48 kHz 10 ms or
+  resampled); the call screen, ringing (Hub item, mm-renderer ringtone) and the Calls list from HyperBerry;
+  incoming calls in batched mode (decide with the user); an engine stop or logout during a call.
+
