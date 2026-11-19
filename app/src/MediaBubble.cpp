@@ -119,9 +119,19 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_play->setImageSource(Card::url("asset:///images/play.png"));
     m_play->setOpacity(0.85f);
     // At the left in the picture card: the time takes the right, as on Android.
-    m_length = docked(wide ? HorizontalAlignment::Left : HorizontalAlignment::Right, VerticalAlignment::Bottom);
-    m_length->textStyle()->setBase(SystemDefaults::TextStyles::smallText());
+    // In from the corner by padding (a docked label's margins are ignored), so the rounded corner's mask doesn't cut it,
+    // and a size up from small text (the user, 2026-11-19).
+    m_lengthBox = new Container();
+    m_lengthBox->setHorizontalAlignment(wide ? HorizontalAlignment::Left : HorizontalAlignment::Right);
+    m_lengthBox->setVerticalAlignment(VerticalAlignment::Bottom);
+    m_lengthBox->setLeftPadding(m_ui->du(1.5));
+    m_lengthBox->setRightPadding(m_ui->du(1.5));
+    m_lengthBox->setBottomPadding(m_ui->du(1));
+    m_length = new Label();
+    m_length->setTextFormat(TextFormat::Plain);
+    m_length->textStyle()->setBase(SystemDefaults::TextStyles::subtitleText());
     m_length->textStyle()->setColor(Color::White);
+    m_lengthBox->add(m_length);
 
     // A spoiler (step 6.6d): the picture under this is blurred (MediaData) until a tap.
     m_cover = cover();
@@ -143,7 +153,6 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_photo->add(m_thumb);
     m_photo->add(m_none);
     m_photo->add(m_play);
-    m_photo->add(m_length);
     m_photo->add(m_cover);
     m_photo->add(m_dim);
     // The corners' masks (setCorner), over the picture and what dims it, under the time and the spinner. One image, the top
@@ -165,6 +174,7 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_stamp->setVerticalAlignment(VerticalAlignment::Bottom);
     m_stamp->setRightPadding(m_ui->du(1));
     m_stamp->setBottomPadding(m_ui->du(1));
+    m_photo->add(m_lengthBox); // over the corners' masks
     m_photo->add(m_stamp);
     m_photo->add(m_photoSpin);
     m_photo->add(m_photoRing);

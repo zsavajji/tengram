@@ -80,6 +80,7 @@ private:
     bb::cascades::Label *m_noneText;
     bb::cascades::ImageView *m_play;
     bb::cascades::Label *m_length;
+    bb::cascades::Container *m_lengthBox; // m_length in from the corner
     bb::cascades::Container *m_cover;
     bb::cascades::Container *m_dim;
     bb::cascades::ImageView *m_corner[4];
