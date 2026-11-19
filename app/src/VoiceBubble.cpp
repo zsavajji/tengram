@@ -7,12 +7,14 @@
 #include <bb/cascades/Image>
 #include <bb/cascades/ImageView>
 #include <bb/cascades/Label>
+#include <bb/cascades/LayoutUpdateHandler>
 #include <bb/cascades/ListView>
 #include <bb/cascades/ScalingMethod>
 #include <bb/cascades/SystemDefaults>
 #include <bb/cascades/TapHandler>
 #include <bb/cascades/TextFormat>
 #include <bb/cascades/TextStyleDefinition>
+#include <bb/cascades/TouchEvent>
 #include <bb/cascades/UIConfig>
 #include <bb/cascades/UIPalette>
 #include <bb/cascades/VerticalAlignment>
@@ -47,6 +49,15 @@ VoiceBubble::VoiceBubble(ListView *list)
     : m_list(list)
     , m_ui(list->ui())
     , m_bars(0)
+    , m_scrubbing(false)
+    , m_scrubMoved(false)
+    , m_settling(false)
+    , m_settlePos(0)
+    , m_waveLeft(0)
+    , m_waveWidth(381)
+    , m_downX(0)
+    , m_downY(0)
+    , m_scrubFrac(0)
 {
     setTopMargin(0);
     setBottomMargin(0);
@@ -87,6 +98,9 @@ VoiceBubble::VoiceBubble(ListView *list)
     m_played->setVisible(false);
     waves->add(m_wave);
     waves->add(m_played);
+    // A touch on it seeks; its width is what the finger's share is of.
+    connect(waves, SIGNAL(touch(bb::cascades::TouchEvent *)), this, SLOT(onWaveTouch(bb::cascades::TouchEvent *)));
+    LayoutUpdateHandler::create(waves).onLayoutFrameChanged(this, SLOT(onWaveFrame(QRectF)));
 
     // Under it the length at the left and the time's corner at the right, the waveform's width apart.
     Container *under = new Container();
@@ -130,6 +144,9 @@ VoiceBubble::VoiceBubble(ListView *list)
 void VoiceBubble::show(const QVariantMap &msg)
 {
     m_msg = msg;
+    m_scrubbing = false; // rows are recycled
+    m_scrubMoved = false;
+    m_settling = false;
     const Color quiet = m_ui->palette()->secondaryTextOnPlain();
     m_wave->setFilterColor(quiet);
     m_played->setFilterColor(m_ui->palette()->primary());
@@ -149,14 +166,18 @@ void VoiceBubble::refresh()
     const bool loading = m_list->property("loadingId").toString() == id;
     const bool paused = m_list->property("paused").toBool();
     const int posMs = m_list->property("posMs").toInt();
-    const int durMs = m_list->property("durMs").toInt();
     const int duration = m_msg.value("duration").toInt();
 
-    // The note's own length until the player knows it.
-    const int total = playing && durMs > 0 ? durMs : duration * 1000;
-    const double progress = playing && total > 0 ? qMin(1.0, double(posMs) / total) : 0;
+    // The finger's place while it drags, and after its let-go until the player's position moves (the seek
+    // lands): the bars and the clock go there instead of the player's.
+    if (m_settling && (!playing || posMs != m_settlePos))
+        m_settling = false;
+    const bool held = (m_scrubbing && m_scrubMoved) || m_settling;
+    const int total = totalMs();
+    const int shownMs = held ? qRound(m_scrubFrac * total) : posMs;
+    const double progress = held ? m_scrubFrac : playing && total > 0 ? qMin(1.0, double(posMs) / total) : 0;
     // An int, so the played image is drawn again only when a bar changes: at most 64 times.
-    const int bars = qCeil(progress * 64);
+    const int bars = held ? qRound(progress * 64) : qCeil(progress * 64);
 
     m_icon->setVisible(!loading);
     m_icon->setImageSource(Card::url(m_msg.value("mediaState").toInt() == 3 && !playing ? "asset:///images/retry.png"
@@ -175,7 +196,75 @@ void VoiceBubble::refresh()
         m_bars = bars;
     }
 
-    m_clock->setText(clockText(playing ? qMax(0, qCeil((total - posMs) / 1000.0)) : duration));
+    m_clock->setText(clockText(playing || held ? qMax(0, qCeil((total - shownMs) / 1000.0)) : duration));
+}
+
+int VoiceBubble::totalMs() const
+{
+    const bool playing = m_list->property("playingId").toString() == m_msg.value("id").toString();
+    const int durMs = m_list->property("durMs").toInt();
+    return playing && durMs > 0 ? durMs : m_msg.value("duration").toInt() * 1000;
+}
+
+double VoiceBubble::fractionAt(float windowX) const
+{
+    return m_waveWidth > 0 ? qBound(0.0, double(windowX - m_waveLeft) / m_waveWidth, 1.0) : 0.0;
+}
+
+void VoiceBubble::onWaveFrame(const QRectF &frame)
+{
+    m_waveWidth = frame.width();
+}
+
+// A touch on the waveform: it seeks, at the let-go or where a drag ends. The first move past 1 du decides: a drag
+// more up or down than along is the list's to scroll, and the card's swipe to reply stays off a scrub (it
+// asks scrubbing(); this sees the touch first, as the deepest control).
+void VoiceBubble::onWaveTouch(TouchEvent *event)
+{
+    const float x = event->windowX(); // the window's: the card's own coordinates move with it
+    const float y = event->windowY();
+    if (event->isDown()) {
+        m_waveLeft = x - event->localX();
+        m_downX = x;
+        m_downY = y;
+        m_scrubbing = true;
+        m_scrubMoved = false;
+        m_settling = false;
+        m_scrubFrac = fractionAt(x);
+        m_downAt.start();
+        return;
+    }
+    if (!m_scrubbing)
+        return;
+    if (event->isMove()) {
+        if (!m_scrubMoved) {
+            const float dx = x - m_downX;
+            const float dy = y - m_downY;
+            if (qMax(qAbs(dx), qAbs(dy)) <= m_ui->du(1))
+                return;
+            if (qAbs(dy) > qAbs(dx)) {
+                m_scrubbing = false;
+                refresh();
+                return;
+            }
+            m_scrubMoved = true;
+        }
+        m_scrubFrac = fractionAt(x);
+        refresh();
+        return;
+    }
+    // Up, or cancel: as the swipe's, a cancel after the drag began is the list taking the touch on a drift, a let-go.
+    // A press held still past 500 ms is the long press that opens the card's menu, not a tap.
+    const bool seek = m_scrubMoved || (event->isUp() && m_downAt.elapsed() < 500);
+    if (event->isUp())
+        m_scrubFrac = fractionAt(x);
+    m_scrubbing = false;
+    if (seek) {
+        m_settling = m_list->property("playingId").toString() == m_msg.value("id").toString();
+        m_settlePos = m_list->property("posMs").toInt();
+        Card::call(m_list, "seekVoice", m_msg, qRound(m_scrubFrac * totalMs()));
+    }
+    refresh();
 }
 
 void VoiceBubble::onPlay()

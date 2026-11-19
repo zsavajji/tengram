@@ -27,7 +27,7 @@
 #include "EngineLink.h"
 #include "sizes.h"
 
-bool Settings::s_roundShape = false;
+bool Settings::s_roundShape = true; // Round is the default (the user, 2026-11-19), as round() reads it
 
 Settings::Settings(EngineLink *engine, QObject *parent)
     : QObject(parent),
@@ -65,7 +65,8 @@ QString Settings::deliveryMode() const { return m_file.value("deliveryMode", "au
 int Settings::textSize() const { return qBound(0, m_file.value("textSize", 1).toInt(), 2); }
 int Settings::videoQuality() const { return qBound(0, m_file.value("videoQuality", 0).toInt(), 3); }
 bool Settings::compact() const { return m_file.value("compact", false).toBool(); }
-bool Settings::round() const { return m_file.value("round", false).toBool(); }
+// Round by default (the user, 2026-11-19; Square was until then): a saved choice stays.
+bool Settings::round() const { return m_file.value("round", true).toBool(); }
 bool Settings::darkGrey() const { return m_file.value("darkGrey", false).toBool(); }
 int Settings::callHints() const { return qMax(0, m_file.value("callHints", 0).toInt()); }
 bool Settings::syncContacts() const { return m_file.value("syncContacts", false).toBool(); }

@@ -6,8 +6,10 @@ ImageView.filterColor, as the cards' and the call screen's are.
   pill.png      a 42 x 42 white rounded square, radius 20, with pill.amd (sliceMargins 20): the toggles and chips,
                 nine-sliced so the ends stay round at any width. 42 and not 40: the middle slice is 2 px, not none,
                 so the stretch has something to repeat.
-  card_round_l.png, card_round_r.png, and their .amd   a 48 x 48 white card with a 20 px radius on three corners and
-                none on the fourth, the one at the tail (l: bottom left, theirs; r: bottom right, ours), sliceMargins 20.
+  pill_s.png    a 30 x 30 white rounded square, radius 14, with pill_s.amd (sliceMargins 14): pill.png for what is too short
+                for its 40 px of ends, the chat list's unread count (about 29 px tall).
+  card_round_l.png, card_round_r.png, and their .amd   a 60 x 60 white card with a CARD_R px radius on three corners and
+                none on the fourth, the one at the tail (l: bottom left, theirs; r: bottom right, ours), sliceMargins CARD_R.
                 MessageCard puts them in place of card.png in Round mode.
   corner.png    a 64 x 64 mask for a picture's corner (the user, 2026-11-19: the photo and video bubbles had square corners):
                 white outside a quarter circle of radius 64 centred at the bottom right, transparent inside, so it is the
@@ -24,6 +26,9 @@ import sys
 from PIL import Image, ImageDraw
 
 S = 4  # supersampling
+# The cards' corner (20 until the user asked for rounder, 2026-11-19). A one-line card is ~56 px tall on the Classic and a
+# nine-slice can't be shorter than its two margins: 28 at most. MessageCard::kRoundCardR is the same number.
+CARD_R = 28
 
 
 def save(mask, out, name):
@@ -61,11 +66,14 @@ def main(out):
 
     save(rounded(42, 20), out, "pill")
     amd(out, "pill", "20 20 20 20")
+    save(rounded(30, 14), out, "pill_s")
+    amd(out, "pill_s", "14 14 14 14")
 
-    save(rounded(48, 20, (True, True, True, False)), out, "card_round_l")
-    amd(out, "card_round_l", "20 20 20 20")
-    save(rounded(48, 20, (True, True, False, True)), out, "card_round_r")
-    amd(out, "card_round_r", "20 20 20 20")
+    m = f"{CARD_R} {CARD_R} {CARD_R} {CARD_R}"
+    save(rounded(2 * CARD_R + 4, CARD_R, (True, True, True, False)), out, "card_round_l")
+    amd(out, "card_round_l", m)
+    save(rounded(2 * CARD_R + 4, CARD_R, (True, True, False, True)), out, "card_round_r")
+    amd(out, "card_round_r", m)
 
     save(corner(), out, "corner")
 

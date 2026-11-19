@@ -6,15 +6,13 @@
 #include <bb/PixelFormat>
 #include <bb/cascades/Image>
 
-#include "Settings.h"
-
 namespace {
 const int kBars = 64;
 const int kBarW = 3;
 const int kWidth = kBars * 2 * kBarW - kBarW;
 const int kHeight = 45;
-const int kMinBar = 3;
-// Round mode: half as many bars, twice as wide, drawn as capsules of this radius, their ends anti-aliased.
+// Drawn: half as many bars, twice as wide, as capsules of this radius, their ends anti-aliased (both shapes, the user,
+// 2026-11-19).
 const int kRoundBars = kBars / 2;
 const int kRoundW = 6;
 const int kRoundR = kRoundW / 2;
@@ -61,26 +59,9 @@ QVariant Waveform::image(const QByteArray &values, int bars)
         for (int x = 0; x < kWidth * 4; ++x)
             pixels[y * stride + x] = 0;
 
-    // ponytail: a chat already open keeps its old waves until its rows are read again (MessageRows draws the whole wave at
-    // load), so a flip of the Shape shows in the waves of the chats opened after it. Redraw the rows on roundChanged if that
-    // is not enough.
-    if (Settings::roundShape()) {
-        for (int i = 0; i < kRoundBars && 2 * i < bars; ++i) {
-            const int v = qMax(value(values, 2 * i), value(values, 2 * i + 1));
-            roundBar(pixels, stride, i * 2 * kRoundW, qMax(2 * kRoundR, v * kHeight / 100));
-        }
-        return QVariant::fromValue(bb::cascades::Image(img));
-    }
-    for (int i = 0; i < kBars && i < bars; ++i) {
-        int v = value(values, i);
-        int h = v * kHeight / 100;
-        if (h < kMinBar)
-            h = kMinBar;
-        const int top = (kHeight - h) / 2;
-        for (int y = top; y < top + h; ++y)
-            for (int x = i * 2 * kBarW; x < i * 2 * kBarW + kBarW; ++x)
-                for (int c = 0; c < 4; ++c)
-                    pixels[y * stride + 4 * x + c] = 255;
+    for (int i = 0; i < kRoundBars && 2 * i < bars; ++i) {
+        const int v = qMax(value(values, 2 * i), value(values, 2 * i + 1));
+        roundBar(pixels, stride, i * 2 * kRoundW, qMax(2 * kRoundR, v * kHeight / 100));
     }
     return QVariant::fromValue(bb::cascades::Image(img));
 }

@@ -107,8 +107,10 @@ private:
     bb::cascades::Label *m_bang;
     bb::cascades::Label *m_preview;
     bb::cascades::Container *m_badge;
+    bb::cascades::ImageView *m_badgePill; // Round mode: the badge's colour, under the count (Cascades has no radius)
     bb::cascades::Label *m_count;
     bb::cascades::Container *m_dot;
+    bb::cascades::ImageView *m_dotDisc; // Round mode: the dot as a disc
     bb::cascades::Container *m_sep;
 
     bb::cascades::ActionSet *m_menu;

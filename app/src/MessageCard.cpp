@@ -347,17 +347,20 @@ void MessageCard::paintBackground()
 // the card's padding around it: all four corners are in the card's colour, 4 px in Square mode and 12 in Round. A wide picture
 // spans the card's width, so a corner of it is the card's own where the head isn't above it (top) or the caption isn't under it
 // (bottom; the time sits on the picture then): in the page's colour, with the radius the card's corner has there. That is, in
-// Square mode, card.png's 7 px at the top and none at the bottom, where the foot's bar goes on; in Round mode 20 px, but none at
+// Square mode, card.png's 7 px at the top and none at the bottom, where the foot's bar goes on; in Round mode kRoundCardR, but none at
 // the tail's corner (the bottom one on the card's side). With the head above or the caption under it a corner is on the card's
 // straight side: square.
+// The Round cards' corner, card_round_*.png's (scripts/gen-round.py's CARD_R).
+static const int kRoundCardR = 28;
+
 void MessageCard::paintCorners(const Color &card)
 {
     int radii[4];
     if (!m_head) {
         radii[0] = radii[1] = radii[2] = radii[3] = m_round ? 12 : 4;
     } else {
-        const int top = m_head->isVisible() ? 0 : m_round ? 20 : 7;
-        const int bottom = m_card->isVisible() || !m_round ? 0 : 20;
+        const int top = m_head->isVisible() ? 0 : m_round ? kRoundCardR : 7;
+        const int bottom = m_card->isVisible() || !m_round ? 0 : kRoundCardR;
         const bool out = flag("out");
         radii[0] = radii[1] = top;
         radii[2] = out ? 0 : bottom; // bottom right: ours has the tail there
@@ -408,7 +411,7 @@ void MessageCard::restyle(bool out)
     m_small = small;
     m_plain = plain;
 
-    // Round mode (the user's ask, 2026-11-19): 20 px corners on the card, but not the one at the tail, which is the side's
+    // Round mode (the user's ask, 2026-11-19): kRoundCardR corners on the card, but not the one at the tail, which is the side's
     // (theirs left, ours right); the tail stays and the accent bar goes (fillFoot), a 1 du bar can't carry a 20 px corner.
     m_bg->setImageSource(Card::url(!round ? "asset:///images/card.amd"
                                    : out ? "asset:///images/card_round_r.amd" : "asset:///images/card_round_l.amd"));
@@ -416,8 +419,9 @@ void MessageCard::restyle(bool out)
     m_barL->setFilterColor(m_ui->palette()->secondaryTextOnPlain());
     // The primary 20 % darker, quieter under our cards (the user, 2026-11-17).
     m_barR->setFilterColor(Card::color("#1D81B2"));
-    const float side = Card::side(m_ui, scale);
-    m_root->setTopPadding(m_ui->du(1.5 * scale));
+    const float side = Card::side(m_ui, scale, round);
+    // The gap above the card: less in Round mode, its cards sat too far apart (the user, 2026-11-19).
+    m_root->setTopPadding(m_ui->du((round ? 1 : 1.5) * scale));
     m_card->setLeftPadding(side);
     m_card->setRightPadding(side);
     m_card->setTopPadding(m_ui->du(1 * scale)); // 2 px less: the name and time a little higher (Q10, 0.0.1.212)
@@ -535,6 +539,10 @@ void MessageCard::makeTile()
     m_avatar->add(m_disc);
     m_avatar->add(m_photo);
     m_avatar->add(m_initials);
+    // A tap on the picture: the sender's page (onTile), as a mention's link opens it (the user's ask, 2026-11-19).
+    TapHandler *tap = new TapHandler(m_avatar);
+    m_avatar->addGestureHandler(tap);
+    connect(tap, SIGNAL(tapped(bb::cascades::TapEvent *)), this, SLOT(onTile()));
     m_row->insert(0, m_avatar);
     m_styled = false;
 }
@@ -712,24 +720,38 @@ void MessageCard::makeChip()
 void MessageCard::growChips(int n)
 {
     while (m_chipBoxes.size() < n) {
-        Container *box = new Container(); // square: no corners, the user's rule
-        box->setLeftPadding(m_ui->du(1));
-        box->setRightPadding(m_ui->du(1));
-        box->setTopPadding(m_ui->du(0.5));
-        box->setBottomPadding(m_ui->du(0.5));
+        // Square, or in Round mode a pill (the user's ask, 2026-11-19): pill.amd stretched under the label and tinted, as
+        // the service lines' (ServiceCard); the paddings are on an inner Container, so the pill covers them too.
+        Container *box = new Container();
+        box->setLayout(new DockLayout());
         box->setRightMargin(m_ui->du(0.5));
+        ImageView *pill = new ImageView();
+        pill->setHorizontalAlignment(HorizontalAlignment::Fill);
+        pill->setVerticalAlignment(VerticalAlignment::Fill);
+        pill->setScalingMethod(ScalingMethod::Fill);
+        pill->setLoadEffect(ImageViewLoadEffect::None);
+        pill->setImageSource(Card::url("asset:///images/pill.amd"));
+        pill->setVisible(false);
+        Container *padded = new Container();
+        padded->setLeftPadding(m_ui->du(1));
+        padded->setRightPadding(m_ui->du(1));
+        padded->setTopPadding(m_ui->du(0.5));
+        padded->setBottomPadding(m_ui->du(0.5));
         Label *label = new Label();
         label->setTopMargin(0);
         label->setBottomMargin(0);
         label->setLeftMargin(0);
         label->setRightMargin(0);
-        box->add(label);
+        padded->add(label);
+        box->add(pill);
+        box->add(padded);
         TapHandler *tap = new TapHandler(box);
         box->addGestureHandler(tap);
         connect(tap, SIGNAL(tapped(bb::cascades::TapEvent *)), this, SLOT(onChip()));
         m_chipSpare->add(box);
         m_chipBoxes << box;
         m_chipLabels << label;
+        m_chipPills << pill;
         m_chipAt << -1;
     }
     m_styled = false;
@@ -756,11 +778,11 @@ void MessageCard::fillChips()
     m_chip->setHorizontalAlignment(flag("out") ? HorizontalAlignment::Right : HorizontalAlignment::Left);
     // In padding: a top-to-bottom stack ignores a child's left margin (the chips sat under the tile, the user,
     // 2026-11-18). The side lines them up with the card's text.
-    m_chip->setLeftPadding(Card::side(m_ui, m_scale) + (tile ? tileSpace() : 0));
+    m_chip->setLeftPadding(Card::side(m_ui, m_scale, m_round) + (tile ? tileSpace() : 0));
     if (n == 0)
         return;
 
-    const float most = Card::width(m_ui) - 2 * Card::side(m_ui, m_scale) - (tile ? tileSpace() : 0);
+    const float most = Card::width(m_ui) - 2 * Card::side(m_ui, m_scale, m_round) - (tile ? tileSpace() : 0);
     QList<int> at;
     float used = 0;
     int row = 0;
@@ -793,13 +815,20 @@ void MessageCard::fillChips()
         m_chipAt = at;
     }
 
+    const bool round = Card::isRound(m_list);
     for (int i = 0; i < n; ++i) {
         const QVariantMap chip = chips.at(i).toMap();
         const bool mine = chip.value("me").toBool();
         Container *box = m_chipBoxes.at(i);
         box->setProperty("emoji", chip.value("e"));
         box->setProperty("mine", mine);
-        box->setBackground(mine ? m_ui->palette()->primary() : m_plain);
+        const Color fill = mine ? m_ui->palette()->primary() : m_plain;
+        m_chipPills.at(i)->setVisible(round);
+        m_chipPills.at(i)->setFilterColor(fill);
+        if (round)
+            box->resetBackground();
+        else
+            box->setBackground(fill);
         m_chipLabels.at(i)->setText(chip.value("e").toString() + " " + QString::number(chip.value("n").toInt()));
         if (mine)
             m_chipLabels.at(i)->textStyle()->setColor(Color::White);
@@ -949,8 +978,9 @@ void MessageCard::fillFoot()
         const int tick = state == 0 ? 0 : state == 1 ? 1 : 2;
         if (tick != m_tick) {
             m_tick = tick;
-            // 2.4 du tall at 100 %, 22 px on the Q10, where the images' 27 px were; the two ticks are wider.
-            m_ticks->setPreferredSize(m_ui->du((tick == 2 ? 3.1 : 2.4) * m_scale), m_ui->du(2.4 * m_scale));
+            // 2.8 du tall at 100 %, 25 px on the Q10, under the images' 27 px so they aren't blown up (2.4 until the user
+            // asked for a little bigger, 2026-11-19); the two ticks are wider.
+            m_ticks->setPreferredSize(m_ui->du((tick == 2 ? 3.6 : 2.8) * m_scale), m_ui->du(2.8 * m_scale));
             m_ticks->setImageSource(Card::url(tick == 0 ? "asset:///images/clock.png"
                                         : tick == 1 ? "asset:///images/tick.png" : "asset:///images/ticks.png"));
         }
@@ -965,7 +995,7 @@ void MessageCard::fillFoot()
     // beside it. Without it a long text asks for the whole row and the stack takes the excess from
     // both, so the time is cut.
     if (!m_head) {
-        const float most = Card::width(m_ui) - 2 * Card::side(m_ui, m_scale)
+        const float most = Card::width(m_ui) - 2 * Card::side(m_ui, m_scale, m_round)
                            - (place == 0 ? m_ui->du(1) + timeWidth() : 0);
         if (most != m_colMax) {
             m_colMax = most;
@@ -986,7 +1016,8 @@ void MessageCard::fillFoot()
 
 
 // The time and ticks' width, which can't be asked, reckoned a little over: 1.55 du a character at
-// 100 % ("11:16 PM" was 117 px on the Q10 at 85 %, so 1.37 du each at 72 %), the ticks' 3.1 du and
+// 100 % ("11:16 PM" was 117 px on the Q10 at 85 %, so 1.37 du each at 72 %), the two ticks' 3.6 du (fillFoot's, which
+// this must follow: at 3.1 after the ticks grew, our text ran into the time, the user's screenshot, 2026-11-19) and
 // their 1 du margin, and the "!" with the 2.5 du before it.
 // ponytail: a reckoning; a time wider than it (a script with wide digits) touches the text's end.
 float MessageCard::timeWidth() const
@@ -994,7 +1025,7 @@ float MessageCard::timeWidth() const
     const bool out = flag("out");
     const int state = m_msg.value("state").toInt();
     const int chars = str("time").size() + timeLead().size();
-    return chars * m_ui->du(1.55 * m_scale) + (out && state < 4 ? m_ui->du(1 + 3.1 * m_scale) : 0)
+    return chars * m_ui->du(1.55 * m_scale) + (out && state < 4 ? m_ui->du(1 + 3.6 * m_scale) : 0)
            + (str("ttlText").isEmpty() ? 0 : m_ui->du(2.7 * m_scale))
            + (out && state == 4 ? m_ui->du(4) : 0);
 }

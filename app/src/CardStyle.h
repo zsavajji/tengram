@@ -139,8 +139,13 @@ inline int screen()
 // up to this (the user, 2026-11-14: on the Passport a one-letter message spanned the screen).
 inline float width(bb::cascades::UIConfig *) { return 0.8f * screen(); }
 
-// The card's padding at each side, growing with the text size: 2 px over 1.5 du at 100 %.
-inline float side(bb::cascades::UIConfig *ui, float scale) { return ui->du(1.5 * scale) + ui->px(2); }
+// The card's padding at each side, growing with the text size: 2 px over 1.5 du at 100 %, 2 du in Round mode, where the
+// round corners crowd the text and the sides looked tighter than the top and bottom, whose line has air of its own (the
+// user, 2026-11-19).
+inline float side(bb::cascades::UIConfig *ui, float scale, bool round)
+{
+    return ui->du((round ? 2 : 1.5) * scale) + ui->px(2);
+}
 
 }
 

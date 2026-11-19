@@ -166,7 +166,7 @@ void AlbumBubble::show(const QVariantMap &msg)
     m_msg = msg;
     // Across the card inside its side padding (the user, 2026-11-08), which grows with the text size.
     const float gap = m_ui->du(0.5);
-    const float size = (Card::width(m_ui) - 2 * Card::side(m_ui, Card::textScale(m_list)) - gap) / 2;
+    const float size = (Card::width(m_ui) - 2 * Card::side(m_ui, Card::textScale(m_list), Card::isRound(m_list)) - gap) / 2;
     const int count = m_msg.value("albumCount").toInt();
     // Three: the third tile is as wide as the two above it.
     const bool wide = count == 3;

@@ -12,6 +12,8 @@ MediaPlayer {
     property string loadingId: ""
     // The voice.play request in flight: a later tap replaces it, and its reply is dropped.
     property string req: ""
+    // Where a seek on a note not yet playing goes, once its file is ready (ready()): the tap starts it there.
+    property int pendingMs: 0
     property bool paused: mediaState == MediaState.Paused
     property int posMs: Number(position) || 0
     property int durMs: Number(duration) || 0
@@ -43,12 +45,23 @@ MediaPlayer {
         }
         stop()
         playingId = ""
+        pendingMs = 0 // a seek waiting on another note is not this one's
         req = engine.request("voice.play", { "chat": jid, "id": id })
         if (req == "") {
             offline()
             return
         }
         loadingId = id
+    }
+    // A touch on a bubble's waveform: the note playing or paused moves there; another starts there, as a tap
+    // starts it (toggle), and pendingMs holds the point only while that request is in flight.
+    function seek(id, ms) {
+        if (playingId == id) {
+            seekTime(ms)
+            return
+        }
+        toggle(id)
+        pendingMs = loadingId == id ? ms : 0
     }
     // ChatController's voiceReady: the WAV of the request in flight.
     function ready(id, path) {
@@ -59,14 +72,19 @@ MediaPlayer {
         sourceUrl = "file://" + path
         playingId = loadingId
         loadingId = ""
+        var at = pendingMs
+        pendingMs = 0
         if (play() != MediaError.None) {
             playingId = ""
             failed()
+        } else if (at > 0) {
+            seekTime(at)
         }
     }
     function fail(code) {
         loadingId = ""
         req = ""
+        pendingMs = 0
         if (code != "download_failed") {
             failed()
         }

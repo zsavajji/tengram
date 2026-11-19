@@ -182,19 +182,43 @@ ChatRow::ChatRow(ListView *list)
     m_preview->setLeftMargin(m_ui->du(1));
     Card::quota(m_preview, 1);
     // The unread count, grey while muted, as WhatsApp does.
+    // Round mode (the user's ask, 2026-11-19): a pill, pill_s.amd stretched under the count and tinted, as the service
+    // lines' pill (ServiceCard); the count's paddings are on an inner Container, so the pill covers them too.
     m_badge = new Container();
     m_badge->setVerticalAlignment(VerticalAlignment::Center);
-    m_badge->setLeftPadding(m_ui->du(0.8));
-    m_badge->setRightPadding(m_ui->du(0.8));
+    m_badge->setLayout(new DockLayout());
+    m_badgePill = new ImageView();
+    m_badgePill->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_badgePill->setVerticalAlignment(VerticalAlignment::Fill);
+    m_badgePill->setScalingMethod(ScalingMethod::Fill);
+    m_badgePill->setLoadEffect(ImageViewLoadEffect::None);
+    m_badgePill->setImageSource(Card::url("asset:///images/pill_s.amd"));
+    m_badgePill->setVisible(false);
+    Container *counted = new Container();
+    counted->setHorizontalAlignment(HorizontalAlignment::Center);
+    counted->setVerticalAlignment(VerticalAlignment::Center);
+    counted->setLeftPadding(m_ui->du(0.8));
+    counted->setRightPadding(m_ui->du(0.8));
     m_count = new Label();
     m_count->textStyle()->setBase(SystemDefaults::TextStyles::smallText());
     m_count->textStyle()->setFontWeight(FontWeight::Bold);
-    m_badge->add(m_count);
+    counted->add(m_count);
+    m_badge->add(m_badgePill);
+    m_badge->add(counted);
     // Marked unread (-1): a dot in the badge's place, no number.
     m_dot = new Container();
     m_dot->setVerticalAlignment(VerticalAlignment::Center);
     m_dot->setLeftMargin(m_ui->du(0.8));
     m_dot->setPreferredSize(m_ui->du(1.6), m_ui->du(1.6));
+    m_dot->setLayout(new DockLayout());
+    m_dotDisc = new ImageView();
+    m_dotDisc->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_dotDisc->setVerticalAlignment(VerticalAlignment::Fill);
+    m_dotDisc->setScalingMethod(ScalingMethod::AspectFit);
+    m_dotDisc->setLoadEffect(ImageViewLoadEffect::None);
+    m_dotDisc->setImageSource(Card::url("asset:///images/circle.png"));
+    m_dotDisc->setVisible(false);
+    m_dot->add(m_dotDisc);
     bottom->add(m_ticks);
     bottom->add(m_bang);
     bottom->add(m_preview);
@@ -249,11 +273,11 @@ void ChatRow::show(const QVariantMap &chat)
         m_scale = scale;
         m_compact = compact;
         const float side = compact ? 1.5 : 2;
-        const float tile = compact ? 7 : 8.2;
+        const float tile = compact ? 7 : 9; // Normal: 8.2 until the user asked for a bigger picture and a taller row, 2026-11-19
         m_row->setLeftPadding(m_ui->du(side));
         m_row->setRightPadding(m_ui->du(side));
         m_col->setLeftMargin(m_ui->du(side));
-        m_row->setMinHeight(m_ui->du((compact ? 9.4 : 11.4) * scale));
+        m_row->setMinHeight(m_ui->du((compact ? 9.4 : 12.6) * scale));
         m_tile->setPreferredSize(m_ui->du(tile * scale), m_ui->du(tile * scale));
         Card::style(m_initials, m_list, qRound(118 * scale));
         m_initials->textStyle()->setColor(Color::White);
@@ -344,14 +368,29 @@ void ChatRow::show(const QVariantMap &chat)
     }
 
     const Color badge = muted ? palette->plain() : primary;
+    // Round mode: the colour is the pill's and the disc's; at least as wide as tall, so one digit is a disc.
+    const bool roundBadge = Card::isRound(m_list);
     m_badge->setVisible(unread > 0);
-    m_badge->setBackground(badge);
+    m_badgePill->setVisible(roundBadge);
+    m_badgePill->setFilterColor(badge);
+    m_dotDisc->setVisible(roundBadge);
+    m_dotDisc->setFilterColor(badge);
+    if (roundBadge) {
+        m_badge->resetBackground();
+        m_badge->setMinWidth(m_ui->du(3.2 * m_scale));
+        m_badge->setMinHeight(m_ui->du(3.2 * m_scale));
+        m_dot->resetBackground();
+    } else {
+        m_badge->setBackground(badge);
+        m_badge->resetMinWidth();
+        m_badge->resetMinHeight();
+        m_dot->setBackground(badge);
+    }
     if (unread > 0) {
         m_count->setText(QString::number(unread));
         m_count->textStyle()->setColor(muted ? palette->textOnPlain() : palette->textOnPrimary());
     }
     m_dot->setVisible(unread < 0);
-    m_dot->setBackground(badge);
 
     m_sep->setBackground(palette->plain());
 }

@@ -832,6 +832,9 @@ Page {
                     function playVoice(msg) {
                         page.player().toggle(msg.id)
                     }
+                    function seekVoice(msg, ms) {
+                        page.player().seek(msg.id, ms)
+                    }
                     function playedWave(data, bars) {
                         return ctl.playedWave(data, bars)
                     }

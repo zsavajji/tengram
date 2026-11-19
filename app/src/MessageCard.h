@@ -81,6 +81,7 @@ private slots:
     void onChip();
     void onJoin();
     void onQuote();
+    void onTile();
 
 private:
     QString str(const char *key) const { return m_msg.value(key).toString(); }
@@ -210,6 +211,7 @@ private:
     QList<bb::cascades::Container *> m_chipRows;
     QList<bb::cascades::Container *> m_chipBoxes;
     QList<bb::cascades::Label *> m_chipLabels;
+    QList<bb::cascades::ImageView *> m_chipPills; // Round mode: each chip's colour, a pill under it
     QList<int> m_chipAt;
 
     QString m_edited; // "edited ", translated

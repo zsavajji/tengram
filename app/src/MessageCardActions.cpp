@@ -10,6 +10,7 @@
 #include <bb/cascades/TouchEvent>
 
 #include "CardStyle.h"
+#include "VoiceBubble.h"
 #include "Invites.h"
 
 using namespace bb::cascades;
@@ -145,7 +146,9 @@ void MessageCard::onTouch(TouchEvent *event)
     const float dy = event->windowY() - m_downY;
     if (event->isMove()) {
         if (m_swipe == 0 && qMax(qAbs(dx), qAbs(dy)) > m_ui->du(2)) {
-            m_swipe = (dx < 0 && qAbs(dx) > qAbs(dy) && !flag("deleted") && !flag("readOnly")) ? 1 : -1;
+            // A drag along a voice note's waveform is its seek, which has taken the touch already.
+            m_swipe = (dx < 0 && qAbs(dx) > qAbs(dy) && !flag("deleted") && !flag("readOnly")
+                       && !(m_voice && m_voice->scrubbing())) ? 1 : -1;
             if (m_swipe == 1)
                 m_slide = ImplicitAnimationController::create(m_root, "translationX").enabled(false);
         }
@@ -180,6 +183,16 @@ void MessageCard::onChip()
     QObject *box = sender() ? sender()->parent() : 0;
     if (box)
         Card::call(m_list, "toggleReaction", str("id"), box->property("emoji"), box->property("mine"));
+}
+
+// A tap on the sender's tile in a group: their page (the page's openPerson). Only the run's tile with the picture or
+// initials, not the empty spacer beside the run's other messages, and only a person: a negative id is a channel or a
+// group writing as itself.
+void MessageCard::onTile()
+{
+    const QString id = str("senderId");
+    if (flag("showTile") && !id.isEmpty() && !id.startsWith('-'))
+        Card::call(m_list, "openPerson", id, str("sender"));
 }
 
 // The page's invites (main.cpp's Invites), which the list holds as `joiner`.
