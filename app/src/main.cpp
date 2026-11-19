@@ -193,6 +193,8 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     qmlRegisterType<Sessions>("tengram", 1, 0, "Sessions");
     qmlRegisterType<Storage>("tengram", 1, 0, "Storage");
     qmlRegisterType<TopicModel>("tengram", 1, 0, "TopicModel");
+    engine.awaitLink();
+    qDebug("ui: link %s at %d ms", engine.connected() ? "up" : "not up yet", sinceLaunch());
     QmlDocument *document = QmlDocument::create("asset:///main.qml").parent(&app);
     if (!loaded(document, "main.qml"))
         return 1;

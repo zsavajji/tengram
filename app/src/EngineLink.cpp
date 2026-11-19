@@ -72,6 +72,21 @@ void EngineLink::start()
     tryConnect();
 }
 
+// The socket's connect, the hello and its reply otherwise run in the event loop, which starts only after the QML is
+// built: the link came 0.7 s after the first screen, and a call that opened the app showed the chat list first (Q10,
+// 2026-11-19). Over loopback a running engine answers in a few ms, so this waits for it, 300 ms at most: the link, and a
+// live call's event that follows the hello's reply, are known when the QML reads them. A stopped engine (no port, or
+// a refused connect) costs nothing: the usual retries go on.
+void EngineLink::awaitLink()
+{
+    if (m_port == 0 || !m_socket.waitForConnected(150))
+        return;
+    QElapsedTimer waited;
+    waited.start();
+    while (!m_connected && waited.elapsed() < 300 && m_socket.state() == QAbstractSocket::ConnectedState)
+        m_socket.waitForReadyRead(300 - int(waited.elapsed())); // readLines() runs from it
+}
+
 void EngineLink::onFullscreen()
 {
     setFullscreen(true);

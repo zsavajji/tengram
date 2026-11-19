@@ -53,6 +53,10 @@ void OpenRequests::invoked(const InvokeRequest &request)
              << request.data();
     // A chat's item: the engine writes chat_ and the chat's key, TDLib's number in decimal, with n for the
     // minus sign (a Hub item id takes only letters, digits and _): chat_n1001234567890 is "-1001234567890".
+    // A ringing call's item (call_chat_...) opens nothing: the call screen comes by itself, and the chat page built under
+    // it cost 0.6 s before it (Q10, 2026-11-19).
+    if ((request.uri().toString() + " " + QString::fromUtf8(request.data())).contains("call_chat_"))
+        return;
     QRegExp item("chat_(n?[0-9]+)");
     if (item.indexIn(request.uri().toString() + " " + QString::fromUtf8(request.data())) >= 0) {
         QString chat = item.cap(1);

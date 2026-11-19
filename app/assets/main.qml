@@ -224,6 +224,10 @@ NavigationPane {
     }
     onLinkedChanged: show()
     onCreationCompleted: {
+        // A call already known when the QML was built (EngineLink::awaitLink: the app opened for a ringing call).
+        if (!callSheet && engine.call.state) {
+            callSheet = callSheetDef.createObject(nav)
+        }
         // Not a Connections: Cascades' QML has none.
         openRequests.openChat.connect(nav.openRequested)
         openRequests.shared.connect(nav.shareRequested)

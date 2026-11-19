@@ -62,6 +62,8 @@ public:
 
     // Connects, starting the engine first when it isn't running. Call once, from main().
     void start();
+    // Waits a moment for the link that start() began: called once the C++ objects exist and before the QML is built.
+    void awaitLink();
 
 
     // Sends a request (docs/protocol.md "Requests"); a failure shows in failure. Returns the
