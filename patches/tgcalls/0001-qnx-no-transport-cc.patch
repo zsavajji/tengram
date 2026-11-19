@@ -1,0 +1,35 @@
+diff --git a/tgcalls/v2/ContentNegotiation.cpp b/tgcalls/v2/ContentNegotiation.cpp
+index 49bbf19..42b75a1 100644
+--- a/tgcalls/v2/ContentNegotiation.cpp
++++ b/tgcalls/v2/ContentNegotiation.cpp
+@@ -102,7 +102,15 @@ void ContentNegotiationContext::copyCodecsFromChannelManager(cricket::MediaEngin
+     }
+ 
+     _rtpAudioExtensions.emplace_back(webrtc::RtpExtension::kAbsSendTimeUri, absSendTimeUriId);
++#ifndef __QNX__
++    // BlackBerry 10 (Tengram): no transport-wide sequence numbers on audio, so neither end sends congestion feedback
++    // for it. With them the receiver answered every 60 ms audio packet with an RTCP feedback packet (the interval
++    // floors at 50 ms on a fast network) and the sender padded 5 probe packets a second: 77.6 packets a second for a
++    // call's two ends, 33.4 of them audio. Audio is pinned at 32 kbit/s (WebRTC-Audio-Allocation), so the estimate
++    // they feed changes nothing; loss still reaches Opus through the receiver reports. Without: 34.1 packets a
++    // second, ~29 % of a core for both ends of the bench against ~34 % (the Q10, 2026-11-19).
+     _rtpAudioExtensions.emplace_back(webrtc::RtpExtension::kTransportSequenceNumberUri, transportSequenceNumberUriId);
++#endif
+ 
+     _rtpVideoExtensions.emplace_back(webrtc::RtpExtension::kAbsSendTimeUri, absSendTimeUriId);
+     _rtpVideoExtensions.emplace_back(webrtc::RtpExtension::kTransportSequenceNumberUri, transportSequenceNumberUriId);
+@@ -273,6 +281,14 @@ static cricket::MediaDescriptionOptions getIncomingContentDescription(signaling:
+ 
+     cricket::MediaDescriptionOptions contentDescription(mappedContent.media_description()->type(), mappedContent.name, webrtc::RtpTransceiverDirection::kRecvOnly, false);
+     for (const auto &extension : mappedContent.media_description()->rtp_header_extensions()) {
++#ifdef __QNX__
++        // BlackBerry 10 (Tengram): the peer's audio is answered without transport-wide sequence numbers, as ours is
++        // offered without them (see copyCodecsFromChannelManager), so no congestion feedback goes back for it either.
++        if (mappedContent.media_description()->type() == cricket::MEDIA_TYPE_AUDIO &&
++            extension.uri == webrtc::RtpExtension::kTransportSequenceNumberUri) {
++            continue;
++        }
++#endif
+         contentDescription.header_extensions.emplace_back(extension.uri, extension.id);
+     }
+ 

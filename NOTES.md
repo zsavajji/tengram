@@ -714,12 +714,16 @@ To find out where before the audio link. tgcalls v2's FinalState traffic counter
   The navigator refuses a headless service's invoke of the app ("target of different type, expected 72, actual 1"), so
   only the UI brings itself to the front (a minimised UI); a closed one is opened by the Hub banner: a cold start, the
   link now up before the QML (1.75 s), the scene at 2.0 s, the sheet sliding in over the chat list (the user: fine).
-- **Packet length (2026-11-19, the bench, both ends, udp6 datagrams in a 20 s call):** tgcalls v2 already sends 60 ms
-  Opus packets (ptime 60): 1749 datagrams, against 2821 forced to 20 ms, which cost ~49 % (+~15-20 points). 120 ms
-  (`patches/tgcalls/0001-qnx-opus-120ms.patch`, QNX only): ~1100 datagrams, **28.6 % against 34.1 %** in four
-  interleaved runs each (the 120 ms runs also far steadier). Our voice reaches the peer 60 ms later and a lost packet
-  takes 120 ms; on a real call (0.1.0.46) the user found it fine, delay included. What is left at 120 ms is ~18 datagrams/s an end that aren't audio (~26 in all, ~8 audio)
-  (RTCP, transport feedback, keep-alives).
+- **Packet length and the non-audio traffic (2026-11-19, the bench, both ends):** tgcalls v2 sends 60 ms Opus packets
+  (ptime 60); forced to 20 ms the bench cost ~49 %. A count by kind (a throwaway counter in RtpTransport::SendPacket
+  and AsyncUDPSocket::SendTo) at 60 ms: 77.6 packets/s = 33.4 audio + **33.4 transport-cc feedback** (RTCP 205: the
+  interval floors at 50 ms on a fast network, so every 60 ms packet gets one) + **10 padding probes** + ~1 SR/RR +
+  1.7 STUN; SCTP signalling ~0. Audio is pinned at 32 kbit/s (WebRTC-Audio-Allocation), so the estimate is moot.
+  `patches/tgcalls/0001-qnx-no-transport-cc.patch` drops the transport-wide sequence number from our audio offer and
+  from our answer to the peer's audio: 34.1 packets/s. CPU in interleaved runs: 60 ms with feedback ~34 %, 120 ms with
+  ~28 %, **60 ms without ~29 % (shipped, 0.1.0.47)**, 120 ms without ~25.5 % (the user prefers 60 ms's delay). The
+  120 ms build (0.1.0.46) was fine on a real call. The answer filter only matters against a real peer (the bench's
+  two ends both offer none): to check on a call that it connects and sounds right.
 - **Not verified yet:** Opus complexity 5 (as Android) against the default 9.
 - **Incoming calls and the delivery mode (the user, 2026-11-19):** no special case. Ringing in batched mode would
   mean keeping the connection open, which is instant mode; in batched mode a call rings on the other devices and
