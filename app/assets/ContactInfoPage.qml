@@ -283,6 +283,8 @@ Page {
                 Container {
                     horizontalAlignment: HorizontalAlignment.Fill
                     topPadding: ui.du(3)
+                    // Air under the number, which sat on the About header (the user's screenshot, 2026-11-19).
+                    bottomPadding: ui.du(2)
                     leftPadding: ui.du(1.5)
                     rightPadding: ui.du(1.5)
                     // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19).
