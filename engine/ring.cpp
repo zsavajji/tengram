@@ -22,13 +22,11 @@ using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::chrono::steady_clock;
 
-// The phone app's notification settings, whose tone is the user's ringtone; the notify service's status and global
-// settings say whether the phone's mode lets a call ring. All readable by apps (Q10, 2026-11-07).
-const char *const kSettings = "/pps/services/notify/settings/cat.phone";
+// The notify service's status says whether the phone's mode lets a call ring. The user's own ringtone (cat.phone) and
+// the mode's name (global) are in /pps/services/notify/settings, which an app can't read (an ACL; the Q10, 2026-11-19),
+// so a call rings with the stock tone (the user: fine), and Phone only mode, whose status says sound off, doesn't ring.
 const char *const kStatus = "/pps/services/notify/status";
-const char *const kGlobal = "/pps/services/notify/settings/global";
-// Exists on the Q10 (2026-11-07).
-const char *const kFallback = "/usr/share/sounds/notification_phone_ringer.wav";
+const char *const kTone = "/usr/share/sounds/notification_phone_ringer.wav";
 // The tone ends after this whatever happens: WhatsApp stops ringing sooner.
 constexpr seconds kMax(60);
 
@@ -57,10 +55,10 @@ std::string pps_value(const char *path, const std::string &key) {
 }
 
 // Whether the phone's notification mode lets a call ring (the user's call, 2026-11-07: Silent must not ring). The
-// notify service's status says sound off in Silent, Vibrate, Alerts off and the like; Phone only still rings calls.
-// Unreadable, it rings. The Hub item's own alert follows the mode by itself, vibration included.
+// notify service's status says sound off in Silent, Vibrate, Alerts off and the like. Unreadable, it rings. The Hub
+// item's own alert follows the mode by itself, vibration included.
 bool ring_allowed() {
-  return pps_value(kGlobal, "modeid") == "phoneonly" || pps_value(kStatus, "sound") != "off";
+  return pps_value(kStatus, "sound") != "off";
 }
 
 // ---- mm-renderer
@@ -132,10 +130,6 @@ void close_ring(Ring &r) {
   r = Ring();
 }
 
-std::string failure(int step) {
-  return step < 0 ? "the phone names no ringtone" : "mm-renderer failed at step " + std::to_string(step);
-}
-
 // ---- the thread
 
 // False when the tone is to end, true after t of it.
@@ -151,21 +145,12 @@ void play() {
     return;
   }
   Ring r;
-  std::string file = pps_value(kSettings, "tone");
-  // The file isn't checked here: the engine can't see into the tones' folder, mm-renderer can (HyperBerry 0.0.1.185
-  // fell back to the stock tone for that), and refuses one that isn't there.
-  int step = file.empty() ? -1 : open_ring(r, "file://" + file);
-  if (step != 0) {
+  if (const int step = open_ring(r, std::string("file://") + kTone); step != 0) {
     close_ring(r);
-    say("ringtone \"%s\": %s; the stock one instead", file.c_str(), failure(step).c_str());
-    file = kFallback;
-    if ((step = open_ring(r, "file://" + file)) != 0) {
-      close_ring(r);
-      say("ringtone %s: %s", file.c_str(), failure(step).c_str());
-      return;
-    }
+    say("ringtone: mm-renderer failed at step %d", step);
+    return;
   }
-  say("ringtone %s", file.c_str());
+  say("ringtone %s", kTone);
   const auto end = steady_clock::now() + kMax;
   auto last = steady_clock::time_point();
   int quick = 0;
