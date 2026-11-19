@@ -16,6 +16,7 @@
 #include <pthread.h>
 
 #include <atomic>
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
@@ -30,6 +31,18 @@ namespace {
 
 int rate = 48000;
 
+// engine/calls.cpp's pacing: each tick due 10 ms after the last was due (the fake device's own fixed 10 ms sleep ran
+// at 90 % of real time on the Q10).
+struct Pace {
+  std::int32_t wait_us() {
+    const auto now = std::chrono::steady_clock::now();
+    next = now - next > std::chrono::milliseconds(100) ? now + std::chrono::milliseconds(10)
+                                                       : next + std::chrono::milliseconds(10);
+    return std::int32_t(std::max<long long>(0, std::chrono::duration_cast<std::chrono::microseconds>(next - now).count()));
+  }
+  std::chrono::steady_clock::time_point next{};
+};
+
 class Tone final : public tgcalls::FakeAudioDeviceModule::Recorder {
  public:
   explicit Tone(double hz) : hz_(hz) {}
@@ -38,11 +51,13 @@ class Tone final : public tgcalls::FakeAudioDeviceModule::Recorder {
     for (int i = 0; i < n; i++, n_++) buf_[i] = int16_t(8000 * std::sin(2 * M_PI * hz_ * n_ / double(rate)));
     return {buf_, size_t(n), 2, 1, uint32_t(rate), 0, 0};
   }
+  int32_t WaitForUs() override { return pace_.wait_us(); }
 
  private:
   double hz_;
   int16_t buf_[480];
   long long n_ = 0;
+  Pace pace_;
 };
 
 // The level of what an end hears, over the whole run after it connected.
@@ -55,6 +70,8 @@ class Ear final : public tgcalls::FakeAudioDeviceModule::Renderer {
     count = count + f.num_samples * f.num_channels;
     return true;
   }
+  int32_t WaitForUs() override { return pace_.wait_us(); }
+  Pace pace_;
   int rms() const { return count ? int(std::sqrt(sum / count)) : 0; }
   std::atomic<double> sum{0};
   std::atomic<long long> count{0};
@@ -149,13 +166,17 @@ int main(int argc, char **argv) {
 
   std::this_thread::sleep_for(std::chrono::seconds(6));
   const int window = seconds > 9 ? seconds - 6 : 3;
+  const long long heard0 = ears[0]->count;
   const long long busy = spinsOver(window) * 3 / window;
+  const long long heard = ears[0]->count - heard0;
   spinning = false;
   s1.join();
   s2.join();
   std::printf("cpu: %.1f%% of one core for both ends (spins %lld idle, %lld in the call)\n",
               200.0 * (idle - busy) / idle, idle, busy);
   std::printf("heard: end 0 rms %d, end 1 rms %d\n", ears[0]->rms(), ears[1]->rms());
+  // The fake device's pace: what end 0 rendered per second of the window, against the rate (real time).
+  std::printf("pace: end 0 rendered %.1f%% of real time\n", 100.0 * heard / window / rate);
 
   {
     std::lock_guard<std::mutex> lock(pipe.mu);

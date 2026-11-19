@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cerrno>
 #include <cstring>
 #include <memory>
@@ -184,6 +185,21 @@ void lose(AudioLink &a) {
   post([id] { audio_lost(id); });
 }
 
+// tgcalls' fake device sleeps a fixed 10 ms after each tick, so with the tick's own work and the sleep's overshoot it ran
+// a few % slow: the peer reached the UI slower than real time and the Q10's speaker ran dry every ~0.4 s. This paces the
+// ticks by a steady clock: each is due 10 ms after the last was due, whenever that ran. Over 100 ms behind (the thread
+// was starved), it starts over from now rather than rushing out the backlog.
+struct Pace {
+  std::int32_t wait_us() {
+    const auto now = std::chrono::steady_clock::now();
+    next = now - next > std::chrono::milliseconds(100) ? now + std::chrono::milliseconds(10)
+                                                       : next + std::chrono::milliseconds(10);
+    return static_cast<std::int32_t>(std::max<long long>(
+        0, std::chrono::duration_cast<std::chrono::microseconds>(next - now).count()));
+  }
+  std::chrono::steady_clock::time_point next{};
+};
+
 // The microphone: what the UI sent, 10 ms at a time; silence when it has not sent enough.
 class Mic final : public tgcalls::FakeAudioDeviceModule::Recorder {
  public:
@@ -216,9 +232,14 @@ class Mic final : public tgcalls::FakeAudioDeviceModule::Recorder {
     return {buf_, kTick / 2, 2, 1, kRate, 0, 0};
   }
 
+  std::int32_t WaitForUs() override {
+    return pace_.wait_us();
+  }
+
  private:
   std::shared_ptr<AudioLink> a_;
   std::int16_t buf_[kTick / 2];
+  Pace pace_;
 };
 
 // The peer: gathered into frames and written to the UI without ever blocking; what the UI does not read is dropped.
@@ -255,9 +276,13 @@ class Speaker final : public tgcalls::FakeAudioDeviceModule::Renderer {
     }
     return true;
   }
+  std::int32_t WaitForUs() override {
+    return pace_.wait_us();
+  }
 
  private:
   std::shared_ptr<AudioLink> a_;
+  Pace pace_;
 };
 
 std::string hex(const std::string &bytes) {
