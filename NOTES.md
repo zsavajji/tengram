@@ -718,9 +718,11 @@ two tgcalls ends connected peer to peer over the phone's own network, each sendi
   says): −6 to −15 points. The one large knob; whether BB10's voice path cancels echo and noise itself decides it.
 - Opus complexity 0, 1, 5, 10: no consistent effect.
 - A profile (a /proc sampler that reads each thread's state before holding the process, so only running threads
-  count; spinners filtered out): WebRTC's noise suppressor at 48 kHz with its 3-band filter bank ~31 %, Opus ~20-24 %,
-  thread hand-offs and waits (`SyncCondvarWait_r`, `TimerTimeout`, `MsgSend`) ~11 %, QNX libc's software float
-  helpers (`_FDscalex`, `_FDtest`, from expf/logf) ~5 %, memcpy ~4 %.
+  count; spinners filtered out) **is biased and misled twice**: the sampler wakes on the clock tick, as the 10 ms
+  audio threads do, so it over-counts what runs right after a wake (`TimerTimeout`, the first step of each frame:
+  first the noise suppressor, ~31 %; with it off, `RmsLevel::Analyze`, 18 %). A/B runs with the spinners are the
+  measure: **noise suppression off saves ~1 point** for both ends (42.6 → 41.3 %), gain control in Android's
+  fixed-digital mode 0, all outgoing processing off ~10. Noise suppression stays off on QNX (the user's ask).
 - **libopus is fixed point now** (`--enable-fixed-point`, NEON intrinsics and ARM asm; Android and WebRTC build it so
   on ARM): the float build's `silk_*_FLP` functions were in the profile. Small, steady gain; voice notes pass
   `voice_check`.

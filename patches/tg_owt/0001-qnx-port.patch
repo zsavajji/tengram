@@ -73,16 +73,18 @@ index a9ab924b..39f59626 100644
  #else
  constexpr int kDefaultComplexity = 9;
 diff --git a/src/media/engine/webrtc_voice_engine.cc b/src/media/engine/webrtc_voice_engine.cc
-index 23a1b192..cfb71d96 100644
+index 23a1b192..d49e933f 100644
 --- a/src/media/engine/webrtc_voice_engine.cc
 +++ b/src/media/engine/webrtc_voice_engine.cc
-@@ -496,6 +496,9 @@ void WebRtcVoiceEngine::ApplyOptions(const AudioOptions& options_in) {
+@@ -496,6 +496,11 @@ void WebRtcVoiceEngine::ApplyOptions(const AudioOptions& options_in) {
      options.echo_cancellation = false;
      RTC_LOG(LS_INFO) << "Always disable AEC on iOS. Use built-in instead.";
    }
 +#elif defined(__QNX__)
-+  // BlackBerry 10 (Tengram): the voice audio path cancels echo itself, as iOS's VPIO does.
++  // BlackBerry 10 (Tengram): the voice audio path cancels echo itself, as iOS's VPIO does. No noise suppression
++  // either (the user, 2026-11-19; about 1 point of a core for a call's two ends on the Q10).
 +  options.echo_cancellation = false;
++  options.noise_suppression = false;
  #elif defined(WEBRTC_ANDROID)
    use_mobile_software_aec = true;
  #endif
