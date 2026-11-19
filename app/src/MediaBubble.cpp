@@ -346,6 +346,9 @@ void MediaBubble::refresh()
     m_photoSpin->setRunning(loading && m_picture && !filling);
     m_photoRing->setVisible(loading && m_picture && filling);
     m_dim->setVisible(loading && m_picture);
+    // The "Photo" / "Video" of a picture with no thumbnail sits where the spinner and the ring do: it gives way to them
+    // (a video being sent has no thumbnail, the user 2026-11-19).
+    m_noneText->setVisible(!loading);
     m_play->setVisible(video && !loading);
     // The video's length gives way to the text, as a file's size line does.
     const QString length = words.isEmpty() ? str("durationText") : words;
