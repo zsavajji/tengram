@@ -10,10 +10,16 @@
 
 using namespace bb::utility::i18n;
 
+// The calls asked for at the start, and each time the list is scrolled to its end.
+static const int FirstPage = 15;
+static const int MorePage = 30;
+
 CallLog::CallLog(QObject *parent)
     : QObject(parent)
     , m_loaded(false)
     , m_wanted(false)
+    , m_more(false)
+    , m_from(0)
     , m_region(bb::system::LocaleType::Region)
 {
 }
@@ -48,9 +54,30 @@ void CallLog::ask()
     m_wanted = true;
     if (!m_engine)
         return;
-    const QString id = m_engine->request("calls.list", QVariantMap());
-    if (!id.isEmpty())
-        m_sent.insert(id, "calls.list");
+    QVariantMap args;
+    args["limit"] = FirstPage;
+    const QString id = m_engine->request("calls.list", args);
+    if (id.isEmpty())
+        return;
+    // A next page still on its way belongs to the list this one replaces: its reply is left unread.
+    foreach (const QString &old, m_moreIds)
+        m_sent.remove(old);
+    m_moreIds.clear();
+    m_sent.insert(id, "calls.list");
+}
+
+void CallLog::askMore()
+{
+    if (!m_engine || !m_more || !m_sent.isEmpty())
+        return;
+    QVariantMap args;
+    args["offset"] = m_next;
+    args["limit"] = MorePage;
+    const QString id = m_engine->request("calls.list", args);
+    if (id.isEmpty())
+        return;
+    m_sent.insert(id, "calls.list");
+    m_moreIds.insert(id);
 }
 
 // When a call was made, as the chat list words a time: the clock today, "Yesterday" or the weekday
@@ -109,12 +136,21 @@ void CallLog::onReplied(const QString &id, const QString &cmd, const QVariant &r
     Q_UNUSED(cmd);
     if (m_sent.take(id).isEmpty())
         return;
-    m_list.clear();
-    const QVariantList calls = result.toMap().value("calls").toList();
+    // The newest page replaces the list, a next page goes after it.
+    if (!m_moreIds.remove(id))
+        m_list.clear();
+    m_from = m_list.size();
+    const QVariantMap reply = result.toMap();
+    const QVariantList calls = reply.value("calls").toList();
     for (int i = 0; i < calls.size(); ++i)
         m_list << row(calls.at(i).toMap());
+    m_next = reply.value("next").toString();
+    m_more = !m_next.isEmpty();
     m_loaded = true;
     emit listChanged();
+    // A page can hold no calls (TDLib's page, less what isn't a call), and the scroll would never ask again.
+    if (m_list.size() == m_from && m_more)
+        askMore();
 }
 
 // The failure carries no id: the first of our requests with its cmd is the one that failed. A list
@@ -124,6 +160,8 @@ void CallLog::onFailure()
     if (!m_engine)
         return;
     const QString id = m_sent.key(m_engine->failure().value("cmd").toString());
-    if (!id.isEmpty())
-        m_sent.remove(id);
+    if (id.isEmpty())
+        return;
+    m_sent.remove(id);
+    m_moreIds.remove(id);
 }

@@ -861,19 +861,23 @@ void call_video(std::uint64_t conn, const std::string &id, td::JsonObject &req) 
   server.reply_ok(conn, id);
 }
 
-// The call log: the newest 100 call messages of all chats, as TDLib orders them (newest first).
-void calls_list(std::uint64_t conn, const std::string &id) {
-  tdlib.send(make_object<td_api::searchCallMessages>("", 100, false), [conn, id](Obj o) {
+// The call log, a page of it: `limit` call messages of all chats from `offset` ("" for the newest), as TDLib orders them
+// (newest first). The reply's `next` is the offset of the following page, "" at the end. A page can hold fewer than
+// `limit` calls, or none, and still have a next.
+void calls_list(std::uint64_t conn, const std::string &id, const std::string &offset, int limit) {
+  tdlib.send(make_object<td_api::searchCallMessages>(offset, limit, false), [conn, id](Obj o) {
     if (auto e = as_error(o)) {
       return td_failed(conn, id, *e);
     }
+    const auto &found = static_cast<const td_api::foundMessages &>(*o);
     std::vector<const td_api::message *> rows;
-    for (const auto &m : static_cast<const td_api::foundMessages &>(*o).messages_) {
+    for (const auto &m : found.messages_) {
       if (m && m->content_ && m->content_->get_id() == td_api::messageCall::ID) {
         rows.push_back(m.get());
       }
     }
-    server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&rows](auto &r) {
+    const std::string next = found.next_offset_;
+    server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&rows, &next](auto &r) {
                       r("calls", td::json_array(rows, [](const td_api::message *m) {
                         // m by value: the object is written out after this returns (by reference, every row read
                         // freed stack: chats, dates and names were garbage; Q10, 2026-11-19).
@@ -889,6 +893,7 @@ void calls_list(std::uint64_t conn, const std::string &id) {
                           o("name", chat_title(m->chat_id_));  // "" when unknown
                         });
                       }));
+                      r("next", next);
                     })));
   });
 }
@@ -935,11 +940,28 @@ void calls_update(td_api::Object &update) {
 
 bool calls_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   if (cmd == "calls.list") {
-    if (link_ready()) {
-      calls_list(conn, id);
-    } else {
+    if (!link_ready()) {
       server.reply_error(conn, id, "unlinked", "not logged in");
+      return true;
     }
+    // The optional string "offset" ("" for the newest) and number "limit" (1 to 100, else 15), as parse_limit reads one.
+    td::JsonValue offset, number;
+    const int has_offset = optional_field(req, "offset", td::JsonValue::Type::String, offset);
+    const int has_limit = optional_field(req, "limit", td::JsonValue::Type::Number, number);
+    long limit = 15;
+    if (has_limit == 1) {
+      char *end = nullptr;
+      const std::string text = number.get_number().str();
+      limit = std::strtol(text.c_str(), &end, 10);
+      if (*end) {
+        limit = 0;
+      }
+    }
+    if (has_offset < 0 || has_limit < 0 || limit < 1 || limit > 100) {
+      bad_request(conn, id, "offset is a string, limit a number from 1 to 100");
+      return true;
+    }
+    calls_list(conn, id, has_offset == 1 ? offset.get_string().str() : "", static_cast<int>(limit));
     return true;
   }
   if (cmd == "call.start") {

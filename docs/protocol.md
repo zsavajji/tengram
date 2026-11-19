@@ -121,7 +121,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `call.reject` | `id` (the id of a ringing call, a string) | — | `not_found` |
 | `call.hangup` | `id` (the id of the call, a string; any state before `ended`) | — | `not_found` |
 | `call.video` | `id` (the id of the call, a string; any state before `ended`), `on` (bool) | — | `not_found`, `bad_request` |
-| `calls.list` | — | `{calls: [{chat, msg, date, out, reason, duration, video, name}]}`, the call log: see "Calls" | `unlinked` |
+| `calls.list` | `offset` (a string: the previous page's `next`; "" or absent for the newest), `limit` (1 to 100, default 15) | `{calls: [{chat, msg, date, out, reason, duration, video, name}], next}`, a page of the call log: see "Calls" | `unlinked`, `bad_request` |
 | `search.chats` | `query` (a string, trimmed; "" for the suggestions), `tab` (`chats`, `channels` or `apps`) | with `query` empty `{top, recent}` (the people, channels or bots the user writes to most, and the chats found before), else `{local, global}` (what TDLib knows by title or username, and on the chats tab the address book; then Telegram's public chats, less those in `local`); each a list of `{jid, name, kind, username, count, member, photo}`: `kind` is `person`, `bot`, `group` or `channel`; `username` "" for none; `count` the members or subscribers, 0 for a person, a bot or when unknown; `member` true for a chat of our list; `photo` is absent when not here yet (a person's or a bot's comes as a `photo` event). Only the tab's kinds: `chats` has person and group, `channels` channel, `apps` bot; secret chats are never in it. A list TDLib or Telegram refuses (top chats turned off, a text too short for the public search) is empty | `unlinked`, `bad_request` |
 | `search.recentAdd` | `chat` (a chat key) | — | `unlinked`, `bad_request`, `td` |
 | `search.recentClear` | — | — | `unlinked` |
@@ -757,12 +757,15 @@ While a call is live the network stays on, whatever the delivery mode says.
 
 ### Call log
 
-`calls.list` is the account's call history: the newest 100 call messages of all chats (`searchCallMessages`), newest first, one
-object each: `chat` (the person's chat key, a string), `msg`
+`calls.list` is the account's call history, a page at a time (`searchCallMessages`): `limit` call messages of all chats from
+`offset`, newest first, one object each: `chat` (the person's chat key, a string), `msg`
 (the call message's id, a string), `date` (unix seconds), `out` (bool: we placed it), `reason` (why it ended: `missed`,
 `declined`, `disconnected`, `hungup`, or `""` when Telegram gave none), `duration` (seconds talked, 0 when nobody answered),
 `video` (bool) and `name` (the chat's title, `""` when the chat is not mirrored). It is the history only: a call under way is
 told by the `call` events, and its message comes after it ends.
+
+`next` is the offset of the following page, `""` at the end of the history; ask for it with `offset`. A page may hold fewer
+than `limit` calls, or none (it is TDLib's page, cut down to the call messages) even when `next` is not `""`.
 
 ### Audio link
 
