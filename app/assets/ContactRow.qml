@@ -43,10 +43,13 @@ Container {
                 textStyle.base: row.ListItem.view.emojiStyle
                 textStyle.fontSize: FontSize.PercentageValue
                 textStyle.fontSizeValue: row.ListItem.view.bodySize
+                // The second line sits right under it: the stock margins left a line's gap (the user's screenshot, 2026-11-19).
+                bottomMargin: 0
             }
             // A second line, for the rows that have one (the search page's: @username, members).
             Label {
                 visible: !!row.contact.sub
+                topMargin: 0
                 horizontalAlignment: HorizontalAlignment.Fill
                 text: row.contact.sub ? row.contact.sub : ""
                 textFormat: TextFormat.Plain
