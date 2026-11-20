@@ -78,7 +78,7 @@ Page {
         // A session: its three lines, and a tap on another device's asks to end it.
         ComponentDefinition {
             id: sessionDef
-            Container {
+            TapArea {
                 id: row
                 property variant session
                 property bool pressed: false
@@ -87,22 +87,10 @@ Page {
                 // to end it. This device's row does nothing, so it takes no focus.
                 focusPolicy: !!row.session && !row.session.current ? FocusPolicy.KeyAndTouch : FocusPolicy.None
                 background: pressed || focused ? Color.create(nav.pressColor) : Color.Transparent
-                gestureHandlers: TapHandler {
-                    onTapped: {
-                        // This device has no Terminate: that is a log out, which is the Account page's.
-                        if (!row.session.current) {
-                            page.askTerminate(row.session)
-                        }
-                    }
-                }
-                keyListeners: KeyListener {
-                    onKeyReleased: {
-                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                            // This device has no Terminate: that is a log out, which is the Account page's.
-                            if (!row.session.current) {
-                                page.askTerminate(row.session)
-                            }
-                        }
+                onClicked: {
+                    // This device has no Terminate: that is a log out, which is the Account page's.
+                    if (!row.session.current) {
+                        page.askTerminate(row.session)
                     }
                 }
                 onTouch: row.pressed = !row.session.current && (event.isDown() || event.isMove())

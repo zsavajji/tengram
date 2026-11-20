@@ -42,7 +42,7 @@ Page {
             nav.forwardTo(chat, fwd, topic)
             return
         }
-        var chatPage = chatDef.createObject()
+        var chatPage = nav.at(0).takeChatPage()
         chatPage.topic = topic.topic
         chatPage.topicName = topic.name
         chatPage.chat = chat
@@ -65,10 +65,6 @@ Page {
         ChatController {
             id: infoCtl
             link: engine
-        },
-        ComponentDefinition {
-            id: chatDef
-            source: "ChatPage.qml"
         },
         SystemToast {
             id: listFailed

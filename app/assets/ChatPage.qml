@@ -8,6 +8,8 @@ import tengram 1.0
 Page {
     id: page
     property variant chat
+    // Read by main.qml's nav: animated stickers play only while this page is on top.
+    property bool playsStickers: true
     // A forum topic's id and name, set before chat: the page is that topic's messages only (ChatController.open). 0
     // for any other chat.
     property int topic: 0
@@ -74,6 +76,7 @@ Page {
         ctl.messages.itemAdded.connect(page.added)
         ctl.messages.newestComing.connect(page.coming)
         ctl.messages.loadingChanged.connect(page.loaded)
+        ctl.mentionsChanged.connect(page.jumpCounts)
         ctl.unreadFound.connect(page.jump) // the @ and heart buttons' message: loaded if far back, scrolled to and tinted
         media.ready.connect(page.mediaReady)
         media.openFailed.connect(mediaFailed.show)
@@ -112,6 +115,22 @@ Page {
             interval: 150
             singleShot: false
             onTimeout: {
+                // An open at the first unread: the list's place has held since the last aim, so the cards' heights are in and
+                // another aim would move nothing. The reveal waits for the aims, so this is 150 ms of an open (1.0.0.94's log).
+                // Only for "unread": a sent photo's card can grow after its first layout, and "bottom" always reads entry 0.
+                var at = scrollState.firstVisibleItem.length > 0 ? "" + scrollState.firstVisibleItem[0] : ""
+                if (page.aimAt == "unread" && page.aims >= 1 && at == page.aimHeld) {
+                    page.endAim()
+                    return
+                }
+                // The same for an open that ends at the bottom (an unread run shorter than the screen, releaseUnread): the list is
+                // hidden, sticks to its bottom edge and already rests there, so the reveal need not wait for two more aims
+                // (455 ms in 1.0.0.97's log). Only while hidden: a sent photo's aim, on a list in view, runs all three.
+                if (page.listHidden && page.aimAt == "bottom" && page.aims >= 1 && scrollState.atBeginning) {
+                    page.endAim()
+                    return
+                }
+                page.aimHeld = at
                 page.aim()
                 page.aims = page.aims + 1
                 if (page.aims >= 3) {
@@ -649,9 +668,6 @@ Page {
     property bool slidePin: false
     function coming() {
         var inWindow = ctl.messages && ctl.messages.window
-        // ponytail: a diagnostic of the slide (the user: it slides in Saved Messages only, 0.1.0.70); remove once settled.
-        console.log("chat: slide coming, placed " + page.placed + ", atBeginning " + scrollState.atBeginning + ", window "
-                    + inWindow + ", aim '" + aimAt + "'")
         if (page.placed && scrollState.atBeginning && !inWindow && (aimAt == "" || aimAt == "bottom")) {
             slideAnim.stop()
             list.translationY = 0
@@ -659,15 +675,20 @@ Page {
             slideGuard.start()
         }
     }
+    function nextReaction() { ctl.nextReaction() }
+    function nextMention() { ctl.nextMention() }
+    // The made buttons' counts follow the controller's (assigned, not bound: the delegates make them late).
+    function jumpCounts() {
+        if (heartSlot.control) { heartSlot.control.count = ctl.reactions }
+        if (atSlot.control) { atSlot.control.count = ctl.mentions }
+    }
     function added(indexPath) {
         if (indexPath[0] != 0) {
             return
         }
         if (slidePin) {
             followOwn = false
-            var row = ctl.messages.data(indexPath)
-            list.slideId = row && row.id ? row.id : ""
-            console.log("chat: slide row '" + list.slideId + "'")
+            list.slideId = ctl.messages.idAt(indexPath[0])
             cardsProvider.slideRow(list.slideId) // a card already showing it reports now (MessageCards::slideRow)
         } else if (followOwn) {
             followOwn = false
@@ -678,15 +699,19 @@ Page {
     // A scroll right after rows go in stops short: the list places them by estimated heights until their cards
     // are made, and a photo's card is far taller than the estimate (HyperBerry's pitfalls; a sent photo was left
     // half below the screen and a media-heavy chat opened below its divider, Classic 0.1.0.9). So the scroll is
-    // aimed again every 150 ms, 3 times, as the real heights come in; a touch on the list ends it.
+    // aimed again every 150 ms, 3 times, as the real heights come in; a touch on the list ends it, and so does an
+    // aim at the first unread when the list's place has held since the last aim (reaim).
     // aimAt: "bottom" (our sent row), "unread" (the divider), "item" (aimId, a search or pin jump).
     property string aimAt: ""
     property string aimId: ""
     property int aims: 0
+    // The list's first visible entry at the last aim: the unread aim ends when it is the same again (reaim).
+    property string aimHeld: ""
     function startAim(what, id) {
         aimAt = what
         aimId = id
         aims = 0
+        aimHeld = ""
         reaim.start()
     }
     function aim() {
@@ -1050,14 +1075,12 @@ Page {
                     // The row's latest height: the slide starts when it has held for 30 ms (slideSettle): a reused card reports its old height, and its new layout came within 17 ms (0.1.0.74's log).
                     property real slideH: 0
                     function slideMeasured(h) {
-                        console.log("chat: slide measured " + h + " px")
                         slideGuard.stop() // the card is there: the slide waits for its height to hold
                         slideH = h
                         slideSettle.start()
                         return true
                     }
                     function slideIn(h) {
-                        console.log("chat: slide in, " + h + " px")
                         slideGuard.stop()
                         list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
                         list.translationY = h + ui.du(1)
@@ -1149,9 +1172,23 @@ Page {
                     model: ctl.messages
                     placing: page.listHidden
                 }
+                // A window of history (a chat opened far back, a jump) has its newer page on its way: a spinner at the bottom edge, in a
+                // Container whose padding is the gap, since a docked control's margins are ignored. The top edge's spinner is a row of the
+                // list (MessageModel's loading row, LoadingCard).
+                Container {
+                    horizontalAlignment: HorizontalAlignment.Center
+                    verticalAlignment: VerticalAlignment.Bottom
+                    bottomPadding: ui.du(1)
+                    ActivityIndicator {
+                        running: !!ctl.messages && ctl.messages.awaitingNewer && scrollState.atBeginning && !page.listHidden
+                        preferredWidth: ui.du(6)
+                        preferredHeight: ui.du(6)
+                    }
+                }
                 // The jump buttons (JumpButton.qml), bottom to top as Telegram's: to the newest message, when the list is in a
                 // window of history or far above it; to the next unread mention or reply to us (@); to our next message with
-                // unread reactions (the heart). The mention and reaction ones show while the chat (or the topic) has any, with
+                // unread reactions (the heart). The @ and heart buttons are made when their count is above 0 (ControlDelegate), the down
+                // button always. The mention and reaction ones show while the chat (or the topic) has any, with
                 // the number; a tap jumps to the oldest, which the engine marks read (chat.mention, chat.reaction), so the next
                 // tap goes to the next (the user, 2026-11-20). 5 px in from the right and the bottom in both modes (the user,
                 // 2026-11-19): a docked control's margins are ignored, so the buttons sit in a transparent Container docked in
@@ -1163,21 +1200,42 @@ Page {
                     // The list runs bottom to top: entry 0 is the newest, and the first visible item is the
                     // lowest one on screen.
                     property bool far: scrollState.firstVisibleItem.length > 0 && scrollState.firstVisibleItem[0] > 12
+                    // Not while the list is placed out of sight (listHidden): the aims move it, `far` flips with them, and the
+                    // down button blinked over the spinner in a chat with many unread messages (the user, 1.0.0.98).
+                    visible: !page.listHidden
                     horizontalAlignment: HorizontalAlignment.Right
                     verticalAlignment: VerticalAlignment.Bottom
                     rightPadding: ui.px(5)
                     bottomPadding: ui.px(5)
-                    JumpButton {
-                        visible: !!ctl.messages && ctl.reactions > 0
-                        image: "asset:///images/heart.png"
-                        count: ctl.reactions
-                        onTapped: ctl.nextReaction()
+                    ControlDelegate {
+                        id: heartSlot
+                        source: "JumpButton.qml"
+                        delegateActive: !!ctl.messages && ctl.reactions > 0
+                        visible: delegateActive
+                        topMargin: ui.du(1)
+                        bottomMargin: 0
+                        onControlChanged: {
+                            if (control) {
+                                control.image = "asset:///images/heart.png"
+                                control.count = ctl.reactions
+                                control.tapped.connect(page.nextReaction)
+                            }
+                        }
                     }
-                    JumpButton {
-                        visible: !!ctl.messages && ctl.mentions > 0
-                        glyph: "@"
-                        count: ctl.mentions
-                        onTapped: ctl.nextMention()
+                    ControlDelegate {
+                        id: atSlot
+                        source: "JumpButton.qml"
+                        delegateActive: !!ctl.messages && ctl.mentions > 0
+                        visible: delegateActive
+                        topMargin: ui.du(1)
+                        bottomMargin: 0
+                        onControlChanged: {
+                            if (control) {
+                                control.glyph = "@"
+                                control.count = ctl.mentions
+                                control.tapped.connect(page.nextMention)
+                            }
+                        }
                     }
                     JumpButton {
                         visible: !!ctl.messages && (ctl.messages.window || jumps.far)

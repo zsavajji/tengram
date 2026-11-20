@@ -4,7 +4,7 @@ import bb.cascades 1.4
 // ChatPage.qml for step 6.4). A tap cancels. Drawn as the quote in a card is: a primary-colour
 // bar, the name, one line of the text. The Classic's trackpad reaches it: FocusPolicy.Key, not KeyAndTouch, so a touch leaves the
 // focus (the composer's keyboard) where it is; it is lit as the pressed colour while it has the focus, and a click (Enter) cancels.
-Container {
+TapArea {
     id: bar
     property string name
     property string quote
@@ -21,16 +21,7 @@ Container {
     layout: StackLayout {
         orientation: LayoutOrientation.LeftToRight
     }
-    gestureHandlers: TapHandler {
-        onTapped: cancelled()
-    }
-    keyListeners: KeyListener {
-        onKeyReleased: {
-            if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                cancelled()
-            }
-        }
-    }
+    onClicked: cancelled()
     Container {
         verticalAlignment: VerticalAlignment.Fill
         preferredWidth: ui.du(0.5)

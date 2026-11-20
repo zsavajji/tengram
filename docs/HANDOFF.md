@@ -216,6 +216,37 @@ ChatRow, MediaBubble) obsolete and lrelease drops them. They were restored by ha
 
 ## 7. Where to resume, in order
 
+**Chat opening, left open (2026-11-20 evening, 1.0.0.93 to 1.0.0.102; the user: "just write it down, I am ok for
+now").** Measured on the Classic from the tap to the list shown, with timing lines that are out again (1.0.0.102 has
+none): a chat with nothing unread 0.16 s (median of 9), one that opens at its first unread message 0.88 s (median of
+11); 1.0.0.94 had about 0.25 s and 1.11 s. What made the difference: a chat page kept ready (`ChatsPage.takeChatPage`),
+the first page read by two screenfuls and the rest 0.7 s later (`MessageModel::loadRest`), a sender's round picture made
+on a worker (`roundPhotoSoon`), the unread position found by the (chat, ts) index (`findUnread`).
+
+Not done:
+1. **The fixed waits in placing an unread chat, about 0.4 s of each such open.** After the rows are read the list is
+   hidden while (a) the `reaim` timer aims at the divider, 150 ms after the first jump, since that one is made on guessed
+   heights; (b) 150 ms later it looks whether the list held, and aims a third time if not; (c) `releaseUnread` moves the
+   list 4 px off its top edge and the `release` timer waits 100 ms before `releaseOlder` puts the older rows in (a list
+   exactly at its edge follows rows appended there: the divider went to the bottom of the screen, Classic 0.1.0.12).
+   One open's log: first aim 0.28 s after the rows, the nudge at 0.45 s, shown at 0.60 s. Two ways to shorten it:
+   - show the list when the aim has held (step b) and release the older rows after: they go in above the screen, so
+     only the 4 px nudge would be seen. About 0.1 s, low risk.
+   - `reaim` at about 80 ms, not 150: up to 0.14 s. The risk is on record: with too little waiting a chat full of
+     photos opened below its divider (0.1.0.9). Only with the user looking at such chats on the phone.
+2. **A row of a media chat costs 2 to 10 ms to read**, in file checks and pictures (`MessageModel::read`,
+   `MediaData::fill`); a text row 0.5 ms. An unread open reads every row down to the divider (up to 100), so this is
+   its other large part. Reading only what the list shows would take filling a row's media when `data()` first asks
+   for it: a redesign of `read()`, not started.
+3. **The spare chat page is not ready on about a quarter of taps** (5 of 20): it is made 0.7 s after the list is the
+   top page again, later than at first because making it during the pop's animation stuttered it. Such a tap pays the
+   92 to 209 ms the page takes.
+4. Seven Enter-key sites are not on `TapArea.qml` (their owner is a `Tile` or a `Label`): ChannelInfoPage,
+   ChatTitleBar, ContactInfoPage (two), GroupInfoPage, ProfilePage, SearchPage.
+
+Untried on a phone from the same evening: the trackpad's click on the 37 controls now on `TapArea`, animated stickers
+pausing under another page, the sticker page after Clear cache, the fragmented MP4's hidden timeline and button.
+
 **First:** try Link desktop device (scan Telegram Desktop's QR; then the camera is free for other apps); see the
 channel composer (0.1.0.17).
 

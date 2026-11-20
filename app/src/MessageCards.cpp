@@ -1,5 +1,6 @@
 #include "MessageCards.h"
 
+#include <bb/cascades/ActivityIndicator>
 #include <bb/cascades/Container>
 #include <bb/cascades/DockLayout>
 #include <bb/cascades/HorizontalAlignment>
@@ -38,6 +39,9 @@ VisualNode *MessageCards::createItem(ListView *list, const QString &type)
         return new ServiceCard(list);
     if (type == "service")
         return new ServiceCard(list);
+    // Not a MessageCard, so not in m_cards (that list is for slideRow, which casts nothing but those).
+    if (type == "loading")
+        return new LoadingCard(list);
     // "text" is the light card; "picture" the full one with a photo, video or map across it; "msg", and
     // anything else, the full one.
     MessageCard *card = new MessageCard(list, type != "text", type == "picture");
@@ -63,6 +67,8 @@ void MessageCards::updateItem(ListView *, VisualNode *listItem, const QString &t
         static_cast<ServiceCard *>(listItem)->showText(data.toString());
     else if (type == "service")
         static_cast<ServiceCard *>(listItem)->show(data.toMap());
+    else if (type == "loading")
+        return; // a LoadingCard has nothing to fill (and is not a MessageCard: the cast below would crash)
     else
         static_cast<MessageCard *>(listItem)->show(data.toMap());
 }
@@ -138,4 +144,26 @@ void ServiceCard::showText(const QString &text)
     Card::style(m_text, m_list, Card::smallSize(m_list));
     m_text->textStyle()->setColor(Color::White); // after the base, as the message card does
     m_text->setText(text);
+}
+
+// A list item is as wide as its content unless it fills, so the root fills the row and the spinner is centred in it. No
+// background: the page's colour shows. The spinner runs for as long as the row exists (the model drops the row when the wait ends).
+LoadingCard::LoadingCard(ListView *list)
+{
+    UIConfig *ui = list->ui();
+    setHorizontalAlignment(HorizontalAlignment::Fill);
+
+    Container *root = new Container();
+    root->setHorizontalAlignment(HorizontalAlignment::Fill);
+    root->setTopPadding(ui->du(2));
+    root->setBottomPadding(ui->du(2));
+
+    ActivityIndicator *spin = new ActivityIndicator();
+    spin->setHorizontalAlignment(HorizontalAlignment::Center);
+    spin->setPreferredWidth(ui->du(6));
+    spin->setPreferredHeight(ui->du(6));
+    spin->setRunning(true);
+
+    root->add(spin);
+    setRoot(root);
 }

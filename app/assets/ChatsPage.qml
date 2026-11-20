@@ -1,5 +1,6 @@
 import bb.cascades 1.4
 import bb.system 1.2
+import tengram 1.0
 
 // The chat list (PLAN.md §7, step 2.4): chats.db's chats under date headers, drawn by
 // ChatListModel (the context property chats) before the engine answers.
@@ -9,7 +10,19 @@ Page {
     property variant picker
     // The new group page while it's open, so creating can remove it from the stack.
     property variant groupPage
+    // The next chat page, made ahead (the user, 2026-11-20: a faster open). Building ChatPage.qml was the wait between a
+    // tap and the push, and a page does nothing until its chat is set, so one is made while the list is the top page
+    // again (uncovered, from main.qml's nav) and takeChatPage hands it to the next open. Costs one idle page of memory.
+    property variant spareChat
+    // False until the first uncovered(): the app's start is left alone for 2 s, later pops make the page after 700 ms, once the pop's animation is over.
+    property bool spareLater: false
     attachedObjects: [
+        // Makes the spare chat page a moment after the list is uncovered.
+        Timer {
+            id: spareTimer
+            singleShot: true
+            onTimeout: page.makeSpare()
+        },
         ComponentDefinition {
             id: chatDef
             source: "ChatPage.qml"
@@ -127,11 +140,39 @@ Page {
             nav.push(topicsPage)
             return topicsPage
         }
-        var chatPage = chatDef.createObject()
+        var chatPage = page.takeChatPage()
         chatPage.chat = chat
         nav.push(chatPage)
         chatPage.focusComposer()
         return chatPage
+    }
+    // A chat page for a chat about to open: the one made ahead, else a new one (the first open after a start, or two opens
+    // in a row). Every way into a chat takes its page here (openChat, ArchivedPage, TopicsPage).
+    function takeChatPage() {
+        var chatPage = page.spareChat
+        if (chatPage) {
+            page.spareChat = null
+        } else {
+            chatPage = chatDef.createObject()
+        }
+        return chatPage
+    }
+    // Makes the spare chat page if there is none. With nav as its parent, as the call sheet is made (main.qml): an object
+    // made with no parent is the script engine's, which may collect it while it waits here in a property.
+    function makeSpare() {
+        if (page.spareChat) {
+            return
+        }
+        page.spareChat = chatDef.createObject(nav)
+    }
+    // Called by main.qml's nav each time this page is the top one (its onTopChanged): the next chat page is made 700 ms
+    // later, once the pop's animation is over (it ends about 350 ms after it starts): making it during the animation stuttered
+    // it, as the page holds the UI thread 92-260 ms (ui.log, 1.0.0.97; the user, 2026-11-20). The first time is the app's
+    // start, which is left alone for 2 s.
+    function uncovered() {
+        spareTimer.interval = page.spareLater ? 700 : 2000
+        page.spareLater = true
+        spareTimer.start()
     }
     // Telegram's search, on a page of its own (the user's ask, 2026-11-19); the filter is the Send to page's now.
     function openSearch() {

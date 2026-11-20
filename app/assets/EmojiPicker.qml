@@ -42,7 +42,7 @@ Container {
         // item underlined in the primary colour. This and the Stickers button are reached by the Classic's trackpad:
         // FocusPolicy.Key, not KeyAndTouch, so a touch leaves the focus (the composer's keyboard) where it is; the one with the
         // focus is lit as the pressed colour, and a click (Enter) does what a tap does. The grid's cells are the list's own.
-        Container {
+        TapArea {
             id: cell
             property int index
             property alias image: icon.imageSource
@@ -53,16 +53,7 @@ Container {
             layout: DockLayout {}
             focusPolicy: FocusPolicy.Key
             background: cell.focused ? Color.create(nav.pressColor) : Color.Transparent
-            gestureHandlers: TapHandler {
-                onTapped: cell.tapped(cell.index)
-            }
-            keyListeners: KeyListener {
-                onKeyReleased: {
-                    if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                        cell.tapped(cell.index)
-                    }
-                }
-            }
+            onClicked: cell.tapped(cell.index)
             ImageView {
                 id: icon
                 horizontalAlignment: HorizontalAlignment.Center
@@ -103,23 +94,14 @@ Container {
             background: ui.palette.secondaryTextOnPlain
             opacity: 0.4
         }
-        Container {
+        TapArea {
             id: stickersBtn
             preferredWidth: ui.px(72)
             preferredHeight: ui.px(72)
             layout: DockLayout {}
             focusPolicy: FocusPolicy.Key
             background: stickersBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
-            gestureHandlers: TapHandler {
-                onTapped: picker.stickers()
-            }
-            keyListeners: KeyListener {
-                onKeyReleased: {
-                    if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                        picker.stickers()
-                    }
-                }
-            }
+            onClicked: picker.stickers()
             ImageView {
                 horizontalAlignment: HorizontalAlignment.Center
                 verticalAlignment: VerticalAlignment.Center

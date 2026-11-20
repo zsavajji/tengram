@@ -372,14 +372,13 @@ QString MediaOpener::composePreview(const QString &path)
     return out;
 }
 
-int MediaOpener::videoLength(const QString &path)
+QVariantMap MediaOpener::videoInfo(const QString &path)
 {
-    return int(Mp4Length::ms(QFile::encodeName(path).constData()));
-}
-
-bool MediaOpener::videoFragmented(const QString &path)
-{
-    return Mp4Length::fragmented(QFile::encodeName(path).constData());
+    const Mp4Length::Info info = Mp4Length::info(QFile::encodeName(path).constData());
+    QVariantMap map;
+    map["length"] = int(info.ms);
+    map["fragmented"] = info.fragmented;
+    return map;
 }
 
 QString MediaOpener::videoPoster()

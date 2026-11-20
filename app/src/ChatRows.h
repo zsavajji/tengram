@@ -76,6 +76,7 @@ private:
     bool flag(const char *key) const { return m_chat.value(key).toBool(); }
 
     void paintBackground();
+    void makeAt();
     void makeActions();
     void showMoves(bool on);
     bb::cascades::ActionItem *action(const char *slot);
@@ -106,7 +107,8 @@ private:
     bb::cascades::ImageView *m_ticks;
     bb::cascades::Label *m_bang;
     bb::cascades::Label *m_preview;
-    bb::cascades::Container *m_at;        // an unread mention: "@" on a disc (a square), before the count
+    bb::cascades::Container *m_bottom;    // the row's last line, which makeAt() adds the @ to
+    bb::cascades::Container *m_at;        // an unread mention: "@" on a disc (a square), before the count; 0 until a mention
     bb::cascades::ImageView *m_atDisc;    // Round mode: its disc
     bb::cascades::Container *m_badge;
     bb::cascades::ImageView *m_badgePill; // Round mode: the badge's colour, under the count (Cascades has no radius)

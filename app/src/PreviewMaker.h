@@ -9,7 +9,8 @@
 #include <QTimer>
 
 // Makes the picture files a chat's rows show, off the UI thread: a downloaded photo's 640 px preview (MediaData) and a
-// sticker's 180 px PNG (Sticker), each ~290 ms and 20 to 60 ms on the Q10, which froze the UI for 5.9 s when a chat of 21
+// sticker's 180 px PNG (Sticker) and, for the chat's cards, the round copy of a sender's picture
+// (roundPhotoSoon, a 160 px PNG; ready() names it "round:<path>"), each ~290 ms and 20 to 60 ms on the Q10, which froze the UI for 5.9 s when a chat of 21
 // photos opened. One for the app, a child of the application, used from the UI thread only. A row whose file isn't there
 // shows what it has (the inline thumbnail) and asks want(); ready() then says which rows to read again, and MessageModel
 // does (the file is there by then).
@@ -17,7 +18,7 @@ class PreviewMaker : public QObject
 {
     Q_OBJECT
 public:
-    enum Job { PhotoPreview, StickerPicture };
+    enum Job { PhotoPreview, StickerPicture, RoundPicture };
 
     // Made on the first call.
     static PreviewMaker *instance();

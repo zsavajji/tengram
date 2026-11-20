@@ -143,7 +143,7 @@ Page {
         // A group in common: the same row as a participant on the group info page.
         ComponentDefinition {
             id: groupDef
-            Container {
+            TapArea {
                 id: row
                 property variant group
                 // The group's picture from the chat list (chats.db), over its initials; none when we left it.
@@ -153,16 +153,7 @@ Page {
                 // The Classic's trackpad reaches the row: it takes the focus, lit as while pressed, and a click (Enter) opens the group.
                 focusPolicy: FocusPolicy.KeyAndTouch
                 background: pressed || focused ? Color.create(nav.pressColor) : Color.Transparent
-                gestureHandlers: TapHandler {
-                    onTapped: nav.openRequested(row.group.jid)
-                }
-                keyListeners: KeyListener {
-                    onKeyReleased: {
-                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                            nav.openRequested(row.group.jid)
-                        }
-                    }
-                }
+                onClicked: nav.openRequested(row.group.jid)
                 onTouch: row.pressed = event.isDown() || event.isMove()
                 onTouchExit: row.pressed = false
                 Container {

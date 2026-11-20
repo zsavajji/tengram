@@ -101,10 +101,10 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     // Covered until a tap takes the cover off (unspoil), for as long as this chat stays open.
     const bool covered = m.data["spoiler"].toBool() && !deleted && !m_revealed.contains(m.id);
     m.data["spoiler"] = covered;
-    if (MediaData::fill(m.data, m.id, deleted ? 0 : kind, text, q.value(19).toByteArray(),
+    const bool filled = MediaData::fill(m.data, m.id, deleted ? 0 : kind, text, q.value(19).toByteArray(),
                         q.value(20).toInt(), q.value(21).toInt(), q.value(22).toLongLong(),
-                        q.value(15).toInt(), mediaState, path, previewPath, locale, covered)
-        && (kind == 4 || kind == 8))
+                        q.value(15).toInt(), mediaState, path, previewPath, locale, covered);
+    if (filled && (kind == 4 || kind == 8))
         shown = QString();
     if (deleted) {
         label = QString();
@@ -179,7 +179,8 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     }
     m.data["text"] = shown;
     // The same text with its mentions linked, "" for none (MessageKinds::html).
-    m.data["html"] = MessageKinds::html(shown, extra);
+    const QString html = MessageKinds::html(shown, extra);
+    m.data["html"] = html;
     m.data["albumId"] = extra.value("album").toString(); // Telegram's album (Albums.h), "" for none
     m.data["quote"] = q.value(9).toString();
     m.data["quoteId"] = q.value(26).toString(); // a tap on the quote jumps to it
@@ -203,8 +204,15 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     m.data["senderColor"] = color;
     // A file TDLib has since deleted is no picture (Clear media); the initials show until senders.get asks for it again.
     QString photo = senderId.isEmpty() ? QString() : q.value(28).toString();
-    if (!photo.isEmpty() && !QFile::exists(photo))
-        photo.clear();
+    // Looked for once per path in a select(), not once per row: a group's rows repeat a few senders, and a file check costs
+    // about 1 ms on the phone (m_photoThere).
+    if (!photo.isEmpty()) {
+        QHash<QString, bool>::const_iterator there = m_photoThere.constFind(photo);
+        if (there == m_photoThere.constEnd())
+            there = m_photoThere.insert(photo, QFile::exists(photo));
+        if (!there.value())
+            photo.clear();
+    }
     if (!senderId.isEmpty())
         m.data["senderPhoto"] = photo; // data() keeps it unless senders.get has a picture of its own
     // A positive id is a user, which is all senders.get knows: a chat that posts as itself has a negative one.
@@ -315,10 +323,24 @@ void MessageModel::findUnread()
         return;
     // The cache must hold every unread message: one that TDLib announced only by its last message has
     // the newest alone, and the divider would sit above that one while `unread` says 20.
+    // The unread run is the chat's newest rows. Both counts below are bounded by the time of the last read message when
+    // chats.db has it, so they walk the (chat, ts) index from there, not every row of the chat as CAST(id) alone made them
+    // (279 ms to open a busy group on the Classic, 1.0.0.95). Ids and times rise together in a chat. Without that row
+    // (deleted, never cached) they count as before.
+    qint64 since = 0;
+    QSqlQuery at(db);
+    at.prepare("SELECT ts FROM messages WHERE chat = ? AND id = ?");
+    at.addBindValue(m_chat);
+    at.addBindValue(QString::number(readInbox));
+    if (at.exec() && at.next())
+        since = at.value(0).toLongLong();
+    const QString bound = since > 0 ? " AND ts >= ?" : "";
     QSqlQuery have(db);
-    have.prepare(QString("SELECT count(*), min(CAST(id AS INTEGER)) FROM messages WHERE chat = ?%1 AND out = 0 "
-                         "AND CAST(id AS INTEGER) > ?").arg(topicSql()));
+    have.prepare(QString("SELECT count(*), min(CAST(id AS INTEGER)) FROM messages WHERE chat = ?%1%2 AND out = 0 "
+                         "AND CAST(id AS INTEGER) > ?").arg(topicSql(), bound));
     bindChat(have);
+    if (since > 0)
+        have.addBindValue(since);
     have.addBindValue(readInbox);
     if (!have.exec() || !have.next())
         return;
@@ -330,8 +352,11 @@ void MessageModel::findUnread()
     const qint64 first = have.value(1).toLongLong();
     // Every row from it to the newest, ours included: what loadFirst reads and chat.open must verify.
     QSqlQuery count(db);
-    count.prepare(QString("SELECT count(*) FROM messages WHERE chat = ?%1 AND CAST(id AS INTEGER) >= ?").arg(topicSql()));
+    count.prepare(QString("SELECT count(*) FROM messages WHERE chat = ?%1%2 AND CAST(id AS INTEGER) >= ?")
+                      .arg(topicSql(), bound));
     bindChat(count);
+    if (since > 0)
+        count.addBindValue(since);
     count.addBindValue(first);
     if (!count.exec() || !count.next())
         return;
@@ -367,8 +392,12 @@ QList<qint64> MessageModel::pageTimes(const QString &where, const QVariantList &
 // Runs the messages query of this chat: "where" adds conditions on top of chat = ?, args are
 // bound after it. Newest first, then reversed to the order the list shows. oldestFirst takes the oldest
 // `limit` rows instead (the next page after a row), and returns them in the same order.
+// budget (not 0, rows newest first only): the loop stops once the rows kept cost `budget` (kCost*), never inside an album
+// (one message: its members after the budget is spent are still kept, and only the first one read is charged). The row that
+// ends the page is not read at all (read() asks the engine for senders and previews), so the next page, older than the oldest
+// kept row, starts with it.
 QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVariantList &args,
-                                              int limit, bool oldestFirst)
+                                              int limit, bool oldestFirst, int budget)
 {
     QList<Msg> rows;
     QSqlDatabase db = database();
@@ -377,6 +406,7 @@ QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVaria
     m_locale = m_region.locale();
     m_clock = timeFormat(m_locale, DateFormat::Short);
     m_now = QDateTime::currentDateTime().toTime_t();
+    m_photoThere.clear(); // a sender's picture file is looked for once in a select()
     QSqlQuery q(db);
     q.prepare(QString("SELECT %1 FROM messages LEFT JOIN people ON people.user = messages.sender "
                       "WHERE chat = ?%5 %2 ORDER BY ts %3, CAST(id AS INTEGER) %3 "
@@ -388,11 +418,29 @@ QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVaria
         qWarning() << "messages:" << q.lastError().text();
         return rows;
     }
-    while (q.next()) {
+    int spent = 0;
+    QString lastAlbum; // the album of the last row kept, "" for none
+    for (;;) {
+        const bool more = q.next();
+        if (!more)
+            break;
+        // Spent: the page is over unless this row is a further member of the last one's album. Known from extra's text
+        // (engine/messages.cpp append_extra writes "album":"<id>") without read(), which has side effects.
+        if (budget > 0 && !oldestFirst && spent >= budget
+            && (lastAlbum.isEmpty() || !q.value(24).toString().contains("\"album\":\"" + lastAlbum + "\"")))
+            break;
+        const Msg row = read(q);
+        if (budget > 0 && !oldestFirst) {
+            const QString album = row.data.value("albumId").toString();
+            if (album.isEmpty() || album != lastAlbum)
+                spent += (row.kind == 1 || row.kind == 2 || row.kind == 9) ? kCostPicture
+                         : row.kind == 5 ? kCostSticker : kCostText;
+            lastAlbum = album;
+        }
         if (oldestFirst)
-            rows.append(read(q));
+            rows.append(row);
         else
-            rows.prepend(read(q));
+            rows.prepend(row);
     }
     // Ours sent while the chat is open sort where they were sent (m_place), a page read again included.
     for (int i = 0; i < rows.size(); ++i)
@@ -415,6 +463,7 @@ MessageModel::Msg MessageModel::localRow(const QString &id, const QString &text,
     m_locale = m_region.locale();
     m_clock = timeFormat(m_locale, DateFormat::Short);
     m_now = QDateTime::currentDateTime().toTime_t();
+    m_photoThere.clear();
     QSqlQuery q(db);
     q.prepare(QString("SELECT %1 FROM (SELECT ? AS chat, ? AS id, ? AS ts, 1 AS out, 0 AS state, NULL AS sender, "
                       "NULL AS sender_name, 0 AS kind, ? AS text, "

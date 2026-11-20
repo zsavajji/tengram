@@ -121,8 +121,8 @@ bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QStri
     if (media.isEmpty())
         return false;
     // The inline thumbnail stands in when there is no readable photo or sticker, and until the photo's preview or the
-    // sticker's picture is made (PreviewMaker). A photo's preview is shown from its file; only a spoiler's is read here,
-    // to blur it.
+    // sticker's picture is made (PreviewMaker). A photo's preview and a sticker's picture are shown from their files; only a
+    // spoiler's is read here, to blur it.
     QByteArray shown = thumb;
     QString file;
     if (kind == 1 && mediaState == 2 && !path.isEmpty()) {
@@ -135,9 +135,7 @@ bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QStri
         // A video's own JPEG thumbnail, drawn as it is; a file TDLib has since dropped leaves the minithumbnail.
         file = previewPath;
     } else if (kind == 5 && mediaState == 2 && !path.isEmpty()) {
-        const QByteArray p = Sticker::picture(id, path); // empty until PreviewMaker has made it: the thumbnail stands
-        if (!p.isEmpty())
-            shown = p;
+        file = Sticker::picture(id, path); // "" until PreviewMaker has made it: the thumbnail in shown stands
     }
     if (blur) {
         QFile f(file);
@@ -165,7 +163,17 @@ bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QStri
     data["mediaState"] = mediaState;
     data["path"] = path;
     // A downloaded TGS (Lottie) sticker, which StickerPlayer plays; always set, so a recycled card never reads another row's.
-    data["tgs"] = kind == 5 && mediaState == 2 && !path.isEmpty() && Sticker::isTgs(path);
+    // A sticker file's kind never changes, so the sniff of its first bytes is made once: one entry per sticker seen. fill()
+    // runs on the UI thread only.
+    bool tgs = false;
+    if (kind == 5 && mediaState == 2 && !path.isEmpty()) {
+        static QHash<QString, bool> sniffed;
+        QHash<QString, bool>::const_iterator it = sniffed.constFind(path);
+        if (it == sniffed.constEnd())
+            it = sniffed.insert(path, Sticker::isTgs(path));
+        tgs = it.value();
+    }
+    data["tgs"] = tgs;
     data["sizeText"] = sizeText(size, locale);
     data["durationText"] = (kind == 2 || kind == 8) && duration > 0 ? clock(duration) : QString();
     data["fileName"] = kind == 4 ? text : QString();

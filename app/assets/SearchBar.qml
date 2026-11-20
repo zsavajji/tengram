@@ -96,7 +96,7 @@ Container {
     // Each is a touch target the size of an action column (9 du), as the chat list's ✕. The Classic's trackpad reaches them:
     // FocusPolicy.Key, not KeyAndTouch, so a touch leaves the focus, and the keyboard, in the field; one with the focus is lit
     // as the pressed colour, and a click (Enter) does what a tap does.
-    Container {
+    TapArea {
         id: olderBtn
         verticalAlignment: VerticalAlignment.Center
         preferredWidth: ui.du(9)
@@ -105,16 +105,7 @@ Container {
         }
         focusPolicy: FocusPolicy.Key
         background: olderBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
-        gestureHandlers: TapHandler {
-            onTapped: bar.older()
-        }
-        keyListeners: KeyListener {
-            onKeyReleased: {
-                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                    bar.older()
-                }
-            }
-        }
+        onClicked: bar.older()
         Label {
             horizontalAlignment: HorizontalAlignment.Center
             verticalAlignment: VerticalAlignment.Center
@@ -125,7 +116,7 @@ Container {
             opacity: bar.canOlder ? 1 : 0.4
         }
     }
-    Container {
+    TapArea {
         id: newerBtn
         verticalAlignment: VerticalAlignment.Center
         preferredWidth: ui.du(9)
@@ -134,16 +125,7 @@ Container {
         }
         focusPolicy: FocusPolicy.Key
         background: newerBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
-        gestureHandlers: TapHandler {
-            onTapped: bar.newer()
-        }
-        keyListeners: KeyListener {
-            onKeyReleased: {
-                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                    bar.newer()
-                }
-            }
-        }
+        onClicked: bar.newer()
         Label {
             horizontalAlignment: HorizontalAlignment.Center
             verticalAlignment: VerticalAlignment.Center
@@ -153,7 +135,7 @@ Container {
             opacity: bar.canNewer ? 1 : 0.4
         }
     }
-    Container {
+    TapArea {
         id: closeBtn
         verticalAlignment: VerticalAlignment.Center
         preferredWidth: ui.du(9)
@@ -162,16 +144,7 @@ Container {
         }
         focusPolicy: FocusPolicy.Key
         background: closeBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
-        gestureHandlers: TapHandler {
-            onTapped: bar.close()
-        }
-        keyListeners: KeyListener {
-            onKeyReleased: {
-                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                    bar.close()
-                }
-            }
-        }
+        onClicked: bar.close()
         Label {
             horizontalAlignment: HorizontalAlignment.Center
             verticalAlignment: VerticalAlignment.Center

@@ -47,6 +47,8 @@ NavigationPane {
     property bool peekWas: true
     onTopChanged: {
         nav.noPeek = !!nav.top && !!nav.top.noPeek
+        // Animated stickers draw only while a chat page is on top (ChatPage's playsStickers), as noPeek is read.
+        settings.coverStickers(!(nav.top && nav.top.playsStickers))
         // A page that has a chat over it catches up when it is the top again.
         if (nav.top && nav.top.uncovered) {
             nav.top.uncovered()

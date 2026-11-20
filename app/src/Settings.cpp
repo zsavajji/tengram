@@ -25,6 +25,8 @@
 #include <QTime>
 
 #include "EngineLink.h"
+#include "PreviewMaker.h"
+#include "StickerPlayer.h"
 #include "sizes.h"
 
 bool Settings::s_roundShape = true; // Round is the default (the user, 2026-11-19), as round() reads it
@@ -391,6 +393,8 @@ void Settings::setSyncContacts(bool on)
 // The round copies roundPhoto has made, by the picture's path, size and time: a list scrolling asks again and again. Emptied
 // with the cache, which holds the files.
 static QHash<QString, QString> s_round;
+// roundPhotoSoon's: by the picture's path alone.
+static QHash<QString, QString> s_roundSoon;
 
 // The cache is data/cache/ except upload/, which holds an upload in progress. Everything else in
 // it is made again when needed (a voice note's WAV on its next play, a photo's preview on its next
@@ -429,8 +433,14 @@ qint64 Settings::removeCache()
     return freed;
 }
 
+void Settings::coverStickers(bool covered)
+{
+    StickerPlayer::setCovered(covered);
+}
+
 void Settings::forgetRound()
 {
+    s_roundSoon.clear();
     s_round.clear(); // the round pictures' names: their files are about to go
 }
 
@@ -441,6 +451,41 @@ void Settings::forgetRound()
 // profile's own is rewritten under one path), a size has its own, and one already made is not drawn again.
 // ponytail: never pruned (about 15 KB a tile, 100 KB a profile picture); Clear cache empties it. Prune it with the other
 // caches if it ever grows.
+// The round copy's file for a picture: named by an md5 of the path, the size and the file's time (modified, in seconds).
+static QString roundFilePath(const QString &path, int size, uint modified)
+{
+    const QString key = path + QChar('@') + QString::number(size) + QChar('@') + QString::number(modified);
+    const QByteArray name = QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Md5).toHex();
+    return QDir::homePath() + "/cache/round/" + QString::fromLatin1(name) + ".png";
+}
+
+// The disc itself: the picture read scaled and painted into a transparent image, null when it can't be read. It touches
+// only QImageReader, QImage and QPainter on a QImage, so a worker thread may call it (PreviewMaker does).
+QImage roundImage(const QString &path, int size)
+{
+    QImageReader reader(path);
+    QSize to = reader.size(); // from the header
+    if (!to.isValid())
+        return QImage();
+    if (qMin(to.width(), to.height()) > size) {
+        to.scale(size, size, Qt::KeepAspectRatioByExpanding);
+        reader.setScaledSize(to);
+    }
+    const QImage image = reader.read();
+    if (image.isNull())
+        return QImage();
+    const int side = qMin(image.width(), image.height());
+    QImage disc(side, side, QImage::Format_ARGB32);
+    disc.fill(0);
+    QPainter painter(&disc);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(image.copy((image.width() - side) / 2, (image.height() - side) / 2, side, side)));
+    painter.drawEllipse(QRectF(0, 0, side, side));
+    painter.end();
+    return disc;
+}
+
 QString roundPhoto(const QString &path, int size)
 {
     const QFileInfo file(path);
@@ -450,37 +495,43 @@ QString roundPhoto(const QString &path, int size)
     const QString known = s_round.value(key);
     if (!known.isEmpty())
         return known;
-    const QString dir = QDir::homePath() + "/cache/round/";
-    const QByteArray name = QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Md5).toHex();
-    const QString out = dir + QString::fromLatin1(name) + ".png";
+    const QString out = roundFilePath(path, size, file.lastModified().toTime_t());
     if (!QFile::exists(out)) {
-        QImageReader reader(path);
-        QSize to = reader.size(); // from the header
-        if (!to.isValid())
+        const QImage disc = roundImage(path, size);
+        if (disc.isNull())
             return QString();
-        if (qMin(to.width(), to.height()) > size) {
-            to.scale(size, size, Qt::KeepAspectRatioByExpanding);
-            reader.setScaledSize(to);
-        }
-        const QImage image = reader.read();
-        if (image.isNull())
-            return QString();
-        const int side = qMin(image.width(), image.height());
-        QImage disc(side, side, QImage::Format_ARGB32);
-        disc.fill(0);
-        QPainter painter(&disc);
-        painter.setRenderHint(QPainter::Antialiasing);
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(QBrush(image.copy((image.width() - side) / 2, (image.height() - side) / 2, side, side)));
-        painter.drawEllipse(QRectF(0, 0, side, side));
-        painter.end();
-        if (!QDir().mkpath(dir) || !disc.save(out, "PNG")) {
+        if (!QDir().mkpath(QDir::homePath() + "/cache/round/") || !disc.save(out, "PNG")) {
             QFile::remove(out);
             return QString();
         }
     }
     s_round.insert(key, out);
     return out;
+}
+
+// roundPhotoSoon's memory (the header says what it is for): picture path -> its round file, "" while it is being made.
+// Emptied with the cache (forgetRound) and per picture when PreviewMaker has made it (roundForget).
+QString roundPhotoSoon(const QString &path)
+{
+    const QHash<QString, QString>::const_iterator known = s_roundSoon.constFind(path);
+    if (known != s_roundSoon.constEnd())
+        return known.value();
+    const QFileInfo file(path);
+    if (!file.isFile())
+        return QString(); // not remembered: the picture may arrive later
+    const QString out = roundFilePath(path, 160, file.lastModified().toTime_t());
+    if (QFile::exists(out)) {
+        s_roundSoon.insert(path, out);
+        return out;
+    }
+    PreviewMaker::instance()->want("round:" + path, PreviewMaker::RoundPicture, path, out);
+    s_roundSoon.insert(path, QString());
+    return QString();
+}
+
+void roundForget(const QString &path)
+{
+    s_roundSoon.remove(path);
 }
 
 QString Settings::roundPhoto(const QString &path)

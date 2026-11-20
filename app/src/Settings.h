@@ -2,6 +2,7 @@
 #define SETTINGS_H
 
 #include <bb/system/LocaleHandler>
+#include <QImage>
 #include <QObject>
 #include <QSettings>
 #include <QVariantMap>
@@ -124,6 +125,9 @@ public:
     static qint64 cacheBytes();
     static qint64 removeCache();
     static void forgetRound();
+    // Called by main.qml's nav when the top page changes: true while no chat page is on top, and the animated stickers pause.
+    // Here because Settings is the QML object that already has the sticker settings.
+    Q_INVOKABLE void coverStickers(bool covered);
     // The round copy of a picture's file for Round mode (the free function below), "" when it can't be made: QML falls back to
     // the square picture. Two overloads, not a default argument: QML calls either by its argument count (160 px, or `size`).
     Q_INVOKABLE QString roundPhoto(const QString &path);
@@ -176,5 +180,19 @@ private:
 // the file. "" when the picture can't be read or the copy written; the callers then show the picture as it is. `size` is the
 // px the copy's side is at most: 160 for a tile, more for the profile pages' big pictures.
 QString roundPhoto(const QString &path, int size = 160);
+
+// The disc image roundPhoto saves: the picture at `path` read at `size` px at most, cut to its centre square and painted
+// through an ellipse brush. Null when the picture can't be read. It touches only QImageReader, QImage and QPainter on a
+// QImage, so a worker thread may call it (PreviewMaker's RoundPicture job does).
+QImage roundImage(const QString &path, int size);
+
+// For the chat's cards: the round copy of a sender's picture (160 px) if it is made, else "" and it is asked of
+// PreviewMaker, which makes it on a worker and names "round:<path>" in ready(); roundForget(path) then lets the next
+// call find it. No file is touched for a picture already found or being made: fillTile runs at every fill of a card
+// (606 of 828 ms of one open's fills, the Classic, 1.0.0.99). A sender's picture has its own file name per picture,
+// so its path alone is the key here (roundPhoto's key has the file's time, for the profile's own, rewritten in place).
+QString roundPhotoSoon(const QString &path);
+// The picture at path is made, or its making should be looked at again: the next roundPhotoSoon(path) checks the file.
+void roundForget(const QString &path);
 
 #endif

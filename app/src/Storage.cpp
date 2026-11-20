@@ -2,6 +2,7 @@
 
 #include "EngineLink.h"
 #include "Settings.h"
+#include "StickerPicker.h"
 
 #include <QDateTime>
 #include <QFutureWatcher>
@@ -140,6 +141,7 @@ void Storage::measureCache()
 void Storage::clearCache()
 {
     Settings::forgetRound();
+    StickerPicker::forgetPictures();
     QFutureWatcher<qint64> *watcher = new QFutureWatcher<qint64>(this);
     connect(watcher, SIGNAL(finished()), this, SLOT(onCleared()));
     watcher->setFuture(QtConcurrent::run(&Settings::removeCache));
@@ -159,5 +161,7 @@ void Storage::onCleared()
     QFutureWatcher<qint64> *watcher = static_cast<QFutureWatcher<qint64> *>(sender());
     watcher->deleteLater();
     const qint64 bytes = watcher->result();
+    // Again: a sticker cell that asked while the files were going may hold one that has since gone.
+    StickerPicker::forgetPictures();
     emit cacheCleared(bytes > 0 ? bytesText(bytes) : QString("0 KB"));
 }

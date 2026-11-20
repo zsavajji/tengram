@@ -4,12 +4,6 @@ import bb.cascades 1.4
 // "Unarchive" brings a chat back.
 Page {
     id: page
-    attachedObjects: [
-        ComponentDefinition {
-            id: chatDef
-            source: "ChatPage.qml"
-        }
-    ]
     titleBar: PageBar {
         title: qsTr("Archived")
         scrollBehavior: TitleBarScrollBehavior.Sticky
@@ -19,7 +13,7 @@ Page {
             nav.at(0).openChat(chat) // the chat list's page makes the topics page
             return
         }
-        var chatPage = chatDef.createObject()
+        var chatPage = nav.at(0).takeChatPage()
         chatPage.chat = chat
         nav.push(chatPage)
         chatPage.focusComposer()

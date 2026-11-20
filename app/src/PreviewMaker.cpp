@@ -1,6 +1,7 @@
 #include "PreviewMaker.h"
 
 #include "MediaData.h"
+#include "Settings.h"
 #include "Sticker.h"
 
 #include <QCoreApplication>
@@ -22,8 +23,10 @@ static const int kBatchMs = 100;
 // finished one, and hands the half of a JPEG to Cascades.
 static bool make(int job, const QString &source, const QString &target)
 {
-    const QImage image = job == PreviewMaker::PhotoPreview ? MediaData::previewImage(source)
-                                                           : Sticker::still(source, Sticker::kStickerPx);
+    // RoundPicture: a sender's picture cut to a disc for the chat's cards (Settings.cpp's roundImage, as roundPhoto makes it).
+    const QImage image = job == PreviewMaker::PhotoPreview   ? MediaData::previewImage(source)
+                         : job == PreviewMaker::RoundPicture ? roundImage(source, 160)
+                                                             : Sticker::still(source, Sticker::kStickerPx);
     if (image.isNull() || !QDir().mkpath(QFileInfo(target).path()))
         return false;
     const QString part = target + ".part";

@@ -66,11 +66,21 @@ inline void walk(FILE *f, long at, long end, unsigned long long &scale, unsigned
     }
 }
 
-inline long long ms(const char *path)
+// Both answers from one open and walk of the file.
+struct Info
 {
+    long long ms;
+    bool fragmented;
+};
+
+// ms: the length, 0 when it can't be read. fragmented: a fragmented MP4, whose moov has an mvex box and mvhd gives no
+// length; the phone's player plays such a file but can't seek in it (it answers UnsupportedOperation and stops, 1.0.0.90).
+inline Info info(const char *path)
+{
+    Info r = {0, false};
     FILE *f = fopen(path, "rb");
     if (!f) {
-        return 0;
+        return r;
     }
     unsigned long long scale = 0, whole = 0, fragments = 0;
     bool mvex = false;
@@ -79,24 +89,19 @@ inline long long ms(const char *path)
     }
     fclose(f);
     const unsigned long long length = whole > 0 ? whole : fragments;
-    return scale > 0 ? (long long)(length * 1000 / scale) : 0;
+    r.ms = scale > 0 ? (long long)(length * 1000 / scale) : 0;
+    r.fragmented = mvex && whole == 0;
+    return r;
 }
 
-// True for a fragmented MP4: its moov has an mvex box and mvhd gives no length. The phone's player plays such a file
-// but can't seek in it (it answers UnsupportedOperation and stops, 1.0.0.90).
+inline long long ms(const char *path)
+{
+    return info(path).ms;
+}
+
 inline bool fragmented(const char *path)
 {
-    FILE *f = fopen(path, "rb");
-    if (!f) {
-        return false;
-    }
-    unsigned long long scale = 0, whole = 0, fragments = 0;
-    bool mvex = false;
-    if (fseek(f, 0, SEEK_END) == 0) {
-        walk(f, 0, ftell(f), scale, whole, fragments, mvex);
-    }
-    fclose(f);
-    return mvex && whole == 0;
+    return info(path).fragmented;
 }
 }
 

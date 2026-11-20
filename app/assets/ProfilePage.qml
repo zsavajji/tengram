@@ -172,7 +172,7 @@ Page {
                         }
                     }
                     // The name and its hint are one target.
-                    Container {
+                    TapArea {
                         id: nameBox
                         property bool pressed: false
                         visible: page.loaded
@@ -197,16 +197,7 @@ Page {
                             textStyle.base: SystemDefaults.TextStyles.SmallText
                             textStyle.color: ui.palette.secondaryTextOnPlain
                         }
-                        gestureHandlers: TapHandler {
-                            onTapped: page.editName()
-                        }
-                        keyListeners: KeyListener {
-                            onKeyReleased: {
-                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                                    page.editName()
-                                }
-                            }
-                        }
+                        onClicked: page.editName()
                         onTouch: nameBox.pressed = event.isDown() || event.isMove()
                         onTouchExit: nameBox.pressed = false
                     }
@@ -242,7 +233,7 @@ Page {
                     title: qsTr("About")
                 }
                 // Padding, not margins: margins only space siblings, never from the container's edge.
-                Container {
+                TapArea {
                     id: aboutBox
                     property bool pressed: false
                     visible: page.loaded
@@ -269,16 +260,7 @@ Page {
                         textStyle.base: SystemDefaults.TextStyles.SmallText
                         textStyle.color: ui.palette.secondaryTextOnPlain
                     }
-                    gestureHandlers: TapHandler {
-                        onTapped: page.editAbout()
-                    }
-                    keyListeners: KeyListener {
-                        onKeyReleased: {
-                            if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                                page.editAbout()
-                            }
-                        }
-                    }
+                    onClicked: page.editAbout()
                     onTouch: aboutBox.pressed = event.isDown() || event.isMove()
                     onTouchExit: aboutBox.pressed = false
                 }

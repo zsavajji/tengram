@@ -8,7 +8,7 @@ import bb.cascades 1.4
 // click (Enter) taps it.
 // In Round mode (the user's ask, 2026-11-19) the grey is a disc behind the icon, not the whole cell, which is not a
 // square: the cell's content sits in a Container of its own, over the disc.
-Container {
+TapArea {
     id: toggle
     property string icon
     property string text
@@ -70,14 +70,5 @@ Container {
     }
     onTouch: toggle.pressed = event.isDown() || event.isMove()
     onTouchExit: toggle.pressed = false
-    gestureHandlers: TapHandler {
-        onTapped: toggle.tapped()
-    }
-    keyListeners: KeyListener {
-        onKeyReleased: {
-            if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                toggle.tapped()
-            }
-        }
-    }
+    onClicked: toggle.tapped()
 }

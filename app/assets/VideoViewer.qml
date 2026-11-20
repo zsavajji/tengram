@@ -65,8 +65,9 @@ Page {
     // Called by nav.showVideo once the page is pushed. Not on the control's bind: the player creates the window when
     // it prepares, and the control binds to it after, so waiting for the bind would never start anything.
     function start() {
-        page.fileMs = opener.videoLength(page.path)
-        page.fragmented = opener.videoFragmented(page.path)
+        var info = opener.videoInfo(page.path) // one read of the file for both
+        page.fileMs = info.length
+        page.fragmented = info.fragmented
         player.sourceUrl = "file://" + page.path
         page.check(player.play())
         idle.start()
@@ -351,7 +352,7 @@ Page {
                         orientation: LayoutOrientation.LeftToRight
                     }
                     // The Classic's trackpad reaches it: it takes the focus, under a pale veil, and a click (Enter) plays or pauses.
-                    Container {
+                    TapArea {
                         id: playBtn
                         verticalAlignment: VerticalAlignment.Center
                         preferredWidth: ui.du(10)
@@ -367,16 +368,7 @@ Page {
                             imageSource: page.playing ? "asset:///images/pause.png" : "asset:///images/play.png"
                             filterColor: ui.palette.primary
                         }
-                        gestureHandlers: TapHandler {
-                            onTapped: page.toggle()
-                        }
-                        keyListeners: KeyListener {
-                            onKeyReleased: {
-                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                                    page.toggle()
-                                }
-                            }
-                        }
+                        onClicked: page.toggle()
                     }
                     Label {
                         verticalAlignment: VerticalAlignment.Center
@@ -389,7 +381,7 @@ Page {
                         }
                     }
                     // Opens the file in the system's player (this one can't seek it): built as StagedBar's Edit button.
-                    Container {
+                    TapArea {
                         id: openBtn
                         visible: page.fragmented
                         verticalAlignment: VerticalAlignment.Center
@@ -397,16 +389,7 @@ Page {
                         focusPolicy: FocusPolicy.Key
                         background: settings.round ? Color.Transparent : Color.create(openBtn.focused ? "#80808080" : "#33808080")
                         layout: DockLayout {}
-                        gestureHandlers: TapHandler {
-                            onTapped: page.openOut()
-                        }
-                        keyListeners: KeyListener {
-                            onKeyReleased: {
-                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                                    page.openOut()
-                                }
-                            }
-                        }
+                        onClicked: page.openOut()
                         RoundFill {
                             pill: true
                             filterColor: Color.create(openBtn.focused ? "#80808080" : "#33808080")

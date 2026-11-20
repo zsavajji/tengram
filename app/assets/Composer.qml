@@ -53,7 +53,7 @@ Container {
             orientation: LayoutOrientation.LeftToRight
         }
         // Emoji, or Discard while recording.
-        Container {
+        TapArea {
             id: emojiBtn
             verticalAlignment: VerticalAlignment.Center
             preferredWidth: ui.du(9 * bar.big)
@@ -62,16 +62,7 @@ Container {
             layout: DockLayout {}
             focusPolicy: FocusPolicy.Key
             background: emojiBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
-            gestureHandlers: TapHandler {
-                onTapped: bar.recording ? bar.discard() : bar.emoji()
-            }
-            keyListeners: KeyListener {
-                onKeyReleased: {
-                    if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                        bar.recording ? bar.discard() : bar.emoji()
-                    }
-                }
-            }
+            onClicked: bar.recording ? bar.discard() : bar.emoji()
             ImageView {
                 horizontalAlignment: HorizontalAlignment.Center
                 verticalAlignment: VerticalAlignment.Center
@@ -126,7 +117,7 @@ Container {
                 }
                 onTextChanging: bar.changing(text)
             }
-            Container {
+            TapArea {
                 id: attachBtn
                 verticalAlignment: VerticalAlignment.Bottom
                 preferredWidth: ui.du(8 * bar.big)
@@ -134,16 +125,7 @@ Container {
                 layout: DockLayout {}
                 focusPolicy: FocusPolicy.Key
                 background: attachBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
-                gestureHandlers: TapHandler {
-                    onTapped: bar.attach()
-                }
-                keyListeners: KeyListener {
-                    onKeyReleased: {
-                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                            bar.attach()
-                        }
-                    }
-                }
+                onClicked: bar.attach()
                 ImageView {
                     horizontalAlignment: HorizontalAlignment.Center
                     verticalAlignment: VerticalAlignment.Center
@@ -154,7 +136,7 @@ Container {
                     filterColor: ui.palette.textOnPlain
                 }
             }
-            Container {
+            TapArea {
                 id: sendBtn
                 verticalAlignment: VerticalAlignment.Bottom
                 preferredWidth: ui.du(8 * bar.big)
@@ -162,16 +144,7 @@ Container {
                 layout: DockLayout {}
                 focusPolicy: FocusPolicy.Key
                 background: sendBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
-                gestureHandlers: TapHandler {
-                    onTapped: bar.send()
-                }
-                keyListeners: KeyListener {
-                    onKeyReleased: {
-                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                            bar.send()
-                        }
-                    }
-                }
+                onClicked: bar.send()
                 ImageView {
                     horizontalAlignment: HorizontalAlignment.Center
                     verticalAlignment: VerticalAlignment.Center
@@ -205,7 +178,7 @@ Container {
             }
         }
         // The action menu (Search, Pinned, info, ...); always live, a channel needs it too.
-        Container {
+        TapArea {
             id: menuBtn
             verticalAlignment: VerticalAlignment.Center
             preferredWidth: ui.du(9 * bar.big)
@@ -213,16 +186,7 @@ Container {
             layout: DockLayout {}
             focusPolicy: FocusPolicy.Key
             background: menuBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
-            gestureHandlers: TapHandler {
-                onTapped: bar.menu()
-            }
-            keyListeners: KeyListener {
-                onKeyReleased: {
-                    if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                        bar.menu()
-                    }
-                }
-            }
+            onClicked: bar.menu()
             ImageView {
                 horizontalAlignment: HorizontalAlignment.Center
                 verticalAlignment: VerticalAlignment.Center

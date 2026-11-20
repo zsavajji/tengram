@@ -20,7 +20,7 @@ Container {
     }
     // A square button: its box and the white glyph on it. In Round mode (the user's ask, 2026-11-19) the box is a disc in
     // its near black (call_btn.png is #040404 with a faint edge).
-    Container {
+    TapArea {
         id: videoBtn
         layoutProperties: AbsoluteLayoutProperties {
             positionX: ringing.px(308)
@@ -55,19 +55,10 @@ Container {
             scalingMethod: ScalingMethod.AspectFit
             imageSource: ringing.withVideo ? "asset:///images/call_video.png" : "asset:///images/call_video_off.png"
         }
-        gestureHandlers: TapHandler {
-            onTapped: ringing.withVideo = !ringing.withVideo
-        }
-        keyListeners: KeyListener {
-            onKeyReleased: {
-                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                    ringing.withVideo = !ringing.withVideo
-                }
-            }
-        }
+        onClicked: ringing.withVideo = !ringing.withVideo
     }
     // The message button, a square as well, or a disc.
-    Container {
+    TapArea {
         id: msgBtn
         layoutProperties: AbsoluteLayoutProperties {
             positionX: ringing.px(588)
@@ -101,16 +92,7 @@ Container {
             scalingMethod: ScalingMethod.AspectFit
             imageSource: "asset:///images/call_message.png"
         }
-        gestureHandlers: TapHandler {
-            onTapped: ringing.message()
-        }
-        keyListeners: KeyListener {
-            onKeyReleased: {
-                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                    ringing.message()
-                }
-            }
-        }
+        onClicked: ringing.message()
     }
     CallSlider {
         layoutProperties: AbsoluteLayoutProperties {

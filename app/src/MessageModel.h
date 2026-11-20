@@ -19,6 +19,15 @@
 
 class EngineLink;
 
+// The first page of a chat that opens at its newest message stops early (loadFirst, the `budget` of select()), by what the rows
+// cost on screen: two screens (the user, 2026-11-20). A message with a picture across the card (photo, video, location map)
+// fills a screen, a sticker a third, and text messages are 12 to 15 to a screen (counted as 15). A row costs 2 to 10 ms to
+// read (file checks, pictures; ui.log on the Classic, 2026-11-20), so what the list shows first is read, the rest after.
+static const int kBudget = 30;      // two screens of 15
+static const int kCostPicture = 15; // kind 1 photo, 2 video, 9 location
+static const int kCostSticker = 5;  // kind 5
+static const int kCostText = 1;     // any other row
+
 // One chat's messages (PLAN.md §7, step 3.1), read-only from chats.db. The model is flat
 // ([i]) and newest first: the newest day's messages newest to oldest, then that day's header,
 // then the next older day, and so on. The list is bottom to top, so index 0 is at the bottom,
@@ -62,6 +71,11 @@ class EngineLink;
 // In window mode a live row beyond the loaded newest is dropped (merge), chat.open replies are ignored
 // (takeOpen), and toLiveEnd (sending from far back) or a window that never answers (15 s) drops the window
 // and opens at the newest, as a chat with nothing unread does (leaveWindow).
+// A chat that opens at its newest message (nothing unread, no window) reads only two screens of rows first (loadFirst, the
+// budget of select(): a picture message counts a screen, a sticker a third, a text a fifteenth; the user, 2026-11-20), so the
+// list shows after a few rows, not 20 to 50 at 2 to 10 ms each. The rest of the page is read 700 ms later (loadRest), as a
+// scroll to the top would; until then nearTop and fillShort read no older page. A chat that opens at its first unread
+// message, or in a window, reads every row down to the divider as before.
 // A text of ours is in the list the instant it is sent (the user's ask, 2026-11-20: the engine's round trip showed): addLocal
 // puts a LOCAL row in m_all, sending (state 0, the clock), with the id "local-<n>", and the page slides it in as any new row.
 // The engine's row for that text (merge: ours, new, the same words) takes its place: the entry keeps its place and takes the
@@ -77,6 +91,13 @@ class MessageModel : public bb::cascades::DataModel
     // True while the model shows a window of history around the first unread message, not the newest end:
     // newer pages are still to come. The page's stick-to-edge policy follows it.
     Q_PROPERTY(bool window READ window NOTIFY windowChanged)
+    // True while a chat.history (older) or a chat.newer (window mode) is out and unanswered: the page shows a spinner at
+    // the list's top (older) or bottom (newer) edge while the list rests there (the user, 2026-11-20).
+    Q_PROPERTY(bool awaitingOlder READ awaitingOlder NOTIFY awaitingChanged)
+    Q_PROPERTY(bool awaitingNewer READ awaitingNewer NOTIFY awaitingChanged)
+    // True until the chat.open answer that gives the floor has come: no older page can be read or asked for before it, so
+    // a list resting at its top has nothing to show but this wait (the user, 2026-11-20: 8 s with no spinner).
+    Q_PROPERTY(bool awaitingOpen READ awaitingOpen NOTIFY awaitingChanged)
 public:
     // topic: a forum topic's id (docs/protocol.md, Forum topics) when the model is one topic's messages, 0 for the chat's:
     // every read of messages then has `AND topic = ?`, the requests carry it, and the unread count and read_inbox are the
@@ -108,12 +129,18 @@ public:
     Q_INVOKABLE int reveal(const QString &id);
     // The entry index of the "Unread messages" divider, -1 when the chat opened at its newest message.
     Q_INVOKABLE int unreadEntry() const;
+    // The "id" that data([entry]) carries, without building its map (the slide of a new row asks for nothing else): the
+    // message's, an album's first member's; "" for a header or divider and for an entry out of range.
+    Q_INVOKABLE QString idAt(int entry) const;
     // A tap on a spoiler (step 6.6d): reads its row again, now uncovered.
     Q_INVOKABLE void unspoil(const QString &id);
 
     bool empty() const { return m_entries.isEmpty(); }
     bool loading() const { return m_loading; }
     bool window() const { return m_window; }
+    bool awaitingOlder() const { return !m_historyId.isEmpty(); }
+    bool awaitingNewer() const { return !m_newerId.isEmpty(); }
+    bool awaitingOpen() const { return !m_floorKnown; }
     // The id of the newest loaded message, "" when none: what reading down to the bottom reports.
     // The newest message on screen when entry `first` is the bottom-most one shown (chat.read's upto).
     QString shownUpTo(int first) const;
@@ -147,6 +174,8 @@ signals:
     void emptyChanged();
     void loadingChanged();
     void windowChanged();
+    // awaitingOlder or awaitingNewer changed (one signal for both).
+    void awaitingChanged();
     // The model left window mode and has no verified floor: the controller sends chat.open again.
     void wantOpen();
     // A merge added a message that isn't ours and wasn't there before (not a first load or an
@@ -158,6 +187,7 @@ signals:
 
 private slots:
     void loadFirst();
+    void loadRest(); // the rest of a budgeted first page, once the list is in view
     void onMsgs(const QString &chat, const QStringList &ids);
     void onPreviews(const QStringList &ids);
     void onConnected();
@@ -167,8 +197,17 @@ private slots:
     void tickExpiry();
     void tickLocal();
     void onFullscreen();
+    void retryHistory();
+    void syncEdge(); // the loading row, once the model operation that changed the waiting state is done
 
 private:
+    // Tells the page the waiting state changed (awaitingChanged) and queues syncEdge, which adds or drops the loading row.
+    void edgeChanged() { emit awaitingChanged(); m_edgeSync.start(); }
+    // Whether the list's top edge shows the loading row (the model's last entry): see the .cpp.
+    bool edgeWaiting() const;
+    // Sets a request slot (m_historyId or m_newerId) and tells the page when it went from empty to set or back. The
+    // history slot also runs m_historyRetry: a set id starts it, an empty one stops it.
+    void setAsked(QString &slot, const QString &id);
     struct Msg
     {
         qint64 ts;
@@ -182,9 +221,9 @@ private:
     };
     struct Entry
     {
-        QString key;       // the message id, "album:" and the first member's id, or "day:" and the julian day
+        QString key;       // the message id, "album:" and the first member's id, "day:" and the julian day, "unread", or "loading"
         QString title;     // a header's
-        int msg;           // index into m_all; -1 for a header, an album's first member
+        int msg;           // index into m_all; -1 for a header, the divider and the loading row; an album's first member
         QList<int> members; // an album's, in m_all; empty for a message
         QString sig;       // an album's member ids joined: refresh tells a changed album by it
         // A group's runs of one person's messages (markRuns): the name shows on the run's oldest message, the picture
@@ -221,10 +260,11 @@ private:
     // The Msg of a local row: read() of a one-row table with messages' columns (MessageRows.cpp). id "" in the result: no chats.db.
     Msg localRow(const QString &id, const QString &text, const QString &quoteId, qint64 ts);
     // oldestFirst: the oldest `limit` rows that match instead of the newest (still returned oldest first).
-    QList<Msg> select(const QString &where, const QVariantList &args, int limit, bool oldestFirst = false);
+    QList<Msg> select(const QString &where, const QVariantList &args, int limit, bool oldestFirst = false, int budget = 0);
     QList<qint64> pageTimes(const QString &where, const QVariantList &args, int limit);
     void findUnread();
-    void loadPage();
+    // budget: the first page's early stop (select); 0 reads the whole page.
+    void loadPage(int budget = 0);
     void olderWhere(QString &where, QVariantList &args) const;
     void askOlder();
     void takeOpen(const QVariantMap &r);
@@ -252,6 +292,7 @@ private:
     void reread(const QStringList &ids);
     void rebuild();
     void fillShort();
+    void pageIfNearTop();
     QString runOf(int entry) const;
     void markRuns();
     void askSenders();
@@ -274,17 +315,25 @@ private:
     int m_topic; // the forum topic shown, 0 for the whole chat
     qint64 m_floor; // the oldest verified message id: older rows are not shown
     bool m_floorKnown; // false until the first chat.open reply
+    int m_seenFirst; // the first visible entry the list last reported (nearTop), whatever the model's state; -1 before any
     // The newest id of the continuous verified run that starts at m_floor (0 for none): a later chat.open
     // page that reaches it extends the run, one that does not is a gap (takeOpen).
     qint64 m_top;
     bool m_more; // older verified pages can still come (chat.history)
     bool m_starved; // the last loadPage found no row
     bool m_loading;
+    // Whether a sender's small picture file is there, by path, for the rows of one select(): cleared at each, so a file
+    // TDLib deleted since is seen at the next read.
+    QHash<QString, bool> m_photoThere;
     int m_openLimit; // openLimit()
     QString m_unreadId; // the first unread message, "" for none: the chat opens at it (findUnread)
     QString m_openId; // the chat.open request the reply of which sets the floor
     QString m_historyId; // the chat.history request in flight, "" for none
     QElapsedTimer m_historyAt; // when it was sent; invalid until the first
+    bool m_restPending; // a budgeted first page stopped early: loadRest reads the rest (nearTop and fillShort wait for it)
+    QTimer m_restTimer; // single shot, kRestMs after the first page: loadRest
+    QTimer m_edgeSync; // single shot, 0 ms: syncEdge runs after the operation that changed what the loading row depends on
+    QTimer m_historyRetry; // single shot, kHistoryMs after a chat.history went out: no answer, so ask again (retryHistory)
     QString m_bridgeId; // the chat.history request that bridges a gap, "" for none
     QElapsedTimer m_bridgeAt; // when it was sent; invalid until the first
     int m_bridgePages; // the bridge's requests so far

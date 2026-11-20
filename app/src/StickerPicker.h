@@ -29,6 +29,8 @@ class StickerPicker : public QObject
 public:
     // Made on the first call, a child of the application.
     static StickerPicker *shared(EngineLink *engine);
+    // Forgets every decoded picture, so the cells and the strip ask for theirs again: Clear cache has deleted the files.
+    static void forgetPictures();
 
     // The grid: the groups as the top level (itemType "header", data the title), their stickers as children (itemType
     // "item", data {file, emoji, format, image, hasImage, fave}). image is an empty Image until the picture is ready.

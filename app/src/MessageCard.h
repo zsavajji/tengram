@@ -118,6 +118,8 @@ private:
     void paintCorners(const bb::cascades::Color &card);
     void fillColumn();
     void fillFoot();
+    void makeBars();
+    void makeTimer();
     bb::cascades::ImageView *makeTail(const char *source);
     void fillMenu();
     void fillBubbles();
@@ -198,12 +200,13 @@ private:
     LinkPreview *m_link;
     PollBubble *m_poll;
     bb::cascades::Container *m_timeBox;
-    bb::cascades::ImageView *m_timer; // a self-destructing message's clock, before the time
+    bb::cascades::ImageView *m_timer; // a self-destructing message's clock, before the time; 0 until a card first has a timer (makeTimer)
     bb::cascades::Label *m_time;
     bb::cascades::ImageView *m_ticks;
     bb::cascades::Label *m_bang;
     // The foot: a tail either side of the accent bar, one shown; the bar is one of two, as the tails are,
     // so the fill only toggles them (theirs m_barL, ours m_barR; restyle() tints them).
+    // Both 0 until a card first shows one (makeBars): Round mode never does.
     bb::cascades::Container *m_foot;
     bb::cascades::ImageView *m_tailL;
     bb::cascades::ImageView *m_barL;

@@ -9,6 +9,7 @@
 #include <QDateTime>
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
+#include <QUrl>
 
 // At most this many pictures are downloaded or decoded at once: the engine is under a 30 MB cap and the phone has two cores.
 static const int kJobs = 4;
@@ -65,12 +66,30 @@ private:
     StickerPicker *m_picker;
 };
 
+// The one picker, once made.
+static StickerPicker *s_picker = 0;
+
 StickerPicker *StickerPicker::shared(EngineLink *engine)
 {
-    static StickerPicker *picker = 0;
-    if (!picker)
-        picker = new StickerPicker(engine);
-    return picker;
+    if (!s_picker)
+        s_picker = new StickerPicker(engine);
+    return s_picker;
+}
+
+// The pictures are files in data/cache, which Clear cache deletes: forget them, and the cells and the strip read again and
+// ask again. Nothing when the picker was never made.
+void StickerPicker::forgetPictures()
+{
+    if (!s_picker)
+        return;
+    // m_decoding is zeroed as reset() does: onDecoded returns before its --m_decoding for another gen.
+    ++s_picker->m_gen;
+    s_picker->m_decoding = 0;
+    s_picker->m_images.clear();
+    s_picker->m_asked.clear();
+    s_picker->m_queue.clear();
+    s_picker->m_model->reset();
+    emit s_picker->stripChanged();
 }
 
 // A QPointer for the engine, as ChatSearch's: at app exit the picker may outlive the EngineLink.
@@ -556,7 +575,7 @@ void StickerPicker::sweep()
 // of a grid picture, "" for the preview's.
 void StickerPicker::decode(const QString &key, const QString &path, int side)
 {
-    QFutureWatcher<QByteArray> *watcher = new QFutureWatcher<QByteArray>(this);
+    QFutureWatcher<QString> *watcher = new QFutureWatcher<QString>(this);
     watcher->setProperty("key", key);
     watcher->setProperty("gen", m_gen);
     watcher->setProperty("tok", m_previewTok);
@@ -568,20 +587,20 @@ void StickerPicker::decode(const QString &key, const QString &path, int side)
 
 void StickerPicker::onDecoded()
 {
-    QFutureWatcher<QByteArray> *watcher = static_cast<QFutureWatcher<QByteArray> *>(sender());
+    QFutureWatcher<QString> *watcher = static_cast<QFutureWatcher<QString> *>(sender());
     watcher->deleteLater();
     if (watcher->property("gen").toInt() != m_gen)
         return;
-    const QByteArray png = watcher->result();
+    const QString file = watcher->result(); // the picture's PNG, "" when it failed
     const QString key = watcher->property("key").toString();
     if (key.isEmpty()) {
-        if (watcher->property("tok").toInt() == m_previewTok && m_previewView && !png.isEmpty())
-            m_previewView->setImage(bb::cascades::Image(png));
+        if (watcher->property("tok").toInt() == m_previewTok && m_previewView && !file.isEmpty())
+            m_previewView->setImage(bb::cascades::Image(QUrl::fromLocalFile(file)));
         return;
     }
     --m_decoding;
-    if (!png.isEmpty()) {
-        m_images.insert(key, bb::cascades::Image(png));
+    if (!file.isEmpty()) {
+        m_images.insert(key, bb::cascades::Image(QUrl::fromLocalFile(file)));
         shown(key);
     }
     pump();

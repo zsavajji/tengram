@@ -112,40 +112,38 @@ QImage Sticker::still(const QString &path, int side)
     return image;
 }
 
-// The PNG of the still picture of path kept in file, made the first time; empty when it can't be made.
-static QByteArray cached(const QString &file, const QString &path, int side)
+// The PNG of the still picture of path kept in file, made the first time; file itself, or empty when it can't be made.
+static QString cached(const QString &file, const QString &path, int side)
 {
     if (!QFile::exists(file)) {
         const QImage image = Sticker::still(path, side);
         if (image.isNull() || !QDir().mkpath(QFileInfo(file).path()))
-            return QByteArray();
+            return QString();
         if (!image.save(file, "PNG")) {
             QFile::remove(file); // no half-written preview left to be taken for a good one
-            return QByteArray();
+            return QString();
         }
     }
-    QFile f(file);
-    return f.open(QIODevice::ReadOnly) ? f.readAll() : QByteArray();
+    return file;
 }
 
-// The cached picture's bytes. A picture not made yet is asked of PreviewMaker, which makes it on a worker thread (a TGS
-// takes 20 to 60 ms to parse) and tells the model when it is there, which reads the row again: empty until then, and for a
+// The cached picture's path. A picture not made yet is asked of PreviewMaker, which makes it on a worker thread (a TGS
+// takes 20 to 60 ms to parse) and tells the model when it is there, which reads the row again: "" until then, and for a
 // file that doesn't decode, which isn't tried again until the app restarts.
 // ponytail: two at a time, in the order the rows were read; no priority for the ones on screen.
-QByteArray Sticker::picture(const QString &id, const QString &path)
+QString Sticker::picture(const QString &id, const QString &path)
 {
     const QString file = QDir::homePath() + "/cache/previews/" + id + ".png";
-    QFile f(file);
-    if (f.open(QIODevice::ReadOnly))
-        return f.readAll();
+    if (QFile::exists(file))
+        return file;
     PreviewMaker::instance()->want(id, PreviewMaker::StickerPicture, path, file);
-    return QByteArray();
+    return QString();
 }
 
-// The picker's grid and preview: the same, by the path's hash (a sticker's file is not a message's id) and the side, so the
+// The picker's grid and preview: the same, as the file's path, by the path's hash (a sticker's file is not a message's id) and the side, so the
 // 128 px of the grid and the 360 px of the preview don't share a file. Only QImage, QFile, libwebp and rlottie are touched:
 // a worker thread may call it.
-QByteArray Sticker::gridPicture(const QString &path, int side)
+QString Sticker::gridPicture(const QString &path, int side)
 {
     return cached(QDir::homePath() + "/cache/previews/st-" + QString::number(side) + "-" + QString::number(qHash(path), 16)
                       + ".png",

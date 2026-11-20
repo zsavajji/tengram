@@ -87,6 +87,9 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_album(0)
     , m_link(0)
     , m_poll(0)
+    , m_timer(0)
+    , m_barL(0)
+    , m_barR(0)
     , m_bang(0)
     , m_chip(0)
     , m_chipSpare(0)
@@ -158,16 +161,7 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     // Sized by fillFoot() with the time's text; 1 du from it, not the 20 px Cascades puts there.
     m_ticks->setScalingMethod(ScalingMethod::AspectFit);
     m_ticks->setLeftMargin(m_ui->du(1));
-    // A self-destructing message (a secret chat's) has a clock before the time; its seconds are the time label's lead
-    // (timeLead). Sized by restyle(), tinted by fillFoot().
-    m_timer = new ImageView();
-    m_timer->setVerticalAlignment(VerticalAlignment::Center);
-    m_timer->setScalingMethod(ScalingMethod::AspectFit);
-    m_timer->setLeftMargin(0);
-    m_timer->setRightMargin(m_ui->du(0.5));
-    m_timer->setImageSource(Card::url("asset:///images/clock.png"));
-    m_timer->setVisible(false);
-    m_timeBox->add(m_timer);
+    // A self-destructing message's clock (m_timer) is made by makeTimer() when one first needs it.
     m_timeBox->add(m_time);
     m_timeBox->add(m_ticks);
 
@@ -180,22 +174,11 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     m_foot = new Container();
     m_foot->setHorizontalAlignment(HorizontalAlignment::Fill);
     m_foot->setLayout(new DockLayout());
-    m_barL = new ImageView();
-    m_barL->setHorizontalAlignment(HorizontalAlignment::Fill);
-    m_barL->setVerticalAlignment(VerticalAlignment::Top);
-    m_barL->setPreferredHeight(m_ui->du(1));
-    m_barL->setImageSource(Card::url("asset:///images/bar_l.amd"));
-    m_barR = new ImageView();
-    m_barR->setHorizontalAlignment(HorizontalAlignment::Fill);
-    m_barR->setVerticalAlignment(VerticalAlignment::Top);
-    m_barR->setPreferredHeight(m_ui->du(1));
-    m_barR->setImageSource(Card::url("asset:///images/bar_r.amd"));
+    // The bars (m_barL, m_barR) are made by makeBars() when a card first shows one: never in Round mode, the default.
     m_tailL = makeTail("asset:///images/tail_l.png");
     m_tailL->setHorizontalAlignment(HorizontalAlignment::Left);
     m_tailR = makeTail("asset:///images/tail_r.png");
     m_tailR->setHorizontalAlignment(HorizontalAlignment::Right);
-    m_foot->add(m_barL);
-    m_foot->add(m_barR);
     m_foot->add(m_tailL);
     m_foot->add(m_tailR);
 
@@ -425,9 +408,11 @@ void MessageCard::restyle(bool out)
     m_bg->setImageSource(Card::url(!round ? "asset:///images/card.amd"
                                    : out ? "asset:///images/card_round_r.amd" : "asset:///images/card_round_l.amd"));
     const Color quiet = out ? Card::color(Card::outMeta(m_list)) : m_ui->palette()->secondaryTextOnPlain();
-    m_barL->setFilterColor(m_ui->palette()->secondaryTextOnPlain());
+    if (m_barL) // else makeBars() tints them
+        m_barL->setFilterColor(m_ui->palette()->secondaryTextOnPlain());
     // The primary 20 % darker, quieter under our cards (the user, 2026-11-17).
-    m_barR->setFilterColor(Card::color("#1D81B2"));
+    if (m_barR)
+        m_barR->setFilterColor(Card::color("#1D81B2"));
     const float side = Card::side(m_ui, scale, round);
     // The gap above the card: less in Round mode, its cards sat too far apart (the user, 2026-11-19).
     m_root->setTopPadding(m_ui->du((round ? 1 : 1.5) * scale));
@@ -445,7 +430,8 @@ void MessageCard::restyle(bool out)
     // 72 % of SmallText, about two thirds of the body text (the user, 2026-11-14: the time and ticks
     // smaller; it was 85 % since 2026-11-08). The ticks follow it, so they are sized again.
     m_time->textStyle()->setFontSizeValue(qRound(72 * scale));
-    m_timer->setPreferredSize(m_ui->du(2.2 * scale), m_ui->du(2.2 * scale));
+    if (m_timer)
+        m_timer->setPreferredSize(m_ui->du(2.2 * scale), m_ui->du(2.2 * scale));
     m_tick = -1;
     if (m_sender)
         Card::style(m_sender, m_list, small);
@@ -573,21 +559,20 @@ void MessageCard::fillTile(bool on)
     m_avatar->setVisible(on);
     const bool tile = on && flag("showTile");
     const QString photo = tile ? str("senderPhoto") : QString();
-    // Round mode: a disc, and the picture's round copy (roundPhoto; the square picture if it can't be made).
+    // Round mode: a disc, and the picture's round copy (roundPhotoSoon: made on a worker, "" until it is there). Until then
+    // the tile shows as a sender with no picture does, the coloured disc and the initials, not the square picture: the
+    // decode, mask and PNG save were 606 of 828 ms of one open's fills on the UI thread (the Classic, 1.0.0.99), and
+    // MessageModel::onPreviews draws the card again when the copy is made. Square mode shows the picture as it is.
     const bool round = Card::isRound(m_list);
-    QString shown = photo;
-    if (round && !photo.isEmpty()) {
-        const QString disc = roundPhoto(photo);
-        if (!disc.isEmpty())
-            shown = disc;
+    const QString disc = round && !photo.isEmpty() ? roundPhotoSoon(photo) : QString();
+    const QString shownPhoto = round ? disc : photo;
+    if (shownPhoto != m_photoPath) {
+        m_photoPath = shownPhoto;
+        m_photo->setImageSource(shownPhoto.isEmpty() ? QUrl() : QUrl(QString::fromLatin1("file://") + shownPhoto));
     }
-    if (shown != m_photoPath) {
-        m_photoPath = shown;
-        m_photo->setImageSource(shown.isEmpty() ? QUrl() : QUrl(QString::fromLatin1("file://") + shown));
-    }
-    m_photo->setVisible(!photo.isEmpty());
-    m_disc->setVisible(round && tile && photo.isEmpty());
-    m_initials->setVisible(tile && photo.isEmpty());
+    m_photo->setVisible(!shownPhoto.isEmpty());
+    m_disc->setVisible(round && tile && shownPhoto.isEmpty());
+    m_initials->setVisible(tile && shownPhoto.isEmpty());
     m_initials->setText(tile ? str("senderInitials") : QString());
     if (tile) {
         m_avatar->setPreferredHeight(m_ui->du(7 * m_scale));
@@ -972,6 +957,41 @@ QString MessageCard::timeLead() const
            + (flag("edited") ? m_edited : QString());
 }
 
+// The accent bars, made when a card first shows one (fillFoot): every card made them, and Round mode, the default, never
+// shows them. Put before the tails, where the constructor added them, so the drawing order stays; tinted as restyle() does.
+void MessageCard::makeBars()
+{
+    m_barL = new ImageView();
+    m_barL->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_barL->setVerticalAlignment(VerticalAlignment::Top);
+    m_barL->setPreferredHeight(m_ui->du(1));
+    m_barL->setImageSource(Card::url("asset:///images/bar_l.amd"));
+    m_barL->setFilterColor(m_ui->palette()->secondaryTextOnPlain());
+    m_barR = new ImageView();
+    m_barR->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_barR->setVerticalAlignment(VerticalAlignment::Top);
+    m_barR->setPreferredHeight(m_ui->du(1));
+    m_barR->setImageSource(Card::url("asset:///images/bar_r.amd"));
+    m_barR->setFilterColor(Card::color("#1D81B2"));
+    m_foot->insert(0, m_barL);
+    m_foot->insert(1, m_barR);
+}
+
+// A self-destructing message's clock (a secret chat's), made when a card first has one: its seconds are the time label's
+// lead (timeLead). Sized as restyle() sizes it, at the card's scale, tinted by fillFoot(); first in the time box.
+void MessageCard::makeTimer()
+{
+    m_timer = new ImageView();
+    m_timer->setVerticalAlignment(VerticalAlignment::Center);
+    m_timer->setScalingMethod(ScalingMethod::AspectFit);
+    m_timer->setLeftMargin(0);
+    m_timer->setRightMargin(m_ui->du(0.5));
+    m_timer->setImageSource(Card::url("asset:///images/clock.png"));
+    m_timer->setPreferredSize(m_ui->du(2.2 * m_scale), m_ui->du(2.2 * m_scale));
+    m_timer->setVisible(false);
+    m_timeBox->insert(0, m_timer);
+}
+
 // The time (the star and "edited" before it) and our message's state, as in ChatRows.cpp: sending, sent, delivered,
 // read, or a red "!" when it failed; then the foot and the reactions' chips.
 void MessageCard::fillFoot()
@@ -980,7 +1000,10 @@ void MessageCard::fillFoot()
     const int state = m_msg.value("state").toInt();
     m_time->setText(timeLead() + str("time"));
     const bool timed = !str("ttlText").isEmpty();
-    m_timer->setVisible(timed);
+    if (timed && !m_timer)
+        makeTimer();
+    if (m_timer)
+        m_timer->setVisible(timed);
     if (timed)
         m_time->setLeftMargin(0);
     else
@@ -1010,7 +1033,8 @@ void MessageCard::fillFoot()
     const Color quiet = chip ? Color::White
                       : out ? Card::color(Card::outMeta(m_list)) : m_ui->palette()->secondaryTextOnPlain();
     m_time->textStyle()->setColor(quiet);
-    m_timer->setFilterColor(quiet);
+    if (m_timer)
+        m_timer->setFilterColor(quiet);
 
     const bool ticked = out && state < 4;
     m_ticks->setVisible(ticked);
@@ -1044,8 +1068,12 @@ void MessageCard::fillFoot()
     }
 
     // No bar in Round mode: the tail alone hangs under the card's square corner (restyle).
-    m_barL->setVisible(!out && !m_round);
-    m_barR->setVisible(out && !m_round);
+    if (!m_round && !m_barL)
+        makeBars();
+    if (m_barL) {
+        m_barL->setVisible(!out && !m_round);
+        m_barR->setVisible(out && !m_round);
+    }
     m_foot->setVisible(str("media") != "sticker");
     m_tailL->setVisible(!out);
     m_tailR->setVisible(out);

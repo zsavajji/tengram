@@ -126,7 +126,7 @@ Container {
         }
     }
     // The End call bar. The Classic's trackpad reaches it: it takes the focus, dark red as while pressed, and a click (Enter) ends the call.
-    Container {
+    TapArea {
         id: endBar
         layoutProperties: AbsoluteLayoutProperties {
             positionX: panel.tall ? panel.px(12) : panel.px(18)
@@ -176,19 +176,9 @@ Container {
         }
         onTouch: panel.pressed = event.isDown() || event.isMove()
         onTouchExit: panel.pressed = false
-        gestureHandlers: TapHandler {
-            onTapped: {
-                panel.hangup()
-                panel.touched()
-            }
-        }
-        keyListeners: KeyListener {
-            onKeyReleased: {
-                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                    panel.hangup()
-                    panel.touched()
-                }
-            }
+        onClicked: {
+            panel.hangup()
+            panel.touched()
         }
     }
 }

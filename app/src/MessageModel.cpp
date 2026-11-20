@@ -4,6 +4,7 @@
 #include "EngineLink.h"
 #include "Moves.h"
 #include "PreviewMaker.h"
+#include "Settings.h"
 #include "colors.h"
 #include "dates.h"
 
@@ -30,6 +31,8 @@ static const int kNearTop = 8;
 static const int kNearBottom = 20;
 // Long enough for the page's push to reach the system before the first page takes the UI thread.
 static const int kFirstLoadMs = 50;
+// How long after a budgeted first page the rest of it is read: the list is in view and its cards are made by then.
+static const int kRestMs = 700;
 // How long a chat.history request is waited for before one that failed quietly is asked again.
 static const int kHistoryMs = 15000;
 // The most chat.history pages (of kBridgeLimit) a gap is bridged with: 300 messages at most. Past that the
@@ -64,6 +67,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_topic(topic)
     , m_floor(0)
     , m_floorKnown(false)
+    , m_seenFirst(-1)
     , m_top(0)
     , m_more(false)
     , m_starved(false)
@@ -75,6 +79,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_holdOlder(false)
     , m_window(false)
     , m_awaitOpen(false)
+    , m_restPending(false)
     , m_newerMore(false)
     , m_readInbox(0)
     , m_low(kFar)
@@ -93,10 +98,19 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     m_historyAt.invalidate(); // QElapsedTimer has no constructor
     m_bridgeAt.invalidate();
     m_newerAt.invalidate();
+    m_historyRetry.setSingleShot(true);
+    m_historyRetry.setInterval(kHistoryMs);
+    connect(&m_historyRetry, SIGNAL(timeout()), this, SLOT(retryHistory()));
+    m_edgeSync.setSingleShot(true);
+    m_edgeSync.setInterval(0);
+    connect(&m_edgeSync, SIGNAL(timeout()), this, SLOT(syncEdge()));
     m_windowGiveUp.setSingleShot(true);
     m_windowGiveUp.setInterval(kWindowGiveUpMs);
     connect(&m_windowGiveUp, SIGNAL(timeout()), this, SLOT(giveUp()));
     // One timer for the whole chat, not one per card. It starts when a row with expiresAt is read (read()).
+    m_restTimer.setSingleShot(true);
+    m_restTimer.setInterval(kRestMs);
+    connect(&m_restTimer, SIGNAL(timeout()), this, SLOT(loadRest()));
     m_expiry.setInterval(1000);
     connect(&m_expiry, SIGNAL(timeout()), this, SLOT(tickExpiry()));
     connect(engine, SIGNAL(fullscreenChanged()), this, SLOT(onFullscreen()));
@@ -110,6 +124,9 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
 // The first page and its cards hold the UI thread for most of a second, which used to come before
 // the page moved at all (the user, 2026-11-06). So the page goes first, with a spinner: the system
 // runs the slide by itself, so this doesn't stop it.
+// A chat that opens at its newest message reads two screens of rows first (kBudget in MessageModel.h) and the rest of the
+// page 700 ms later (loadRest): a row costs 2 to 10 ms and the screen holds far fewer than the page (the user, 2026-11-20).
+// One that opens at its first unread message reads every row down to the divider, as before.
 void MessageModel::loadFirst()
 {
     if (m_window) {
@@ -122,7 +139,8 @@ void MessageModel::loadFirst()
     QElapsedTimer took;
     took.start();
     m_holdOlder = !m_unreadId.isEmpty(); // rebuild stops at the divider until the page releases the rest
-    loadPage();
+    const bool atNewest = m_unreadId.isEmpty(); // the loop below may clear m_unreadId
+    loadPage(atNewest ? kBudget : 0);
     // A chat that opens at its first unread message needs the rows back to it before the list shows: up to
     // four more pages, stopping when one adds nothing.
     for (int more = 0; more < 4 && !m_unreadId.isEmpty() && entryOf(m_unreadId) < 0 && !m_starved; ++more)
@@ -131,11 +149,28 @@ void MessageModel::loadFirst()
         m_unreadId.clear(); // not reached: the chat opens at the newest, as before
         m_holdOlder = false;
     }
+    if (atNewest && !m_all.isEmpty() && !m_starved) {
+        m_restPending = true;
+        m_restTimer.start();
+    }
     m_loading = false;
     emit loadingChanged();
+    m_edgeSync.start(); // m_loading, m_restPending and m_holdOlder changed: the loading row may be due
     askOlder(); // loadPage's own call came while loading; a chat.open reply may already be in
     qDebug() << "chat: first page," << m_all.size() << "messages in" << took.elapsed() << "ms"
              << (m_unreadId.isEmpty() ? "" : "(opens at the first unread)");
+}
+
+// The same read a scroll to the top would make, done once the list is in view: the older page after the budgeted first one.
+void MessageModel::loadRest()
+{
+    if (!m_restPending)
+        return;
+    m_restPending = false;
+    m_edgeSync.start(); // m_restPending ended: the loading row may be due (also on the returns below)
+    if (m_loading || atStart())
+        return;
+    loadPage();
 }
 
 int MessageModel::childCount(const QVariantList &indexPath)
@@ -151,6 +186,8 @@ bool MessageModel::hasChildren(const QVariantList &indexPath)
 QString MessageModel::itemType(const QVariantList &indexPath)
 {
     const Entry e = m_entries.value(indexPath.value(0).toInt());
+    if (e.key == "loading")
+        return "loading"; // the spinner at the top edge (edgeWaiting): no message behind it, tested before the headers
     if (e.msg < 0)
         return "header";
     const Msg &m = m_all[e.msg];
@@ -169,6 +206,8 @@ QString MessageModel::itemType(const QVariantList &indexPath)
 QVariant MessageModel::data(const QVariantList &indexPath)
 {
     const Entry e = m_entries.value(indexPath.value(0).toInt());
+    if (e.key == "loading")
+        return QVariant(); // the loading row has nothing to show: LoadingCard takes no data
     if (e.msg < 0)
         return e.title;
     QVariantMap d = e.members.isEmpty() ? m_all[e.msg].data : albumData(e);
@@ -192,6 +231,16 @@ QVariant MessageModel::data(const QVariantList &indexPath)
             d["senderPhoto"] = it->photo; // else the row's own, from `people` (read), "" for none
     }
     return d;
+}
+
+QString MessageModel::idAt(int entry) const
+{
+    if (entry < 0 || entry >= m_entries.size())
+        return QString();
+    const Entry &e = m_entries.at(entry);
+    if (e.msg < 0)
+        return QString();
+    return m_all[e.members.isEmpty() ? e.msg : e.members.first()].data["id"].toString();
 }
 
 // "10 s", "5 min", "1 h", "7 d": a timer as the foot shows it, a longer one rounded up to the next unit's whole.
@@ -305,7 +354,7 @@ void MessageModel::olderWhere(QString &where, QVariantList &args) const
 // the first day's end with kPageMin rows in it, found from the rows' times alone. With no day's end in
 // kPage rows it takes kPage. Pages no longer hold whole days (a busy group has more than a page a day):
 // the header rule in rebuild keeps their rows at the model's end.
-void MessageModel::loadPage()
+void MessageModel::loadPage(int budget)
 {
     QString where;
     QVariantList args;
@@ -316,7 +365,7 @@ void MessageModel::loadPage()
         if (QDateTime::fromTime_t(times[i]).date() != QDateTime::fromTime_t(times[i - 1]).date())
             cut = i;
     }
-    const QList<Msg> rows = select(where, args, cut >= 0 ? cut : kPage);
+    const QList<Msg> rows = select(where, args, cut >= 0 ? cut : kPage, false, budget);
     m_starved = rows.isEmpty(); // before merge: its rebuild asks atStart()
     merge(QStringList(), rows, true);
     askOlder();
@@ -350,8 +399,63 @@ void MessageModel::askOlder()
         ask["topic"] = m_topic;
     ask["before"] = QString::number(m_floor); // a string: ids exceed 2^53
     ask["limit"] = kPage;
-    m_historyId = m_engine->requestQuiet("chat.history", ask);
+    setAsked(m_historyId, m_engine->requestQuiet("chat.history", ask));
     m_historyAt.start();
+}
+
+// Sets a request slot and emits awaitingChanged when its emptiness changed. The history slot also runs
+// m_historyRetry: started with each new id, stopped when the answer came or the request no longer matters.
+void MessageModel::setAsked(QString &slot, const QString &id)
+{
+    const bool changed = slot.isEmpty() != id.isEmpty();
+    slot = id;
+    if (&slot == &m_historyId) {
+        if (id.isEmpty())
+            m_historyRetry.stop();
+        else
+            m_historyRetry.start();
+    }
+    if (changed)
+        edgeChanged();
+}
+
+// Whether the list's top edge shows the loading row (the last entry, drawn as a spinner by LoadingCard): an older page is
+// awaited. In a bottom-to-top list the model's end is the top, and a spinner on its own row sits on empty space instead of
+// over the oldest message (the user, 2026-11-20).
+bool MessageModel::edgeWaiting() const
+{
+    return !m_loading // the first page is loading: EmptyNote's spinner is up
+           && !m_holdOlder // the rows above the unread divider are held: the divider must be the list's top while the page places it
+           && !m_restPending // the 0.7 s before the rest of a budgeted first page is read: it is no wait for the engine
+           && (awaitingOlder() // chat.history is in flight
+               // chat.open is awaited (no older page can be asked for before it): only when a page's worth of rows is loaded,
+               // or every short chat would show a spinner as it opens
+               || (awaitingOpen() && m_all.size() >= kPageMin));
+}
+
+// Adds or drops the loading row once what it depends on has changed. Deferred (m_edgeSync, 0 ms) and not done in
+// setAsked or beside the writes of m_floorKnown: several callers sit between a change of m_all and their own refresh(), whose
+// `old` keys were taken before the change, so a refresh here would tell the list the same change twice. By the time the
+// timer runs every operation is done and m_entries agrees with m_all.
+void MessageModel::syncEdge()
+{
+    if (m_loading) // the list is not built yet (or a jump's spinner is up): the rebuild that ends it counts the row
+        return;
+    const bool has = !m_entries.isEmpty() && m_entries.last().key == "loading";
+    if (has == (!m_entries.isEmpty() && edgeWaiting()))
+        return;
+    refresh(keys(), QSet<QString>()); // rebuilds, and tells the list of the one row added or removed
+}
+
+// A chat.history nobody answered in kHistoryMs is asked again by itself: a list resting at its top edge scrolls no
+// more, so no later call would ask again (the user, 2026-11-20). Clearing the id lifts askOlder's gate.
+void MessageModel::retryHistory()
+{
+    if (m_historyId.isEmpty())
+        return;
+    qDebug() << "chat: no answer to chat.history in" << kHistoryMs << "ms, asking again";
+    setAsked(m_historyId, QString());
+    askOlder();
 }
 
 void MessageModel::expectOpen(const QString &requestId)
@@ -419,8 +523,28 @@ void MessageModel::takeSenders(const QString &id, const QVariantMap &r)
         s.color = one.value("color").toInt();
         s.tag = one.value("tag").toString();
         s.photo = one.value("photo").toString();
+        // Only an answer that changes what a card draws repaints the cards (the user's log, 2026-11-20: cards were filled
+        // almost twice per open): the rows already carry the colour and the picture from chats.db's `people`.
+        bool changed;
+        const QHash<QString, Sender>::const_iterator old = m_senders.constFind(who);
+        if (old != m_senders.constEnd()) {
+            changed = old->color != s.color || old->tag != s.tag || old->photo != s.photo;
+        } else {
+            changed = false; // no row of theirs loaded: nothing to repaint
+            for (int i = 0; i < m_all.size(); ++i) {
+                const QVariantMap &d = m_all.at(i).data;
+                if (d.value("senderId").toString() != who)
+                    continue;
+                changed = !s.tag.isEmpty()
+                    || (s.color >= 0 && s.color < kSenderCount
+                        && QString::fromLatin1(kSenders[s.color]) != d.value("senderColor").toString())
+                    || (!s.photo.isEmpty() && s.photo != d.value("senderPhoto").toString());
+                break;
+            }
+        }
         m_senders.insert(who, s);
-        got.insert(who);
+        if (changed)
+            got.insert(who);
     }
     updateSenders(got, false);
 }
@@ -446,8 +570,9 @@ void MessageModel::updateSenders(const QSet<QString> &senders, bool tilesOnly)
         const Entry &e = m_entries[i];
         if (e.msg < 0 || !(e.showTile || (e.showName && !tilesOnly)))
             continue;
-        if (senders.contains(m_all[e.msg].data.value("senderId").toString()))
+        if (senders.contains(m_all[e.msg].data.value("senderId").toString())) {
             emit itemUpdated(QVariantList() << i);
+        }
     }
 }
 
@@ -485,6 +610,7 @@ void MessageModel::takeOpen(const QVariantMap &r)
         return;
     }
     m_floorKnown = true;
+    edgeChanged(); // awaitingOpen ends
     m_openLimit = 50; // the unread ones are verified now: a later chat.open checks the newest page only
     m_floor = oldest.isEmpty() ? kNoFloor : oldest.toLongLong();
     m_top = newest;
@@ -494,6 +620,8 @@ void MessageModel::takeOpen(const QVariantMap &r)
         // read again, now from the floor up, and the spinner goes; the page's pending jump runs on that.
         m_awaitOpen = false;
         m_windowGiveUp.stop();
+        m_restPending = false; // reloaded from scratch: a stale loadRest must not read a page into it
+        m_restTimer.stop();
         const QStringList old = keys();
         m_all.clear();
         refresh(old, QSet<QString>());
@@ -507,6 +635,20 @@ void MessageModel::takeOpen(const QVariantMap &r)
     dropBelowFloor();
     askOlder();
     fillShort();
+    pageIfNearTop(); // the list may have rested at its top for the whole wait
+}
+
+// The list rests near its top and something just made an older page readable (chat.open's answer gave the floor, a
+// chat.history page arrived): read it now, as nearTop would at the next scroll, which never comes for a list that
+// is not moving (the user, 2026-11-20: at the top of a chat for 30 s, nothing loaded). An older page is appended
+// above the list, so m_seenFirst is then far from the new top and this cannot run twice for one page. nearTop pages
+// older in window mode too, so there is no m_window test here.
+void MessageModel::pageIfNearTop()
+{
+    if (m_seenFirst < 0 || m_restPending || m_loading || !m_floorKnown || atStart())
+        return;
+    if (m_seenFirst >= m_entries.size() - kNearTop)
+        loadPage();
 }
 
 // A list too short to scroll never nears its top, so nearTop never loads the page the engine just verified: a chat
@@ -514,7 +656,8 @@ void MessageModel::takeOpen(const QVariantMap &r)
 // the smallest page, with more verified below, loads the next page now.
 void MessageModel::fillShort()
 {
-    if (!m_loading && !atStart() && m_all.size() < kPageMin)
+    // A budgeted first page is short on purpose: loadRest reads the next page.
+    if (!m_restPending && !m_loading && !atStart() && m_all.size() < kPageMin)
         loadPage();
 }
 
@@ -570,7 +713,7 @@ void MessageModel::takeBridge(const QVariantMap &r)
     m_floor = oldest.isEmpty() ? m_bridgeBefore : oldest.toLongLong();
     m_top = m_bridgeNewest;
     m_more = r["more"].toBool() && !oldest.isEmpty();
-    m_historyId.clear();
+    setAsked(m_historyId, QString());
     if (m_loading) // the first page reads from the floor up
         return;
     dropBelowFloor();
@@ -580,15 +723,17 @@ void MessageModel::takeBridge(const QVariantMap &r)
 // chat.history verified the page before the floor.
 void MessageModel::takeHistory(const QVariantMap &r)
 {
-    m_historyId.clear();
+    setAsked(m_historyId, QString());
     const QString oldest = r["oldest"].toString();
     if (!oldest.isEmpty())
         m_floor = qMin(m_floor, oldest.toLongLong());
     m_more = r["more"].toBool() && !oldest.isEmpty();
     if (m_starved)
         loadPage(); // the list was waiting at its top
-    else
+    else {
         refresh(keys(), QSet<QString>()); // atStart() may have just become true: the oldest day's header
+        pageIfNearTop();
+    }
     fillShort();
 }
 
@@ -605,14 +750,14 @@ void MessageModel::askWindow()
         ask["topic"] = m_topic;
     ask["after"] = QString::number(m_readInbox); // a string: ids exceed 2^53
     ask["limit"] = kPage;
-    m_newerId = m_engine->requestQuiet("chat.newer", ask);
+    setAsked(m_newerId, m_engine->requestQuiet("chat.newer", ask));
     m_newerAt.start();
 }
 
 // A chat.newer reply: the window's first (no floor yet), or a later page that moves m_top up.
 void MessageModel::takeNewer(const QVariantMap &r)
 {
-    m_newerId.clear();
+    setAsked(m_newerId, QString());
     if (!m_window)
         return;
     if (!m_floorKnown) {
@@ -648,6 +793,7 @@ void MessageModel::takeWindow(const QVariantMap &r)
         return;
     }
     m_floorKnown = true;
+    edgeChanged(); // awaitingOpen ends
     m_floor = floor;
     m_top = top;
     m_newerMore = r["more"].toBool();
@@ -687,7 +833,7 @@ void MessageModel::askNewer()
         ask["topic"] = m_topic;
     ask["after"] = QString::number(m_top); // a string: ids exceed 2^53
     ask["limit"] = kPage;
-    m_newerId = m_engine->requestQuiet("chat.newer", ask);
+    setAsked(m_newerId, m_engine->requestQuiet("chat.newer", ask));
     m_newerAt.start();
 }
 
@@ -718,7 +864,7 @@ void MessageModel::loadNewer()
 void MessageModel::joinLive()
 {
     m_window = false;
-    m_newerId.clear();
+    setAsked(m_newerId, QString());
     emit windowChanged();
     merge(QStringList(), select("AND CAST(id AS INTEGER) > ?", QVariantList() << m_top, -1), true);
 }
@@ -734,18 +880,23 @@ void MessageModel::leaveWindow(bool awaitOpen)
     const bool wasLoading = m_loading;
     const bool had = !m_entries.isEmpty();
     m_windowGiveUp.stop();
+    m_restPending = false; // everything loaded goes: no stale loadRest
+    m_restTimer.stop();
     m_window = false;
     emit windowChanged();
-    m_newerId.clear();
+    setAsked(m_newerId, QString());
     m_newerMore = false;
     m_unreadId.clear();
     m_holdOlder = false;
-    m_floorKnown = false;
+    if (m_floorKnown) {
+        m_floorKnown = false;
+        edgeChanged(); // awaitingOpen starts
+    }
     m_floor = 0;
     m_top = 0;
     m_more = false;
     m_starved = false;
-    m_historyId.clear(); // requests of the window's floor: their replies must not set the new one
+    setAsked(m_historyId, QString()); // requests of the window's floor: their replies must not set the new one
     m_bridgeId.clear();
     m_all.clear();
     rebuild();
@@ -772,6 +923,7 @@ void MessageModel::releaseOlder()
         return;
     const QStringList old = keys();
     m_holdOlder = false;
+    m_edgeSync.start(); // the held rows are in now: the loading row may be due (the refresh below already counts it)
     refresh(old, QSet<QString>()); // appended at the model's end, above the divider: the rows on screen stay
     qDebug() << "chat: older rows released," << old.size() << "->" << m_entries.size() << "entries";
 }
@@ -801,13 +953,17 @@ void MessageModel::giveUp()
 // from the cache shows: paging waits. In window mode the floor comes from chat.newer, and the bottom pages too.
 void MessageModel::nearTop(const QVariantList &firstVisible)
 {
-    if (!m_floorKnown || firstVisible.isEmpty())
+    if (firstVisible.isEmpty())
+        return;
+    m_seenFirst = firstVisible.value(0).toInt(); // kept even before the floor is known: pageIfNearTop uses it
+    if (!m_floorKnown)
         return;
     const int first = firstVisible.value(0).toInt();
     m_low = first;
     // Nothing more in chats.db and the engine's page is on its way: every scroll would read nothing.
     const bool waiting = m_starved && !m_historyId.isEmpty() && m_historyAt.elapsed() < kHistoryMs;
-    if (!atStart() && !waiting && first >= m_entries.size() - kNearTop)
+    // A short budgeted first page is "near its top" at once: loadRest reads that page, not a scroll.
+    if (!m_restPending && !atStart() && !waiting && first >= m_entries.size() - kNearTop)
         loadPage();
     // After the top: an older page appends at the model's end and leaves `first` right, a newer one shifts it.
     // One page is 50 entries, more than kNearTop, so this can't cascade either.
@@ -878,6 +1034,27 @@ void MessageModel::unspoil(const QString &id)
 // seconds, or end without reading the page again (giveUp).
 void MessageModel::onPreviews(const QStringList &ids)
 {
+    // A sender's round picture is made (roundPhotoSoon asked for it): let the next call look at the file again, and draw
+    // the cards that show that picture. The card gets the sender's photo from m_senders when it has one, else the row's own
+    // (data() above), so both are compared.
+    foreach (const QString &id, ids) {
+        if (!id.startsWith("round:"))
+            continue;
+        const QString path = id.mid(6);
+        roundForget(path);
+        for (int i = 0; i < m_entries.size(); ++i) {
+            const Entry &e = m_entries[i];
+            if (e.msg < 0 || !e.showTile)
+                continue;
+            const QVariantMap &d = m_all[e.msg].data;
+            const QHash<QString, Sender>::const_iterator it = m_senders.constFind(d.value("senderId").toString());
+            const QString shown = it != m_senders.constEnd() && !it->photo.isEmpty() ? it->photo
+                                                                                    : d.value("senderPhoto").toString();
+            if (shown == path) {
+                emit itemUpdated(QVariantList() << i);
+            }
+        }
+    }
     const QSet<QString> made = QSet<QString>::fromList(ids);
     QStringList mine;
     foreach (const Msg &m, m_all) {
@@ -943,9 +1120,9 @@ void MessageModel::onConnected()
         return;
     m_asked.clear(); // a fetch the engine lost with its restart is asked again
     m_refetch.clear();
-    m_historyId.clear(); // so is a chat.history
+    setAsked(m_historyId, QString()); // so is a chat.history
     m_bridgeId.clear(); // and a bridge: the chat.open that follows checks the gap again
-    m_newerId.clear(); // and a chat.newer
+    setAsked(m_newerId, QString()); // and a chat.newer
     m_senderAsks.clear(); // and a senders.get: the rows read again below collect the senders still unknown
     m_sendersAsked = QSet<QString>::fromList(m_senders.keys());
     if (m_all.isEmpty()) {
@@ -1314,8 +1491,9 @@ void MessageModel::refresh(const QStringList &old, const QSet<QString> &updated)
             touched.insert(j);
     }
     touched.remove(-1);
-    foreach (int at, touched)
+    foreach (int at, touched) {
         emit itemUpdated(QVariantList() << at);
+    }
 }
 
 void MessageModel::hide(const QStringList &ids)
@@ -1430,6 +1608,15 @@ void MessageModel::rebuild()
             h.msg = -1;
             m_entries.append(h);
         }
+    }
+    // The loading row, the list's last entry (its top): an older page is awaited (edgeWaiting). No message behind it (msg < 0),
+    // so markRuns and runOf treat it as a header: it is no one's, and it ends the run of the oldest message below it. Not
+    // on an empty list: EmptyNote has its own spinner.
+    if (!m_entries.isEmpty() && edgeWaiting()) {
+        Entry l;
+        l.key = "loading";
+        l.msg = -1;
+        m_entries.append(l);
     }
     if (m_group)
         markRuns();

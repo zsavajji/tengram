@@ -5,7 +5,7 @@ import bb.cascades 1.4
 // (the user's ask, 2026-11-19). The glyph is an image (`image`, white, tinted) or a bold character (`glyph`). `count`, when
 // above 0, is a small badge on the top-right corner (the user, 2026-11-20). The Classic's trackpad reaches it: it takes
 // the focus, in the pressed colour, and a click (Enter) taps it.
-Container {
+TapArea {
     id: btn
     property string image: ""
     property string glyph: ""
@@ -19,16 +19,7 @@ Container {
     background: settings.round ? Color.Transparent : Color.create(btn.focused ? nav.pressColor : nav.inColor)
     layout: DockLayout {
     }
-    gestureHandlers: TapHandler {
-        onTapped: btn.tapped()
-    }
-    keyListeners: KeyListener {
-        onKeyReleased: {
-            if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                btn.tapped()
-            }
-        }
-    }
+    onClicked: btn.tapped()
     RoundFill {
         filterColor: Color.create(btn.focused ? nav.pressColor : nav.inColor)
     }

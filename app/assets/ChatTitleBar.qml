@@ -42,23 +42,14 @@ TitleBar {
             // Back: the stock arrow's thin "<", in a box the bar's height that carries the margin.
             // The bar's four controls take the Classic's trackpad focus, lit with a pale veil (the picture dims), and a click
             // (Enter) does what a tap does.
-            Container {
+            TapArea {
                 id: backBtn
                 verticalAlignment: VerticalAlignment.Fill
                 preferredWidth: ui.du(7)
                 layout: DockLayout {}
                 focusPolicy: FocusPolicy.KeyAndTouch
                 background: backBtn.focused ? Color.create("#33ffffff") : Color.Transparent
-                gestureHandlers: TapHandler {
-                    onTapped: bar.back()
-                }
-                keyListeners: KeyListener {
-                    onKeyReleased: {
-                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                            bar.back()
-                        }
-                    }
-                }
+                onClicked: bar.back()
                 ImageView {
                     horizontalAlignment: HorizontalAlignment.Center
                     verticalAlignment: VerticalAlignment.Center
@@ -72,7 +63,7 @@ TitleBar {
             // The info page's tap is on the name and on the picture, not on the whole bar: a tap on
             // the call button reached the bar's handler too, and the contact page came up before
             // every call (Q10, 0.0.1.188). A TapEvent has no target to tell them apart by.
-            Container {
+            TapArea {
                 id: nameBtn
                 verticalAlignment: VerticalAlignment.Center
                 layoutProperties: StackLayoutProperties {
@@ -80,16 +71,7 @@ TitleBar {
                 }
                 focusPolicy: FocusPolicy.KeyAndTouch
                 background: nameBtn.focused ? Color.create("#33ffffff") : Color.Transparent
-                gestureHandlers: TapHandler {
-                    onTapped: bar.tapped()
-                }
-                keyListeners: KeyListener {
-                    onKeyReleased: {
-                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                            bar.tapped()
-                        }
-                    }
-                }
+                onClicked: bar.tapped()
                 // Two lines fit 85 px only without the labels' default margins (about 20 px),
                 // and below the stock title's 25 px capitals (125 %; 100 % draws 20 px):
                 // the name 22 px (110 %), the status 15 px (75 %). Q10, 2026-10-31.
@@ -138,7 +120,7 @@ TitleBar {
             }
             // The call button, outside the two parts that open the info page: it asks audio or video in a dialog of
             // buttons (the user's ask, 2026-11-19). call.start's failure is worded by main.qml's toast.
-            Container {
+            TapArea {
                 id: callBtn
                 visible: bar.canCall
                 verticalAlignment: VerticalAlignment.Center
@@ -148,16 +130,7 @@ TitleBar {
                 layout: DockLayout {}
                 focusPolicy: FocusPolicy.KeyAndTouch
                 background: callBtn.focused ? Color.create("#33ffffff") : Color.Transparent
-                gestureHandlers: TapHandler {
-                    onTapped: callKind.show()
-                }
-                keyListeners: KeyListener {
-                    onKeyReleased: {
-                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                            callKind.show()
-                        }
-                    }
-                }
+                onClicked: callKind.show()
                 attachedObjects: SystemDialog {
                     id: callKind
                     title: qsTr("Call")

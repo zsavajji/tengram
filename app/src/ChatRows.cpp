@@ -80,6 +80,9 @@ ChatRow::ChatRow(ListView *list)
     , m_scale(0)
     , m_compact(false)
     , m_topics(list->property("topicList").toBool())
+    , m_bottom(0)
+    , m_at(0)
+    , m_atDisc(0)
     , m_menu(0)
     , m_readItem(0)
     , m_pinItem(0)
@@ -165,6 +168,7 @@ ChatRow::ChatRow(ListView *list)
     top->add(m_time);
 
     Container *bottom = new Container();
+    m_bottom = bottom;
     bottom->setLayout(Card::across());
     // Our last message's state (docs/protocol.md): sending, sent, delivered, read.
     m_ticks = new ImageView();
@@ -182,29 +186,6 @@ ChatRow::ChatRow(ListView *list)
     // 2026-11-02.
     m_preview->setLeftMargin(m_ui->du(1));
     Card::quota(m_preview, 1);
-    // An unread mention or reply to us (chats.mentions): "@" on the primary colour before the count, as Telegram's, muted or
-    // not, since the Hub notifies it in a muted chat too (the user, 2026-11-20). As big as the count's disc.
-    m_at = new Container();
-    m_at->setVerticalAlignment(VerticalAlignment::Center);
-    m_at->setLeftMargin(m_ui->du(0.8));
-    m_at->setLayout(new DockLayout());
-    m_atDisc = new ImageView();
-    m_atDisc->setHorizontalAlignment(HorizontalAlignment::Fill);
-    m_atDisc->setVerticalAlignment(VerticalAlignment::Fill);
-    m_atDisc->setScalingMethod(ScalingMethod::AspectFit);
-    m_atDisc->setLoadEffect(ImageViewLoadEffect::None);
-    m_atDisc->setImageSource(Card::url("asset:///images/circle.png"));
-    m_atDisc->setVisible(false);
-    Label *atSign = new Label();
-    atSign->setHorizontalAlignment(HorizontalAlignment::Center);
-    atSign->setVerticalAlignment(VerticalAlignment::Center);
-    atSign->setText("@");
-    atSign->textStyle()->setBase(SystemDefaults::TextStyles::smallText());
-    atSign->textStyle()->setFontWeight(FontWeight::Bold);
-    atSign->textStyle()->setTextAlign(TextAlign::Center);
-    atSign->textStyle()->setColor(m_ui->palette()->textOnPrimary());
-    m_at->add(m_atDisc);
-    m_at->add(atSign);
     // The unread count, grey while muted, as WhatsApp does.
     // Round mode (the user's ask, 2026-11-19): a pill, pill_s.amd stretched under the count and tinted, as the service
     // lines' pill (ServiceCard); the count's paddings are on an inner Container, so the pill covers them too.
@@ -250,7 +231,6 @@ ChatRow::ChatRow(ListView *list)
     bottom->add(m_ticks);
     bottom->add(m_bang);
     bottom->add(m_preview);
-    bottom->add(m_at);
     bottom->add(m_badge);
     bottom->add(m_dot);
 
@@ -421,16 +401,51 @@ void ChatRow::show(const QVariantMap &chat)
     }
     m_dot->setVisible(unread < 0);
     // The @ is a disc in Round mode, a square otherwise, as the count; the count's size whatever the shape.
-    m_at->setVisible(m_chat.value("mentions").toInt() > 0);
-    m_atDisc->setVisible(roundBadge);
-    m_atDisc->setFilterColor(primary);
-    if (roundBadge)
-        m_at->resetBackground();
-    else
-        m_at->setBackground(primary);
-    m_at->setPreferredSize(m_ui->du(3.2 * m_scale), m_ui->du(3.2 * m_scale));
+    const bool at = m_chat.value("mentions").toInt() > 0;
+    if (at && !m_at)
+        makeAt();
+    if (m_at) {
+        m_at->setVisible(at);
+        m_atDisc->setVisible(roundBadge);
+        m_atDisc->setFilterColor(primary);
+        if (roundBadge)
+            m_at->resetBackground();
+        else
+            m_at->setBackground(primary);
+        m_at->setPreferredSize(m_ui->du(3.2 * m_scale), m_ui->du(3.2 * m_scale));
+    }
 
     m_sep->setBackground(palette->plain());
+}
+
+// The @ badge, made when the row first has a mention: few chats ever do.
+void ChatRow::makeAt()
+{
+    // An unread mention or reply to us (chats.mentions): "@" on the primary colour before the count, as Telegram's, muted or
+    // not, since the Hub notifies it in a muted chat too (the user, 2026-11-20). As big as the count's disc.
+    m_at = new Container();
+    m_at->setVerticalAlignment(VerticalAlignment::Center);
+    m_at->setLeftMargin(m_ui->du(0.8));
+    m_at->setLayout(new DockLayout());
+    m_atDisc = new ImageView();
+    m_atDisc->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_atDisc->setVerticalAlignment(VerticalAlignment::Fill);
+    m_atDisc->setScalingMethod(ScalingMethod::AspectFit);
+    m_atDisc->setLoadEffect(ImageViewLoadEffect::None);
+    m_atDisc->setImageSource(Card::url("asset:///images/circle.png"));
+    m_atDisc->setVisible(false);
+    Label *atSign = new Label();
+    atSign->setHorizontalAlignment(HorizontalAlignment::Center);
+    atSign->setVerticalAlignment(VerticalAlignment::Center);
+    atSign->setText("@");
+    atSign->textStyle()->setBase(SystemDefaults::TextStyles::smallText());
+    atSign->textStyle()->setFontWeight(FontWeight::Bold);
+    atSign->textStyle()->setTextAlign(TextAlign::Center);
+    atSign->textStyle()->setColor(m_ui->palette()->textOnPrimary());
+    m_at->add(m_atDisc);
+    m_at->add(atSign);
+    // Before the count's badge.
+    m_bottom->insert(m_bottom->indexOf(m_badge), m_at);
 }
 
 // Pressed: the page's pressColor, else none (QML had Color.Transparent).

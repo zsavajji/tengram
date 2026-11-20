@@ -15,9 +15,10 @@ namespace Sticker {
 const int kStickerPx = 180;
 
 // The PNG, at most kStickerPx square, of the first frame (the whole picture, for a still one) of the WebP or TGS
-// file at path, kept in data/cache/previews/<id>.png. It is made the first time by PreviewMaker, on a worker thread: until
-// then, and when the file can't be read or decoded, "". MessageModel reads the row again when the PNG is there.
-QByteArray picture(const QString &id, const QString &path);
+// file at path, kept in data/cache/previews/<id>.png. Returns the PNG's path when it is there. It is made the first time by
+// PreviewMaker, on a worker thread: until then, and when the file can't be read or decoded, "". MessageModel reads the row
+// again when the PNG is there.
+QString picture(const QString &id, const QString &path);
 
 // The still picture of the file at path, at most side square: a WebP's first frame, a TGS's frame 0, or a JPEG or PNG
 // thumbnail. Null on failure. Safe on a worker thread (QImage, QFile, libwebp and rlottie only): PreviewMaker makes picture's
@@ -25,9 +26,10 @@ QByteArray picture(const QString &id, const QString &path);
 QImage still(const QString &path, int side);
 
 // The PNG of the still picture of the file at path, at most side square: a WebP's first frame, a TGS's frame 0, or a
-// JPEG or PNG thumbnail. Kept in data/cache/previews/st-<side>-<hash of path>.png; empty on failure. Safe on a worker
-// thread (QImage, QFile, libwebp and rlottie only), which the picker's grid and preview run it on.
-QByteArray gridPicture(const QString &path, int side);
+// JPEG or PNG thumbnail. Kept in data/cache/previews/st-<side>-<hash of path>.png, made the first time; returns that
+// file's path, "" on failure. Safe on a worker thread (QImage, QFile, libwebp and rlottie only), which the picker's grid
+// and preview run it on.
+QString gridPicture(const QString &path, int side);
 
 // Whether the file at path is a TGS: it starts with the two bytes of gzip, which a TGS is (gzipped Lottie JSON) and a
 // WebP is not. The UI looks at the file instead of asking the engine for its format, so a row already in chats.db works.

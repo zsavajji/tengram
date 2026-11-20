@@ -1,3 +1,4 @@
+#include <cstring>
 #include <bb/cascades/AbstractPane>
 #include <bb/cascades/Application>
 #include <bb/cascades/QmlDocument>
@@ -64,6 +65,11 @@ static FILE *logFile = 0;
 
 static void writeLog(QtMsgType type, const char *msg)
 {
+    // Cascades logs "Invalid scaling method." at every ImageView::setScalingMethod(ScalingMethod::Fill), a valid value
+    // that it applies (RoundFill.qml's pill is stretched by it): 331 lines in 12 chat opens on the Classic (1.0.0.94),
+    // each a write and a flush here. Dropped.
+    if (strncmp(msg, "Invalid scaling method", 22) == 0)
+        return;
     if (toSlog)
         slog2c(logBuffer, 0, type == QtDebugMsg ? SLOG2_INFO : SLOG2_WARNING, msg);
     if (!logFile)

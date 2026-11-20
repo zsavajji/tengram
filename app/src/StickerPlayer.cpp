@@ -22,8 +22,8 @@ class StickerWorker : public QObject
 {
     Q_OBJECT
 public:
-    explicit StickerWorker(QAtomicInt *inFlight)
-        : m_inFlight(inFlight), m_animation(0), m_token(0), m_frame(0), m_frames(0), m_step(1), m_loop(false),
+    StickerWorker(QAtomicInt *inFlight, QAtomicInt *latest)
+        : m_inFlight(inFlight), m_latest(latest), m_animation(0), m_token(0), m_frame(0), m_frames(0), m_step(1), m_loop(false),
           m_buffer(kStickerPx * kStickerPx)
     {
         // A child, so it moves to the thread with the worker.
@@ -44,6 +44,9 @@ public slots:
     void start(int token, const QString &path, bool loop)
     {
         m_timer->stop();
+        // Replaced or stopped before the worker got to it: parsing it would be wasted (a fling past ten stickers parsed all ten).
+        if (token != int(*m_latest))
+            return;
         m_token = token;
         if (!m_animation || path != m_path) {
             if (m_animation)
@@ -111,6 +114,7 @@ private slots:
 
 private:
     QAtomicInt *m_inFlight; // the player's
+    QAtomicInt *m_latest;   // the player's: the newest token it gave out
     Lottie_Animation *m_animation;
     QString m_path; // of m_animation
     int m_token;
@@ -122,16 +126,21 @@ private:
     QTimer *m_timer;
 };
 
+// The one player, once made; setCovered() reads it without making one.
+static StickerPlayer *s_player = 0;
+
+bool StickerPlayer::s_covered = false;
+
 StickerPlayer *StickerPlayer::instance()
 {
-    static StickerPlayer *player = 0;
-    if (!player)
-        player = new StickerPlayer(QCoreApplication::instance());
-    return player;
+    if (!s_player)
+        s_player = new StickerPlayer(QCoreApplication::instance());
+    return s_player;
 }
 
 StickerPlayer::StickerPlayer(QObject *parent)
-    : QObject(parent), m_thread(new QThread(this)), m_worker(new StickerWorker(&m_inFlight)), m_token(0), m_inFlight(0)
+    : QObject(parent), m_thread(new QThread(this)), m_worker(new StickerWorker(&m_inFlight, &m_latest)), m_token(0),
+      m_loop(false), m_latest(0), m_inFlight(0)
 {
     m_worker->moveToThread(m_thread);
     // The worker dies on its own thread, when the thread ends (~StickerPlayer).
@@ -157,9 +166,38 @@ void StickerPlayer::play(bb::cascades::ImageView *view, const bb::cascades::Imag
         stop();
     m_view = view;
     m_still = still;
+    m_path = path;
+    m_loop = loop;
+    // Under another page: it starts when a chat is on top again (setCovered).
+    if (s_covered)
+        return;
+    begin();
+}
+
+void StickerPlayer::begin()
+{
     ++m_token;
-    QMetaObject::invokeMethod(m_worker, "start", Qt::QueuedConnection, Q_ARG(int, m_token), Q_ARG(QString, path),
-                              Q_ARG(bool, loop));
+    m_latest.fetchAndStoreOrdered(m_token);
+    QMetaObject::invokeMethod(m_worker, "start", Qt::QueuedConnection, Q_ARG(int, m_token), Q_ARG(QString, m_path),
+                              Q_ARG(bool, m_loop));
+}
+
+void StickerPlayer::setCovered(bool covered)
+{
+    if (covered == s_covered)
+        return;
+    s_covered = covered;
+    if (!s_player || !s_player->m_view)
+        return;
+    if (covered) {
+        // Paused: the view shows its still; m_view, m_path and m_loop stay so it can start again.
+        ++s_player->m_token;
+        s_player->m_latest.fetchAndStoreOrdered(s_player->m_token);
+        QMetaObject::invokeMethod(s_player->m_worker, "halt", Qt::QueuedConnection);
+        s_player->m_view->setImage(s_player->m_still);
+    } else {
+        s_player->begin();
+    }
 }
 
 void StickerPlayer::release(bb::cascades::ImageView *view)
@@ -176,6 +214,7 @@ bool StickerPlayer::playing(bb::cascades::ImageView *view) const
 void StickerPlayer::stop()
 {
     ++m_token; // what the worker has queued is stale now
+    m_latest.fetchAndStoreOrdered(m_token);
     QMetaObject::invokeMethod(m_worker, "halt", Qt::QueuedConnection);
     if (m_view)
         m_view->setImage(m_still);
