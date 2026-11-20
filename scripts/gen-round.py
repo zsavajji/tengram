@@ -11,6 +11,11 @@ ImageView.filterColor, as the cards' and the call screen's are.
   card_round_l.png, card_round_r.png, and their .amd   a 60 x 60 white card with a CARD_R px radius on three corners and
                 none on the fourth, the one at the tail (l: bottom left, theirs; r: bottom right, ours), sliceMargins CARD_R.
                 MessageCard puts them in place of card.png in Round mode.
+  quote.png, quote_bar.png, and their .amd   the reply box in a card (MessageCard::makeQuote; the user, 2026-11-20: 4 px
+                round edges): a 12 x 12 white rounded square, radius QUOTE_R, sliceMargins QUOTE_R, tinted with the list's quoteTint;
+                and its accent bar, 6 x 12 white with the left corners rounded the same, sliceMargins QUOTE_R 1 QUOTE_R QUOTE_R (left
+                right top bottom), drawn 5 px wide so the slices meet. quote_sq.png and quote_bar_sq.png are the square twins, for
+                the Square shape.
   corner.png    a 64 x 64 mask for a picture's corner (the user, 2026-11-19: the photo and video bubbles had square corners):
                 white outside a quarter circle of radius 64 centred at the bottom right, transparent inside, so it is the
                 top left corner. MediaBubble scales it to the radius, turns it by 90, 180 and 270 degrees for the others and
@@ -29,6 +34,7 @@ S = 4  # supersampling
 # The cards' corner (20 until the user asked for rounder, 2026-11-19). A one-line card is ~56 px tall on the Classic and a
 # nine-slice can't be shorter than its two margins: 28 at most. MessageCard::kRoundCardR is the same number.
 CARD_R = 28
+QUOTE_R = 4  # the reply box's corners (MessageCard::makeQuote)
 
 
 def save(mask, out, name):
@@ -49,6 +55,24 @@ def rounded(size, radius, corners=(True, True, True, True)):
     mask = Image.new("L", (size * S, size * S), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, size * S - 1, size * S - 1), radius * S, 255, corners=corners)
     return mask
+
+
+def box(w, h, radius, corners=(True, True, True, True)):
+    """rounded() for a w x h image."""
+    mask = Image.new("L", (w * S, h * S), 0)
+    if radius:
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, w * S - 1, h * S - 1), radius * S, 255, corners=corners)
+    else:
+        ImageDraw.Draw(mask).rectangle((0, 0, w * S - 1, h * S - 1), 255)
+    return mask
+
+
+def quote(out):
+    for suffix, r in (("", QUOTE_R), ("_sq", 0)):
+        save(box(12, 12, r), out, "quote" + suffix)
+        amd(out, "quote" + suffix, f"{QUOTE_R} {QUOTE_R} {QUOTE_R} {QUOTE_R}")
+        save(box(6, 12, r, (True, False, False, True)), out, "quote_bar" + suffix)
+        amd(out, "quote_bar" + suffix, f"{QUOTE_R} 1 {QUOTE_R} {QUOTE_R}")
 
 
 def corner():
@@ -76,6 +100,7 @@ def main(out):
     amd(out, "card_round_r", m)
 
     save(corner(), out, "corner")
+    quote(out)
 
 
 if __name__ == "__main__":

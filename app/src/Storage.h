@@ -42,6 +42,10 @@ public:
     // A size in bytes as "0 KB", "812 KB", "12.3 MB" or "3.45 GB" (in the phone's region), and a unix time as a date.
     Q_INVOKABLE QString bytesText(double bytes) const;
     Q_INVOKABLE QString dateText(double secs) const;
+    // data/cache/'s size, and its clearing, on a worker (Settings::cacheBytes, removeCache: thousands of files took the page 3 s
+    // to open, the user, 0.1.0.81). Here and not in the app-wide Settings: the answers die with the page, as the others do.
+    Q_INVOKABLE void measureCache(); // then cacheMeasured
+    Q_INVOKABLE void clearCache();   // then cacheCleared
 
 signals:
     void storageChanged();
@@ -51,11 +55,15 @@ signals:
     // engine.failure.cmd to show it meanwhile.
     void done(const QString &cmd);
     void failed(const QString &cmd);
+    void cacheMeasured(const QString &size); // "0 KB" for an empty cache
+    void cacheCleared(const QString &freed);
 
 private slots:
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onFailure();
     void onConnected();
+    void onMeasured();
+    void onCleared();
 
 private:
     QString send(const QString &cmd);

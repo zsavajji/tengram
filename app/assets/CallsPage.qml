@@ -77,6 +77,10 @@ Page {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         ListView {
+            // Filling the page: in a dock, a list without an alignment sat small in its corner and never grew (the user,
+            // 2026-11-20).
+            horizontalAlignment: HorizontalAlignment.Fill
+            verticalAlignment: VerticalAlignment.Fill
             // The rows' menu and tap reach the engine and the page through the view, as the message cards' do.
             function dial(chat, video) {
                 engine.request("call.start", {"chat": chat, "video": !!video})

@@ -12,6 +12,8 @@ Page {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         ScrollView {
+            horizontalAlignment: HorizontalAlignment.Fill // filling the page from the start: as wide as its
+            verticalAlignment: VerticalAlignment.Fill     // content, it opened narrow and grew (the user, 2026-11-20)
             Container {
                 topPadding: ui.du(2)
                 leftPadding: ui.du(2)
@@ -70,6 +72,55 @@ Page {
                         verticalAlignment: VerticalAlignment.Center
                         checked: settings.earSensor
                         onCheckedChanged: settings.earSensor = checked
+                    }
+                }
+                Container {
+                    topMargin: ui.du(3)
+                    Label {
+                        text: qsTr("Animated stickers")
+                        bottomMargin: 0
+                    }
+                    Label {
+                        text: qsTr("Loop plays them over and over; Play once stops after one go, and a tap plays it again; Off shows them still.")
+                        multiline: true
+                        topMargin: 0
+                        textStyle.base: SystemDefaults.TextStyles.SubtitleText
+                        textStyle.color: ui.palette.secondaryTextOnPlain
+                    }
+                    DropDown {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        topMargin: ui.du(1)
+                        options: [
+                            Option { text: qsTr("Loop"); selected: settings.stickerPlay == 0 },
+                            Option { text: qsTr("Play once"); selected: settings.stickerPlay == 1 },
+                            Option { text: qsTr("Off"); selected: settings.stickerPlay == 2 }
+                        ]
+                        onSelectedIndexChanged: {
+                            if (selectedIndex >= 0) {
+                                settings.stickerPlay = selectedIndex
+                            }
+                        }
+                    }
+                }
+                Container {
+                    topMargin: ui.du(3)
+                    Label {
+                        text: qsTr("Sticker size")
+                        bottomMargin: 0
+                    }
+                    DropDown {
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        topMargin: ui.du(1)
+                        options: [
+                            Option { text: qsTr("Small"); selected: settings.stickerSize == 0 },
+                            Option { text: qsTr("Normal"); selected: settings.stickerSize == 1 },
+                            Option { text: qsTr("Big"); selected: settings.stickerSize == 2 }
+                        ]
+                        onSelectedIndexChanged: {
+                            if (selectedIndex >= 0) {
+                                settings.stickerSize = selectedIndex
+                            }
+                        }
                     }
                 }
             }

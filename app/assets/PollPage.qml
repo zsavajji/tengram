@@ -17,6 +17,8 @@ Page {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         ScrollView {
+            horizontalAlignment: HorizontalAlignment.Fill // filling the page from the start: as wide as its
+            verticalAlignment: VerticalAlignment.Fill     // content, it opened narrow and grew (the user, 2026-11-20)
             Container {
                 topPadding: ui.du(2)
                 bottomPadding: ui.du(2)

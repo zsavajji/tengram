@@ -935,6 +935,51 @@
         <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
         <translation>Khi tắt, tin nhắn thoại vẫn phát qua loa và màn hình vẫn sáng khi gọi. Dành cho cảm biến bị hỏng.</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="78"/>
+        <source>Animated stickers</source>
+        <translation>Nhãn dán động</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="82"/>
+        <source>Loop plays them over and over; Play once stops after one go, and a tap plays it again; Off shows them still.</source>
+        <translation>Lặp phát liên tục; Phát một lần dừng sau một lượt, chạm để phát lại; Tắt chỉ hiển thị ảnh tĩnh.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="92"/>
+        <source>Loop</source>
+        <translation>Lặp</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="93"/>
+        <source>Play once</source>
+        <translation>Phát một lần</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="94"/>
+        <source>Off</source>
+        <translation>Tắt</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="106"/>
+        <source>Sticker size</source>
+        <translation>Kích thước nhãn dán</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="113"/>
+        <source>Small</source>
+        <translation>Nhỏ</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="114"/>
+        <source>Normal</source>
+        <translation>Bình thường</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="115"/>
+        <source>Big</source>
+        <translation>Lớn</translation>
+    </message>
 </context>
 <context>
     <name>ChatTitleBar</name>
@@ -1478,6 +1523,11 @@
         <location filename="../assets/DataSettingsPage.qml" line="402"/>
         <source>Low (320x240)</source>
         <translation>Thấp (320x240)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="443"/>
+        <source>Automatic sharpens the picture when the network allows and softens it when it doesn&apos;t. A fixed size keeps the picture as it is; the quality still follows the network.</source>
+        <translation>Tự động làm nét ảnh khi mạng cho phép và làm mờ bớt khi không cho phép. Kích thước cố định giữ nguyên ảnh; chất lượng vẫn theo mạng.</translation>
     </message>
 </context>
 <context>
@@ -3532,6 +3582,47 @@
         <source>No starred messages</source>
         <translation type="obsolete">Không có tin nhắn gắn dấu sao</translation>
     </message>
+</context>
+<context>
+    <name>StickerPicker</name>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="250"/>
+            <source>Favourites</source>
+            <translation>Yêu thích</translation>
+        </message>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="282"/>
+            <source>Recent</source>
+            <translation>Gần đây</translation>
+        </message>
+</context>
+<context>
+    <name>StickersPage</name>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="19"/>
+            <source>Stickers</source>
+            <translation>Nhãn dán</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="233"/>
+            <source>No stickers yet. Add sticker sets in Telegram on another device.</source>
+            <translation>Chưa có nhãn dán nào. Hãy thêm bộ nhãn dán trong Telegram trên thiết bị khác.</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="277"/>
+            <source>Send</source>
+            <translation>Gửi</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Remove from favourites</source>
+            <translation>Xóa khỏi yêu thích</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Add to favourites</source>
+            <translation>Thêm vào yêu thích</translation>
+        </message>
 </context>
 <context>
     <name>StoriesModel</name>

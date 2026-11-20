@@ -40,7 +40,20 @@ VisualNode *MessageCards::createItem(ListView *list, const QString &type)
         return new ServiceCard(list);
     // "text" is the light card; "picture" the full one with a photo, video or map across it; "msg", and
     // anything else, the full one.
-    return new MessageCard(list, type != "text", type == "picture");
+    MessageCard *card = new MessageCard(list, type != "text", type == "picture");
+    m_cards << card;
+    return card;
+}
+
+void MessageCards::slideRow(const QString &id)
+{
+    for (int i = m_cards.size() - 1; i >= 0; --i) {
+        MessageCard *card = m_cards.at(i);
+        if (!card)
+            m_cards.removeAt(i); // gone with the page
+        else
+            card->reportSlide(id);
+    }
 }
 
 void MessageCards::updateItem(ListView *, VisualNode *listItem, const QString &type,

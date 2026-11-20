@@ -88,6 +88,10 @@ Page {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         ListView {
+            // Filling the page: in a dock, a list without an alignment sat small in its corner and never grew (the user,
+            // 2026-11-20).
+            horizontalAlignment: HorizontalAlignment.Fill
+            verticalAlignment: VerticalAlignment.Fill
             // The rows reach the press colour through the view, as the chat list's do.
             property string pressColor: nav.pressColor
             dataModel: ArrayDataModel {

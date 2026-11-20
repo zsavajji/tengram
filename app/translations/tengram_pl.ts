@@ -937,6 +937,51 @@
         <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
         <translation>Gdy wyłączone, wiadomości głosowe zostają na głośniku, a ekran pozostaje włączony podczas połączeń. Dla uszkodzonego czujnika.</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="78"/>
+        <source>Animated stickers</source>
+        <translation>Animowane naklejki</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="82"/>
+        <source>Loop plays them over and over; Play once stops after one go, and a tap plays it again; Off shows them still.</source>
+        <translation>Pętla odtwarza je w kółko; Odtwórz raz zatrzymuje się po jednym odtworzeniu, a dotknięcie odtwarza ponownie; Wyłączone pokazuje je nieruchome.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="92"/>
+        <source>Loop</source>
+        <translation>Pętla</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="93"/>
+        <source>Play once</source>
+        <translation>Odtwórz raz</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="94"/>
+        <source>Off</source>
+        <translation>Wyłączone</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="106"/>
+        <source>Sticker size</source>
+        <translation>Rozmiar naklejek</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="113"/>
+        <source>Small</source>
+        <translation>Mały</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="114"/>
+        <source>Normal</source>
+        <translation>Normalny</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="115"/>
+        <source>Big</source>
+        <translation>Duży</translation>
+    </message>
 </context>
 <context>
     <name>ChatTitleBar</name>
@@ -1484,6 +1529,11 @@
         <location filename="../assets/DataSettingsPage.qml" line="402"/>
         <source>Low (320x240)</source>
         <translation>Niska (320x240)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="443"/>
+        <source>Automatic sharpens the picture when the network allows and softens it when it doesn&apos;t. A fixed size keeps the picture as it is; the quality still follows the network.</source>
+        <translation>Automatycznie wyostrza obraz, gdy sieć na to pozwala, a wygładza go, gdy nie pozwala. Stały rozmiar zachowuje obraz bez zmian; jakość i tak zależy od sieci.</translation>
     </message>
 </context>
 <context>
@@ -3542,6 +3592,47 @@
         <source>No starred messages</source>
         <translation type="obsolete">Brak wiadomości z gwiazdką</translation>
     </message>
+</context>
+<context>
+    <name>StickerPicker</name>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="250"/>
+            <source>Favourites</source>
+            <translation>Ulubione</translation>
+        </message>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="282"/>
+            <source>Recent</source>
+            <translation>Ostatnie</translation>
+        </message>
+</context>
+<context>
+    <name>StickersPage</name>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="19"/>
+            <source>Stickers</source>
+            <translation>Naklejki</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="233"/>
+            <source>No stickers yet. Add sticker sets in Telegram on another device.</source>
+            <translation>Brak naklejek. Dodaj zestawy naklejek w Telegramie na innym urządzeniu.</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="277"/>
+            <source>Send</source>
+            <translation>Wyślij</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Remove from favourites</source>
+            <translation>Usuń z ulubionych</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Add to favourites</source>
+            <translation>Dodaj do ulubionych</translation>
+        </message>
 </context>
 <context>
     <name>StoriesModel</name>

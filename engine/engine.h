@@ -125,7 +125,9 @@ const td_api::file *message_file(const td_api::message &m);
 // side is at least 400 px, else the largest), the JPEG thumbnail of a video, animation or video note. Or nullptr.
 const td_api::file *message_preview_file(const td_api::message &m);
 // A message TDLib just gave us (the answer to msg.send): its row is written at the next flush.
-void messages_queue(const td_api::message &m);
+// local: the UI's own name for a message it is sending (msg.send's `local`), written on the row as extra.local, so the UI
+// renames its local row to this one exactly rather than by its words.
+void messages_queue(const td_api::message &m, const std::string &local = std::string());
 // A page of history, newest first, that must become the table's content for the chat from `oldest` up to but
 // not including `upper`: rows are added or changed, and rows in that range that are not in the page are deleted.
 // `topic` is the forum topic the page is of: only that topic's rows are compared. -1 is the whole chat.
@@ -169,7 +171,8 @@ td_api::object_ptr<td_api::MessageTopic> topic_object(std::int32_t topic);
 // (state 0, under a temporary id), the reply is `{id}`.
 void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat, std::int32_t topic,
                   td_api::object_ptr<td_api::InputMessageReplyTo> reply,
-                  td_api::object_ptr<td_api::InputMessageContent> content);
+                  td_api::object_ptr<td_api::InputMessageContent> content,
+                  const std::string &local = std::string());
 std::string path_json(const std::string &path);  // {"path": ...}, the result of media.get and voice.play
 
 // voice.cpp: voice.start, voice.send, voice.cancel and voice.play. The codec is opus_ogg.h's.
@@ -199,6 +202,10 @@ bool topics_read(std::int64_t chat, std::int32_t topic, std::function<void(const
 
 // profile.cpp: profile.get and profile.set, our own account's name, about, phone and picture. They have no chat.
 bool profile_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+
+// stickers.cpp: stickers.sets, stickers.get, stickers.file, sticker.send and sticker.fave, the sticker picker's requests.
+// Only sticker.send names a chat.
+bool stickers_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
 // sessions.cpp: sessions.list, sessions.terminate, sessions.terminateOthers and sessions.confirmQr, the devices the
 // account is signed in on and the QR code that signs a new one in. They have no chat.

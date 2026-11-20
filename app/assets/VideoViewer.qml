@@ -305,11 +305,15 @@ Page {
                     layout: StackLayout {
                         orientation: LayoutOrientation.LeftToRight
                     }
+                    // The Classic's trackpad reaches it: it takes the focus, under a pale veil, and a click (Enter) plays or pauses.
                     Container {
+                        id: playBtn
                         verticalAlignment: VerticalAlignment.Center
                         preferredWidth: ui.du(10)
                         preferredHeight: ui.du(10)
                         layout: DockLayout {}
+                        focusPolicy: FocusPolicy.KeyAndTouch
+                        background: playBtn.focused ? Color.create("#33ffffff") : Color.Transparent
                         ImageView {
                             horizontalAlignment: HorizontalAlignment.Center
                             verticalAlignment: VerticalAlignment.Center
@@ -320,6 +324,13 @@ Page {
                         }
                         gestureHandlers: TapHandler {
                             onTapped: page.toggle()
+                        }
+                        keyListeners: KeyListener {
+                            onKeyReleased: {
+                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                    page.toggle()
+                                }
+                            }
                         }
                     }
                     Label {

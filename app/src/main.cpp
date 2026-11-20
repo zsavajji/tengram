@@ -48,6 +48,7 @@
 #include "QrImage.h"
 #include "Sessions.h"
 #include "Settings.h"
+#include "StickerGrid.h"
 #include "Storage.h"
 #include "TopicModel.h"
 
@@ -198,6 +199,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     qmlRegisterType<Privacy>("tengram", 1, 0, "Privacy");
     qmlRegisterType<Profile>("tengram", 1, 0, "Profile");
     qmlRegisterType<Sessions>("tengram", 1, 0, "Sessions");
+    qmlRegisterType<StickerGrid>("tengram", 1, 0, "StickerGrid");
     qmlRegisterType<Storage>("tengram", 1, 0, "Storage");
     qmlRegisterType<TopicModel>("tengram", 1, 0, "TopicModel");
     engine.awaitLink();

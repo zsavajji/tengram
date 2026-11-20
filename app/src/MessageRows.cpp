@@ -29,12 +29,15 @@ using namespace bb::utility::i18n;
 static const char *const kDb = "chats";
 
 // The three QUOTED are the quoted message's out, sender and sender_name, by its primary key. The
-// reactions are in extra (docs/protocol.md), read in read() below.
+// reactions are in extra (docs/protocol.md), read in read() below. The last two columns are the sender's colour and small
+// picture from `people` (the query joins it to messages on the sender's id: NULL for no sender, or one the engine hasn't
+// written yet). The very last is the quoted sender's colour from `people`, for the quote's name.
 #define QUOTED(col) "(SELECT " col " FROM messages q WHERE q.chat = messages.chat AND q.id = messages.quote_id)"
 static const char *const kColumns = "CAST(id AS INTEGER), id, ts, out, state, sender, sender_name, kind, "
                                     "text, quote_preview, edited, deleted, "
                                     QUOTED("out") ", " QUOTED("sender") ", " QUOTED("sender_name") ", duration, waveform, media_state, played, "
-                                    "thumb, width, height, size, path, extra, starred, quote_id";
+                                    "thumb, width, height, size, path, extra, starred, quote_id, people.color, people.photo, "
+                                    "(SELECT color FROM people WHERE people.user = " QUOTED("sender") ")";
 #undef QUOTED
 
 MessageModel::Msg MessageModel::read(QSqlQuery &q)
@@ -188,12 +191,22 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
         senderId = q.value(5).toString();
     m.data["senderId"] = senderId;
     m.data["senderInitials"] = initials(sender);
-    // The colour of a name the engine hasn't answered for yet: a hash of the id, over the same seven colours. data()
-    // swaps in the sender's own once senders.get has said it.
+    // The sender's colour and small picture as the engine wrote them in `people` (docs/protocol.md): what senders.get says
+    // too, so the chat opens with the colour it keeps. A sender the engine hasn't written yet has a hash of the id, over the
+    // same seven colours; data() swaps in the one senders.get says.
+    const int own = q.value(27).isNull() ? -1 : q.value(27).toInt();
     QString color;
-    if (!sender.isEmpty() || !senderId.isEmpty())
+    if (own >= 0 && own < kSenderCount && !senderId.isEmpty())
+        color = QString::fromLatin1(kSenders[own]);
+    else if (!sender.isEmpty() || !senderId.isEmpty())
         color = pickColor(senderId.isEmpty() ? sender : senderId, kSenders, kSenderCount);
     m.data["senderColor"] = color;
+    // A file TDLib has since deleted is no picture (Clear media); the initials show until senders.get asks for it again.
+    QString photo = senderId.isEmpty() ? QString() : q.value(28).toString();
+    if (!photo.isEmpty() && !QFile::exists(photo))
+        photo.clear();
+    if (!senderId.isEmpty())
+        m.data["senderPhoto"] = photo; // data() keeps it unless senders.get has a picture of its own
     // A positive id is a user, which is all senders.get knows: a chat that posts as itself has a negative one.
     if (!senderId.isEmpty() && !senderId.startsWith('-') && !m_senders.contains(senderId)
         && !m_sendersAsked.contains(senderId))
@@ -207,8 +220,12 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
             quoteName = tr("You");
         } else if (!q.value(14).toString().isEmpty()) {
             quoteName = q.value(14).toString();
+            // Their colour from `people`, as their name's in their own messages (the user, 2026-11-20); the hash when the
+            // engine hasn't written them.
+            const int known = q.value(29).isNull() ? -1 : q.value(29).toInt();
             const QString key = q.value(13).isNull() ? quoteName : q.value(13).toString();
-            quoteColor = pickColor(key, kSenders, kSenderCount);
+            quoteColor = known >= 0 && known < kSenderCount ? QString::fromLatin1(kSenders[known])
+                                                            : pickColor(key, kSenders, kSenderCount);
         }
     }
     m.data["quoteName"] = quoteName;
@@ -361,7 +378,8 @@ QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVaria
     m_clock = timeFormat(m_locale, DateFormat::Short);
     m_now = QDateTime::currentDateTime().toTime_t();
     QSqlQuery q(db);
-    q.prepare(QString("SELECT %1 FROM messages WHERE chat = ?%5 %2 ORDER BY ts %3, CAST(id AS INTEGER) %3 "
+    q.prepare(QString("SELECT %1 FROM messages LEFT JOIN people ON people.user = messages.sender "
+                      "WHERE chat = ?%5 %2 ORDER BY ts %3, CAST(id AS INTEGER) %3 "
                       "LIMIT %4").arg(kColumns, where, oldestFirst ? "ASC" : "DESC").arg(limit).arg(topicSql()));
     bindChat(q);
     foreach (const QVariant &a, args)
@@ -376,5 +394,47 @@ QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVaria
         else
             rows.prepend(read(q));
     }
+    // Ours sent while the chat is open sort where they were sent (m_place), a page read again included.
+    for (int i = 0; i < rows.size(); ++i)
+        placed(rows[i]);
     return rows;
+}
+
+// The Msg of a local row (addLocal), a text of ours with no row yet: read() of a one-row table that has messages' columns, aliased
+// messages so kColumns reads it unchanged. So its map has exactly the keys a real row's has (the cards read them all), and the
+// quote's out, sender and name are the quoted row's by the same subselects; the quote's line is what the engine writes to
+// quote_preview, one_line()'s (docs/protocol.md): newlines and tabs to spaces, 150 characters here, bytes there. Ours, sending
+// (out 1, state 0), kind 0 with no extra. rowid is the caller's to set (CAST of "local-n" is 0). An empty Msg (no id) when
+// chats.db isn't open or the query fails. m_locale, m_clock and m_now are what select() sets before its reads.
+MessageModel::Msg MessageModel::localRow(const QString &id, const QString &text, const QString &quoteId, qint64 ts)
+{
+    Msg none;
+    QSqlDatabase db = database();
+    if (!db.isOpen())
+        return none;
+    m_locale = m_region.locale();
+    m_clock = timeFormat(m_locale, DateFormat::Short);
+    m_now = QDateTime::currentDateTime().toTime_t();
+    QSqlQuery q(db);
+    q.prepare(QString("SELECT %1 FROM (SELECT ? AS chat, ? AS id, ? AS ts, 1 AS out, 0 AS state, NULL AS sender, "
+                      "NULL AS sender_name, 0 AS kind, ? AS text, "
+                      "(SELECT replace(replace(substr(p.text, 1, 150), ?, ' '), ?, ' ') FROM messages p "
+                      "WHERE p.chat = ? AND p.id = ?) AS quote_preview, "
+                      "0 AS edited, 0 AS deleted, 0 AS duration, NULL AS waveform, 0 AS media_state, 0 AS played, "
+                      "NULL AS thumb, 0 AS width, 0 AS height, 0 AS size, NULL AS path, NULL AS extra, 0 AS starred, "
+                      "? AS quote_id) messages LEFT JOIN people ON people.user = messages.sender").arg(kColumns));
+    q.addBindValue(m_chat);
+    q.addBindValue(id);
+    q.addBindValue(ts);
+    q.addBindValue(text);
+    q.addBindValue(QString("\n")); // bound, not char(10): the quote's line is one line
+    q.addBindValue(QString("\t"));
+    q.addBindValue(m_chat);
+    q.addBindValue(quoteId);
+    q.addBindValue(quoteId);
+    if (!q.exec() || !q.next()) {
+        qWarning() << "messages: local row:" << q.lastError().text();
+        return none;
+    }
+    return read(q);
 }

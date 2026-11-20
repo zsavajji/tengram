@@ -100,7 +100,8 @@ Page {
                     orientation: LayoutOrientation.LeftToRight
                 }
                 // The country, at the number's start (user, 2026-10-31): a box like a button,
-                // as tall as the field, that opens the picker.
+                // as tall as the field, that opens the picker. The Classic's trackpad reaches it: FocusPolicy.Key, not KeyAndTouch,
+                // so a touch leaves the focus (and the keyboard) in the field; lit as while pressed, and a click (Enter) opens the picker.
                 Container {
                     id: countryBox
                     property bool pressed: false
@@ -108,10 +109,18 @@ Page {
                     minWidth: ui.du(14)
                     leftPadding: ui.du(1.5)
                     rightPadding: ui.du(1.5)
-                    background: pressed ? ui.palette.primaryBase : ui.palette.plain
+                    focusPolicy: FocusPolicy.Key
+                    background: pressed || focused ? ui.palette.primaryBase : ui.palette.plain
                     layout: DockLayout {}
                     gestureHandlers: TapHandler {
                         onTapped: page.pickCountry()
+                    }
+                    keyListeners: KeyListener {
+                        onKeyReleased: {
+                            if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                page.pickCountry()
+                            }
+                        }
                     }
                     onTouch: countryBox.pressed = event.isDown() || event.isMove()
                     onTouchExit: countryBox.pressed = false

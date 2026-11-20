@@ -16,6 +16,7 @@
 #include <bb/cascades/ImageViewLoadEffect>
 #include <bb/cascades/Label>
 #include <bb/cascades/LabelAutoSizeProperties>
+#include <bb/cascades/LayoutUpdateHandler>
 #include <bb/cascades/ListView>
 #include <bb/cascades/ScalingMethod>
 #include <bb/cascades/SystemDefaults>
@@ -74,6 +75,8 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_fwdText(0)
     , m_quote(0)
     , m_bar(0)
+    , m_quoteBg(0)
+    , m_quoteShape(-1)
     , m_quoteName(0)
     , m_quoteText(0)
     , m_quoteThumb(0)
@@ -245,6 +248,11 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     m_row->add(m_gapR);
     m_root->add(m_row);
     setRoot(m_root);
+    // The new message's slide (ChatPage's added and slideIn): the card of the row the list's slideId names tells the page how
+    // tall it came out, which is how far the list slides.
+    m_laidHeight = 0;
+    LayoutUpdateHandler *laid = new LayoutUpdateHandler(this);
+    connect(laid, SIGNAL(layoutFrameChanged(QRectF)), this, SLOT(onLaidOut(QRectF)));
 
     // The long-press menu (step 3.3): the actions are made at the first populating, which comes just
     // before it opens, and their enabled states set at each. The set is the same on every row, with
@@ -281,6 +289,7 @@ ImageView *MessageCard::makeTail(const char *source)
 void MessageCard::show(const QVariantMap &msg)
 {
     m_msg = msg;
+    reportSlide(m_list->property("slideId").toString()); // a reused card that won't be laid out again (reportSlide)
     const bool out = flag("out");
     const bool deleted = flag("deleted");
 
@@ -462,7 +471,7 @@ void MessageCard::restyle(bool out)
         m_fwdIcon->setPreferredSize(m_ui->du(2.2 * scale), m_ui->du(2.2 * scale));
     }
     if (m_quote) {
-        m_bar->setBackground(m_ui->palette()->primary());
+        m_bar->setFilterColor(m_ui->palette()->primary());
         Card::style(m_quoteName, m_list, small);
         Card::style(m_quoteText, m_list, small);
         m_quoteText->textStyle()->setColor(quiet);
@@ -617,25 +626,40 @@ void MessageCard::makeForwarded()
 // The message this one replies to, on a tint a little off the card's colour.
 void MessageCard::makeQuote()
 {
+    // The box: its tinted image behind a row of the bar, the words and a story's picture. Images, not a background, so its
+    // edges can be round (4 px in Round mode, the user's ask, 2026-11-20): Cascades can't round a container. scripts/gen-round.py
+    // draws them; show() picks Round's or Square's.
     m_quote = new Container();
     m_quote->setHorizontalAlignment(HorizontalAlignment::Fill);
     m_quote->setTopMargin(0);
     m_quote->setBottomMargin(m_ui->du(0.5));
-    m_quote->setLayout(Card::across());
+    m_quote->setLayout(new DockLayout());
+    m_quoteBg = new ImageView();
+    m_quoteBg->setHorizontalAlignment(HorizontalAlignment::Fill);
+    m_quoteBg->setVerticalAlignment(VerticalAlignment::Fill);
+    m_quoteBg->setScalingMethod(ScalingMethod::Fill);
+    m_quoteBg->setLoadEffect(ImageViewLoadEffect::None);
+    Container *row = new Container();
+    row->setHorizontalAlignment(HorizontalAlignment::Fill);
+    row->setLayout(Card::across());
 
-    m_bar = new Container();
+    // 5 px: the bar image's slices (4 px of round corners and 1 of straight edge) meet exactly.
+    m_bar = new ImageView();
     m_bar->setVerticalAlignment(VerticalAlignment::Fill);
-    m_bar->setMinWidth(m_ui->du(0.5));
-    m_bar->setMaxWidth(m_ui->du(0.5));
+    m_bar->setScalingMethod(ScalingMethod::Fill);
+    m_bar->setLoadEffect(ImageViewLoadEffect::None);
+    m_bar->setMinWidth(m_ui->px(5));
+    m_bar->setMaxWidth(m_ui->px(5));
 
     // No quota: it stretched the card to its widest, and the quote is as wide as its words or the
     // card (the user, 2026-11-14). The bar's least width keeps it: a two-line quote squeezed it to
     // nothing while it had only a preferred one (0.0.1.136, Q10).
+    // 1 du on every side, the message text's own air (the user, 2026-11-20; 0.5 above and below until then).
     Container *words = new Container();
     words->setLeftMargin(m_ui->du(1));
     words->setRightPadding(m_ui->du(1));
-    words->setTopPadding(m_ui->du(0.5));
-    words->setBottomPadding(m_ui->du(0.5));
+    words->setTopPadding(m_ui->du(1));
+    words->setBottomPadding(m_ui->du(1));
 
     // Whose message it was, in groups.
     m_quoteName = new Label();
@@ -648,8 +672,8 @@ void MessageCard::makeQuote()
 
     words->add(m_quoteName);
     words->add(m_quoteText);
-    m_quote->add(m_bar);
-    m_quote->add(words);
+    row->add(m_bar);
+    row->add(words);
     // A story's picture, when the quote is one (docs/protocol.md, Story quotes): a tap on the quote plays the story.
     m_quoteThumb = new ImageView();
     m_quoteThumb->setVerticalAlignment(VerticalAlignment::Center);
@@ -659,7 +683,9 @@ void MessageCard::makeQuote()
     m_quoteThumb->setScalingMethod(ScalingMethod::AspectFill);
     m_quoteThumb->setLoadEffect(ImageViewLoadEffect::None);
     m_quoteThumb->setVisible(false);
-    m_quote->add(m_quoteThumb);
+    row->add(m_quoteThumb);
+    m_quote->add(m_quoteBg);
+    m_quote->add(row);
     TapHandler *tap = new TapHandler(m_quote);
     m_quote->addGestureHandler(tap);
     connect(tap, SIGNAL(tapped(bb::cascades::TapEvent *)), this, SLOT(onQuote()));
@@ -874,7 +900,18 @@ void MessageCard::fillColumn()
         if (!quote.isEmpty()) {
             const QString name = str("quoteName");
             const QString tint = str("quoteColor");
-            m_quote->setBackground(Card::color(Card::quoteTint(m_list)));
+            // The tint is a translucent "#AARRGGBB": its colour tints the white box, its alpha is the box's opacity.
+            const QString box = Card::quoteTint(m_list);
+            bool ok = false;
+            const int alpha = box.length() == 9 ? box.mid(1, 2).toInt(&ok, 16) : 255;
+            m_quoteBg->setFilterColor(Card::color(box.length() == 9 ? "#" + box.mid(3) : box));
+            m_quoteBg->setOpacity(ok ? alpha / 255.0f : 1.0f);
+            const int shape = m_round ? 1 : 0;
+            if (shape != m_quoteShape) {
+                m_quoteShape = shape;
+                m_quoteBg->setImageSource(Card::url(m_round ? "asset:///images/quote.amd" : "asset:///images/quote_sq.amd"));
+                m_bar->setImageSource(Card::url(m_round ? "asset:///images/quote_bar.amd" : "asset:///images/quote_bar_sq.amd"));
+            }
             // A story's quote is labelled so, and shows the story's picture when it came with one.
             const bool story = flag("quoteStory");
             m_quoteName->setVisible(story || !name.isEmpty());
@@ -949,7 +986,8 @@ void MessageCard::fillFoot()
     else
         m_time->resetLeftMargin();
     // Where the time goes: on a picture with no caption, at the text's end, under a voice note's
-    // waveform, or else (a sticker, a file) beside the column's first line.
+    // waveform, at a sticker's bottom right on the picture's chip (as Telegram; beside it, it pushed the sticker off the
+    // edge, the user's screenshot 2026-11-20), or else (a file, a sticker still on the server) beside the column's first line.
     // Top-aligned boxes put the time's baseline above the first line's: 7 px under a name or quote
     // (small), 12 px under body text, measured at 85 % and 105 % on the Q10, then scaled with the
     // text size setting; 4 px more since the time is at 72 %, reckoned, not measured.
@@ -958,16 +996,18 @@ void MessageCard::fillFoot()
     // the time at 85 %, whose baseline sits higher (Q10, 0.0.1.212: +3 was 1 px low; 0.0.1.216: 2 more).
     const bool small = !m_head && (named() || (!flag("deleted") && m_msg.value("forwarded").toInt() > 0) || !str("quote").isEmpty());
     const bool onPicture = m_head && !m_card->isVisible();
-    const int place = onPicture ? 2 : m_words->isVisible() ? 1 : m_voice && flag("voice") ? 3 : 0;
+    const bool onSticker = m_media && str("media") == "sticker" && flag("hasThumb");
+    const int place = onPicture ? 2 : onSticker ? 4 : m_words->isVisible() ? 1 : m_voice && flag("voice") ? 3 : 0;
     placeTime(place);
+    const bool chip = place == 2 || place == 4;
     // The top padding is this one's, on a picture too; set only when it changed.
-    const float top = onPicture ? m_ui->du(0.5) : place == 0 ? m_ui->px((small ? 11 : 16) * m_scale) : 0;
+    const float top = chip ? m_ui->du(0.5) : place == 0 ? m_ui->px((small ? 11 : 16) * m_scale) : 0;
     if (top != m_timeTop) {
         m_timeTop = top;
         m_timeBox->setTopPadding(top);
     }
     // White on the picture's dark chip.
-    const Color quiet = onPicture ? Color::White
+    const Color quiet = chip ? Color::White
                       : out ? Card::color(Card::outMeta(m_list)) : m_ui->palette()->secondaryTextOnPlain();
     m_time->textStyle()->setColor(quiet);
     m_timer->setFilterColor(quiet);
@@ -1038,13 +1078,14 @@ void MessageCard::placeTime(int place)
 {
     if (place == m_timePlace)
         return;
-    Container *const homes[] = { m_card, m_words, m_media ? m_media->stamp() : 0, m_voice ? m_voice->stamp() : 0 };
+    Container *const homes[] = { m_card, m_words, m_media ? m_media->stamp() : 0, m_voice ? m_voice->stamp() : 0,
+                                 m_media ? m_media->stickerStamp() : 0 };
     if (m_timePlace >= 0)
         homes[m_timePlace]->remove(m_timeBox);
     homes[place]->add(m_timeBox);
     m_timePlace = place;
 
-    const bool onPicture = place == 2;
+    const bool onPicture = place == 2 || place == 4; // a sticker's has the picture's chip
     const float chip = onPicture ? m_ui->du(1) : 0;
     m_timeBox->setHorizontalAlignment(place == 1 ? HorizontalAlignment::Right : HorizontalAlignment::Left);
     m_timeBox->setVerticalAlignment(place == 1 ? VerticalAlignment::Bottom : VerticalAlignment::Top);
@@ -1056,4 +1097,26 @@ void MessageCard::placeTime(int place)
         m_timeBox->setBackground(Card::color("#80000000"));
     else
         m_timeBox->resetBackground();
+}
+
+// A new message at the bottom (the user's ask, 2026-11-20): the page names its row in slideId when it goes in, and the card
+// that shows it reports each height it is laid out at (slideMeasured): a text's first layout can come before its lines wrap,
+// so the page slides once the height has held (multi-line messages slid short, the user, 0.1.0.70). Read here rather than in
+// show(): the list may make the card before the page has named the row, and it lays it out after. Every card's layout
+// passes through; most stop at the empty slideId.
+void MessageCard::onLaidOut(const QRectF &frame)
+{
+    m_laidHeight = frame.height();
+    reportSlide(m_list->property("slideId").toString());
+}
+
+// Also from show() and MessageCards::slideRow: a card reused at the same size and place isn't laid out again, so it says its
+// last height itself; a layout that follows with another height reports again, and the page slides by the latest.
+// A text of ours slides in as a local row (MessageModel::addLocal, id "local-n") and the engine's row takes its place under its
+// own id, possibly before this card has been measured: the row carries the local id as `local`, so the card is still the one.
+void MessageCard::reportSlide(const QString &id)
+{
+    if (id.isEmpty() || (id != str("id") && id != str("local")) || m_laidHeight <= 0)
+        return;
+    Card::call(m_list, "slideMeasured", m_laidHeight);
 }

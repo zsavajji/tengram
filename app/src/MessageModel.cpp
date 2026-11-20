@@ -3,6 +3,7 @@
 #include "Albums.h"
 #include "EngineLink.h"
 #include "Moves.h"
+#include "PreviewMaker.h"
 #include "colors.h"
 #include "dates.h"
 
@@ -44,6 +45,9 @@ static const int kWindowGiveUpMs = 15000;
 static const int kFar = 0x7fffffff;
 // The most users one senders.get names (docs/protocol.md).
 static const int kSenderBatch = 100;
+// How long a local row (addLocal) waits for the engine's row before it goes: msg.send answers at once with the row written,
+// so this is a request that was lost, not a slow one.
+static const qint64 kLocalMs = 15000;
 
 bool MessageModel::lessThan(const Msg &a, const Msg &b)
 {
@@ -77,6 +81,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_region(bb::system::LocaleType::Region)
     , m_now(0)
     , m_titlesDay(0)
+    , m_localCount(0)
 {
     connect(engine, SIGNAL(msgsChanged(QString, QStringList)), this,
             SLOT(onMsgs(QString, QStringList)));
@@ -84,6 +89,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     connect(engine, SIGNAL(replied(QString, QString, QVariant)), this,
             SLOT(onReplied(QString, QString, QVariant)));
     connect(engine, SIGNAL(photo(QString, QString)), this, SLOT(onPhoto(QString, QString)));
+    connect(PreviewMaker::instance(), SIGNAL(ready(QStringList)), this, SLOT(onPreviews(QStringList)));
     m_historyAt.invalidate(); // QElapsedTimer has no constructor
     m_bridgeAt.invalidate();
     m_newerAt.invalidate();
@@ -94,6 +100,9 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     m_expiry.setInterval(1000);
     connect(&m_expiry, SIGNAL(timeout()), this, SLOT(tickExpiry()));
     connect(engine, SIGNAL(fullscreenChanged()), this, SLOT(onFullscreen()));
+    // Started by addLocal, stopped by tickLocal when none is left.
+    m_localExpiry.setInterval(1000);
+    connect(&m_localExpiry, SIGNAL(timeout()), this, SLOT(tickLocal()));
     findUnread();
     QTimer::singleShot(kFirstLoadMs, this, SLOT(loadFirst()));
 }
@@ -179,7 +188,8 @@ QVariant MessageModel::data(const QVariantList &indexPath)
         if (it != m_senders.constEnd() && it->color >= 0 && it->color < kSenderCount)
             d["senderColor"] = QString::fromLatin1(kSenders[it->color]);
         d["senderTag"] = it != m_senders.constEnd() ? it->tag : QString();
-        d["senderPhoto"] = it != m_senders.constEnd() ? it->photo : QString();
+        if (it != m_senders.constEnd() && !it->photo.isEmpty())
+            d["senderPhoto"] = it->photo; // else the row's own, from `people` (read), "" for none
     }
     return d;
 }
@@ -808,14 +818,17 @@ void MessageModel::nearTop(const QVariantList &firstVisible)
 }
 
 // The newest message the screen shows when entry `first` is its bottom-most: a header or the divider walks up
-// to the message above it (older, also on screen); an album gives its newest member. "" when none.
+// to the message above it (older, also on screen); an album gives its newest member. "" when none. A local row has no id
+// Telegram knows (chat.read's upto): it walks up past it too.
 QString MessageModel::shownUpTo(int first) const
 {
     for (int i = qMax(first, 0); i < m_entries.size(); ++i) {
         const Entry &e = m_entries[i];
         if (e.msg < 0)
             continue;
-        return e.members.isEmpty() ? m_all[e.msg].id : m_all[e.members.last()].id;
+        const QString id = e.members.isEmpty() ? m_all[e.msg].id : m_all[e.members.last()].id;
+        if (!isLocal(id))
+            return id;
     }
     return QString();
 }
@@ -859,10 +872,31 @@ void MessageModel::unspoil(const QString &id)
     onMsgs(m_chat, QStringList(id));
 }
 
+// PreviewMaker made the picture files of these rows, in any chat: the loaded rows of this one are read again and take the
+// file in place of their inline thumbnail. Not through onMsgs' check for loading, which is for rows not read yet (the first
+// page reads them with the file there): these are read already, and a spinner after a jump (awaitOpen) may hold them for
+// seconds, or end without reading the page again (giveUp).
+void MessageModel::onPreviews(const QStringList &ids)
+{
+    const QSet<QString> made = QSet<QString>::fromList(ids);
+    QStringList mine;
+    foreach (const Msg &m, m_all) {
+        if (made.contains(m.id))
+            mine << m.id;
+    }
+    if (!mine.isEmpty())
+        reread(mine);
+}
+
 void MessageModel::onMsgs(const QString &chat, const QStringList &ids)
 {
     if (chat != m_chat || m_loading) // the first page reads it anyway
         return;
+    reread(ids);
+}
+
+void MessageModel::reread(const QStringList &ids)
+{
     // In window mode a row beyond the loaded newest is dropped by merge, so it isn't read at all: chat.open's
     // newest page and every chat.newer page name 50 ids that would cost 150 ms each time.
     QStringList want = ids;
@@ -895,6 +929,8 @@ void MessageModel::onConnected()
 {
     if (!m_engine || !m_engine->connected())
         return;
+    // A local row waited on a request the old engine may never have had: its real row, if there is one, comes as a new row.
+    dropLocals();
     // The window's first request went out before the engine was there, or died with its restart: ask again.
     // The give-up timer keeps running, so a window that never answers still ends. Before loadFirst's own
     // request (m_newerAt invalid) there is nothing to repeat.
@@ -941,6 +977,25 @@ void MessageModel::onConnected()
 
 // Puts rows into m_all and tells the list. asked: the ids that were read again; fresh: the
 // rows that came back. A loaded asked id that isn't in fresh is gone.
+// m takes old's place in the list (a local row's, or a temporary id's): it sorts where old did, and keeps that from now on.
+void MessageModel::keepPlace(Msg &m, const Msg &old)
+{
+    const QPair<qint64, int> at = m_place.contains(old.id) ? m_place.value(old.id) : qMakePair(old.ts, old.day);
+    m.ts = at.first;
+    m.day = at.second;
+    m_place.insert(m.id, at);
+}
+
+// A row read again (a tick, an edit) sorts where it was kept, not at the time the server gave it.
+void MessageModel::placed(Msg &m) const
+{
+    if (m_place.contains(m.id)) {
+        const QPair<qint64, int> at = m_place.value(m.id);
+        m.ts = at.first;
+        m.day = at.second;
+    }
+}
+
 void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool older)
 {
     QHash<QString, Msg> back;
@@ -956,7 +1011,9 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
         if (!was.contains(m.id))
             all.append(m);
         else if (back.contains(m.id)) {
-            all.append(back.value(m.id));
+            Msg again = back.value(m.id);
+            placed(again);
+            all.append(again);
             updated.insert(m.id);
         } else if (m.data["out"].toBool() && m.data["state"].toInt() == 0)
             sending << m.id;
@@ -972,6 +1029,38 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
             continue;
         if (m_window && !older && m.rowid > reach)
             continue;
+        // A row of ours that a local row stands for (addLocal) takes its place: the entry stays where it is under the new id
+        // and is told itemUpdated, so the card doesn't blink and the page doesn't slide a second time (no newestComing, no
+        // itemAdded). Before the gate below, which is for rows older than the loaded ones: this one is what the local row was
+        // waiting for. After `sending`'s turn: a temporary id and its final one are one message whatever its words, and it has
+        // the entry already. Not `incoming`: it is ours.
+        // The engine names both exactly (the user's burst of sends, 0.1.0.77: one event held one message's temporary -> final
+        // swap and the next one's new row, and pairing in order swapped them, moved the list and left duplicates):
+        // - a sent row's final id names its temporary one (extra.was): that entry, renamed, whatever else the event holds;
+        // - a new row of ours names the local row it was sent from (extra.local): that one.
+        // The in-order pairings below are for rows without the names (an engine from before them).
+        if (!older && m.data["out"].toBool()) {
+            const QString was = m.data.value("wasId").toString();
+            if (!was.isEmpty() && sending.contains(was)) {
+                sending.removeOne(was);
+                Msg done = m;
+                foreach (const Msg &old, m_all) {
+                    if (old.id == was) {
+                        keepPlace(done, old);
+                        break;
+                    }
+                }
+                all.append(done);
+                renameEntry(was, m.id);
+                updated.insert(m.id);
+                continue;
+            }
+            const bool named = !m.data.value("sentAs").toString().isEmpty();
+            if ((named || sending.isEmpty()) && takeLocal(m, all)) {
+                updated.insert(m.id);
+                continue;
+            }
+        }
         // A new message older than the loaded ones comes with a later page.
         if (older || empty || atStart() || m.ts > m_all.first().ts
             || (m.ts == m_all.first().ts && m.rowid > m_all.first().rowid)) {
@@ -984,14 +1073,14 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
             // sending row's entry, so the list updates that card instead of dropping it and adding a new one,
             // which blinked. Paired in order, as they were sent.
             if (!sending.isEmpty() && m.data["out"].toBool()) {
-                const QString temp = sending.takeFirst();
-                for (int i = 0; i < m_entries.size(); ++i) {
-                    Entry &e = m_entries[i];
-                    if (e.key == temp)
-                        e.key = m.id;
-                    else if (e.key == "album:" + temp)
-                        e.key = "album:" + m.id;
+                const QString from = sending.takeFirst();
+                foreach (const Msg &old, m_all) {
+                    if (old.id == from) {
+                        keepPlace(all.last(), old);
+                        break;
+                    }
                 }
+                renameEntry(from, m.id);
                 updated.insert(m.id);
             }
         }
@@ -1005,6 +1094,136 @@ void MessageModel::merge(const QStringList &asked, const QList<Msg> &fresh, bool
     askSenders(); // the senders of the rows read, now that they are in
     if (incoming)
         emit this->incoming();
+}
+
+// The entry of message `from` is `to`'s from now on. merge calls it before it takes the list's keys, so the list sees the same
+// key where it was and the change is an update of that card.
+void MessageModel::renameEntry(const QString &from, const QString &to)
+{
+    for (int i = 0; i < m_entries.size(); ++i) {
+        Entry &e = m_entries[i];
+        if (e.key == from)
+            e.key = to;
+        else if (e.key == "album:" + from)
+            e.key = "album:" + to;
+    }
+}
+
+// A row of ours, new to the list, in the place of the oldest local row that has the same words (the first that has: one
+// whose request was lost stays until it expires and doesn't hold the ones after it). The local row leaves `all`, m joins it and
+// the entry is renamed; m is given the local id as `local`, which the card of the row that is sliding in knows it by (MessageCard's
+// reportSlide), since the engine's row can come before the card has been measured. False when none matches (or the one that
+// did was no longer in `all`: the model was cleared under it): then m is a new row as any other.
+// Done in merge, before it takes the keys, and not as a removal and an addition: the same position, the same card, an itemUpdated.
+bool MessageModel::takeLocal(const Msg &m, QList<Msg> &all)
+{
+    if (m_locals.isEmpty() || m.kind != 0)
+        return false;
+    // The engine names the local row the message was sent from (msg.send's local, extra.local): that one and no other, so two
+    // quick sends of the same words can't swap (the user, 2026-11-20). A tagged row whose local row is gone (expired, dropped)
+    // is a new row. The words are matched only for a row with no tag (an engine from before the tag).
+    const QString sentAs = m.data.value("sentAs").toString();
+    const QString said = words(m.data["text"].toString());
+    for (int i = 0; i < m_locals.size(); ++i) {
+        if (sentAs.isEmpty() ? m_locals[i].text != said : m_locals[i].id != sentAs)
+            continue;
+        const QString local = m_locals.takeAt(i).id;
+        int at = -1;
+        for (int j = 0; j < all.size() && at < 0; ++j) {
+            if (all[j].id == local)
+                at = j;
+        }
+        if (at < 0) { // the model was cleared under it: forgotten, and the next local row with these words has its turn
+            --i;
+            continue;
+        }
+        Msg taken = m;
+        keepPlace(taken, all.at(at));
+        all.removeAt(at);
+        taken.data["local"] = local;
+        all.append(taken);
+        renameEntry(local, m.id);
+        return true;
+    }
+    return false;
+}
+
+// A text of ours at the bottom of the list at once (the class comment). The row is the newest by every key the sort has: its
+// time is the clock's, or the newest row's when the phone's clock is behind Telegram's, and its rowid the greatest, which also
+// keeps dropBelowFloor from taking it in a chat that opened empty (kNoFloor). The list is told as for a new row: refresh
+// emits newestComing and itemAdded([0]), and a day's header for a new day, as rebuild makes it for any row.
+QString MessageModel::addLocal(const QString &text, const QString &quoteId)
+{
+    const QString said = words(text);
+    // Not loading: the first page reads the rows from chats.db, and a row put in before it would meet that page's merge.
+    if (m_window || m_loading || said.isEmpty())
+        return QString();
+    const qint64 ts = qMax<qint64>(QDateTime::currentDateTime().toTime_t(), m_all.isEmpty() ? 0 : m_all.last().ts);
+    const QString id = QString("local-%1").arg(++m_localCount);
+    Msg m = localRow(id, text.trimmed(), quoteId, ts);
+    if (m.id.isEmpty())
+        return QString();
+    m.rowid = kNoFloor;
+    m.data["local"] = id;
+    Local l;
+    l.id = id;
+    l.text = said;
+    l.at = QDateTime::currentMSecsSinceEpoch();
+    const QStringList old = keys();
+    m_all.append(m);
+    m_locals.append(l);
+    if (!m_localExpiry.isActive())
+        m_localExpiry.start();
+    refresh(old, QSet<QString>());
+    return id;
+}
+
+void MessageModel::dropLocal(const QString &id)
+{
+    removeLocals(QStringList(id));
+}
+
+void MessageModel::dropLocals()
+{
+    QStringList ids;
+    foreach (const Local &l, m_locals)
+        ids << l.id;
+    removeLocals(ids);
+}
+
+// Each is an itemRemoved (and its day's header, when it was the day's only row), through refresh as hide() does.
+void MessageModel::removeLocals(const QStringList &ids)
+{
+    QList<Msg> kept;
+    foreach (const Msg &m, m_all) {
+        if (!ids.contains(m.id))
+            kept.append(m);
+    }
+    for (int i = m_locals.size() - 1; i >= 0; --i) {
+        if (ids.contains(m_locals[i].id))
+            m_locals.removeAt(i);
+    }
+    if (kept.size() == m_all.size())
+        return; // gone already: the engine's row took its place
+    const QStringList old = keys();
+    m_all = kept;
+    refresh(old, QSet<QString>());
+}
+
+// The local rows nothing took in kLocalMs go. The timer stops with the last of them.
+void MessageModel::tickLocal()
+{
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+    QStringList gone;
+    foreach (const Local &l, m_locals) {
+        if (now - l.at >= kLocalMs)
+            gone << l.id;
+    }
+    if (!gone.isEmpty())
+        qDebug() << "chat:" << gone.size() << "local row(s) not taken by the engine's after" << kLocalMs << "ms";
+    removeLocals(gone);
+    if (m_locals.isEmpty())
+        m_localExpiry.stop();
 }
 
 QStringList MessageModel::keys() const
@@ -1058,6 +1277,8 @@ void MessageModel::refresh(const QStringList &old, const QSet<QString> &updated)
             kept << k;
     }
     if (isSubsequence(kept, now)) {
+        if (!now.isEmpty() && !QSet<QString>::fromList(old).contains(now[0]))
+            emit newestComing();
         for (int j = old.size() - 1; j >= 0; --j) {
             if (!there.contains(old[j]))
                 emit itemRemoved(QVariantList() << j); // descending: the others keep their places

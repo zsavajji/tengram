@@ -11,6 +11,8 @@ IMAGE=${BB10_NDK_IMAGE:-yamsergey/bb10-ndk:0.6}
 "$ROOT/scripts/fetch-omxil.sh"
 "$ROOT/scripts/fetch-libwebp.sh"
 "$ROOT/scripts/fetch-qtsqlcipher.sh"
+# rlottie, built by clang in the tengram-build image: build/prefix/lib/libtgs.so, which the UI links (animated stickers).
+"$ROOT/scripts/build-tgs.sh" >/dev/null
 # Two functions of one name on a page's root object parse, and then the phone refuses the whole page ("Duplicate
 # method name": ChatPage's picked, 0.1.0.29), which lupdate doesn't see.
 dups=$(for f in "$ROOT"/app/assets/*.qml; do

@@ -9,7 +9,17 @@ import "errors.js" as Errors
 // the page's own Storage, so the answer goes with the page.
 Page {
     id: page
-    property string cacheText: ""
+    property string cacheText: "\u2026"
+    function cacheMeasured(text) {
+        cacheText = text
+    }
+    function cacheCleared(freed) {
+        clearing = false
+        storage.measureCache()
+        toast.body = qsTr("Cache cleared: %1 freed").arg(freed)
+        toast.show()
+    }
+    property bool clearing: false
     // storage.get's {files, count, db, logs} and network.get's {since, mobile, wifi, other}; empty until they come.
     property variant used: storage.storage
     property variant net: storage.network
@@ -29,8 +39,10 @@ Page {
         storage.failed.connect(page.actionFailed)
         storage.done.connect(page.actionDone)
         fill()
-        // Read when the page opens and after a clear; the walk of data/cache/ is a few files.
-        cacheText = settings.cacheSize()
+        // Measured on a worker when the page opens and after a clear (storage.measureCache): "…" until then.
+        storage.cacheMeasured.connect(page.cacheMeasured)
+        storage.cacheCleared.connect(page.cacheCleared)
+        storage.measureCache()
         // Not linked, there is no account to ask about.
         if (engine.linked) {
             storage.ask()
@@ -133,6 +145,8 @@ Page {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         ScrollView {
+            horizontalAlignment: HorizontalAlignment.Fill // filling the page from the start: as wide as its
+            verticalAlignment: VerticalAlignment.Fill     // content, it opened narrow and grew (the user, 2026-11-20)
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 bottomPadding: ui.du(2)
@@ -214,6 +228,7 @@ Page {
                     topPadding: ui.du(2)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
+                    bottomPadding: ui.du(2) // before the next header (the user, 2026-11-20)
                     layout: StackLayout {
                         orientation: LayoutOrientation.LeftToRight
                     }
@@ -261,6 +276,9 @@ Page {
                 }
                 Container {
                     horizontalAlignment: HorizontalAlignment.Fill
+                    // Air under the header's line and before the next one (the user, 2026-11-20: the controls touched them).
+                    topPadding: ui.du(1.5)
+                    bottomPadding: ui.du(2)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
                     DropDown {
@@ -332,6 +350,9 @@ Page {
                 }
                 Container {
                     horizontalAlignment: HorizontalAlignment.Fill
+                    // Air under the header's line and before the next one (the user, 2026-11-20: the controls touched them).
+                    topPadding: ui.du(1.5)
+                    bottomPadding: ui.du(2)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
                     DropDown {
@@ -363,6 +384,9 @@ Page {
                 }
                 Container {
                     horizontalAlignment: HorizontalAlignment.Fill
+                    // Air under the header's line and before the next one (the user, 2026-11-20: the controls touched them).
+                    topPadding: ui.du(1.5)
+                    bottomPadding: ui.du(2)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
                     ToggleRow {
@@ -393,6 +417,9 @@ Page {
                 }
                 Container {
                     horizontalAlignment: HorizontalAlignment.Fill
+                    // Air under the header's line and before the next one (the user, 2026-11-20: the controls touched them).
+                    topPadding: ui.du(1.5)
+                    bottomPadding: ui.du(2)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
                     // Automatic follows the network: the picture sharpens when it can and softens when it can't. The others
@@ -412,12 +439,21 @@ Page {
                             }
                         }
                     }
+                    Label {
+                        text: qsTr("Automatic sharpens the picture when the network allows and softens it when it doesn't. A fixed size keeps the picture as it is; the quality still follows the network.")
+                        multiline: true
+                        textStyle.base: SystemDefaults.TextStyles.SubtitleText
+                        textStyle.color: ui.palette.secondaryTextOnPlain
+                    }
                 }
                 Header {
                     title: qsTr("App cache")
                 }
                 Container {
                     horizontalAlignment: HorizontalAlignment.Fill
+                    // Air under the header's line and before the next one (the user, 2026-11-20: the controls touched them).
+                    topPadding: ui.du(1.5)
+                    bottomPadding: ui.du(2)
                     leftPadding: ui.du(2)
                     rightPadding: ui.du(2)
                     // What data/cache/ may hold. The engine prunes it, the oldest first (step 8.3).
@@ -450,12 +486,12 @@ Page {
                         Button {
                             verticalAlignment: VerticalAlignment.Center
                             text: qsTr("Clear cache")
+                            enabled: !page.clearing
                             onClicked: {
-                                // Nothing in the cache is lost, so no confirmation.
-                                var freed = settings.clearCache()
-                                page.cacheText = settings.cacheSize()
-                                toast.body = qsTr("Cache cleared: %1 freed").arg(freed)
-                                toast.show()
+                                // Nothing in the cache is lost, so no confirmation. The toast comes when it's done (cacheCleared).
+                                page.clearing = true
+                                page.cacheText = "\u2026"
+                                storage.clearCache()
                             }
                         }
                     }

@@ -125,7 +125,9 @@ Container {
             panel.touched()
         }
     }
+    // The End call bar. The Classic's trackpad reaches it: it takes the focus, dark red as while pressed, and a click (Enter) ends the call.
     Container {
+        id: endBar
         layoutProperties: AbsoluteLayoutProperties {
             positionX: panel.tall ? panel.px(12) : panel.px(18)
             positionY: panel.tall ? panel.px(530) : panel.px(610)
@@ -134,11 +136,12 @@ Container {
         preferredHeight: panel.tall ? panel.px(181) : panel.px(93)
         enabled: !panel.ended
         opacity: panel.ended ? 0.5 : 1
-        background: settings.round ? Color.Transparent : panel.pressed ? Color.create("#b3181a") : Color.create("#ff3334")
+        focusPolicy: FocusPolicy.KeyAndTouch
+        background: settings.round ? Color.Transparent : panel.pressed || endBar.focused ? Color.create("#b3181a") : Color.create("#ff3334")
         layout: DockLayout {}
         RoundFill {
             pill: true
-            filterColor: panel.pressed ? Color.create("#b3181a") : Color.create("#ff3334")
+            filterColor: panel.pressed || endBar.focused ? Color.create("#b3181a") : Color.create("#ff3334")
         }
         // The content in a Container of its own, over the pill. Padding and a row, not margins in a DockLayout: margins only
         // space siblings, never from the container's edge (pitfalls.md), which left icon and label on top of each other at
@@ -177,6 +180,14 @@ Container {
             onTapped: {
                 panel.hangup()
                 panel.touched()
+            }
+        }
+        keyListeners: KeyListener {
+            onKeyReleased: {
+                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                    panel.hangup()
+                    panel.touched()
+                }
             }
         }
     }

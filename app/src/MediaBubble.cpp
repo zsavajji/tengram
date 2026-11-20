@@ -24,6 +24,8 @@
 
 #include "CardStyle.h"
 #include "MessageModel.h"
+#include "Settings.h"
+#include "StickerPlayer.h"
 
 using namespace bb::cascades;
 
@@ -189,12 +191,18 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
 
     // The sticker's picture, fit in a square; always an Image in thumb, an empty one without a
     // picture, as for a photo, so a recycled card never keeps the previous row's.
+    m_stickerBox = new Container();
+    m_stickerBox->setTopMargin(0);
+    m_stickerBox->setLayout(new DockLayout());
     m_stickerImage = new ImageView();
-    m_stickerImage->setTopMargin(0);
-    m_stickerImage->setPreferredWidth(m_ui->du(30));
-    m_stickerImage->setPreferredHeight(m_ui->du(30));
     m_stickerImage->setScalingMethod(ScalingMethod::AspectFit);
     m_stickerImage->setLoadEffect(ImageViewLoadEffect::None);
+    // The time's corner, empty unless the card puts the time in it, as a picture's m_stamp.
+    m_stickerStamp = new Container();
+    m_stickerStamp->setHorizontalAlignment(HorizontalAlignment::Right);
+    m_stickerStamp->setVerticalAlignment(VerticalAlignment::Bottom);
+    m_stickerBox->add(m_stickerImage);
+    m_stickerBox->add(m_stickerStamp);
     // Until it is here: no picture and no thumbnail.
     m_stickerText = new Label();
     m_stickerText->setTopMargin(0);
@@ -242,7 +250,7 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_file->add(m_fileRing);
 
     m_root->add(m_photo);
-    m_root->add(m_stickerImage);
+    m_root->add(m_stickerBox);
     m_root->add(m_stickerText);
     m_root->add(m_file);
     setRoot(m_root);
@@ -332,10 +340,28 @@ void MediaBubble::show(const QVariantMap &msg)
         m_cover->setVisible(spoiler);
     }
 
-    m_stickerImage->setVisible(m_sticker && hasThumb);
+    m_stickerBox->setVisible(m_sticker && hasThumb);
+    if (m_sticker) {
+        // 30 du at Normal, Settings > Chats > Sticker size; set at each show, so the cards follow a change.
+        // ponytail: drawn at 180 px (kStickerPx) and scaled, so Big is softer; draw at the view's size if it shows.
+        const float side = m_ui->du(30 * Settings::stickerScale());
+        m_stickerImage->setPreferredSize(side, side);
+    }
     m_stickerText->setVisible(m_sticker && !hasThumb);
-    if (m_sticker)
-        m_stickerImage->setImage(m_msg.value("thumb").value<Image>());
+    const bool tgs = m_sticker && flag("tgs");
+    const QString stickerId = tgs ? str("id") : QString();
+    StickerPlayer *player = StickerPlayer::instance();
+    // A new row in this card (a re-read of the same row happens at every update): the other row's sticker stops first.
+    const bool newRow = stickerId != m_stickerId;
+    if (newRow) {
+        player->release(m_stickerImage);
+        m_stickerId = stickerId;
+    }
+    const Image still = m_msg.value("thumb").value<Image>();
+    if (m_sticker && !player->playing(m_stickerImage))
+        m_stickerImage->setImage(still);
+    if (newRow && tgs && Settings::stickerPlayMode() != 2)
+        player->play(m_stickerImage, still, str("path"), Settings::stickerPlayMode() == 0);
 
     const bool file = !m_picture && !m_sticker;
     m_file->setVisible(file);
@@ -417,5 +443,9 @@ void MediaBubble::onTap()
             model->unspoil(str("id"));
     } else if (!m_sticker) {
         Card::call(m_list, "openMedia", m_msg);
+    } else if (flag("tgs") && Settings::stickerPlayMode() != 2) {
+        // Plays again (Play once), or from the start (Loop).
+        StickerPlayer::instance()->play(m_stickerImage, m_msg.value("thumb").value<Image>(), str("path"),
+                                        Settings::stickerPlayMode() == 0);
     }
 }

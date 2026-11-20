@@ -150,9 +150,18 @@ Page {
                 property string photo: row.group ? chats.chat(row.group.jid).photo || "" : ""
                 property bool pressed: false
                 horizontalAlignment: HorizontalAlignment.Fill
-                background: pressed ? Color.create(nav.pressColor) : Color.Transparent
+                // The Classic's trackpad reaches the row: it takes the focus, lit as while pressed, and a click (Enter) opens the group.
+                focusPolicy: FocusPolicy.KeyAndTouch
+                background: pressed || focused ? Color.create(nav.pressColor) : Color.Transparent
                 gestureHandlers: TapHandler {
                     onTapped: nav.openRequested(row.group.jid)
+                }
+                keyListeners: KeyListener {
+                    onKeyReleased: {
+                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                            nav.openRequested(row.group.jid)
+                        }
+                    }
                 }
                 onTouch: row.pressed = event.isDown() || event.isMove()
                 onTouchExit: row.pressed = false
@@ -277,6 +286,8 @@ Page {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         ScrollView {
+            horizontalAlignment: HorizontalAlignment.Fill // filling the page from the start: as wide as its
+            verticalAlignment: VerticalAlignment.Fill     // content, it opened narrow and grew (the user, 2026-11-20)
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 // A ScrollView's content is as wide as its widest child, not the screen: with only the error text
@@ -291,10 +302,14 @@ Page {
                     leftPadding: ui.du(1.5)
                     rightPadding: ui.du(1.5)
                     // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19).
+                    // The picture opens full size on a tap, and on the Classic's trackpad: focusable only when there is one.
                     Tile {
+                        id: bigPhoto
                         horizontalAlignment: HorizontalAlignment.Center
                         preferredWidth: ui.du(20)
                         preferredHeight: ui.du(20)
+                        focusPolicy: page.hasPicture ? FocusPolicy.KeyAndTouch : FocusPolicy.None
+                        opacity: bigPhoto.focused ? 0.6 : 1
                         tint: page.chat ? page.chat.color : ""
                         initials: page.chat ? page.chat.initials : ""
                         photo: page.hasPicture ? page.info.picture : ""
@@ -304,6 +319,13 @@ Page {
                         gestureHandlers: TapHandler {
                             onTapped: {
                                 if (page.hasPicture) {
+                                    nav.showPhoto(page.info.picture)
+                                }
+                            }
+                        }
+                        keyListeners: KeyListener {
+                            onKeyReleased: {
+                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
                                     nav.showPhoto(page.info.picture)
                                 }
                             }
@@ -321,9 +343,13 @@ Page {
                         textStyle.fontSizeValue: nav.bodySize * 1.3
                     }
                     // In the primary colour, as a link: a tap saves the number in the phone's contacts.
+                    // The Classic's trackpad reaches the number too: it takes the focus, dimmed, and a click (Enter) saves it.
                     Label {
+                        id: phoneLink
                         visible: !!page.info.phone
                         horizontalAlignment: HorizontalAlignment.Center
+                        focusPolicy: FocusPolicy.KeyAndTouch
+                        opacity: phoneLink.focused ? 0.5 : 1
                         text: page.info.phone || ""
                         textFormat: TextFormat.Plain
                         textStyle.base: nav.emojiStyle
@@ -332,6 +358,13 @@ Page {
                         textStyle.color: ui.palette.primary
                         gestureHandlers: TapHandler {
                             onTapped: contact.saveNumber(page.info.phone)
+                        }
+                        keyListeners: KeyListener {
+                            onKeyReleased: {
+                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                    contact.saveNumber(page.info.phone)
+                                }
+                            }
                         }
                     }
                 }

@@ -79,18 +79,29 @@ Container {
         }
     }
     // A button, not a toggle: always grey, as As file's off. A pill in Round mode (the user's ask, 2026-11-19), as As file is.
+    // The three buttons are reached by the Classic's trackpad: FocusPolicy.Key, not KeyAndTouch, so a touch leaves the focus (and
+    // the keyboard, for the caption) in the composer; the one with the focus is darker, and a click (Enter) taps it.
     Container {
+        id: editBtn
         visible: canEdit
         verticalAlignment: VerticalAlignment.Center
         leftMargin: ui.du(1)
-        background: settings.round ? Color.Transparent : Color.create("#33808080")
+        focusPolicy: FocusPolicy.Key
+        background: settings.round ? Color.Transparent : Color.create(editBtn.focused ? "#80808080" : "#33808080")
         layout: DockLayout {}
         gestureHandlers: TapHandler {
             onTapped: edit()
         }
+        keyListeners: KeyListener {
+            onKeyReleased: {
+                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                    edit()
+                }
+            }
+        }
         RoundFill {
             pill: true
-            filterColor: Color.create("#33808080")
+            filterColor: Color.create(editBtn.focused ? "#80808080" : "#33808080")
         }
         Container {
             leftPadding: ui.du(1.5)
@@ -109,17 +120,28 @@ Container {
     // A PNG goes as a photo unless this is on (the page clears it for each file). A square toggle, as the call screen's,
     // not the stock check box under the name (the user, 2026-11-17: ugly): grey off, the accent on.
     Container {
+        id: fileBtn
         visible: canFile
         verticalAlignment: VerticalAlignment.Center
         leftMargin: ui.du(1)
-        background: settings.round ? Color.Transparent : bar.asFile ? ui.palette.primary : Color.create("#33808080")
+        focusPolicy: FocusPolicy.Key
+        // Focused: the grey darker; the accent (on) dimmed.
+        opacity: bar.asFile && fileBtn.focused ? 0.7 : 1
+        background: settings.round ? Color.Transparent : bar.asFile ? ui.palette.primary : Color.create(fileBtn.focused ? "#80808080" : "#33808080")
         layout: DockLayout {}
         gestureHandlers: TapHandler {
             onTapped: bar.asFile = !bar.asFile
         }
+        keyListeners: KeyListener {
+            onKeyReleased: {
+                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                    bar.asFile = !bar.asFile
+                }
+            }
+        }
         RoundFill {
             pill: true
-            filterColor: bar.asFile ? ui.palette.primary : Color.create("#33808080")
+            filterColor: bar.asFile ? ui.palette.primary : Color.create(fileBtn.focused ? "#80808080" : "#33808080")
         }
         Container {
             leftPadding: ui.du(1.5)
@@ -137,13 +159,23 @@ Container {
     }
     // The cross has its own padding so the tap has a finger's size.
     Container {
+        id: dropBtn
         verticalAlignment: VerticalAlignment.Center
         leftPadding: ui.du(1.5)
         rightPadding: ui.du(0.5)
         topPadding: ui.du(1)
         bottomPadding: ui.du(1)
+        focusPolicy: FocusPolicy.Key
+        background: dropBtn.focused ? Color.create("#33808080") : Color.Transparent
         gestureHandlers: TapHandler {
             onTapped: cancelled()
+        }
+        keyListeners: KeyListener {
+            onKeyReleased: {
+                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                    cancelled()
+                }
+            }
         }
         Label {
             text: "✕"

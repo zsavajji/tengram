@@ -4,6 +4,7 @@
 #include <bb/cascades/Color>
 #include <bb/cascades/ContextMenuVisualState>
 #include <bb/cascades/CustomControl>
+#include <QRectF>
 #include <bb/cascades/ImplicitAnimationController>
 #include <bb/cascades/ListItemListener>
 #include <QList>
@@ -57,6 +58,8 @@ public:
 
     // msg is a "text", "msg" or "picture" row of MessageModel.
     void show(const QVariantMap &msg);
+    // Reports this card's last laid-out height to the page when it shows row id (ChatPage's slide; MessageCards::slideRow).
+    void reportSlide(const QString &id);
 
     // ListItemListener: a press tints the card; selection isn't used.
     void select(bool selected);
@@ -82,6 +85,7 @@ private slots:
     void onJoin();
     void onQuote();
     void onTile();
+    void onLaidOut(const QRectF &frame);
 
 private:
     QString str(const char *key) const { return m_msg.value(key).toString(); }
@@ -126,7 +130,7 @@ private:
     bool m_rich;
     QVariantMap m_msg;
     bool m_pressed;
-    int m_timePlace; // where m_timeBox is: -1 nowhere yet, 0 beside the column, 1 at the text's end, 2 on the picture, 3 under the voice note
+    int m_timePlace; // where m_timeBox is: -1 nowhere yet, 0 beside the column, 1 at the text's end, 2 on the picture, 3 under the voice note, 4 on the sticker
     float m_timeTop; // m_timeBox's top padding as last set, -1 for none
     float m_colMax; // m_col's maxWidth as last set, -1 for none
     int m_tick; // the picture m_ticks has: -1 none yet, 0 the clock, 1 one tick, 2 two
@@ -177,7 +181,9 @@ private:
     bb::cascades::ImageView *m_fwdIcon;
     bb::cascades::Label *m_fwdText;
     bb::cascades::Container *m_quote;
-    bb::cascades::Container *m_bar;
+    bb::cascades::ImageView *m_bar;     // the quote's accent bar (images/quote_bar)
+    bb::cascades::ImageView *m_quoteBg; // the quote's box (images/quote), tinted with quoteTint
+    int m_quoteShape;                   // the shape its images are for: -1 none yet, 0 Square, 1 Round
     bb::cascades::Label *m_quoteName;
     bb::cascades::Label *m_quoteText;
     bb::cascades::ImageView *m_quoteThumb;
@@ -216,6 +222,7 @@ private:
 
     QString m_edited; // "edited ", translated
     QString m_starMark; // the star (U+2605) and a space, before the time of a starred message
+    float m_laidHeight;  // the height of the last layout (onLaidOut), 0 before the first: the slide's distance
     bb::cascades::ActionSet *m_menu;
     bb::cascades::ActionItem *m_reply;
     bb::cascades::ActionItem *m_react;

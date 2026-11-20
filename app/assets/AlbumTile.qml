@@ -5,20 +5,18 @@ import bb.cascades 1.4
 // is not set here: the card sets it, and the page's grid gives its cells'. member is a message map; its
 // thumb is always an Image, empty without a thumbnail, so a recycled tile never keeps the picture of
 // the row it showed before. more, "+N", darkens the tile under that text (the one that opens the page).
+// A tap on it is the grid's own `triggered` (AlbumPage's ListView), which is also the Classic's trackpad click: a TapHandler
+// here fired for a touch only.
 Container {
     id: tile
     property variant member
     property string more: ""
     // The chat list's mediaLoadingId: the member being fetched shows a spinner, as in MediaBubble.
     property string loadingId: ""
-    signal tapped
     layout: DockLayout {
     }
     // The page's colour behind a tile with no thumbnail.
     background: ui.palette.background
-    gestureHandlers: TapHandler {
-        onTapped: tile.tapped()
-    }
     ImageView {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill

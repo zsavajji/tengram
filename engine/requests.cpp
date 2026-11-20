@@ -490,9 +490,24 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   } else if (has_mentions < 0) {
     return bad_request(conn, id, "mentions is an array of objects with jid and name");
   }
+  // local: the UI's name for the row it shows already ("local-3"); it comes back on our row as extra.local, so the UI puts this
+  // message in that row's place exactly (two quick sends of the same words can't swap). Our own letters only: it goes into JSON.
+  std::string local;
+  td::JsonValue lv;
+  const int has_local = optional_field(req, "local", td::JsonValue::Type::String, lv);
+  if (has_local == 1) {
+    local = lv.get_string().str();
+    const bool ok = !local.empty() && local.size() <= 32 &&
+                    std::all_of(local.begin(), local.end(), [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-'; });
+    if (!ok) {
+      return bad_request(conn, id, "local is a short name of a-z, 0-9 and -");
+    }
+  } else if (has_local < 0) {
+    return bad_request(conn, id, "local is a string");
+  }
   auto content = make_object<td_api::inputMessageText>(
       plain_text(text.ok(), mention_entities(text.ok(), mentions)), nullptr, true);
-  send_content(conn, id, chat, topic, std::move(reply), std::move(content));
+  send_content(conn, id, chat, topic, std::move(reply), std::move(content), local);
 }
 
 // The optional field `name`, a whole number from 0 up, into `out` (which stays as it was when the field is
@@ -1080,16 +1095,18 @@ bool quote_field(std::uint64_t conn, const std::string &id, td::JsonObject &req,
 // a temporary id, and `{id}` is that id.
 void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat, std::int32_t topic,
                   td_api::object_ptr<td_api::InputMessageReplyTo> reply,
-                  td_api::object_ptr<td_api::InputMessageContent> content) {
+                  td_api::object_ptr<td_api::InputMessageContent> content,
+                  const std::string &local) {
   tdlib.send(make_object<td_api::sendMessage>(chat, topic_object(topic), std::move(reply), nullptr, nullptr,
                                               std::move(content)),
-             [conn, id](Obj o) {
+             [conn, id, local](Obj o) {
                if (auto e = as_error(o)) {
                  say("td error: %d %s", e->code_, e->message_.c_str());
                  return reply_td_error(conn, id, *e);
                }
                auto &m = static_cast<td_api::message &>(*o);
-               messages_queue(m);  // the row, state 0, under its temporary id
+               messages_queue(m, local);  // the row, state 0, under its temporary id, with the UI's name for it
+               mark_dirty(true);   // written now, not with the next 50 ms batch: the user waits for this bubble
                queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
                              r("id", std::to_string(m.id_));
                            })));

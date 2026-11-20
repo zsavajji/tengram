@@ -130,6 +130,8 @@ bool MessageKinds::fill(int kind, const QString &chat, const QString &text,
 
     QStringList lines;
     data["gif"] = extra.value("gif").toBool() && kind == 2; // a video that plays by itself, in a loop
+    data["sentAs"] = extra.value("local").toString(); // the local row this one of ours stands for (MessageModel::takeLocal)
+    data["wasId"] = extra.value("was").toString();    // the temporary id this sent row replaces (MessageModel::merge)
     data["forwarded"] = extra.value("forwarded").toInt(); // the score: 5 and up is "Forwarded many times"
     data["spoiler"] = extra.value("spoiler").toBool() && (kind == 1 || kind == 2); // MessageRows takes it off once tapped
     data["invite"] = kind == 14 && !out ? chat : QString(); // the chat of an invite card we can join, for its button

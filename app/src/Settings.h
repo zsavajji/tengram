@@ -38,6 +38,11 @@ class Settings : public QObject
     // Video calls: 0 follows the network (resolution by steps), 1 is 1280x720, 2 is 640x480, 3 is 320x240 (CallVideo's quality).
     // The bit rate follows the network either way. Not sent to the engine: the UI's camera is what it sets.
     Q_PROPERTY(int videoQuality READ videoQuality WRITE setVideoQuality NOTIFY videoQualityChanged) // 0..3
+    // Animated stickers (docs/stickers-plan.md, G2): 0 Loop, as stock Telegram, 1 Play once (a tap plays it again), 2 Off, shown
+    // still. MediaBubble reads it through stickerPlayMode(); StickerPlayer stops when it turns to Off.
+    Q_PROPERTY(int stickerPlay READ stickerPlay WRITE setStickerPlay NOTIFY stickerPlayChanged) // 0..2
+    // Settings > Chats > Sticker size (the user's ask, 2026-11-20): 0 Small (x0.7), 1 Normal (30 du, as so far), 2 Big (x1.2).
+    Q_PROPERTY(int stickerSize READ stickerSize WRITE setStickerSize NOTIFY stickerSizeChanged) // 0..2
     // Interface: Normal (false) has the chat rows' bigger pictures and padding, Compact the old rows (ChatRows.cpp).
     Q_PROPERTY(bool compact READ compact WRITE setCompact NOTIFY compactChanged)
     // Shape (the user's ask, 2026-11-19): Square (false) is the look so far; Round has the pictures in the lists as discs, the
@@ -71,6 +76,8 @@ public:
     QString deliveryMode() const;
     int textSize() const;
     int videoQuality() const;
+    int stickerPlay() const;
+    int stickerSize() const;
     qreal textScale() const;
     bool compact() const;
     bool round() const;
@@ -94,19 +101,29 @@ public:
     void setDeliveryMode(const QString &mode);
     void setTextSize(int size);
     void setVideoQuality(int quality);
+    void setStickerPlay(int mode);
     void setCompact(bool on);
     void setRound(bool on);
     void setDarkGrey(bool on);
     // The Shape as the code that has no QML list to read it from has it (Waveform): kept in step by the constructor's load and
     // setRound.
     static bool roundShape() { return s_roundShape; }
+    // The same for the sticker setting, for MediaBubble and StickerPlayer: kept in step by the constructor's load and setStickerPlay.
+    static int stickerPlayMode() { return s_stickerPlay; }
+    // The size's factor, for MediaBubble: kept in step the same way, by the constructor and setStickerSize.
+    static qreal stickerScale();
+    void setStickerSize(int size);
     void setCallHints(int count);
     void setSyncContacts(bool on);
     // The eight Data and storage prefs as prefs.set takes them, read from file with their defaults and limits: what the
     // getters answer, and what EngineLink sends at every connect.
     static QVariantMap dataPrefs(const QSettings &file);
-    Q_INVOKABLE QString cacheSize();
-    Q_INVOKABLE QString clearCache();
+    // The size of data/cache/ and its clearing: both walk thousands of files (the previews, the round pictures), which took the
+    // Data and storage page 3 s to open on the UI thread (the user, 0.1.0.81). Storage runs them on a worker: they touch files
+    // only. forgetRound() is the clearing's part on the UI thread, before it starts.
+    static qint64 cacheBytes();
+    static qint64 removeCache();
+    static void forgetRound();
     // The round copy of a picture's file for Round mode (the free function below), "" when it can't be made: QML falls back to
     // the square picture. Two overloads, not a default argument: QML calls either by its argument count (160 px, or `size`).
     Q_INVOKABLE QString roundPhoto(const QString &path);
@@ -130,6 +147,8 @@ signals:
     void deliveryModeChanged();
     void textSizeChanged();
     void videoQualityChanged(int quality); // the new value, for CallVideo::setQuality (main.cpp connects them)
+    void stickerPlayChanged();
+    void stickerSizeChanged();
     void compactChanged();
     void roundChanged();
     void darkGreyChanged();
@@ -146,6 +165,8 @@ private:
     // Stores one of dataPrefs' values and sends it to the engine; true when what dataPrefs reads back has changed.
     bool storeData(const char *key, const QVariant &value);
     static bool s_roundShape;
+    static int s_stickerPlay;
+    static int s_stickerSize;
     QSettings m_file;
     EngineLink *m_engine;
     bb::system::LocaleHandler m_region; // for the size text, as the chat models have it

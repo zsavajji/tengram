@@ -1,0 +1,6 @@
+/* libtgs.so exports rlottie's C API and nothing else: the static libc++ inside stays hidden from the UI's
+   gcc 4.8 / Dinkumware C++ (scripts/build-tgs.sh). */
+{
+  global: lottie_*;
+  local: *;
+};

@@ -21,7 +21,9 @@ class UIConfig;
 // MediaBubble.qml. A picture is the message's thumbnail, a video with a play mark and its length; a
 // file is a row of an icon, its name and its size. A tap opens it. list is the chat page's list,
 // which holds the fetch (mediaLoadingId) and opens the file (openMedia). A sticker (step 6.5b) is
-// its picture alone, small, with no caption and no tap: the model fetches its file by itself. A
+// its picture alone, small, with no caption: the model fetches its file by itself. A TGS sticker
+// plays (StickerPlayer, docs/stickers-plan.md G2, as Settings > Chats > Animated stickers says), and
+// a tap plays it again; any other sticker does nothing on a tap. A
 // location (6.5c) is its map picture as a photo's, or without one a row to tap; the card's label
 // and text under it are the card's, and a tap asks which maps app opens it. A contact (6.5d) is a
 // row of the system's add-contact icon, its names and its number (or "N contacts"); a tap imports
@@ -41,6 +43,8 @@ public:
     MediaBubble(bb::cascades::ListView *list, bool wide = false);
 
     bb::cascades::Container *stamp() const { return m_stamp; }
+    // The same corner on a sticker, at its bottom right (MessageCard's place 4).
+    bb::cascades::Container *stickerStamp() const { return m_stickerStamp; }
 
     // A picture's corner (0 top left, 1 top right, 2 bottom right, 3 bottom left) rounded to `radius` px: a mask of
     // images/corner.png in `behind`, the colour of what is behind the corner (the card's, or the page's where the picture is at
@@ -87,7 +91,10 @@ private:
     bb::cascades::Container *m_stamp;
     bb::cascades::ActivityIndicator *m_photoSpin;
     bb::cascades::ImageView *m_photoRing;
+    bb::cascades::Container *m_stickerBox; // the picture with its stamp over the bottom right
     bb::cascades::ImageView *m_stickerImage;
+    bb::cascades::Container *m_stickerStamp;
+    QString m_stickerId; // the id of the row whose TGS this plays or has played; "" for none
     bb::cascades::Label *m_stickerText;
     bb::cascades::Container *m_file;
     bb::cascades::ImageView *m_icon;

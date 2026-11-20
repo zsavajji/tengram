@@ -170,10 +170,14 @@ Page {
                     orientation: LayoutOrientation.LeftToRight
                 }
                 // A disc in Round mode (the user, 2026-11-19).
+                // The picture opens full size on a tap, and on the Classic's trackpad: focusable only when there is one.
                 Tile {
+                    id: groupPhoto
                     verticalAlignment: VerticalAlignment.Center
                     preferredWidth: ui.du(7)
                     preferredHeight: ui.du(7)
+                    focusPolicy: page.hasPicture ? FocusPolicy.KeyAndTouch : FocusPolicy.None
+                    opacity: groupPhoto.focused ? 0.6 : 1
                     tint: page.chat ? page.chat.color : ""
                     initials: page.chat ? page.chat.initials : ""
                     photo: page.hasPicture ? page.info.picture : ""
@@ -181,6 +185,13 @@ Page {
                     gestureHandlers: TapHandler {
                         onTapped: {
                             if (page.hasPicture) {
+                                nav.showPhoto(page.info.picture)
+                            }
+                        }
+                    }
+                    keyListeners: KeyListener {
+                        onKeyReleased: {
+                            if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
                                 nav.showPhoto(page.info.picture)
                             }
                         }

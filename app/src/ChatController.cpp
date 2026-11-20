@@ -186,6 +186,7 @@ void ChatController::open(const QVariantMap &chat, int topic)
     connect(m_engine, SIGNAL(photo(QString, QString)), this, SLOT(onPhoto(QString, QString)));
     connect(m_engine, SIGNAL(connectedChanged()), this, SLOT(onConnected()));
     connect(m_engine, SIGNAL(fullscreenChanged()), this, SLOT(onFullscreenChanged()));
+    connect(m_engine, SIGNAL(failureChanged()), this, SLOT(onFailure()));
     connect(m_engine, SIGNAL(replied(QString, QString, QVariant)), this,
             SLOT(onReplied(QString, QString, QVariant)));
     connect(m_messages, SIGNAL(incoming()), this, SLOT(onIncoming()));
@@ -308,7 +309,16 @@ void ChatController::sendReadUpto()
     m_engine->request("chat.read", args);
 }
 
-bool ChatController::send(const QString &text, const QVariantList &mentions)
+// A msg.send that failed (the engine's error, or the engine going down before it answered): the local rows its text put in the
+// list never get a row, so they go now rather than at their 15 s. The failure doesn't say which chat or which of several sends,
+// so they all go; the engine's rows for the sends that did go in come as new rows (slid in, as without a local row).
+void ChatController::onFailure()
+{
+    if (m_messages && m_engine && m_engine->failure().value("cmd").toString() == "msg.send")
+        m_messages->dropLocals();
+}
+
+bool ChatController::send(const QString &text, const QVariantList &mentions, bool instant)
 {
     if (!m_engine || !m_engine->connected())
         return false;
@@ -328,7 +338,17 @@ bool ChatController::send(const QString &text, const QVariantList &mentions)
         args["id"] = m_editId;
     if (!mentions.isEmpty())
         args["mentions"] = mentions;
-    m_engine->request(m_editId.isEmpty() ? "msg.send" : "msg.edit", args);
+    // The row is in the list before the request goes, so it shows at once and the page slides it in; the engine's row takes
+    // its place when it comes. After toLiveEnd: the window is gone, which addLocal won't add into. m_quoteId is read before
+    // cancelReply clears it.
+    QString local;
+    if (instant && m_messages && m_editId.isEmpty())
+        local = m_messages->addLocal(text, m_quoteId);
+    if (!local.isEmpty())
+        args["local"] = local; // the engine writes it on our row: the local row is renamed to it exactly (MessageModel::takeLocal)
+    const QString request = m_engine->request(m_editId.isEmpty() ? "msg.send" : "msg.edit", args);
+    if (request.isEmpty() && !local.isEmpty())
+        m_messages->dropLocal(local); // nothing was sent: no row will come for it
     cancelReply();
     return true;
 }

@@ -101,7 +101,18 @@ bool flag_pending = false;                        // chatlist_complete is to be 
 bool flag_written = false;                        // ... and was, in the flush that is committing now
 Clock::time_point load_start;
 
-td::SqliteStatement insert_row, delete_row, select_row;
+// What the `people` table holds of a user, as the UI reads it (docs/protocol.md): the colour index senders.get gives and the
+// small photo's path ("" is NULL).
+struct Person {
+  int color = 0;
+  std::string photo;
+};
+
+std::unordered_map<std::int64_t, Person> people_written;  // what the table holds, or will once the queued rows are written
+std::unordered_map<std::int64_t, Person> people_todo;     // the users whose row is to be written at the next flush
+bool people_loaded = false;                               // people_written has what the table held when the engine started
+
+td::SqliteStatement insert_row, delete_row, select_row, insert_person;
 
 std::int64_t now() {
   return std::time(nullptr);
@@ -303,6 +314,84 @@ void set_scope(const td_api::updateScopeNotificationSettings &u) {
   }
 }
 
+// people_written starts as the table: a user whose colour and picture are what an earlier run wrote costs no write, so
+// the second start's thousands of updateUser write nothing. Read once, at the first user. ponytail: nothing prunes the
+// table or this map (a user is about a hundred bytes with the picture's path, and the people TDLib tells of are the ones the account has seen).
+void people_load() {
+  if (people_loaded) {
+    return;
+  }
+  people_loaded = true;
+  auto s = db.prepare("SELECT user, color, photo FROM people");
+  if (s.empty()) {
+    return;
+  }
+  auto status = s.step();
+  while (status.is_ok() && s.has_row()) {
+    std::int64_t id = 0;
+    if (parse_i64(s.view_string(0).str(), id)) {
+      Person &p = people_written[id];
+      p.color = s.view_int32(1);
+      p.photo = s.view_datatype(2) == td::SqliteStatement::Datatype::Null ? "" : s.view_string(2).str();
+    }
+    status = s.step();
+  }
+  if (status.is_error()) {
+    say("chats.db: reading people: %s", status.message().c_str());
+  }
+}
+
+// The user's row in `people` is to be written, unless the table already has this colour and picture. Called with every
+// updateUser (the first sync sends thousands, nearly all of them for a user whose row is as it should be) and when the user's
+// small photo is here; marks dirty only for a change, so an update that changes nothing does not wake the flush.
+void people_note(std::int64_t id) {
+  Person p;
+  if (!user_color(id, p.color)) {
+    return;
+  }
+  p.photo = user_photo(id);
+  people_load();
+  const auto written = people_written.find(id);
+  if (written != people_written.end() && written->second.color == p.color && written->second.photo == p.photo) {
+    return;
+  }
+  people_written[id] = p;
+  people_todo[id] = p;
+  mark_dirty();
+}
+
+td::Status write_person(std::int64_t id, const Person &p) {
+  const std::string user = std::to_string(id);  // bound by reference: it must outlive the step
+  auto &s = insert_person;
+  s.reset();
+  TRY_STATUS(s.bind_string(1, user));
+  TRY_STATUS(s.bind_int32(2, p.color));
+  TRY_STATUS(p.photo.empty() ? s.bind_null(3) : s.bind_string(3, p.photo));
+  auto status = s.step();
+  s.reset();
+  return status;
+}
+
+// flush() runs it with the chats, in their transaction. A row that can't be written is forgotten in people_written, so the
+// next update of that user queues it again.
+void people_write() {
+  if (people_todo.empty()) {
+    return;
+  }
+  if (insert_person.empty()) {
+    insert_person = db.prepare("INSERT OR REPLACE INTO people(user, color, photo) VALUES(?1, ?2, ?3)");
+  }
+  auto todo = std::move(people_todo);
+  people_todo.clear();
+  for (const auto &entry : todo) {
+    auto status = insert_person.empty() ? td::Status::Error("no statement") : write_person(entry.first, entry.second);
+    if (status.is_error()) {
+      say("chats.db: person %lld: %s", static_cast<long long>(entry.first), status.message().c_str());
+      people_written.erase(entry.first);
+    }
+  }
+}
+
 void set_user(const td_api::user &u) {
   UserNames &n = users[u.id_];
   n.first = u.first_name_;
@@ -321,6 +410,12 @@ void set_accent_colors(const td_api::updateAccentColors &u) {
       accent_colors[c->id_] = c->built_in_accent_color_id_;
     }
   }
+  // A user with a server colour that came before this list was given a guess (user_color): their row says the real one now.
+  for (const auto &entry : users) {
+    if (entry.second.accent > 6 || entry.second.accent < 0) {
+      people_note(entry.first);
+    }
+  }
 }
 
 // A user's small photo is here: the UI is told, to every connection (a page that listed the user without it).
@@ -330,6 +425,7 @@ void user_photo_here(std::int64_t user_id, int file, const std::string &path) {
     return;
   }
   it->second.photo_path = path;
+  people_note(user_id);
   server.broadcast(td::json_encode<std::string>(td::json_object([&](auto &o) {
     o("ev", "photo");
     o("jid", std::to_string(user_id));
@@ -728,6 +824,7 @@ void chats_update(td_api::Object &update) {
       auto &u = static_cast<td_api::updateUser &>(update);
       if (u.user_) {
         set_user(*u.user_);
+        people_note(u.user_->id_);
       }
       break;
     }
@@ -815,6 +912,7 @@ void chats_write() {
     flag_pending = false;
     flag_written = db.exec("INSERT OR REPLACE INTO engine_state VALUES('chatlist_complete', 1)");
   }
+  people_write();
   if (dirty_ids.empty()) {
     return;
   }
@@ -908,6 +1006,9 @@ void chats_reset() {
   }
   chats.clear();
   users.clear();
+  people_written.clear();  // db.wipe() has emptied the table
+  people_todo.clear();
+  people_loaded = false;
   forums.clear();
   secret_states.clear();
   downloads.clear();
@@ -927,4 +1028,5 @@ void chats_close() {
   insert_row = td::SqliteStatement();
   delete_row = td::SqliteStatement();
   select_row = td::SqliteStatement();
+  insert_person = td::SqliteStatement();
 }

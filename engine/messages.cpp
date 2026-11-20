@@ -1000,8 +1000,12 @@ int message_kind(std::int64_t chat, std::int64_t id) {
 
 // ---- queueing
 
-void messages_queue(const td_api::message &m) {
-  ops.push_back([row = row_of(m)] { put(row); });
+void messages_queue(const td_api::message &m, const std::string &local) {
+  Row row = row_of(m);
+  if (!local.empty()) {
+    append_extra(row, "\"local\":\"" + local + "\"");  // msg_send checked it is [a-z0-9-]
+  }
+  ops.push_back([row = std::move(row)] { put(row); });
   mark_dirty();
 }
 
@@ -1047,7 +1051,11 @@ void messages_update(td_api::Object &update) {
         break;
       }
       upload_forget(sent->chat_id_, old_id);
-      ops.push_back([chat = sent->chat_id_, old_id, row = row_of(*sent)] {
+      // extra.was: the temporary id this row replaces, so the UI swaps exactly that row for it (several sends in one event
+      // were paired in order, and swapped places, the user's burst, 0.1.0.77).
+      Row row = row_of(*sent);
+      append_extra(row, "\"was\":\"" + std::to_string(old_id) + "\"");
+      ops.push_back([chat = sent->chat_id_, old_id, row = std::move(row)] {
         erase(chat, old_id, true);
         put(row);
       });

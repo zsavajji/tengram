@@ -58,6 +58,8 @@ Page {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         ScrollView {
+            horizontalAlignment: HorizontalAlignment.Fill // filling the page from the start: as wide as its
+            verticalAlignment: VerticalAlignment.Fill     // content, it opened narrow and grew (the user, 2026-11-20)
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 // A ScrollView's content is as wide as its widest child, not the screen: with only the error text
@@ -69,10 +71,14 @@ Page {
                     leftPadding: ui.du(1.5)
                     rightPadding: ui.du(1.5)
                     // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19).
+                    // The picture opens full size on a tap, and on the Classic's trackpad: focusable only when there is one.
                     Tile {
+                        id: bigPhoto
                         horizontalAlignment: HorizontalAlignment.Center
                         preferredWidth: ui.du(20)
                         preferredHeight: ui.du(20)
+                        focusPolicy: page.hasPicture ? FocusPolicy.KeyAndTouch : FocusPolicy.None
+                        opacity: bigPhoto.focused ? 0.6 : 1
                         tint: page.chat ? page.chat.color : ""
                         initials: page.chat ? page.chat.initials : ""
                         photo: page.picture
@@ -82,6 +88,13 @@ Page {
                         gestureHandlers: TapHandler {
                             onTapped: {
                                 if (page.hasPicture) {
+                                    nav.showPhoto(page.picture)
+                                }
+                            }
+                        }
+                        keyListeners: KeyListener {
+                            onKeyReleased: {
+                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
                                     nav.showPhoto(page.picture)
                                 }
                             }

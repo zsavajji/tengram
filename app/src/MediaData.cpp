@@ -1,4 +1,5 @@
 #include "MediaData.h"
+#include "PreviewMaker.h"
 #include "Sticker.h"
 #include "sizes.h"
 
@@ -7,7 +8,6 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
-#include <QFileInfo>
 #include <QImage>
 #include <QImageReader>
 #include <QUrl>
@@ -24,43 +24,45 @@ QString MediaData::clock(int seconds)
 // for the photo itself, "-p640.jpg" for the display-size file the engine fetches before the photo is opened, so
 // the photo's own, sharper preview is made when it arrives instead of reusing the small one. The
 // engine decodes no picture, and Qt's reader decodes straight to the smaller size. Fills width and
-// height from the file when the row has none. Returns the preview's path, "" when the photo can't be
-// read: the bubble's Image is made from the path, so Cascades reads and decodes the file off the UI
-// thread and the model holds no bytes of it (they were read here for every row, and kept).
-// ponytail: made on the UI thread, tens of ms on the Q10; a worker thread if scrolling stutters.
+// height from the file when the row has none (its header, a few ms). Returns the preview's path, "" when
+// it isn't made yet or can't be: the bubble's Image is made from the path, so Cascades reads and decodes the file
+// off the UI thread and the model holds no bytes of it (they were read here for every row, and kept).
+// A preview not made yet is asked of PreviewMaker, which makes it on a worker thread (~290 ms a photo on the Q10, 21 of
+// them froze the UI for 5.9 s when a chat opened) and tells the model when it is there, which reads the row again; the
+// row shows its inline thumbnail meanwhile.
+// ponytail: two photos at a time, in the order the rows were read (the newest first); no priority for the ones on screen.
 static const int PreviewSide = 640; // the knob: the preview's short side, in px
 static QString preview(const QString &id, const QString &path, const char *suffix, int &width, int &height)
 {
     const QString file = QDir::homePath() + "/cache/previews/" + id + suffix;
     const bool have = QFile::exists(file);
-    if (!have || width <= 0 || height <= 0) {
-        QImageReader reader(path);
-        const QSize size = reader.size(); // from the header
-        if (width <= 0 || height <= 0) {
-            width = size.width();
-            height = size.height();
-        }
-        if (!have) {
-            if (!size.isValid())
-                return QString();
-            QSize to = size;
-            // The card is ~640 px wide and crops to a square: the short side sets the sharpness.
-            // A panorama's long side is capped so its decoded image stays a few MB.
-            if (qMin(to.width(), to.height()) > PreviewSide)
-                to.scale(PreviewSide, PreviewSide, Qt::KeepAspectRatioByExpanding);
-            if (qMax(to.width(), to.height()) > 2 * PreviewSide)
-                to.scale(2 * PreviewSide, 2 * PreviewSide, Qt::KeepAspectRatio);
-            reader.setScaledSize(to);
-            const QImage image = reader.read();
-            if (image.isNull() || !QDir().mkpath(QFileInfo(file).path()))
-                return QString();
-            if (!image.save(file, "JPEG", 80)) {
-                QFile::remove(file); // no half-written preview left to be taken for a good one
-                return QString();
-            }
-        }
+    if (width <= 0 || height <= 0) {
+        const QSize size = QImageReader(path).size(); // from the header
+        width = size.width();
+        height = size.height();
     }
-    return file;
+    if (have)
+        return file;
+    PreviewMaker::instance()->want(id, PreviewMaker::PhotoPreview, path, file);
+    return QString();
+}
+
+// The photo at path decoded straight to its preview's size (null when it can't be read): what PreviewMaker saves. Only
+// QImageReader is touched: a worker thread calls it.
+QImage MediaData::previewImage(const QString &path)
+{
+    QImageReader reader(path);
+    QSize to = reader.size(); // from the header
+    if (!to.isValid())
+        return QImage();
+    // The card is ~640 px wide and crops to a square: the short side sets the sharpness.
+    // A panorama's long side is capped so its decoded image stays a few MB.
+    if (qMin(to.width(), to.height()) > PreviewSide)
+        to.scale(PreviewSide, PreviewSide, Qt::KeepAspectRatioByExpanding);
+    if (qMax(to.width(), to.height()) > 2 * PreviewSide)
+        to.scale(2 * PreviewSide, 2 * PreviewSide, Qt::KeepAspectRatio);
+    reader.setScaledSize(to);
+    return reader.read();
 }
 
 // A spoiler's picture under its cover (step 6.6d): down to 12 px and up again, Qt's smooth scaling
@@ -118,8 +120,9 @@ bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QStri
     }
     if (media.isEmpty())
         return false;
-    // The inline thumbnail stands in when there is no readable photo or sticker. A photo's preview is
-    // shown from its file; only a spoiler's is read here, to blur it.
+    // The inline thumbnail stands in when there is no readable photo or sticker, and until the photo's preview or the
+    // sticker's picture is made (PreviewMaker). A photo's preview is shown from its file; only a spoiler's is read here,
+    // to blur it.
     QByteArray shown = thumb;
     QString file;
     if (kind == 1 && mediaState == 2 && !path.isEmpty()) {
@@ -132,7 +135,7 @@ bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QStri
         // A video's own JPEG thumbnail, drawn as it is; a file TDLib has since dropped leaves the minithumbnail.
         file = previewPath;
     } else if (kind == 5 && mediaState == 2 && !path.isEmpty()) {
-        const QByteArray p = Sticker::picture(id, path);
+        const QByteArray p = Sticker::picture(id, path); // empty until PreviewMaker has made it: the thumbnail stands
         if (!p.isEmpty())
             shown = p;
     }
@@ -161,6 +164,8 @@ bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QStri
     data["ratio"] = width > 0 && height > 0 ? double(height) / width : 0.75;
     data["mediaState"] = mediaState;
     data["path"] = path;
+    // A downloaded TGS (Lottie) sticker, which StickerPlayer plays; always set, so a recycled card never reads another row's.
+    data["tgs"] = kind == 5 && mediaState == 2 && !path.isEmpty() && Sticker::isTgs(path);
     data["sizeText"] = sizeText(size, locale);
     data["durationText"] = (kind == 2 || kind == 8) && duration > 0 ? clock(duration) : QString();
     data["fileName"] = kind == 4 ? text : QString();

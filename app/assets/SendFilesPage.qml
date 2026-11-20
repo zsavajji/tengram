@@ -70,8 +70,9 @@ Page {
         return list
     }
     // A square toggle: the primary colour when on (the UI is square, the user); a pill in Round mode (the user's ask, 2026-11-19).
-    function chipColor(on) {
-        return on ? ui.palette.primary : Color.create("#40808080")
+    // `lit` is the Classic's trackpad focus: the grey darker (the accent, when on, is dimmed by the chip's opacity).
+    function chipColor(on, lit) {
+        return on ? ui.palette.primary : Color.create(lit ? "#80808080" : "#40808080")
     }
     property bool group: true
     property bool asFile: false
@@ -208,18 +209,30 @@ Page {
                             }
                             // A tap edits a picture or a video: a pencil, a square in the lower right corner, says so (the user, 2026-11-18).
                             // The padded box is inside a Container of its own, so that the disc of Round mode covers the padding too.
+                            // The pencil and the cross are reached by the Classic's trackpad: a separate button in the item, so it takes
+                            // the focus itself (FocusPolicy.Key: a touch leaves the focus, and the caption's keyboard, alone), lit in the
+                            // primary colour, and a click (Enter) does what a tap does. The picture's tap, and a video's, are the pencil's.
                             Container {
+                                id: editBtn
                                 visible: ListItemData.kind <= 1
                                 horizontalAlignment: HorizontalAlignment.Right
                                 verticalAlignment: VerticalAlignment.Bottom
-                                background: cell.ListItem.view.round ? Color.Transparent : Color.create("#99000000")
+                                focusPolicy: FocusPolicy.Key
+                                background: cell.ListItem.view.round ? Color.Transparent : editBtn.focused ? ui.palette.primary : Color.create("#99000000")
                                 layout: DockLayout {}
                                 gestureHandlers: TapHandler {
                                     onTapped: cell.ListItem.view.edit(cell.ListItem.indexPath[0])
                                 }
+                                keyListeners: KeyListener {
+                                    onKeyReleased: {
+                                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                            cell.ListItem.view.edit(cell.ListItem.indexPath[0])
+                                        }
+                                    }
+                                }
                                 RoundFill {
                                     visible: cell.ListItem.view.round
-                                    filterColor: Color.create("#99000000")
+                                    filterColor: editBtn.focused ? ui.palette.primary : Color.create("#99000000")
                                 }
                                 Container {
                                     leftPadding: ui.du(1)
@@ -237,16 +250,25 @@ Page {
                             }
                             // The cross, a square in the corner, as the pencil is; a sibling of the picture, so its tap isn't the picture's.
                             Container {
+                                id: dropBtn
                                 horizontalAlignment: HorizontalAlignment.Right
                                 verticalAlignment: VerticalAlignment.Top
-                                background: cell.ListItem.view.round ? Color.Transparent : Color.create("#99000000")
+                                focusPolicy: FocusPolicy.Key
+                                background: cell.ListItem.view.round ? Color.Transparent : dropBtn.focused ? ui.palette.primary : Color.create("#99000000")
                                 layout: DockLayout {}
                                 gestureHandlers: TapHandler {
                                     onTapped: cell.ListItem.view.drop(cell.ListItem.indexPath[0])
                                 }
+                                keyListeners: KeyListener {
+                                    onKeyReleased: {
+                                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                            cell.ListItem.view.drop(cell.ListItem.indexPath[0])
+                                        }
+                                    }
+                                }
                                 RoundFill {
                                     visible: cell.ListItem.view.round
-                                    filterColor: Color.create("#99000000")
+                                    filterColor: dropBtn.focused ? ui.palette.primary : Color.create("#99000000")
                                 }
                                 Container {
                                     leftPadding: ui.du(2)
@@ -274,16 +296,28 @@ Page {
             layout: StackLayout {
                 orientation: LayoutOrientation.LeftToRight
             }
+            // The toggles are reached by the Classic's trackpad: FocusPolicy.Key, not KeyAndTouch, so a touch leaves the focus (and
+            // the keyboard) in the caption; the one with the focus is darker (dimmed when on), and a click (Enter) taps it.
             Container {
+                id: albumChip
                 rightMargin: ui.du(1)
-                background: settings.round ? Color.Transparent : page.chipColor(page.group)
+                focusPolicy: FocusPolicy.Key
+                opacity: page.group && albumChip.focused ? 0.7 : 1
+                background: settings.round ? Color.Transparent : page.chipColor(page.group, albumChip.focused)
                 layout: DockLayout {}
                 gestureHandlers: TapHandler {
                     onTapped: page.group = !page.group
                 }
+                keyListeners: KeyListener {
+                    onKeyReleased: {
+                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                            page.group = !page.group
+                        }
+                    }
+                }
                 RoundFill {
                     pill: true
-                    filterColor: page.chipColor(page.group)
+                    filterColor: page.chipColor(page.group, albumChip.focused)
                 }
                 Container {
                     leftPadding: ui.du(2)
@@ -300,14 +334,24 @@ Page {
                 }
             }
             Container {
-                background: settings.round ? Color.Transparent : page.chipColor(page.asFile)
+                id: filesChip
+                focusPolicy: FocusPolicy.Key
+                opacity: page.asFile && filesChip.focused ? 0.7 : 1
+                background: settings.round ? Color.Transparent : page.chipColor(page.asFile, filesChip.focused)
                 layout: DockLayout {}
                 gestureHandlers: TapHandler {
                     onTapped: page.asFile = !page.asFile
                 }
+                keyListeners: KeyListener {
+                    onKeyReleased: {
+                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                            page.asFile = !page.asFile
+                        }
+                    }
+                }
                 RoundFill {
                     pill: true
-                    filterColor: page.chipColor(page.asFile)
+                    filterColor: page.chipColor(page.asFile, filesChip.focused)
                 }
                 Container {
                     leftPadding: ui.du(2)

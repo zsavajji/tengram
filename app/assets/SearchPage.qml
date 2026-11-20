@@ -177,9 +177,14 @@ Page {
                                 textStyle.fontSizeValue: head.ListItem.view.smallSize
                                 textStyle.color: ui.palette.secondaryTextOnPlain
                             }
+                            // A separate button in the header: the Classic's trackpad reaches it (FocusPolicy.Key, so a touch leaves the
+                            // search field's focus alone); dimmed while it has the focus, and a click (Enter) taps it.
                             Label {
+                                id: clearBtn
                                 visible: !!ListItemData.clear
                                 verticalAlignment: VerticalAlignment.Center
+                                focusPolicy: FocusPolicy.Key
+                                opacity: clearBtn.focused ? 0.5 : 1
                                 text: qsTr("Clear all")
                                 textFormat: TextFormat.Plain
                                 textStyle.fontSize: FontSize.PercentageValue
@@ -187,6 +192,13 @@ Page {
                                 textStyle.color: ui.palette.primary
                                 gestureHandlers: TapHandler {
                                     onTapped: head.ListItem.view.clearRecent()
+                                }
+                                keyListeners: KeyListener {
+                                    onKeyReleased: {
+                                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                            head.ListItem.view.clearRecent()
+                                        }
+                                    }
                                 }
                             }
                         }

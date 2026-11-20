@@ -83,12 +83,25 @@ Page {
                 property variant session
                 property bool pressed: false
                 horizontalAlignment: HorizontalAlignment.Fill
-                background: pressed ? Color.create(nav.pressColor) : Color.Transparent
+                // The Classic's trackpad reaches another device's row: it takes the focus, lit as while pressed, and a click (Enter) asks
+                // to end it. This device's row does nothing, so it takes no focus.
+                focusPolicy: !!row.session && !row.session.current ? FocusPolicy.KeyAndTouch : FocusPolicy.None
+                background: pressed || focused ? Color.create(nav.pressColor) : Color.Transparent
                 gestureHandlers: TapHandler {
                     onTapped: {
                         // This device has no Terminate: that is a log out, which is the Account page's.
                         if (!row.session.current) {
                             page.askTerminate(row.session)
+                        }
+                    }
+                }
+                keyListeners: KeyListener {
+                    onKeyReleased: {
+                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                            // This device has no Terminate: that is a log out, which is the Account page's.
+                            if (!row.session.current) {
+                                page.askTerminate(row.session)
+                            }
                         }
                     }
                 }
@@ -177,7 +190,11 @@ Page {
         background: Color.create(nav.pageColor)
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
+        // Filling the page: as wide as its content, the scroll view opened in a corner around the spinner and grew when the
+        // sessions came (the user, 2026-11-20).
         ScrollView {
+            horizontalAlignment: HorizontalAlignment.Fill
+            verticalAlignment: VerticalAlignment.Fill
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 Busy {

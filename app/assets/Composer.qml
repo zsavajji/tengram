@@ -9,6 +9,9 @@ import bb.cascades 1.4
 // so the next message can be typed at once. Send is the touch path to sending (the Q10 has no
 // on-screen submit key), and Record while the field is empty, as WhatsApp's: a tap starts, the next
 // one sends. The phone's own send and delete icons are read at run time, not shipped.
+// The four buttons are reached by the Classic's trackpad: FocusPolicy.Key, not KeyAndTouch, since a touch that took the focus
+// would drop the field's (and the keyboard with it, see the field's focusRetentionPolicyFlags). A focused one is lit as the
+// pressed colour, and a click (Enter) does what a tap does.
 Container {
     id: bar
     property alias field: field
@@ -51,13 +54,23 @@ Container {
         }
         // Emoji, or Discard while recording.
         Container {
+            id: emojiBtn
             verticalAlignment: VerticalAlignment.Center
             preferredWidth: ui.du(9 * bar.big)
             minHeight: ui.du(9 * bar.big)
             visible: !bar.readOnly
             layout: DockLayout {}
+            focusPolicy: FocusPolicy.Key
+            background: emojiBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
             gestureHandlers: TapHandler {
                 onTapped: bar.recording ? bar.discard() : bar.emoji()
+            }
+            keyListeners: KeyListener {
+                onKeyReleased: {
+                    if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                        bar.recording ? bar.discard() : bar.emoji()
+                    }
+                }
             }
             ImageView {
                 horizontalAlignment: HorizontalAlignment.Center
@@ -114,12 +127,22 @@ Container {
                 onTextChanging: bar.changing(text)
             }
             Container {
+                id: attachBtn
                 verticalAlignment: VerticalAlignment.Bottom
                 preferredWidth: ui.du(8 * bar.big)
                 minHeight: ui.du(8 * bar.big)
                 layout: DockLayout {}
+                focusPolicy: FocusPolicy.Key
+                background: attachBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
                 gestureHandlers: TapHandler {
                     onTapped: bar.attach()
+                }
+                keyListeners: KeyListener {
+                    onKeyReleased: {
+                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                            bar.attach()
+                        }
+                    }
                 }
                 ImageView {
                     horizontalAlignment: HorizontalAlignment.Center
@@ -132,12 +155,22 @@ Container {
                 }
             }
             Container {
+                id: sendBtn
                 verticalAlignment: VerticalAlignment.Bottom
                 preferredWidth: ui.du(8 * bar.big)
                 minHeight: ui.du(8 * bar.big)
                 layout: DockLayout {}
+                focusPolicy: FocusPolicy.Key
+                background: sendBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
                 gestureHandlers: TapHandler {
                     onTapped: bar.send()
+                }
+                keyListeners: KeyListener {
+                    onKeyReleased: {
+                        if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                            bar.send()
+                        }
+                    }
                 }
                 ImageView {
                     horizontalAlignment: HorizontalAlignment.Center
@@ -173,12 +206,22 @@ Container {
         }
         // The action menu (Search, Pinned, info, ...); always live, a channel needs it too.
         Container {
+            id: menuBtn
             verticalAlignment: VerticalAlignment.Center
             preferredWidth: ui.du(9 * bar.big)
             minHeight: ui.du(9 * bar.big)
             layout: DockLayout {}
+            focusPolicy: FocusPolicy.Key
+            background: menuBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
             gestureHandlers: TapHandler {
                 onTapped: bar.menu()
+            }
+            keyListeners: KeyListener {
+                onKeyReleased: {
+                    if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                        bar.menu()
+                    }
+                }
             }
             ImageView {
                 horizontalAlignment: HorizontalAlignment.Center

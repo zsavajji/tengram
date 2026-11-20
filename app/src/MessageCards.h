@@ -3,6 +3,7 @@
 
 #include <bb/cascades/CustomControl>
 #include <bb/cascades/ListItemProvider>
+#include <QList>
 #include <QPointer>
 #include <QString>
 #include <QVariantList>
@@ -16,6 +17,7 @@ class Label;
 class ListView;
 }
 }
+class MessageCard;
 
 // The cards of the chat page's list, in C++ (step 8.6): a row is built once, in createItem, and
 // filled on each recycle, in updateItem, with setters in place of QML's bindings. The page sets it
@@ -31,8 +33,13 @@ public:
     void updateItem(bb::cascades::ListView *list, bb::cascades::VisualNode *listItem,
                     const QString &type, const QVariantList &indexPath, const QVariant &data);
 
+    // The new message's slide (ChatPage's added): a card already showing row id reports its height now, since a reused card
+    // that keeps its size and place is never laid out again (a one-line message missed its slide, 0.1.0.73).
+    Q_INVOKABLE void slideRow(const QString &id);
+
 private:
     QPointer<bb::cascades::ListView> m_list; // the list whose text size change is wired
+    QList<QPointer<MessageCard> > m_cards;  // the message cards made, for slideRow
 };
 
 // A service line ("service" rows of MessageModel): a chip, like a button that isn't one (Q10,

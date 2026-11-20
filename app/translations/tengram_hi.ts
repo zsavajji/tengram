@@ -936,6 +936,51 @@
         <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
         <translation>बंद होने पर वॉइस नोट स्पीकर पर ही रहते हैं और कॉल में स्क्रीन चालू रहती है। खराब सेंसर के लिए।</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="78"/>
+        <source>Animated stickers</source>
+        <translation>एनिमेटेड स्टिकर</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="82"/>
+        <source>Loop plays them over and over; Play once stops after one go, and a tap plays it again; Off shows them still.</source>
+        <translation>लूप उन्हें बार-बार चलाता है; एक बार चलाएं एक बार के बाद रुक जाता है, और टैप करने पर फिर चलता है; बंद उन्हें स्थिर दिखाता है।</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="92"/>
+        <source>Loop</source>
+        <translation>लूप</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="93"/>
+        <source>Play once</source>
+        <translation>एक बार चलाएं</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="94"/>
+        <source>Off</source>
+        <translation>बंद</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="106"/>
+        <source>Sticker size</source>
+        <translation>स्टिकर का आकार</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="113"/>
+        <source>Small</source>
+        <translation>छोटा</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="114"/>
+        <source>Normal</source>
+        <translation>सामान्य</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="115"/>
+        <source>Big</source>
+        <translation>बड़ा</translation>
+    </message>
 </context>
 <context>
     <name>ChatTitleBar</name>
@@ -1481,6 +1526,11 @@
         <location filename="../assets/DataSettingsPage.qml" line="402"/>
         <source>Low (320x240)</source>
         <translation>निम्न (320x240)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="443"/>
+        <source>Automatic sharpens the picture when the network allows and softens it when it doesn&apos;t. A fixed size keeps the picture as it is; the quality still follows the network.</source>
+        <translation>स्वचालित नेटवर्क अनुमति देने पर तस्वीर को तेज़ करता है और न देने पर उसे नरम कर देता है। स्थिर आकार तस्वीर को जैसी है वैसी रखता है; क्वालिटी फिर भी नेटवर्क के अनुसार बदलती है।</translation>
     </message>
 </context>
 <context>
@@ -3537,6 +3587,47 @@
         <source>No starred messages</source>
         <translation type="obsolete">कोई स्टार किया गया संदेश नहीं</translation>
     </message>
+</context>
+<context>
+    <name>StickerPicker</name>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="250"/>
+            <source>Favourites</source>
+            <translation>पसंदीदा</translation>
+        </message>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="282"/>
+            <source>Recent</source>
+            <translation>हाल के</translation>
+        </message>
+</context>
+<context>
+    <name>StickersPage</name>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="19"/>
+            <source>Stickers</source>
+            <translation>स्टिकर</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="233"/>
+            <source>No stickers yet. Add sticker sets in Telegram on another device.</source>
+            <translation>अभी कोई स्टिकर नहीं है। किसी दूसरे डिवाइस पर Telegram में स्टिकर सेट जोड़ें।</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="277"/>
+            <source>Send</source>
+            <translation>भेजें</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Remove from favourites</source>
+            <translation>पसंदीदा से हटाएं</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Add to favourites</source>
+            <translation>पसंदीदा में जोड़ें</translation>
+        </message>
 </context>
 <context>
     <name>StoriesModel</name>

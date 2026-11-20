@@ -4,7 +4,8 @@ import bb.cascades 1.4
 // 2026-11-07): 222 x 90 px, a white icon and its label, on the grey #565656 while pressed or on.
 // iconOn and textOn, when given, replace them while on (Mute shows the mic and "Unmute").
 // Stacked, it is the stock Z10's cell (240 x 140 px): the icon over its label, both centred.
-// Sizes in the Q10's px, scaled by px().
+// Sizes in the Q10's px, scaled by px(). The Classic's trackpad reaches it: it takes the focus, lit as while pressed, and a
+// click (Enter) taps it.
 // In Round mode (the user's ask, 2026-11-19) the grey is a disc behind the icon, not the whole cell, which is not a
 // square: the cell's content sits in a Container of its own, over the disc.
 Container {
@@ -20,7 +21,8 @@ Container {
     signal tapped
     preferredWidth: stacked ? px(240) : px(222)
     preferredHeight: stacked ? px(140) : px(90)
-    background: !settings.round && (toggle.on || toggle.pressed) ? Color.create("#565656") : Color.Transparent
+    focusPolicy: FocusPolicy.KeyAndTouch
+    background: !settings.round && (toggle.on || toggle.pressed || toggle.focused) ? Color.create("#565656") : Color.Transparent
     layout: DockLayout {}
     function px(n) {
         return ui.px(n * screenWidth / 720)
@@ -28,7 +30,7 @@ Container {
     // Centred on the icon: at the left of the wide cell (its icon's centre is 43 px from the edge) and at the top of the
     // stacked one (44 px), where a disc of 88 px has no margin to need (a margin doesn't count from a dock's edge).
     RoundFill {
-        visible: settings.round && (toggle.on || toggle.pressed)
+        visible: settings.round && (toggle.on || toggle.pressed || toggle.focused)
         horizontalAlignment: toggle.stacked ? HorizontalAlignment.Center : HorizontalAlignment.Left
         verticalAlignment: toggle.stacked ? VerticalAlignment.Top : VerticalAlignment.Center
         preferredWidth: toggle.stacked ? toggle.px(88) : toggle.px(86)
@@ -70,5 +72,12 @@ Container {
     onTouchExit: toggle.pressed = false
     gestureHandlers: TapHandler {
         onTapped: toggle.tapped()
+    }
+    keyListeners: KeyListener {
+        onKeyReleased: {
+            if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                toggle.tapped()
+            }
+        }
     }
 }

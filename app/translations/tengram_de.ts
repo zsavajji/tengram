@@ -936,6 +936,51 @@
         <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
         <translation>Wenn aus, bleiben Sprachnachrichten auf dem Lautsprecher und der Bildschirm bleibt bei Anrufen an. Für einen defekten Sensor.</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="78"/>
+        <source>Animated stickers</source>
+        <translation>Animierte Sticker</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="82"/>
+        <source>Loop plays them over and over; Play once stops after one go, and a tap plays it again; Off shows them still.</source>
+        <translation>Wiederholen spielt sie immer wieder ab; Einmal abspielen hält nach einem Durchlauf an, und ein Tippen spielt sie erneut ab; Aus zeigt sie als Standbild.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="92"/>
+        <source>Loop</source>
+        <translation>Wiederholen</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="93"/>
+        <source>Play once</source>
+        <translation>Einmal abspielen</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="94"/>
+        <source>Off</source>
+        <translation>Aus</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="106"/>
+        <source>Sticker size</source>
+        <translation>Stickergröße</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="113"/>
+        <source>Small</source>
+        <translation>Klein</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="114"/>
+        <source>Normal</source>
+        <translation>Normal</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="115"/>
+        <source>Big</source>
+        <translation>Groß</translation>
+    </message>
 </context>
 <context>
     <name>ChatTitleBar</name>
@@ -1481,6 +1526,11 @@
         <location filename="../assets/DataSettingsPage.qml" line="402"/>
         <source>Low (320x240)</source>
         <translation>Niedrig (320x240)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="443"/>
+        <source>Automatic sharpens the picture when the network allows and softens it when it doesn&apos;t. A fixed size keeps the picture as it is; the quality still follows the network.</source>
+        <translation>Automatisch schärft das Bild, wenn das Netz es erlaubt, und macht es weicher, wenn nicht. Eine feste Größe behält das Bild bei; die Qualität richtet sich weiterhin nach dem Netz.</translation>
     </message>
 </context>
 <context>
@@ -3537,6 +3587,47 @@
         <source>No starred messages</source>
         <translation type="obsolete">Keine mit Stern markierten Nachrichten</translation>
     </message>
+</context>
+<context>
+    <name>StickerPicker</name>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="250"/>
+            <source>Favourites</source>
+            <translation>Favoriten</translation>
+        </message>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="282"/>
+            <source>Recent</source>
+            <translation>Zuletzt verwendet</translation>
+        </message>
+</context>
+<context>
+    <name>StickersPage</name>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="19"/>
+            <source>Stickers</source>
+            <translation>Sticker</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="233"/>
+            <source>No stickers yet. Add sticker sets in Telegram on another device.</source>
+            <translation>Noch keine Sticker. Füge Sticker-Sets in Telegram auf einem anderen Gerät hinzu.</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="277"/>
+            <source>Send</source>
+            <translation>Senden</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Remove from favourites</source>
+            <translation>Aus Favoriten entfernen</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Add to favourites</source>
+            <translation>Zu Favoriten hinzufügen</translation>
+        </message>
 </context>
 <context>
     <name>StoriesModel</name>

@@ -17,9 +17,22 @@ Page {
     // Back is in the title bar and the composer is ours: nothing left for the bar. openActionMenu()
     // still opens the ⋮ menu with it hidden (Q10).
     actionBarVisibility: ChromeVisibility.Hidden
+    // The back action (the Classic's Back key, the user's ask, 2026-11-20): with the emoji picker open it closes the picker and
+    // the chat stays; else the page goes, as the stock back does.
+    paneProperties: NavigationPaneProperties {
+        backButton: ActionItem {
+            onTriggered: {
+                if (page.picking) {
+                    page.picking = false
+                } else {
+                    nav.pop()
+                }
+            }
+        }
+    }
     // Set by a send until our row goes in at the bottom.
     property bool followOwn: false
-    // The emoji picker is open, in the keyboard's place; only the composer's Emoji button closes it.
+    // The emoji picker is open, in the keyboard's place; the composer's Emoji button closes it, and the back action (above).
     property bool picking: false
     // The file picked to send, waiting for Send (step 6.4), and MediaOpener.fileInfo's of it.
     property string staged: ""
@@ -51,12 +64,15 @@ Page {
     }
     onChatChanged: {
         ctl.open(chat, topic)
+        // The list starts hidden (listHidden): the guard shows it whatever happens, from the open on.
+        revealGuard.start()
         // Pinned messages, not in a secret chat (Telegram has no pins there), after Search as before.
         if (!chat.secret) addAction(pinnedAction, ActionBarPlacement.InOverflow)
         if (chat.kind != 2) addAction(infoAction, ActionBarPlacement.InOverflow)
         if (chat.kind == 1) addAction(pollAction, ActionBarPlacement.InOverflow) // groups: Telegram refuses polls in a chat with a person
         if (chat.secret) addAction(timerAction, ActionBarPlacement.InOverflow)
         ctl.messages.itemAdded.connect(page.added)
+        ctl.messages.newestComing.connect(page.coming)
         ctl.messages.loadingChanged.connect(page.loaded)
         media.ready.connect(page.mediaReady)
         media.openFailed.connect(mediaFailed.show)
@@ -110,6 +126,7 @@ Page {
             onTimeout: {
                 console.log("chat: released off the edge, atEnd " + scrollState.atEnd)
                 ctl.messages.releaseOlder()
+                page.revealList()
             }
         },
         // A received photo, video, audio file or document (step 6.1): MediaOpener fetches the file
@@ -212,6 +229,10 @@ Page {
         ComponentDefinition {
             id: filesDef
             source: "SendFilesPage.qml"
+        },
+        ComponentDefinition {
+            id: stickersDef
+            source: "StickersPage.qml"
         },
         SystemToast {
             id: mediaFailed
@@ -353,8 +374,16 @@ Page {
             return
         }
         var editing = ctl.editing
+        // A text is in the list inside ctl.send (its local row, MessageModel::addLocal), so followOwn is set before: added()
+        // reads it as the row goes in, and clears it. A staged file's row comes later, so that one is set after, as before.
+        var plain = staged == ""
+        var followed = page.followOwn
+        if (plain) {
+            page.followOwn = !editing // an edit adds no row to follow
+        }
         // Cleared only once the engine has it: it writes the row before it replies, so nothing typed is lost.
-        if (!(staged == "" ? ctl.send(composer.text, mentionBar.take(composer.text)) : page.sendStaged(text))) {
+        if (!(plain ? ctl.send(composer.text, mentionBar.take(composer.text), true) : page.sendStaged(text))) {
+            page.followOwn = followed
             notSent.show()
             return
         }
@@ -362,7 +391,9 @@ Page {
         page.picking = false // sent, the emoji picker closes (the user's ask, 2026-11-17)
         page.unstage()
         ctl.cancelReply()
-        page.followOwn = !editing // an edit adds no row to follow
+        if (!plain) {
+            page.followOwn = !editing
+        }
     }
     // What media.send is given for one file, without the chat, topic, quote and caption (sendStaged and sendFiles). asFile:
     // the PNG itself, which the engine sends as a document by its extension, or the JPEG with `file`.
@@ -535,6 +566,33 @@ Page {
             nav.push(files)
         }
     }
+    // The sticker page, pushed over this one from the emoji picker's last cell; a tap there sends and closes it (sendSticker).
+    function openStickers() {
+        var stickers = stickersDef.createObject()
+        stickers.picked.connect(page.sendSticker)
+        nav.push(stickers)
+    }
+    // A sticker is a message of its own: the topic and the quote go with it, as with a file. It goes at once, and the sticker
+    // page closes, and the emoji picker under it, as after a send (the user, 2026-11-19). A request that did not go out
+    // leaves the page open.
+    function sendSticker(file) {
+        ctl.messages.toLiveEnd()
+        var args = {"chat": chat.jid, "file": file}
+        if (topic) {
+            args.topic = topic
+        }
+        if (ctl.quoteId()) {
+            args.quote = ctl.quoteId()
+        }
+        if (!engine.request("sticker.send", args)) {
+            notSent.show()
+            return
+        }
+        ctl.cancelReply()
+        page.followOwn = true
+        nav.pop()
+        page.picking = false
+    }
     // A file to send as {path, png, info}: a PNG goes as a photo, made a JPEG as the story picker does (the engine sends
     // a .png as a file), with the original in png; info is MediaOpener.fileInfo's. Null for a file that can't be read.
     function fileItem(path) {
@@ -581,8 +639,36 @@ Page {
     // Our own message is followed even when the list was scrolled up. Scrolling once the row is in:
     // a scroll before it, at send, left the new card below the screen, while an incoming one at the
     // bottom was followed by the stick-to-edge policy (Q10, 2026-10-31).
+    // A new message, ours or theirs, while the list was at the bottom slides in instead of popping in (the user, 2026-11-20).
+    // Before it goes in (coming, MessageModel's newestComing) the list stops sticking to the bottom (slidePin), so the row
+    // lands below the screen and nothing on it moves; its card, once laid out, gives its exact height (slideIn, from
+    // MessageCard::onLaidOut). A guess moved the rows before the list had the row in: they jumped down, then up (the user's
+    // video, 0.1.0.69). Not in a window of history, nor over another aim (the unread divider, a jump). Ours while scrolled
+    // up jumps to it, as before.
+    property bool slidePin: false
+    function coming() {
+        var inWindow = ctl.messages && ctl.messages.window
+        // ponytail: a diagnostic of the slide (the user: it slides in Saved Messages only, 0.1.0.70); remove once settled.
+        console.log("chat: slide coming, placed " + page.placed + ", atBeginning " + scrollState.atBeginning + ", window "
+                    + inWindow + ", aim '" + aimAt + "'")
+        if (page.placed && scrollState.atBeginning && !inWindow && (aimAt == "" || aimAt == "bottom")) {
+            slideAnim.stop()
+            list.translationY = 0
+            slidePin = true
+            slideGuard.start()
+        }
+    }
     function added(indexPath) {
-        if (followOwn && indexPath[0] == 0) {
+        if (indexPath[0] != 0) {
+            return
+        }
+        if (slidePin) {
+            followOwn = false
+            var row = ctl.messages.data(indexPath)
+            list.slideId = row && row.id ? row.id : ""
+            console.log("chat: slide row '" + list.slideId + "'")
+            cardsProvider.slideRow(list.slideId) // a card already showing it reports now (MessageCards::slideRow)
+        } else if (followOwn) {
             followOwn = false
             list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
             startAim("bottom", "")
@@ -623,8 +709,34 @@ Page {
         aimAt = ""
         if (unread) {
             releaseUnread()
+        } else {
+            revealList()
         }
     }
+    // The list is placed out of sight, in every chat (the user, 2026-11-20): a chat opening at its first unread message lagged
+    // and the list moved (the jump to the divider, its three aims while the cards' real heights come in, and the older rows
+    // going in above it were all seen), and one opening at the bottom drew its first page, then faded, then drew it again,
+    // since loaded() hid the list only once the page was in. So the list starts hidden (opacity 0 below) and is shown, fading
+    // in, once it is placed: at once by loaded() for a chat with nothing unread, when the aim ends for a jump (endAim) or an
+    // unread chat (endAim, the release timer), or after 1.5 s whatever happened (revealGuard, started by onChatChanged). Only
+    // the first placement hides: a later load of the same chat (toLiveEnd, a window left for a jump) finds the list showing.
+    property bool listHidden: true // EmptyNote's spinner stays on meanwhile
+    function hideList() {
+        revealAnim.stop()
+        revealing = false
+        listHidden = true
+        list.opacity = 0
+        revealGuard.start()
+    }
+    function revealList() {
+        revealGuard.stop()
+        listHidden = false
+        if (list.opacity < 1 && !revealing) {
+            revealing = true
+            revealAnim.play()
+        }
+    }
+    property bool revealing: false
     // The divider is the list's top now; the rows above it go in (MessageModel.releaseOlder). A list sitting exactly
     // at that edge keeps it in view when rows are appended there, which pushed the divider to the bottom of the screen
     // (Classic, 0.1.0.12). So the list is moved a few pixels off the edge first and the rows go in a moment later. An
@@ -655,9 +767,13 @@ Page {
             // A window far back that doesn't hold it: the model left it for the regular chat and loads until
             // chat.open answers; loaded() jumps then.
             page.jumpPending = id
+        } else {
+            revealList() // the message isn't shown (hidden by a pending delete): nothing to wait for
         }
     }
     property string jumpPending: ""
+    // The first page has come in and been placed (loaded): only that placement hides the list.
+    property bool firstLoaded: false
     // True once the settle timer has reported where the list is: until then the list's own atBeginningChanged
     // is ignored, since it may fire for the first layout, before the scroll below has taken effect, and the
     // chat would be read at once.
@@ -671,17 +787,21 @@ Page {
         if (ctl.messages.loading) {
             return
         }
+        var first = !page.firstLoaded
+        page.firstLoaded = true
         if (page.jumpPending != "") {
             var id = page.jumpPending
             page.jumpPending = ""
-            page.jump(id)
+            page.jump(id) // the list is shown when its aim ends, or at once when the message isn't there
         } else {
             var u = ctl.messages.unreadEntry()
-            if (u >= 0) {
+            if (u >= 0 && first) {
+                hideList() // already hidden: this restarts the guard from here
                 list.scrollToItem([u], ScrollAnimation.None)
                 startAim("unread", "")
                 return // settle starts when the aim ends
             }
+            revealList() // nothing unread: the first page is at the bottom already
         }
         if (aimAt == "") {
             settle.start()
@@ -899,6 +1019,8 @@ Page {
                     // What is behind the cards, for a picture's rounded corners (MessageCard::paintBackground).
                     property string pageColor: nav.pageColor
                     dataModel: ctl.messages
+                    // Out of sight until the first placement (page.listHidden); revealList fades it in.
+                    opacity: 0
                     // The user's own scroll wins over an aim still running (page.aim).
                     onTouch: {
                         if (page.aimAt != "") {
@@ -917,9 +1039,92 @@ Page {
                     // already there. Not in a window of history around the first unread message
                     // (ctl.messages.window): its newer pages are inserted at the bottom (index 0), where the
                     // policy would drag the view to them; None is the enum's "no particular behaviour".
-                    stickToEdgePolicy: ctl.messages && ctl.messages.window ? ListViewStickToEdgePolicy.None
-                                                                          : ListViewStickToEdgePolicy.Beginning
+                    stickToEdgePolicy: (ctl.messages && ctl.messages.window) || page.slidePin ? ListViewStickToEdgePolicy.None
+                                                                                             : ListViewStickToEdgePolicy.Beginning
+                    // The new message's slide (page.coming): the row whose card measures itself. In one go the list jumps to
+                    // the bottom (the rows move up by the row's height and the gap between cards) and is moved down as far,
+                    // so nothing moves on screen; then it comes back up in 110 ms. The composer, after the list, covers what is
+                    // moved below it.
+                    property string slideId: ""
+                    // The row's latest height: the slide starts when it has held for 30 ms (slideSettle): a reused card reports its old height, and its new layout came within 17 ms (0.1.0.74's log).
+                    property real slideH: 0
+                    function slideMeasured(h) {
+                        console.log("chat: slide measured " + h + " px")
+                        slideGuard.stop() // the card is there: the slide waits for its height to hold
+                        slideH = h
+                        slideSettle.start()
+                        return true
+                    }
+                    function slideIn(h) {
+                        console.log("chat: slide in, " + h + " px")
+                        slideGuard.stop()
+                        list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
+                        list.translationY = h + ui.du(1)
+                        slideAnim.fromY = list.translationY
+                        slideAnim.play()
+                        return true
+                    }
                     attachedObjects: [
+                        FadeTransition {
+                            id: revealAnim
+                            target: list
+                            fromOpacity: 0
+                            toOpacity: 1
+                            duration: 120
+                            onEnded: page.revealing = false
+                        },
+                        Timer {
+                            id: revealGuard
+                            interval: 1500
+                            singleShot: true
+                            // A model still loading has no rows: the spinner is up and the list stays hidden, so a slow first
+                            // page (a window waiting for chat.newer) isn't seen at the bottom before it is placed.
+                            onTimeout: {
+                                if (ctl.messages && ctl.messages.loading) {
+                                    revealGuard.start()
+                                } else {
+                                    page.revealList()
+                                }
+                            }
+                        },
+                        TranslateTransition {
+                            id: slideAnim
+                            target: list
+                            toY: 0
+                            duration: 110 // 150 felt slow (the user, 0.1.0.73)
+                            easingCurve: StockCurve.CubicOut
+                            // The list sticks to the bottom again, put back at it first: a card that grew while the list was
+                            // pinned left it a few pixels off, and the next message then found it not at the bottom (0.1.0.72).
+                            onEnded: {
+                                list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
+                                page.slidePin = false
+                            }
+                        },
+                        Timer {
+                            id: slideSettle
+                            interval: 30
+                            singleShot: true
+                            onTimeout: {
+                                if (list.slideId == "") {
+                                    return
+                                }
+                                list.slideId = ""
+                                list.slideIn(list.slideH)
+                            }
+                        },
+                        // A new row no card measured (a day's header, a card not made): the list goes to it at once. 1 s: the
+                        // first card a chat makes after opening came in after 650 ms, and 300 ms jumped it (0.1.0.72).
+                        Timer {
+                            id: slideGuard
+                            interval: 1000
+                            singleShot: true
+                            onTimeout: {
+                                console.log("chat: slide guard, row '" + list.slideId + "' not measured")
+                                list.slideId = ""
+                                list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
+                                page.slidePin = false
+                            }
+                        },
                         ListScrollStateHandler {
                             id: scrollState
                             // Older pages are appends, so asking on every change can't cascade.
@@ -934,11 +1139,14 @@ Page {
                         }
                     ]
                     // The cards are C++ (MessageCards.cpp, step 8.6): they reach the page through these functions and properties.
-                    listItemProvider: MessageCards {}
+                    listItemProvider: MessageCards {
+                        id: cardsProvider
+                    }
                 }
                 // ctl.messages is null until the page opens the chat, hence the first test.
                 EmptyNote {
                     model: ctl.messages
+                    placing: page.listHidden
                 }
                 // To the newest message, when the list is in a window of history or far above it. Square and
                 // opaque, as the cards are; a disc in Round mode (the user's ask, 2026-11-19). 5 px in from the right and the
@@ -955,10 +1163,13 @@ Page {
                     verticalAlignment: VerticalAlignment.Bottom
                     rightPadding: ui.px(5)
                     bottomPadding: ui.px(5)
+                    // The Classic's trackpad reaches it: it takes the focus, in the pressed colour, and a click (Enter) taps it.
                     Container {
+                        id: downBtn
                         preferredWidth: ui.du(11)
                         preferredHeight: ui.du(11)
-                        background: settings.round ? Color.Transparent : Color.create(nav.inColor)
+                        focusPolicy: FocusPolicy.KeyAndTouch
+                        background: settings.round ? Color.Transparent : Color.create(downBtn.focused ? nav.pressColor : nav.inColor)
                         layout: DockLayout {
                         }
                         gestureHandlers: TapHandler {
@@ -968,8 +1179,17 @@ Page {
                                 page.startAim("bottom", "")
                             }
                         }
+                        keyListeners: KeyListener {
+                            onKeyReleased: {
+                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                    ctl.messages.toLiveEnd()
+                                    list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.Default)
+                                    page.startAim("bottom", "")
+                                }
+                            }
+                        }
                         RoundFill {
-                            filterColor: Color.create(nav.inColor)
+                            filterColor: Color.create(downBtn.focused ? nav.pressColor : nav.inColor)
                         }
                         ImageView {
                             horizontalAlignment: HorizontalAlignment.Center
@@ -1023,6 +1243,7 @@ Page {
                 onControlChanged: {
                     if (control) {
                         control.picked.connect(page.picked)
+                        control.stickers.connect(page.openStickers)
                     }
                 }
             }

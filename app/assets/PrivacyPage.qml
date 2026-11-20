@@ -4,7 +4,7 @@ import tengram 1.0
 import "errors.js" as Errors
 
 // Settings > Privacy and security, laid out as Telegram Android's page: security (the two-step verification, auto-delete,
-// the blocked users, the devices), who sees what, the account's time to live, bots and websites, and contacts. The page
+// the blocked users), who sees what, the account's time to live, bots and websites, and contacts. The page
 // asks the engine itself (privacy.get) through its own Privacy, so the answer goes with the page; the password, blocked
 // users and websites pages each ask for theirs, and this one asks again when they are closed (uncovered).
 Page {
@@ -135,10 +135,6 @@ Page {
             source: "BlockedPage.qml"
         },
         ComponentDefinition {
-            id: devicesDef
-            source: "DevicesPage.qml"
-        },
-        ComponentDefinition {
             id: websitesDef
             source: "WebsitesPage.qml"
         },
@@ -240,6 +236,8 @@ Page {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         ScrollView {
+            horizontalAlignment: HorizontalAlignment.Fill // filling the page from the start: as wide as its
+            verticalAlignment: VerticalAlignment.Fill     // content, it opened narrow and grew (the user, 2026-11-20)
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 Busy {
@@ -311,10 +309,6 @@ Page {
                         title: qsTr("Blocked users")
                         subtitle: page.info.blocked > 0 ? String(page.info.blocked) : qsTr("None")
                         onTapped: nav.push(blockedDef.createObject())
-                    }
-                    SettingRow {
-                        title: qsTr("Devices")
-                        onTapped: nav.push(devicesDef.createObject())
                     }
                     Header {
                         title: qsTr("Privacy")

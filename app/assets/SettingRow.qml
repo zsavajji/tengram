@@ -1,7 +1,8 @@
 import bb.cascades 1.4
 
 // A tappable line of a settings page (Privacy and security's): the title, a dimmer line under it when `subtitle` has
-// text, a 2 px separator, lit while pressed. A tap is the `tapped` signal; the page says what it does.
+// text, a 2 px separator, lit while pressed. A tap is the `tapped` signal; the page says what it does. The Classic's trackpad
+// reaches it too (the user, 2026-11-20: it couldn't): it takes the focus, is lit while it has it, and a click (Enter) taps it.
 Container {
     id: row
     property string title
@@ -9,9 +10,17 @@ Container {
     property bool pressed: false
     signal tapped
     horizontalAlignment: HorizontalAlignment.Fill
-    background: pressed ? Color.create(nav.pressColor) : Color.Transparent
+    focusPolicy: FocusPolicy.KeyAndTouch
+    background: pressed || focused ? Color.create(nav.pressColor) : Color.Transparent
     gestureHandlers: TapHandler {
         onTapped: row.tapped()
+    }
+    keyListeners: KeyListener {
+        onKeyReleased: {
+            if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                row.tapped()
+            }
+        }
     }
     onTouch: row.pressed = event.isDown() || event.isMove()
     onTouchExit: row.pressed = false

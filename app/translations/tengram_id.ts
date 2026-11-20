@@ -935,6 +935,51 @@
         <source>Off, voice notes stay on the speaker and the screen stays on in calls. For a faulty sensor.</source>
         <translation>Jika nonaktif, pesan suara tetap di speaker dan layar tetap menyala saat panggilan. Untuk sensor yang rusak.</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="78"/>
+        <source>Animated stickers</source>
+        <translation>Stiker animasi</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="82"/>
+        <source>Loop plays them over and over; Play once stops after one go, and a tap plays it again; Off shows them still.</source>
+        <translation>Ulang memutarnya terus-menerus; Putar sekali berhenti setelah sekali, dan ketuk untuk memutarnya lagi; Nonaktif menampilkannya diam.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="92"/>
+        <source>Loop</source>
+        <translation>Ulang</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="93"/>
+        <source>Play once</source>
+        <translation>Putar sekali</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="94"/>
+        <source>Off</source>
+        <translation>Nonaktif</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="106"/>
+        <source>Sticker size</source>
+        <translation>Ukuran stiker</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="113"/>
+        <source>Small</source>
+        <translation>Kecil</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="114"/>
+        <source>Normal</source>
+        <translation>Normal</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatSettingsPage.qml" line="115"/>
+        <source>Big</source>
+        <translation>Besar</translation>
+    </message>
 </context>
 <context>
     <name>ChatTitleBar</name>
@@ -1478,6 +1523,11 @@
         <location filename="../assets/DataSettingsPage.qml" line="402"/>
         <source>Low (320x240)</source>
         <translation>Rendah (320x240)</translation>
+    </message>
+    <message>
+        <location filename="../assets/DataSettingsPage.qml" line="443"/>
+        <source>Automatic sharpens the picture when the network allows and softens it when it doesn&apos;t. A fixed size keeps the picture as it is; the quality still follows the network.</source>
+        <translation>Otomatis mempertajam gambar saat jaringan memungkinkan dan melembutkannya saat tidak. Ukuran tetap membuat gambar tetap seperti apa adanya; kualitasnya tetap mengikuti jaringan.</translation>
     </message>
 </context>
 <context>
@@ -3532,6 +3582,47 @@
         <source>No starred messages</source>
         <translation type="obsolete">Tidak ada pesan berbintang</translation>
     </message>
+</context>
+<context>
+    <name>StickerPicker</name>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="250"/>
+            <source>Favourites</source>
+            <translation>Favorit</translation>
+        </message>
+        <message>
+            <location filename="../src/StickerPicker.cpp" line="282"/>
+            <source>Recent</source>
+            <translation>Terbaru</translation>
+        </message>
+</context>
+<context>
+    <name>StickersPage</name>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="19"/>
+            <source>Stickers</source>
+            <translation>Stiker</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="233"/>
+            <source>No stickers yet. Add sticker sets in Telegram on another device.</source>
+            <translation>Belum ada stiker. Tambahkan paket stiker di Telegram pada perangkat lain.</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="277"/>
+            <source>Send</source>
+            <translation>Kirim</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Remove from favourites</source>
+            <translation>Hapus dari favorit</translation>
+        </message>
+        <message>
+            <location filename="../assets/StickersPage.qml" line="288"/>
+            <source>Add to favourites</source>
+            <translation>Tambahkan ke favorit</translation>
+        </message>
 </context>
 <context>
     <name>StoriesModel</name>

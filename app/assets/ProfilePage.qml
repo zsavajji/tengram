@@ -127,6 +127,8 @@ Page {
         horizontalAlignment: HorizontalAlignment.Fill
         verticalAlignment: VerticalAlignment.Fill
         ScrollView {
+            horizontalAlignment: HorizontalAlignment.Fill // filling the page from the start: as wide as its
+            verticalAlignment: VerticalAlignment.Fill     // content, it opened narrow and grew (the user, 2026-11-20)
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
                 // A ScrollView's content is as wide as its widest child, not the screen: with only the error text
@@ -142,10 +144,15 @@ Page {
                     rightPadding: ui.du(1.5)
                     // A disc in Round mode, the picture asked at 400 px for its 20 du (the user, 2026-11-19); before the engine answers it
                     // is the stock plain grey, as the palette's (#323232 dark, #F0F0F0 bright).
+                    // The Classic's trackpad reaches the picture, the name and the about: each takes the focus, lit as while pressed
+                    // (the picture dims), and a click (Enter) does what a tap does.
                     Tile {
+                        id: bigPhoto
                         horizontalAlignment: HorizontalAlignment.Center
                         preferredWidth: ui.du(20)
                         preferredHeight: ui.du(20)
+                        focusPolicy: FocusPolicy.KeyAndTouch
+                        opacity: bigPhoto.focused ? 0.6 : 1
                         tint: page.loaded ? page.info.color : settings.theme == 1 ? "#F0F0F0" : "#323232"
                         initials: page.loaded ? page.info.initials : ""
                         photo: page.hasPicture ? page.info.picture : ""
@@ -156,6 +163,13 @@ Page {
                         gestureHandlers: TapHandler {
                             onTapped: page.changePhoto()
                         }
+                        keyListeners: KeyListener {
+                            onKeyReleased: {
+                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                    page.changePhoto()
+                                }
+                            }
+                        }
                     }
                     // The name and its hint are one target.
                     Container {
@@ -163,7 +177,8 @@ Page {
                         property bool pressed: false
                         visible: page.loaded
                         horizontalAlignment: HorizontalAlignment.Fill
-                        background: pressed ? Color.create(nav.pressColor) : Color.Transparent
+                        focusPolicy: FocusPolicy.KeyAndTouch
+                        background: pressed || focused ? Color.create(nav.pressColor) : Color.Transparent
                         Label {
                             horizontalAlignment: HorizontalAlignment.Center
                             bottomMargin: 0
@@ -184,6 +199,13 @@ Page {
                         }
                         gestureHandlers: TapHandler {
                             onTapped: page.editName()
+                        }
+                        keyListeners: KeyListener {
+                            onKeyReleased: {
+                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                    page.editName()
+                                }
+                            }
                         }
                         onTouch: nameBox.pressed = event.isDown() || event.isMove()
                         onTouchExit: nameBox.pressed = false
@@ -225,7 +247,8 @@ Page {
                     property bool pressed: false
                     visible: page.loaded
                     horizontalAlignment: HorizontalAlignment.Fill
-                    background: pressed ? Color.create(nav.pressColor) : Color.Transparent
+                    focusPolicy: FocusPolicy.KeyAndTouch
+                    background: pressed || focused ? Color.create(nav.pressColor) : Color.Transparent
                     topPadding: ui.du(1.5)
                     leftPadding: ui.du(1.5)
                     rightPadding: ui.du(1.5)
@@ -248,6 +271,13 @@ Page {
                     }
                     gestureHandlers: TapHandler {
                         onTapped: page.editAbout()
+                    }
+                    keyListeners: KeyListener {
+                        onKeyReleased: {
+                            if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                page.editAbout()
+                            }
+                        }
                     }
                     onTouch: aboutBox.pressed = event.isDown() || event.isMove()
                     onTouchExit: aboutBox.pressed = false

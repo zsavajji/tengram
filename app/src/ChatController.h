@@ -61,8 +61,10 @@ public:
     Q_INVOKABLE void openInfo(const QVariantMap &chat);
     Q_INVOKABLE void nearTop(const QVariantList &firstVisible);
     // False when the engine isn't connected: nothing was sent, so QML keeps the text. mentions are
-    // the {jid, name} of the people the text's "@name"s name (msg.send's, docs/protocol.md).
-    Q_INVOKABLE bool send(const QString &text, const QVariantList &mentions = QVariantList());
+    // the {jid, name} of the people the text's "@name"s name (msg.send's, docs/protocol.md). instant: a new text goes in the
+    // list at once as a local row (MessageModel::addLocal) and the engine's row takes its place; the composer's text asks for
+    // it, the caption that follows a file does not (its row comes after the file's, which the local row would sit below).
+    Q_INVOKABLE bool send(const QString &text, const QVariantList &mentions = QVariantList(), bool instant = false);
     // Called on every change of the composer's text; sends our typing on and off.
     Q_INVOKABLE void composing(const QString &text);
     // Whether the list shows the newest message; QML reports it on scrolling, and once after it has
@@ -124,6 +126,7 @@ private slots:
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onPhoto(const QString &jid, const QString &path);
     void onWantOpen();
+    void onFailure();
 
 private:
     void takeGroupInfo(QVariantMap info);

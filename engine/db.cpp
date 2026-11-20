@@ -33,9 +33,10 @@ std::string read_key(const std::string &path) {
   return n == 64 && raw.is_ok() ? raw.move_as_ok() : "";
 }
 
-// The version-6 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
+// The version-7 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
 // without its reactions and poll_votes tables (a message's reactions and a poll's counts are in messages.extra),
-// and with the engine's own messages.sig, chats.read_inbox, chats.forum, chats.secret and messages.topic.
+// and with the engine's own messages.sig, chats.read_inbox, chats.forum, chats.secret and messages.topic (and, in kTopics
+// and kPeople below, its own tables).
 // Column order is theirs, in case the UI reads by position; the engine's own come last, where ALTER TABLE
 // puts them in a migrated file. The first line removes the table that SqliteDb::change_key leaves in a
 // database it has just encrypted.
@@ -89,6 +90,14 @@ CREATE TABLE topics(
   muted_until INTEGER,
   PRIMARY KEY(chat, topic));
 CREATE INDEX messages_by_topic ON messages(chat, topic, ts);
+)";
+
+// What version 7 added: the people the UI draws beside a group's messages. messages.sender is a user's id in decimal, so is
+// `user`; `color` is the index senders.get gives (0 to 6, user_color in chats.cpp); `photo` is the local path of the small
+// picture, NULL until it is downloaded. The UI joins it to messages, so a group opens with the colours and pictures that
+// are final, not the hash of the id that senders.get then replaces.
+const char *const kPeople = R"(
+CREATE TABLE people(user TEXT PRIMARY KEY, color INTEGER NOT NULL, photo TEXT);
 )";
 
 }  // namespace
@@ -145,7 +154,8 @@ bool Db::try_open(const std::string &raw_key) {
     return false;
   }
   auto v = db_.user_version();
-  if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3 && v.ok() != 4 && v.ok() != 5 && v.ok() != 6)) {
+  if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3 && v.ok() != 4 && v.ok() != 5 && v.ok() != 6 &&
+                         v.ok() != 7)) {
     say("chats.db: user_version %d is not ours", v.is_ok() ? v.ok() : -1);
     db_.close();
     return false;
@@ -153,7 +163,8 @@ bool Db::try_open(const std::string &raw_key) {
   if ((v.ok() == 0 && !create_schema()) || (v.ok() == 2 && !migrate_2_to_3()) ||
       ((v.ok() == 2 || v.ok() == 3) && !migrate_3_to_4()) ||
       ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4) && !migrate_4_to_5()) ||
-      ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4 || v.ok() == 5) && !migrate_5_to_6())) {
+      ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4 || v.ok() == 5) && !migrate_5_to_6()) ||
+      ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4 || v.ok() == 5 || v.ok() == 6) && !migrate_6_to_7())) {
     db_.close();
     return false;
   }
@@ -162,8 +173,8 @@ bool Db::try_open(const std::string &raw_key) {
 
 bool Db::create_schema() {
   // One transaction, user_version inside it: a crash leaves either nothing or all of it.
-  return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) && exec(kTopics) &&
-         ok(db_.set_user_version(6), "user_version") && ok(db_.commit_transaction(), "commit");
+  return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) && exec(kTopics) && exec(kPeople) &&
+         ok(db_.set_user_version(7), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 // Version 2 had no chats.read_inbox. One transaction with user_version inside it, as create_schema: a crash
@@ -204,6 +215,13 @@ bool Db::migrate_5_to_6() {
          ok(db_.set_user_version(6), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
+// Version 6 had no `people`. Same shape as the others. The table starts empty: the engine writes a user's row when TDLib
+// first tells it of them (chats.cpp), and until then a group's messages from that user have the hash colour, as before.
+bool Db::migrate_6_to_7() {
+  return ok(db_.begin_write_transaction(), "begin") && exec(kPeople) && ok(db_.set_user_version(7), "user_version") &&
+         ok(db_.commit_transaction(), "commit");
+}
+
 void Db::close() {
   in_tx_ = false;
   db_.close();
@@ -237,6 +255,6 @@ void Db::commit() {
 
 void Db::wipe() {
   begin();
-  exec("DELETE FROM chats; DELETE FROM messages; DELETE FROM topics; DELETE FROM engine_state");
+  exec("DELETE FROM chats; DELETE FROM messages; DELETE FROM topics; DELETE FROM people; DELETE FROM engine_state");
   commit();
 }

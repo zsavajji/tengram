@@ -34,7 +34,9 @@ class EngineLink;
 // map is that first member's plus album, albumCount, media "" (so MediaBubble isn't built) and the
 // last member's time and state, since the card shows when it ended.
 // Group chats show each sender's square picture beside their messages, in Telegram's colours, with an admin's tag
-// after the name. What the engine knows of a sender (senders.get: colour, tag, photo) is kept in m_senders, asked
+// after the name. A row starts with the colour and picture chats.db's `people` table has for its sender (the query joins
+// it, MessageRows.cpp), so a chat opens with the colours it keeps; only a sender the engine has not written yet has the
+// hash of the id. What the engine knows of a sender (senders.get: colour, tag, photo) is kept in m_senders, asked
 // once per sender for the senders of the rows just read, and applied by data(), not baked into the rows: an answer,
 // or a photo event, is an itemUpdated of that sender's entries. Whose messages make a run is decided in rebuild
 // (markRuns): the name shows on the oldest message of a run, the picture on the newest, and refresh tells the entries
@@ -60,6 +62,11 @@ class EngineLink;
 // In window mode a live row beyond the loaded newest is dropped (merge), chat.open replies are ignored
 // (takeOpen), and toLiveEnd (sending from far back) or a window that never answers (15 s) drops the window
 // and opens at the newest, as a chat with nothing unread does (leaveWindow).
+// A text of ours is in the list the instant it is sent (the user's ask, 2026-11-20: the engine's round trip showed): addLocal
+// puts a LOCAL row in m_all, sending (state 0, the clock), with the id "local-<n>", and the page slides it in as any new row.
+// The engine's row for that text (merge: ours, new, the same words) takes its place: the entry keeps its place and takes the
+// row's id, so the card is told itemUpdated, not a removal and an addition. A local row nobody took goes after 15 s, or at once
+// when msg.send fails (dropLocals) or the engine reconnects. Never in window mode (a row beyond the loaded ones is dropped).
 class MessageModel : public bb::cascades::DataModel
 {
     Q_OBJECT
@@ -115,6 +122,16 @@ public:
     // The id of the chat.open request the controller just sent: its reply sets the verified floor.
     void expectOpen(const QString &requestId);
 
+    // A text of ours as a row at the bottom now, before the engine has written its own (the class comment): the quote's line
+    // is the quoted row's, read from chats.db as a real row's is (localRow). Returns its id, "" when none was added: window
+    // mode, still loading, a blank text, or chats.db isn't open. The text goes as it is typed; the row shows it trimmed, as
+    // Telegram keeps it.
+    QString addLocal(const QString &text, const QString &quoteId);
+    // Takes a local row out at once: its request was not sent. Nothing when it is gone already (the engine's row took its place).
+    void dropLocal(const QString &id);
+    // Takes every local row out: msg.send failed.
+    void dropLocals();
+
     // The chat's (or topic's) unread count as chats.db has it now.
     int unread() const;
 
@@ -135,15 +152,20 @@ signals:
     // A merge added a message that isn't ours and wasn't there before (not a first load or an
     // older page): the controller decides whether it was seen.
     void incoming();
+    // A new row is about to go in at the bottom (index 0), before itemAdded tells the list: the page pins the list there, so
+    // the row goes in below the screen and slides in (ChatPage's coming).
+    void newestComing();
 
 private slots:
     void loadFirst();
     void onMsgs(const QString &chat, const QStringList &ids);
+    void onPreviews(const QStringList &ids);
     void onConnected();
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onPhoto(const QString &jid, const QString &path);
     void giveUp();
     void tickExpiry();
+    void tickLocal();
     void onFullscreen();
 
 private:
@@ -179,11 +201,25 @@ private:
         QString photo;   // the small picture's path, "" for none yet
     };
 
+    // A local row not taken yet (addLocal): its id, the words it shows (words(): what merge compares) and when it went in.
+    struct Local
+    {
+        QString id;
+        QString text;
+        qint64 at; // ms since the epoch
+    };
+
     static bool lessThan(const Msg &a, const Msg &b);
+    static bool isLocal(const QString &id) { return id.startsWith("local-"); }
+    // A text as it is compared: runs of white space are one space and the ends are cut, so what TDLib trims or tidies in a
+    // text it keeps (trailing newlines, a doubled space) still reads as what was typed.
+    static QString words(const QString &text) { return text.simplified(); }
     // " AND topic = ?" in a topic's model, "": bindChat binds what chat = ? and it want.
     const char *topicSql() const { return m_topic ? " AND topic = ?" : ""; }
     void bindChat(QSqlQuery &q) const;
     Msg read(QSqlQuery &q);
+    // The Msg of a local row: read() of a one-row table with messages' columns (MessageRows.cpp). id "" in the result: no chats.db.
+    Msg localRow(const QString &id, const QString &text, const QString &quoteId, qint64 ts);
     // oldestFirst: the oldest `limit` rows that match instead of the newest (still returned oldest first).
     QList<Msg> select(const QString &where, const QVariantList &args, int limit, bool oldestFirst = false);
     QList<qint64> pageTimes(const QString &where, const QVariantList &args, int limit);
@@ -205,6 +241,15 @@ private:
     void dropBelowFloor();
     bool atStart() const;
     void merge(const QStringList &asked, const QList<Msg> &fresh, bool older);
+    // Row m of ours, new to the list, takes the place of the oldest local row that says the same: that row leaves `all`, m
+    // joins it, and the entry keeps its place under m's id. False when no local row waits for it.
+    bool takeLocal(const Msg &m, QList<Msg> &all);
+    // The entry keyed from (or the album keyed after it) is keyed to from now on: the list is told itemUpdated, not moved.
+    void renameEntry(const QString &from, const QString &to);
+    // These local rows leave m_all and m_locals, and the list is told.
+    void removeLocals(const QStringList &ids);
+    // Reads these rows again and merges them: onMsgs without its check for loading.
+    void reread(const QStringList &ids);
     void rebuild();
     void fillShort();
     QString runOf(int entry) const;
@@ -275,6 +320,14 @@ private:
     QHash<int, QString> m_longDays; // longDay()'s labels by julian day
     QHash<int, QString> m_dayTitles; // dayTitle()'s header titles by julian day, for the day m_titlesDay
     int m_titlesDay; // today's julian day when m_dayTitles was filled: "Today" moves at midnight
+    QList<Local> m_locals; // the local rows in m_all that no engine row has taken, oldest first
+    QTimer m_localExpiry; // once a second while there are any: tickLocal drops the ones nothing took in kLocalMs
+    int m_localCount; // the number of the last local id
+    // Ours sent while the chat is open keep the place they first had (the user, 2026-11-20): the ts and day they sorted by, by
+    // id, through their local, temporary and final rows and every later read of them. Telegram's time is still the one shown.
+    QHash<QString, QPair<qint64, int> > m_place;
+    void keepPlace(Msg &m, const Msg &old);
+    void placed(Msg &m) const;
 };
 
 #endif

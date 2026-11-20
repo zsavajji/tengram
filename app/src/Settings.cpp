@@ -28,6 +28,8 @@
 #include "sizes.h"
 
 bool Settings::s_roundShape = true; // Round is the default (the user, 2026-11-19), as round() reads it
+int Settings::s_stickerPlay = 0; // Loop, as stickerPlay() reads it
+int Settings::s_stickerSize = 1; // Normal, as stickerSize() reads it
 
 Settings::Settings(EngineLink *engine, QObject *parent)
     : QObject(parent),
@@ -36,6 +38,8 @@ Settings::Settings(EngineLink *engine, QObject *parent)
       m_region(bb::system::LocaleType::Region)
 {
     s_roundShape = round();
+    s_stickerPlay = stickerPlay();
+    s_stickerSize = stickerSize();
     // Dark is the bar descriptor's theme (CASCADES_THEME): nothing to apply, and no reload.
     if (theme() == 1)
         applyTheme();
@@ -64,6 +68,14 @@ QString Settings::deliveryMode() const { return m_file.value("deliveryMode", "au
 // Larger (3, 140 %) went at the user's word (2026-11-01); a saved 3 reads as Large.
 int Settings::textSize() const { return qBound(0, m_file.value("textSize", 1).toInt(), 2); }
 int Settings::videoQuality() const { return qBound(0, m_file.value("videoQuality", 0).toInt(), 3); }
+int Settings::stickerPlay() const { return qBound(0, m_file.value("stickerPlay", 0).toInt(), 2); }
+int Settings::stickerSize() const { return qBound(0, m_file.value("stickerSize", 1).toInt(), 2); }
+
+qreal Settings::stickerScale()
+{
+    static const qreal scales[] = { 0.7, 1.0, 1.2 };
+    return scales[s_stickerSize];
+}
 bool Settings::compact() const { return m_file.value("compact", false).toBool(); }
 // Round by default (the user, 2026-11-19; Square was until then): a saved choice stays.
 bool Settings::round() const { return m_file.value("round", true).toBool(); }
@@ -314,6 +326,26 @@ void Settings::setVideoQuality(int quality)
     emit videoQualityChanged(quality);
 }
 
+void Settings::setStickerPlay(int mode)
+{
+    mode = qBound(0, mode, 2);
+    if (mode == stickerPlay())
+        return;
+    store("stickerPlay", mode);
+    s_stickerPlay = mode;
+    emit stickerPlayChanged();
+}
+
+void Settings::setStickerSize(int size)
+{
+    size = qBound(0, size, 2);
+    if (size == stickerSize())
+        return;
+    store("stickerSize", size);
+    s_stickerSize = size;
+    emit stickerSizeChanged();
+}
+
 void Settings::setCompact(bool on)
 {
     if (on == compact())
@@ -376,31 +408,30 @@ static QStringList cacheFiles()
     return files;
 }
 
-// An empty cache reads "0 KB", not the empty text sizeText gives for an unknown size.
-static QString cacheText(qint64 bytes, const QLocale &locale)
-{
-    return bytes > 0 ? sizeText(bytes, locale) : QString("0 KB");
-}
-
-QString Settings::cacheSize()
+// On Storage's worker: files only, nothing of the UI's.
+qint64 Settings::cacheBytes()
 {
     qint64 bytes = 0;
-    foreach (const QString &path, cacheFiles())
+    for (const QString &path : cacheFiles())
         bytes += QFileInfo(path).size();
-    return cacheText(bytes, m_region.locale());
+    return bytes;
 }
 
-// Returns the size freed; a file that can't be removed is skipped. Empty directories stay.
-QString Settings::clearCache()
+// The size freed; a file that can't be removed is skipped. Empty directories stay. On Storage's worker.
+qint64 Settings::removeCache()
 {
-    s_round.clear();
     qint64 freed = 0;
-    foreach (const QString &path, cacheFiles()) {
+    for (const QString &path : cacheFiles()) {
         const qint64 size = QFileInfo(path).size();
         if (QFile::remove(path))
             freed += size;
     }
-    return cacheText(freed, m_region.locale());
+    return freed;
+}
+
+void Settings::forgetRound()
+{
+    s_round.clear(); // the round pictures' names: their files are about to go
 }
 
 // Round mode's pictures (the user's ask, 2026-11-19): the file is read scaled to `size` px on its short side at most (160 for a

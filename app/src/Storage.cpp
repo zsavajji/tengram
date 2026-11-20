@@ -1,8 +1,11 @@
 #include "Storage.h"
 
 #include "EngineLink.h"
+#include "Settings.h"
 
 #include <QDateTime>
+#include <QFutureWatcher>
+#include <QtConcurrentRun>
 #include <QLocale>
 
 // Only what ask() sends: a page shows their failure from the link's, and they are asked again on connecting.
@@ -125,4 +128,36 @@ void Storage::onFailure()
         return;
     m_sent.remove(id);
     emit failed(cmd);
+}
+
+void Storage::measureCache()
+{
+    QFutureWatcher<qint64> *watcher = new QFutureWatcher<qint64>(this);
+    connect(watcher, SIGNAL(finished()), this, SLOT(onMeasured()));
+    watcher->setFuture(QtConcurrent::run(&Settings::cacheBytes));
+}
+
+void Storage::clearCache()
+{
+    Settings::forgetRound();
+    QFutureWatcher<qint64> *watcher = new QFutureWatcher<qint64>(this);
+    connect(watcher, SIGNAL(finished()), this, SLOT(onCleared()));
+    watcher->setFuture(QtConcurrent::run(&Settings::removeCache));
+}
+
+// An empty cache reads "0 KB", not the empty text an unknown size has.
+void Storage::onMeasured()
+{
+    QFutureWatcher<qint64> *watcher = static_cast<QFutureWatcher<qint64> *>(sender());
+    watcher->deleteLater();
+    const qint64 bytes = watcher->result();
+    emit cacheMeasured(bytes > 0 ? bytesText(bytes) : QString("0 KB"));
+}
+
+void Storage::onCleared()
+{
+    QFutureWatcher<qint64> *watcher = static_cast<QFutureWatcher<qint64> *>(sender());
+    watcher->deleteLater();
+    const qint64 bytes = watcher->result();
+    emit cacheCleared(bytes > 0 ? bytesText(bytes) : QString("0 KB"));
 }

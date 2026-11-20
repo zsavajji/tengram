@@ -9,9 +9,23 @@ QT += declarative network sql gui
 LIBS += -lbbcascades -lbbdevice -lbbdata -lbbsystem -lbbplatform -lbb -lbbutilityi18n -lslog2 -lbbpim -lbps -lasound -laudio_manager -lscreen -lcamapi
 QMAKE_LFLAGS += -Wl,-rpath-link,$${QNX_DIR}/$${QNX_CPUDIR}/usr/lib/qt4/lib
 QMAKE_CXXFLAGS += -Wno-psabi
+# gcc 4.8.3 and C++11 (the user, 2026-11-20). The spec's qcc -Vgcc_ntoarmv7le takes the NDK's default, gcc 4.6.3, whose C++11
+# is partial (no override or final). 4.8.3 ships in the same NDK, but with GNU libstdc++ only (lib/gcc/4.8.3), and Qt and
+# Cascades are built against Dinkumware (libcpp.so.4). So C++ is compiled by 4.8.3's _cpp variant (Dinkumware's headers) and
+# linked against 4.6.3's Dinkumware library, the libcpp.so.4 Qt and Cascades load: one standard library in the process, as
+# before. gnu++11, not c++11: strict ISO hides the POSIX calls main.cpp makes (open, getpid, clock_gettime). Not C++20: clang's
+# libc++ would sit beside Dinkumware (the engine and libtgs.so are clang's, and libtgs.so shows the UI a C API only).
+QMAKE_CC = qcc -V4.8.3,gcc_ntoarmv7le
+QMAKE_CXX = qcc -V4.8.3,gcc_ntoarmv7le_cpp
+QMAKE_LINK = $$QMAKE_CXX
+QMAKE_LINK_SHLIB = $$QMAKE_CXX
+QMAKE_LINK_C = $$QMAKE_CC
+QMAKE_LINK_C_SHLIB = $$QMAKE_CC
+QMAKE_CXXFLAGS += -std=gnu++11
+LIBS += -L$$(QNX_TARGET)/armle-v7/lib/gcc/4.6.3 -lcpp
 
-SOURCES += src/main.cpp src/EngineLink.cpp src/ChatListModel.cpp src/ChatsDb.cpp src/EmojiModel.cpp src/MessageModel.cpp src/MessageRows.cpp src/MessageCards.cpp src/ChatRows.cpp src/ChatSearch.cpp src/MessageCard.cpp src/MessageCardActions.cpp src/MessageCardBubbles.cpp src/Albums.cpp src/MessageKinds.cpp src/Polls.cpp src/Pins.cpp src/ChatController.cpp src/ChatControllerGroup.cpp src/ContactBook.cpp src/ContactInfo.cpp src/ContactPicker.cpp src/MapChooser.cpp src/MediaData.cpp src/MediaOpener.cpp src/QrImage.cpp src/Waveform.cpp src/OpenRequests.cpp src/Invites.cpp src/MemoryPatch.cpp src/Privacy.cpp src/Profile.cpp src/CallLog.cpp src/Sessions.cpp src/Settings.cpp src/Storage.cpp src/TopicModel.cpp src/Sticker.cpp src/LinkIo.cpp src/Proximity.cpp src/CallAudio.cpp src/CallVideo.cpp src/CameraEncoder.cpp src/VideoDecoder.cpp src/VideoFormat.cpp src/VideoOutput.cpp src/VideoWindow.cpp $$PWD/../lib/qrcodegen/qrcodegen.c
-HEADERS += src/EngineLink.h src/ChatListModel.h src/ChatsDb.h src/EmojiModel.h src/emojiTable.h src/MessageModel.h src/MessageCards.h src/ChatRows.h src/ChatSearch.h src/MessageCard.h src/CardStyle.h src/Albums.h src/MessageKinds.h src/Polls.h src/Pins.h src/ChatController.h src/ContactBook.h src/ContactInfo.h src/ContactPicker.h src/MapChooser.h src/MediaData.h src/MediaOpener.h src/Moves.h src/dates.h src/colors.h src/QrImage.h src/Waveform.h src/OpenRequests.h src/Invites.h src/MemoryPatch.h src/Privacy.h src/Profile.h src/CallLog.h src/Sessions.h src/Settings.h src/Storage.h src/TopicModel.h src/Sticker.h src/sizes.h src/LinkIo.h src/Proximity.h src/CallAudio.h src/CallVideo.h src/CameraEncoder.h src/VideoDecoder.h src/VideoWindow.h src/Nv12Rotate.h
+SOURCES += src/main.cpp src/EngineLink.cpp src/ChatListModel.cpp src/ChatsDb.cpp src/EmojiModel.cpp src/MessageModel.cpp src/MessageRows.cpp src/MessageCards.cpp src/ChatRows.cpp src/ChatSearch.cpp src/MessageCard.cpp src/MessageCardActions.cpp src/MessageCardBubbles.cpp src/Albums.cpp src/MessageKinds.cpp src/Polls.cpp src/Pins.cpp src/ChatController.cpp src/ChatControllerGroup.cpp src/ContactBook.cpp src/ContactInfo.cpp src/ContactPicker.cpp src/MapChooser.cpp src/MediaData.cpp src/MediaOpener.cpp src/QrImage.cpp src/Waveform.cpp src/OpenRequests.cpp src/Invites.cpp src/MemoryPatch.cpp src/Privacy.cpp src/Profile.cpp src/CallLog.cpp src/Sessions.cpp src/Settings.cpp src/Storage.cpp src/TopicModel.cpp src/Sticker.cpp src/PreviewMaker.cpp src/StickerPlayer.cpp src/StickerPicker.cpp src/StickerGrid.cpp src/LinkIo.cpp src/Proximity.cpp src/CallAudio.cpp src/CallVideo.cpp src/CameraEncoder.cpp src/VideoDecoder.cpp src/VideoFormat.cpp src/VideoOutput.cpp src/VideoWindow.cpp $$PWD/../lib/qrcodegen/qrcodegen.c
+HEADERS += src/EngineLink.h src/ChatListModel.h src/ChatsDb.h src/EmojiModel.h src/emojiTable.h src/MessageModel.h src/MessageCards.h src/ChatRows.h src/ChatSearch.h src/MessageCard.h src/CardStyle.h src/Albums.h src/MessageKinds.h src/Polls.h src/Pins.h src/ChatController.h src/ContactBook.h src/ContactInfo.h src/ContactPicker.h src/MapChooser.h src/MediaData.h src/MediaOpener.h src/Moves.h src/dates.h src/colors.h src/QrImage.h src/Waveform.h src/OpenRequests.h src/Invites.h src/MemoryPatch.h src/Privacy.h src/Profile.h src/CallLog.h src/Sessions.h src/Settings.h src/Storage.h src/TopicModel.h src/Sticker.h src/PreviewMaker.h src/StickerPlayer.h src/StickerPicker.h src/StickerGrid.h src/sizes.h src/LinkIo.h src/Proximity.h src/CallAudio.h src/CallVideo.h src/CameraEncoder.h src/VideoDecoder.h src/VideoWindow.h src/Nv12Rotate.h
 # The cards' bubbles (step 8.6b), one class each: whichever are written so far.
 SOURCES += $$files($$PWD/src/*Bubble.cpp) $$files($$PWD/src/LinkPreview.cpp)
 HEADERS += $$files($$PWD/src/*Bubble.h) $$files($$PWD/src/LinkPreview.h)
@@ -52,6 +66,12 @@ for(f, WEBP_DSP): SOURCES += $$WEBP_DIR/src/dsp/$${f}.c
 for(f, WEBP_UTILS): SOURCES += $$WEBP_DIR/src/utils/$${f}.c
 SOURCES += $$WEBP_DIR/src/demux/demux.c $$WEBP_DIR/src/demux/anim_decode.c
 INCLUDEPATH += $$WEBP_DIR $$WEBP_DIR/src
+
+# rlottie, for the animated stickers (src/StickerPlayer.cpp, docs/stickers-plan.md): it needs C++14, so scripts/build-tgs.sh
+# builds it with clang into build/prefix/lib/libtgs.so, which exports only its C API (rlottie_capi.h) and ships in the bar's
+# native/lib. The UI calls it as plain C; zlib (the phone's) unzips the .tgs.
+INCLUDEPATH += $$PWD/../third_party/rlottie/inc
+LIBS += -L$$PWD/../build/prefix/lib -ltgs -lz
 
 # chats.db is SQLCipher (src/ChatsDb.cpp): Qt 4.8.6's own SQLite driver, renamed QSQLCipherDriver by
 # scripts/fetch-qtsqlcipher.sh (the phone's QtSql already has a QSQLiteDriver), on TDLib's SQLCipher

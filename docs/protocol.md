@@ -65,6 +65,11 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `poll.vote` | `chat`, `id` (a poll's message id), `options` (an array of option numbers, 0-based as `extra.options`; missing, null or `[]` takes our vote back) | — | |
 | `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool), `save` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`, of the copy in Downloads with `save`) | `not_found`, `download_failed`, `cancelled`, `not_saved` |
 | `media.cancel` | `chat`, `id` (a message with a file) | — | `not_found` |
+| `stickers.sets` | — (no `chat`) | `{sets: [{set, title, count, cover}]}`: the installed regular sticker sets in the order TDLib gives them; `set` the set's id (a decimal string), `count` its size, `cover` a sticker object (see *Stickers*), left out when TDLib has no cover for the set | `unlinked` |
+| `stickers.get` | `set` (a set's id as a decimal string, or `"recent"` or `"faves"`; no `chat`) | `{stickers: [sticker objects]}` in TDLib's order | `unlinked`, `bad_request` (`set` is none of those) |
+| `stickers.file` | `file` (a TDLib file id, a decimal string from 1; no `chat`) | `{path}`, the absolute path of the file once it is downloaded (at once when it is here already) | `unlinked`, `bad_request`, `not_found` (TDLib has no such file), `download_failed` |
+| `sticker.send` | `chat`, `file` (the sticker's `file`), `quote` (a message id), `topic`; both optional | `{id}`, as `media.send` | |
+| `sticker.fave` | `file` (the sticker's `file`), `on` (bool: true adds it to Favourites, false removes it; no `chat`) | — | `unlinked`, `bad_request` |
 | `voice.start` | `chat`, `path` (the `.wav` the recorder is writing, inside the data folder); optional `topic` | — | |
 | `voice.send` | `chat`, `path` (as `voice.start`), `quote` (a message id, optional), `topic` (optional) | `{id}`, the message's id | |
 | `voice.cancel` | `path` (as `voice.start`) | — | |
@@ -272,6 +277,23 @@ never watched. The same event comes while a message of ours with a file (a photo
 `media.get` still waiting on that file answers the error `cancelled` instead of `download_failed`. It is not an error
 when nothing is downloading.
 
+**Stickers (`stickers.sets`, `stickers.get`, `stickers.file`, `sticker.send`, `sticker.fave`):** the picker's requests. Nothing is
+kept or fetched ahead by the engine: each one asks TDLib when the UI asks. A sticker object is `{file, emoji, format, pic,
+picPath}`:
+- `file`: the sticker's TDLib file id, a decimal string: what `sticker.send`, `sticker.fave` and `stickers.file` take.
+- `emoji`: the sticker's emoji. `format`: `"webp"`, `"tgs"` (animated, a gzipped Lottie file) or `"webm"` (video).
+- `pic`: the file id (a decimal string) of the picture the grid shows: the sticker's thumbnail (128 px) when TDLib has one
+  as a WebP, JPEG, PNG or TGS; else the sticker's own file when it is a WebP or a TGS; left out for a WebM sticker with no
+  still thumbnail.
+- `picPath`: the absolute path of `pic`'s file when TDLib already has it downloaded, left out otherwise (the UI then asks
+  `stickers.file` with `pic`).
+
+File ids are TDLib's and last only while the engine process runs: after the engine restarts the UI asks `stickers.sets` or
+`stickers.get` again. `stickers.file` downloads at a low priority (4, under `media.get`'s) and answers when the file is
+complete; a sticker that is already here answers at once. `sticker.send` is `msg.send` for a sticker: the same `quote` and
+`topic`, the same row (*sending*, state 0, under a temporary id) and `{id}`; TDLib puts a sent sticker first in Recent itself.
+`stickers.get` with `"recent"` is the stickers recently sent, `"faves"` the favourites.
+
 **`voice.start`, `voice.send`, `voice.cancel`:**
 - `path` is the WAV the recorder is writing (`AudioRecorder`: 48 kHz stereo 16-bit). The sizes in its header are not
   trusted (they are 0 or 0xFFFFFFFF until the recorder finishes): the data runs to the end of the file. It must be a
@@ -435,7 +457,9 @@ TDLib's `updateAccentColors`; one that list does not name gets the id modulo 7. 
 name of an administrator: their custom title when they have one, else `owner` for the creator, else `admin`; "" for
 everyone else, and for everyone when TDLib refuses `getChatAdministrators` (logged; the reply still goes). `photo` is the
 path of the user's small profile photo, absent when it is not downloaded yet: the engine then asks TDLib for it in the
-background (for at most 50 users a request), after the reply, and each one that comes arrives as a `photo` event.
+background (for at most 50 users a request), after the reply, and each one that comes arrives as a `photo` event. The colour
+and the photo are also in chats.db's `people` table (*chats.db, as the UI reads it*), which the UI reads with the messages, so a
+chat opens with them before this answers; the UI asks for the tags, and takes a photo this reply or an event adds.
 
 **`chat.clear`:** deletes the chat's messages for us alone (TDLib's `deleteChatHistory`, the chat staying in the
 list); an active secret chat is the one exception, TDLib deletes its history only for both sides. The rows go with
@@ -845,14 +869,15 @@ read on another device, and the delay while another device is in use are all Tel
 ## chats.db, as the UI reads it
 
 HyperBerry's tables and columns (`../hyperberry/docs/protocol.md`, *chats.db, as the UI reads
-it*), with these meanings for Telegram. `user_version` is 6. A file at version 2, 3, 4 or 5 is migrated in place when the engine starts;
+it*), with these meanings for Telegram. `user_version` is 7. A file at version 2, 3, 4, 5 or 6 is migrated in place when the engine starts;
 the step from 3 to 4 adds `chats.forum`, `messages.topic` and `topics`, and **empties `messages`**:
 the old rows have no topic, and the table is a cache that TDLib refills (the engine writes each chat's newest message again
 when it starts, and a page of history when the UI opens a chat). `chats` and its rows stay. The step from 4 to 5 **drops the
 `reactions` and `poll_votes` tables**, which were always empty: a message's reactions and a poll's counts are in `messages.extra`
 now (below). A row written before that has none until the engine writes it again, which it does for a chat's newest page on
 `chat.open` and for any update of the message (a new reaction, a vote, an edit). The step from 5 to 6 adds `chats.secret`, 0 in every old row, which is right: the engine
-had secret chats off until version 6.
+had secret chats off until version 6. The step from 6 to 7 adds the `people` table (below), empty: the engine fills it as TDLib
+tells it of users, so a group's messages from a user it has not written yet have the UI's hash colour until it does.
 
 **`chats`:** one row per chat in Telegram's main or archived chat list, and no others.
 
@@ -870,6 +895,23 @@ had secret chats off until version 6.
 | `read_inbox` | the id of the newest message read here or on another device; 0 when unknown (a database that was at `user_version` 2 has 0 until the engine next writes the chat's row) |
 | `forum` | 1 for a supergroup with topics (see *Forum topics*); 0 for any other chat, and until the engine next writes the row of a chat in a database that was at `user_version` 3. A group can become a forum or stop being one: a `chats` event names the row. Messages already in `messages` keep the `topic` they had (0 for a group that was not a forum): the UI uses `messages.topic` only while `forum` is 1, and a chat that has just become a forum gets its topics' messages from `chat.open` with `topic` |
 | `secret` | 0 for any chat that is not a secret chat; for a secret chat 1 pending, 2 ready, 3 closed (see *Secret chats*); a `chats` event names the row when it changes. 0 in a database that was at `user_version` 5 until the engine next writes the row (no old row is a secret chat) |
+
+**`people`:** one row per user the engine has had an `updateUser` for, so a group's messages open with their senders' colours and
+small pictures instead of waiting for `senders.get`. The UI reads it by joining `people.user = messages.sender` (a LEFT JOIN: a
+sender with no row, a chat that posts as itself, or a message with no sender has NULLs).
+
+| column | meaning |
+|---|---|
+| `user` | the user id in decimal, as `messages.sender` holds it. Primary key |
+| `color` | the user's name colour as `senders.get` gives it: 0 to 6, Telegram's seven built-in accent colours (a server colour already mapped to its built-in one) |
+| `photo` | the absolute path of the user's small profile photo once TDLib has downloaded it, NULL before |
+
+The engine writes a row (in the flush's transaction, with the chats and messages) when an `updateUser` gives a user a colour or
+picture the table does not hold, and again when the user's small photo has finished downloading (the same moment as the `photo`
+event) or `updateAccentColors` changes a server colour's mapping. It reads the table once, at the first `updateUser`, and writes
+nothing for a user whose colour and picture are already there, so a start with nothing changed writes no rows. There is no event
+for a row: the UI reads it with the messages, and `senders.get` stays for what the table does not hold (an administrator's tag)
+and for a photo that is not downloaded yet. The rows are never pruned, and a logout empties the table with the others.
 
 **`messages`**, primary key `(chat, id)`. Order by `ts`, then `CAST(id AS INTEGER)` (not
 `rowid`: older pages are inserted later).

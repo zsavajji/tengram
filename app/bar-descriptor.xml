@@ -25,6 +25,8 @@
              headless cap to 128 MB, and the helper that starts its install as a new application, so that it
              survives Tengram closing. Both land in app/native/, beside the binaries. -->
         <asset path="../build/ui/tg-install-patcher" type="Qnx/Elf">tg-install-patcher</asset>
+        <!-- rlottie (scripts/build-tgs.sh), the animated stickers' renderer: lands in native/lib, on the app's LD_LIBRARY_PATH. -->
+        <asset path="../build/prefix/lib/libtgs.so" type="Qnx/Elf">lib/libtgs.so</asset>
         <asset path="../build/headless-mem.zip">headless-mem.zip</asset>
     </configuration>
 

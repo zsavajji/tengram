@@ -2,7 +2,8 @@ import bb.cascades 1.4
 
 // The controls of a ringing call (step 7.4): on a video call, whether to answer with our video (the
 // user's idea, 2026-11-07, where the stock app's silence button was); answer with a message (which
-// declines); and the slide bar. Over the call screen's 720 px stage, whose size px() scales.
+// declines); and the slide bar. Over the call screen's 720 px stage, whose size px() scales. The two buttons take the
+// Classic's trackpad focus, lit grey (#565656) while they have it, and a click (Enter) taps them.
 Container {
     id: ringing
     // The call offers video; answering sends ours while withVideo (the sheet sets it on as offered).
@@ -20,10 +21,12 @@ Container {
     // A square button: its box and the white glyph on it. In Round mode (the user's ask, 2026-11-19) the box is a disc in
     // its near black (call_btn.png is #040404 with a faint edge).
     Container {
+        id: videoBtn
         layoutProperties: AbsoluteLayoutProperties {
             positionX: ringing.px(308)
             positionY: ringing.px(419)
         }
+        focusPolicy: FocusPolicy.KeyAndTouch
         visible: ringing.video
         layout: DockLayout {}
         ImageView {
@@ -33,10 +36,16 @@ Container {
             scalingMethod: ScalingMethod.AspectFit
             imageSource: "asset:///images/call_btn.png"
         }
+        Container {
+            visible: !settings.round && videoBtn.focused
+            preferredWidth: ringing.px(104)
+            preferredHeight: ringing.px(104)
+            background: Color.create("#565656")
+        }
         RoundFill {
             preferredWidth: ringing.px(104)
             preferredHeight: ringing.px(104)
-            filterColor: Color.create("#060606")
+            filterColor: videoBtn.focused ? Color.create("#565656") : Color.create("#060606")
         }
         ImageView {
             horizontalAlignment: HorizontalAlignment.Center
@@ -49,13 +58,22 @@ Container {
         gestureHandlers: TapHandler {
             onTapped: ringing.withVideo = !ringing.withVideo
         }
+        keyListeners: KeyListener {
+            onKeyReleased: {
+                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                    ringing.withVideo = !ringing.withVideo
+                }
+            }
+        }
     }
     // The message button, a square as well, or a disc.
     Container {
+        id: msgBtn
         layoutProperties: AbsoluteLayoutProperties {
             positionX: ringing.px(588)
             positionY: ringing.px(419)
         }
+        focusPolicy: FocusPolicy.KeyAndTouch
         layout: DockLayout {}
         ImageView {
             visible: !settings.round
@@ -64,10 +82,16 @@ Container {
             scalingMethod: ScalingMethod.AspectFit
             imageSource: "asset:///images/call_btn.png"
         }
+        Container {
+            visible: !settings.round && msgBtn.focused
+            preferredWidth: ringing.px(104)
+            preferredHeight: ringing.px(104)
+            background: Color.create("#565656")
+        }
         RoundFill {
             preferredWidth: ringing.px(104)
             preferredHeight: ringing.px(104)
-            filterColor: Color.create("#060606")
+            filterColor: msgBtn.focused ? Color.create("#565656") : Color.create("#060606")
         }
         ImageView {
             horizontalAlignment: HorizontalAlignment.Center
@@ -79,6 +103,13 @@ Container {
         }
         gestureHandlers: TapHandler {
             onTapped: ringing.message()
+        }
+        keyListeners: KeyListener {
+            onKeyReleased: {
+                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                    ringing.message()
+                }
+            }
         }
     }
     CallSlider {
