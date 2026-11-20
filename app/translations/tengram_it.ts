@@ -3936,21 +3936,44 @@
     </message>
 </context>
 <context>
+    <name>CoverRow</name>
+    <message>
+        <location filename="../assets/CoverRow.qml" line="58"/>
+        <source>None</source>
+        <translation>Nessuno</translation>
+    </message>
+</context>
+<context>
     <name>cover</name>
     <message>
-        <location filename="../assets/cover.qml" line="43"/>
-        <source>unread</source>
-        <translation>da leggere</translation>
+        <location filename="../assets/cover.qml" line="51"/>
+        <source>All caught up</source>
+        <translation>Tutto in pari</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="83"/>
-        <source>Nothing new to see</source>
-        <translation>Niente di nuovo</translation>
+        <location filename="../assets/cover.qml" line="60"/>
+        <source>No new messages</source>
+        <translation>Nessun nuovo messaggio</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="83"/>
+        <location filename="../assets/cover.qml" line="60"/>
         <source>Not logged in</source>
         <translation>Non collegato</translation>
+    </message>
+    <message>
+        <location filename="../assets/cover.qml" line="80"/>
+        <source>Private chats</source>
+        <translation>Chat private</translation>
+    </message>
+    <message>
+        <location filename="../assets/cover.qml" line="96"/>
+        <source>Groups</source>
+        <translation>Gruppi</translation>
+    </message>
+    <message>
+        <location filename="../assets/cover.qml" line="112"/>
+        <source>Channels</source>
+        <translation>Canali</translation>
     </message>
 </context>
 <context>
@@ -4079,8 +4102,16 @@
     </message>
     <message>
         <location filename="../assets/main.qml" line="137"/>
-        <source>Tengram needs to install a root patch that runs at every boot and lets every app use more memory in the background. Only the patch runs as root, and it changes just one value, the same for every app. Install it, and Tengram closes once: open it again. Without it, Tengram can&apos;t be used.</source>
-        <translation>Tengram deve installare una patch root che si avvia a ogni accensione e permette a ogni app di usare più memoria in background. Solo la patch gira come root e modifica un solo valore, uguale per tutte le app. Installala e Tengram si chiude una volta: riaprilo. Senza la patch, Tengram non si può usare.</translation>
+        <source>BlackBerry 10 gives an app&apos;s background service at most 30 MB of memory. Tengram&apos;s service, which keeps your chats in sync and brings your notifications, needs more.
+
+This patch raises that limit to 128 MB. Each time the phone starts, a few minutes in, it changes that one number in the system&apos;s memory. No system file is changed, and it only affects apps that ask for the largest background size. Only the patch runs as root.
+
+After the install, Tengram closes once: open it again. Without the patch, Tengram can&apos;t work.</source>
+        <translation>BlackBerry 10 concede al servizio in background di un&apos;app al massimo 30 MB di memoria. Il servizio di Tengram, che tiene sincronizzate le tue chat e ti porta le notifiche, ne ha bisogno di più.
+
+Questa patch alza quel limite a 128 MB. A ogni accensione del telefono, dopo qualche minuto, cambia quell&apos;unico numero nella memoria del sistema. Nessun file di sistema viene modificato, e riguarda solo le app che chiedono la dimensione in background più grande. Solo la patch gira come root.
+
+Dopo l&apos;installazione Tengram si chiude una volta: riaprilo. Senza la patch, Tengram non può funzionare.</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="138"/>

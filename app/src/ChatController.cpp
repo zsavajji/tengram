@@ -1,5 +1,6 @@
 #include "ChatController.h"
 
+#include "ChatsDb.h"
 #include "EngineLink.h"
 #include "colors.h"
 #include "MessageModel.h"
@@ -13,6 +14,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QLocale>
+#include <QSqlQuery>
 
 using namespace bb::utility::i18n;
 
@@ -34,6 +36,8 @@ ChatController::ChatController(QObject *parent)
     , m_unseen(false)
     , m_atBottom(true)
     , m_placed(false)
+    , m_mentions(0)
+    , m_reactions(0)
     , m_readUpto(0)
     , m_composing(false)
     , m_region(bb::system::LocaleType::Region)
@@ -143,6 +147,13 @@ void ChatController::onReplied(const QString &id, const QString &cmd, const QVar
         askGroupInfo();
         return;
     }
+    if ((cmd == "chat.mention" || cmd == "chat.reaction") && id == m_mentionId) {
+        m_mentionId.clear();
+        const QString found = result.toMap()["id"].toString();
+        if (!found.isEmpty())
+            emit unreadFound(found);
+        return;
+    }
     if (cmd == "chat.pins" && id == m_pinsId) {
         emit pinsReady(Pins::previews(m_jid, result.toMap()["ids"].toStringList()));
         return;
@@ -160,6 +171,62 @@ void ChatController::askPins()
     args["chat"] = m_jid;
     addTopic(args);
     m_pinsId = m_engine->request("chat.pins", args);
+}
+
+void ChatController::nextMention()
+{
+    askUnread("chat.mention");
+}
+
+void ChatController::nextReaction()
+{
+    askUnread("chat.reaction");
+}
+
+void ChatController::askUnread(const QString &cmd)
+{
+    if (!m_engine || !m_mentionId.isEmpty())
+        return;
+    QVariantMap args;
+    args["chat"] = m_jid;
+    addTopic(args);
+    m_mentionId = m_engine->request(cmd, args);
+}
+
+void ChatController::onChats(const QStringList &jids)
+{
+    if (!m_topic && jids.contains(m_jid))
+        readMentions();
+}
+
+void ChatController::onTopics(const QString &chat)
+{
+    if (m_topic && chat == m_jid)
+        readMentions();
+}
+
+void ChatController::readMentions()
+{
+    QSqlDatabase db = ChatsDb::open("chats");
+    if (!db.isOpen())
+        return;
+    QSqlQuery q(db);
+    if (m_topic) {
+        q.prepare("SELECT mentions, reactions FROM topics WHERE chat = ? AND topic = ?");
+        q.addBindValue(m_jid);
+        q.addBindValue(m_topic);
+    } else {
+        q.prepare("SELECT mentions, reactions FROM chats WHERE jid = ?");
+        q.addBindValue(m_jid);
+    }
+    const bool row = q.exec() && q.next();
+    const int mentions = row ? q.value(0).toInt() : 0;
+    const int reactions = row ? q.value(1).toInt() : 0;
+    if (mentions != m_mentions || reactions != m_reactions) {
+        m_mentions = mentions;
+        m_reactions = reactions;
+        emit mentionsChanged();
+    }
 }
 
 // The topic's own requests carry it (docs/protocol.md, Forum topics).
@@ -189,12 +256,15 @@ void ChatController::open(const QVariantMap &chat, int topic)
     connect(m_engine, SIGNAL(failureChanged()), this, SLOT(onFailure()));
     connect(m_engine, SIGNAL(replied(QString, QString, QVariant)), this,
             SLOT(onReplied(QString, QString, QVariant)));
+    connect(m_engine, SIGNAL(chatsChanged(QStringList)), this, SLOT(onChats(QStringList)));
+    connect(m_engine, SIGNAL(topicsChanged(QString)), this, SLOT(onTopics(QString)));
     connect(m_messages, SIGNAL(incoming()), this, SLOT(onIncoming()));
     connect(m_messages, SIGNAL(wantOpen()), this, SLOT(onWantOpen()));
     // From chats.db, not the row we were given: a contact from the picker has no unread, and
     // a notification tap (step 5.1) won't either. Marked unread is -1 (step 5.3).
     m_unseen = m_messages->unread() != 0;
     m_engine->setOpenChat(m_jid);
+    readMentions();
     sendOpen();
     askGroupInfo();
     // A chat with unread messages opens at the first one, not at the newest, and is read once the list's
@@ -314,8 +384,11 @@ void ChatController::sendReadUpto()
 // so they all go; the engine's rows for the sends that did go in come as new rows (slid in, as without a local row).
 void ChatController::onFailure()
 {
-    if (m_messages && m_engine && m_engine->failure().value("cmd").toString() == "msg.send")
+    const QString cmd = m_engine ? m_engine->failure().value("cmd").toString() : QString();
+    if (m_messages && cmd == "msg.send")
         m_messages->dropLocals();
+    if (cmd == "chat.mention" || cmd == "chat.reaction")
+        m_mentionId.clear(); // the next tap asks again
 }
 
 bool ChatController::send(const QString &text, const QVariantList &mentions, bool instant)

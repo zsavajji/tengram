@@ -42,7 +42,7 @@ static QString placeholder(int kind)
 
 // The row's fields from a SELECT of kRowColumns, all but the time, which depends on the list.
 static const char *const kRowColumns =
-    "jid, kind, name, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, photo, forum, secret";
+    "jid, kind, name, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, photo, forum, secret, mentions";
 
 static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
 {
@@ -69,6 +69,7 @@ static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
     row["photo"] = q.value(10).toString(); // the engine's preview file's path, "" when none
     row["forum"] = q.value(11).toInt() != 0; // a group with topics: a tap opens its TopicsPage
     row["secret"] = q.value(12).toInt(); // 0 not a secret chat, 1 pending, 2 ready, 3 closed (docs/protocol.md, Secret chats)
+    row["mentions"] = q.value(13).toInt(); // unread mentions and replies to us: the row's @ beside the count
     return row;
 }
 
@@ -146,6 +147,8 @@ ChatListModel::ChatListModel(EngineLink *engine, Mode mode, QObject *parent)
     , m_mode(mode)
     , m_dbName(mode == Archived ? "chats-archived" : kDb)
     , m_unreadTotal(0)
+    , m_frameCounts(QVariantList() << 0 << 0 << 0)
+    , m_frameNames(QStringList() << QString() << QString() << QString())
     , m_revision(0)
     , m_stale(false)
     , m_full(false)
@@ -351,7 +354,7 @@ bool ChatListModel::patch()
         // Does the chat belong in this list now?
         QVariantMap row;
         bool here = false;
-        if (q.next() && (q.value(13).toInt() != 0) == (m_mode == Archived)) {
+        if (q.next() && (q.value(14).toInt() != 0) == (m_mode == Archived)) {
             row = baseRow(q, clock.now);
             here = matches(row["name"].toString());
         }
@@ -497,9 +500,10 @@ void ChatListModel::reload()
         qDebug() << "chat list: reload," << chats << "chats in" << ms << "ms";
 }
 
-// A chat marked unread (unread < 0, step 5.3) counts as 1. 2^40 in muted_until is forever.
-// The frame names the chats with unread messages, newest first, and shows no message text: the
-// newest line showed after it was read, and with the notification preview off (Q10, 0.0.1.88).
+// A chat marked unread (unread < 0, step 5.3) counts as 1. 2^40 in muted_until is forever. A muted chat counts only
+// its unread mentions and replies to us (chats.mentions, none while chats.mentions_off says they don't notify), which the Hub
+// notifies too; marked unread, it counts nothing. Each row names its chats, newest first, and shows no message text:
+// the newest line showed after it was read, and with the notification preview off (Q10, 0.0.1.88).
 void ChatListModel::updateFrame()
 {
     if (m_engine->fullscreen())
@@ -508,27 +512,37 @@ void ChatListModel::updateFrame()
     if (!db.isOpen())
         return;
     const qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
-    int total = 0;
-    QStringList names;
+    int counts[3] = {0, 0, 0};
+    QStringList names[3];
     QSqlQuery q(db);
-    // ponytail: the first 10 names are more than the frame's three lines hold.
-    q.prepare("SELECT name, jid, unread FROM chats WHERE muted_until <= ? AND unread != 0 AND archived = 0 "
-              "ORDER BY last_ts DESC");
+    // ponytail: the first 10 names a row are more than its one line holds.
+    q.prepare("SELECT name, jid, kind, CASE WHEN muted_until > ? THEN (CASE WHEN mentions_off THEN 0 ELSE mentions END) "
+              "ELSE unread END AS n FROM chats "
+              "WHERE n != 0 AND archived = 0 ORDER BY last_ts DESC");
     q.addBindValue(now);
     if (q.exec()) {
         while (q.next()) {
-            const int unread = q.value(2).toInt();
-            total += unread < 0 ? 1 : unread;
-            if (names.size() < 10) {
+            const int kind = q.value(2).toInt();
+            const int row = kind == 3 ? 2 : kind == 1 ? 1 : 0;
+            const int n = q.value(3).toInt();
+            counts[row] += n < 0 ? 1 : n;
+            if (names[row].size() < 10) {
                 const QString name = q.value(0).toString();
-                names << (name.isEmpty() ? q.value(1).toString().section('@', 0, 0) : name);
+                names[row] << (name.isEmpty() ? q.value(1).toString().section('@', 0, 0) : name);
             }
         }
     }
-    const QString chats = names.join(", ");
-    if (total != m_unreadTotal || chats != m_unreadChats) {
+    QVariantList frameCounts;
+    QStringList frameNames;
+    for (int i = 0; i < 3; ++i) {
+        frameCounts << counts[i];
+        frameNames << names[i].join(", ");
+    }
+    const int total = counts[0] + counts[1] + counts[2];
+    if (total != m_unreadTotal || frameCounts != m_frameCounts || frameNames != m_frameNames) {
         m_unreadTotal = total;
-        m_unreadChats = chats;
+        m_frameCounts = frameCounts;
+        m_frameNames = frameNames;
         emit frameChanged();
     }
 }

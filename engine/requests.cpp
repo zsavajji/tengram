@@ -300,6 +300,50 @@ void chat_pins(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
   }
 }
 
+// ---- chat.mention, chat.reaction: the oldest unread mention or reply to us, or the oldest of our messages with unread
+// reactions, read now (the chat page's @ and reactions buttons)
+
+// Telegram reads a mention or a message's reactions only when that message is viewed (chat.read views the newest
+// message), so the button views the one it goes to. Its row is written first (messages_queue), so the UI can jump to it
+// after the reply.
+// ponytail: the oldest of the newest 100; a chat with more reaches the older ones once these are read.
+void chat_mention(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat, bool reactions) {
+  std::int32_t topic = -1;
+  if (!topic_field(conn, id, req, topic)) {
+    return;
+  }
+  tdlib.send(make_object<td_api::searchChatMessages>(chat, topic_object(topic), "", nullptr, 0, 0, 100,
+                                                     reactions ? td_api::object_ptr<td_api::SearchMessagesFilter>(
+                                                                     make_object<td_api::searchMessagesFilterUnreadReaction>())
+                                                               : make_object<td_api::searchMessagesFilterUnreadMention>()),
+             [conn, id, chat](Obj o) {
+               if (auto e = as_error(o)) {
+                 say("td error: %d %s", e->code_, e->message_.c_str());
+                 return reply_td_error(conn, id, *e);
+               }
+               const td_api::message *oldest = nullptr;
+               for (const auto &m : static_cast<td_api::foundChatMessages &>(*o).messages_) {
+                 if (m && (!oldest || m->id_ < oldest->id_)) {
+                   oldest = m.get();
+                 }
+               }
+               if (!oldest) {
+                 return server.reply_ok(conn, id, R"({"id":""})");
+               }
+               const std::int64_t found = oldest->id_;
+               messages_queue(*oldest);
+               tdlib.send(make_object<td_api::viewMessages>(chat, std::vector<std::int64_t>{found}, nullptr, true),
+                          [](Obj o) {
+                            if (auto e = as_error(o)) {
+                              say("chat.mention/reaction: view: %d %s", e->code_, e->message_.c_str());
+                            }
+                          });
+               queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &out) {
+                             out("id", std::to_string(found));
+                           })));
+             });
+}
+
 // ---- chat.set: several calls, one reply
 
 struct Several {
@@ -1191,7 +1235,8 @@ bool regular_file(const std::string &path, std::int64_t &size) {
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.close", "chat.read",
                                      "chat.typing", "chat.set", "msg.send", "media.send", "media.album", "msg.delete",
-                                     "msg.edit", "msg.forward", "msg.react", "poll.vote", "media.get", "media.cancel"};
+                                     "msg.edit", "msg.forward", "msg.react", "poll.vote", "media.get", "media.cancel",
+                                     "chat.mention", "chat.reaction"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -1212,6 +1257,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     chat_newer(conn, id, req, chat);
   } else if (cmd == "chat.pins") {
     chat_pins(conn, id, req, chat);
+  } else if (cmd == "chat.mention" || cmd == "chat.reaction") {
+    chat_mention(conn, id, req, chat, cmd == "chat.reaction");
   } else if (cmd == "chat.close") {
     live_close(conn, chat);
     tdlib.send(make_object<td_api::closeChat>(chat), [conn, id](Obj) { server.reply_ok(conn, id); });

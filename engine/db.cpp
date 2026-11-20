@@ -33,9 +33,9 @@ std::string read_key(const std::string &path) {
   return n == 64 && raw.is_ok() ? raw.move_as_ok() : "";
 }
 
-// The version-7 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
+// The version-9 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
 // without its reactions and poll_votes tables (a message's reactions and a poll's counts are in messages.extra),
-// and with the engine's own messages.sig, chats.read_inbox, chats.forum, chats.secret and messages.topic (and, in kTopics
+// and with the engine's own messages.sig, chats.read_inbox, chats.forum, chats.secret, chats.mentions, chats.mentions_off, chats.reactions and messages.topic (and, in kTopics
 // and kPeople below, its own tables).
 // Column order is theirs, in case the UI reads by position; the engine's own come last, where ALTER TABLE
 // puts them in a migrated file. The first line removes the table that SqliteDb::change_key leaves in a
@@ -54,7 +54,10 @@ CREATE TABLE chats(
   archived INTEGER NOT NULL DEFAULT 0,
   read_inbox INTEGER NOT NULL DEFAULT 0,
   forum INTEGER NOT NULL DEFAULT 0,
-  secret INTEGER NOT NULL DEFAULT 0);
+  secret INTEGER NOT NULL DEFAULT 0,
+  mentions INTEGER NOT NULL DEFAULT 0,
+  mentions_off INTEGER NOT NULL DEFAULT 0,
+  reactions INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE messages(
   chat TEXT NOT NULL, id TEXT NOT NULL,
   ts INTEGER NOT NULL,
@@ -91,6 +94,10 @@ CREATE TABLE topics(
   PRIMARY KEY(chat, topic));
 CREATE INDEX messages_by_topic ON messages(chat, topic, ts);
 )";
+
+// What version 9 added to `topics`: an ALTER, not a column of kTopics, since migrate_3_to_4 makes the table from kTopics and
+// migrate_8_to_9 then adds this.
+const char *const kTopicReactions = "ALTER TABLE topics ADD COLUMN reactions INTEGER NOT NULL DEFAULT 0";
 
 // What version 7 added: the people the UI draws beside a group's messages. messages.sender is a user's id in decimal, so is
 // `user`; `color` is the index senders.get gives (0 to 6, user_color in chats.cpp); `photo` is the local path of the small
@@ -155,7 +162,7 @@ bool Db::try_open(const std::string &raw_key) {
   }
   auto v = db_.user_version();
   if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3 && v.ok() != 4 && v.ok() != 5 && v.ok() != 6 &&
-                         v.ok() != 7)) {
+                         v.ok() != 7 && v.ok() != 8 && v.ok() != 9)) {
     say("chats.db: user_version %d is not ours", v.is_ok() ? v.ok() : -1);
     db_.close();
     return false;
@@ -164,7 +171,8 @@ bool Db::try_open(const std::string &raw_key) {
       ((v.ok() == 2 || v.ok() == 3) && !migrate_3_to_4()) ||
       ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4) && !migrate_4_to_5()) ||
       ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4 || v.ok() == 5) && !migrate_5_to_6()) ||
-      ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4 || v.ok() == 5 || v.ok() == 6) && !migrate_6_to_7())) {
+      ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4 || v.ok() == 5 || v.ok() == 6) && !migrate_6_to_7()) ||
+      ((v.ok() >= 2 && v.ok() <= 7) && !migrate_7_to_8()) || ((v.ok() >= 2 && v.ok() <= 8) && !migrate_8_to_9())) {
     db_.close();
     return false;
   }
@@ -173,8 +181,8 @@ bool Db::try_open(const std::string &raw_key) {
 
 bool Db::create_schema() {
   // One transaction, user_version inside it: a crash leaves either nothing or all of it.
-  return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) && exec(kTopics) && exec(kPeople) &&
-         ok(db_.set_user_version(7), "user_version") && ok(db_.commit_transaction(), "commit");
+  return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) && exec(kTopics) && exec(kTopicReactions) && exec(kPeople) &&
+         ok(db_.set_user_version(9), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 // Version 2 had no chats.read_inbox. One transaction with user_version inside it, as create_schema: a crash
@@ -220,6 +228,25 @@ bool Db::migrate_5_to_6() {
 bool Db::migrate_6_to_7() {
   return ok(db_.begin_write_transaction(), "begin") && exec(kPeople) && ok(db_.set_user_version(7), "user_version") &&
          ok(db_.commit_transaction(), "commit");
+}
+
+// Version 7 had no chats.mentions. Same shape as the others. Every row keeps 0 until the engine writes it again, which the
+// next start does for every chat whose count is not 0 (its row differs from the one written).
+bool Db::migrate_7_to_8() {
+  return ok(db_.begin_write_transaction(), "begin") &&
+         exec("ALTER TABLE chats ADD COLUMN mentions INTEGER NOT NULL DEFAULT 0") &&
+         ok(db_.set_user_version(8), "user_version") && ok(db_.commit_transaction(), "commit");
+}
+
+// Version 8's chats.mentions was 0 while the chat's mention notifications were off; version 9 keeps the count whatever
+// they are (the chat page's @ button) and says whether they are off in chats.mentions_off, and adds the unread reactions
+// to our messages (chats.reactions, topics.reactions; the chat page's reactions button). The next start writes every
+// chat row that differs, as for version 8; a topic's row, when the UI next lists the forum's topics.
+bool Db::migrate_8_to_9() {
+  return ok(db_.begin_write_transaction(), "begin") &&
+         exec("ALTER TABLE chats ADD COLUMN mentions_off INTEGER NOT NULL DEFAULT 0") &&
+         exec("ALTER TABLE chats ADD COLUMN reactions INTEGER NOT NULL DEFAULT 0") && exec(kTopicReactions) &&
+         ok(db_.set_user_version(9), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 void Db::close() {

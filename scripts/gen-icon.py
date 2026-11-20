@@ -169,6 +169,8 @@ def hub_glyphs(folder):
     glyph(81, (0xFF, 0xD9, 0x1C, 255), (0xE0, 0xB2, 0x17, 255), out=folder / "hub_unread2.png")   # an unread one
     # The account's own, which the lock screen and the instant preview draw: white, larger, no fade.
     glyph(81, (255, 255, 255, 255), fill=0.9, out=folder / "hub_account2.png")
+    # The Active Frame's idle glyph, as HyperBerry's cover_glyph.png: white, 64 px, no fade; cover.qml tints it.
+    glyph(64, (255, 255, 255, 255), fill=1.0, out=folder / "cover_glyph.png")
 
 
 def main():
@@ -197,7 +199,7 @@ def main():
     images = out.parent.parent / "app" / "assets" / "images"
     app_images(images)
     hub_glyphs(images)
-    print(images, "icon-*.png splash-*.png hub_read2.png hub_unread2.png hub_account2.png")
+    print(images, "icon-*.png splash-*.png hub_read2.png hub_unread2.png hub_account2.png cover_glyph.png")
 
 
 if __name__ == "__main__":

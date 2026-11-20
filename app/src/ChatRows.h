@@ -106,6 +106,8 @@ private:
     bb::cascades::ImageView *m_ticks;
     bb::cascades::Label *m_bang;
     bb::cascades::Label *m_preview;
+    bb::cascades::Container *m_at;        // an unread mention: "@" on a disc (a square), before the count
+    bb::cascades::ImageView *m_atDisc;    // Round mode: its disc
     bb::cascades::Container *m_badge;
     bb::cascades::ImageView *m_badgePill; // Round mode: the badge's colour, under the count (Cascades has no radius)
     bb::cascades::Label *m_count;

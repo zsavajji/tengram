@@ -37,7 +37,7 @@ struct Row {
   std::int32_t color = 0;
   int general = 0, pinned = 0, closed = 0, hidden = 0;
   std::string ord;  // the decimal int64 of forumTopic.order
-  std::int32_t unread = 0, mentions = 0;
+  std::int32_t unread = 0, mentions = 0, reactions = 0;
   std::int64_t read_inbox = 0;
   bool has_last = false;  // last_id, last_preview are NULL without a last message
   std::string last_id;
@@ -75,6 +75,7 @@ bool row_of(std::int64_t chat, const td_api::forumTopic &t, Row &r) {
   r.ord = std::to_string(t.order_);
   r.unread = t.unread_count_;
   r.mentions = t.unread_mention_count_;
+  r.reactions = t.unread_reaction_count_;
   r.read_inbox = t.last_read_inbox_message_id_;
   if (const auto *m = t.last_message_.get()) {
     r.has_last = true;
@@ -93,8 +94,8 @@ enum Stmt { kInsert, kDelete, kIds, kChats, kStmts };
 
 const char *const kSql[kStmts] = {
     "INSERT OR REPLACE INTO topics(chat, topic, name, color, general, pinned, closed, hidden, ord, unread, mentions, "
-    "read_inbox, last_id, last_ts, last_preview, last_out, muted_until) "
-    "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
+    "read_inbox, last_id, last_ts, last_preview, last_out, muted_until, reactions) "
+    "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
     "DELETE FROM topics WHERE chat = ?1 AND topic = ?2",
     "SELECT topic FROM topics WHERE chat = ?1",
     "SELECT DISTINCT chat FROM topics",
@@ -144,6 +145,7 @@ td::Status write_row(const Row &r) {
   TRY_STATUS(r.has_last ? s.bind_string(15, r.last_preview) : s.bind_null(15));
   TRY_STATUS(s.bind_int32(16, r.last_out));
   TRY_STATUS(s.bind_int64(17, r.muted_until));
+  TRY_STATUS(s.bind_int32(18, r.reactions));
   auto status = s.step();
   s.reset();
   return status;

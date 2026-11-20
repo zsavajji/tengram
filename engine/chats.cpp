@@ -32,6 +32,9 @@ struct Row {
   std::int64_t read_inbox = 0;
   int forum = 0;
   int secret = 0;  // 0 not a secret chat, 1 pending, 2 ready, 3 closed
+  int mentions = 0;      // unread mentions and replies to us
+  int mentions_off = 0;  // 1 while the chat's mention notifications are off
+  int reactions = 0;     // unread reactions to our messages
 };
 
 // muted_until is the time the mute was learned plus what was left of it, so the same mute learned again a
@@ -43,6 +46,8 @@ bool same(const Row &a, const Row &b) {
          a.has_last == b.has_last && a.preview == b.preview && a.last_out == b.last_out &&
          a.last_state == b.last_state && a.unread == b.unread && a.pinned == b.pinned && a.archived == b.archived &&
          a.read_inbox == b.read_inbox && a.forum == b.forum && a.secret == b.secret &&
+         a.mentions == b.mentions && a.mentions_off == b.mentions_off &&
+         a.reactions == b.reactions &&
          (timed ? gap <= 2 : a.muted_until == b.muted_until);
 }
 
@@ -69,6 +74,10 @@ struct Chat {
   bool use_default_mute = true;  // the chat's own notification settings, and when they were learned
   int mute_for = 0;
   std::int64_t mute_learned = 0;
+  int mentions = 0;                 // unread_mention_count_: mentions and replies to us
+  int reactions = 0;                // unread_reaction_count_: reactions to our messages
+  bool use_default_mentions = true;  // ... and whether they notify: the chat's setting or its scope's
+  bool mentions_off = false;
   bool in_main = false, in_archive = false;
   std::int64_t pinned = 0;  // 0 not pinned, else the main list's chatPosition.order (a pinned chat's follows the pin order)
   std::int64_t read_inbox = 0;   // last_read_inbox_message_id_
@@ -97,6 +106,7 @@ std::vector<std::int64_t> dirty_ids;              // the chats with dirty set
 std::vector<std::int64_t> changed;                // written or deleted, their event is still to come
 int scope_mute[3] = {0, 0, 0};                    // default mute_for of private chats, groups, channels
 std::int64_t scope_learned[3] = {0, 0, 0};
+bool scope_mentions_off[3] = {false, false, false};  // disable_mention_notifications of the three scopes
 bool flag_pending = false;                        // chatlist_complete is to be written with the next flush
 bool flag_written = false;                        // ... and was, in the flush that is committing now
 Clock::time_point load_start;
@@ -227,6 +237,8 @@ void set_mute(Chat &c, const td_api::chatNotificationSettings &n) {
   c.use_default_mute = n.use_default_mute_for_;
   c.mute_for = n.mute_for_;
   c.mute_learned = now();
+  c.use_default_mentions = n.use_default_disable_mention_notifications_;
+  c.mentions_off = n.disable_mention_notifications_;
 }
 
 // The small photo. A file that is not here yet is asked for once, and only for a chat in a list (TDLib
@@ -272,6 +284,8 @@ void new_chat(const td_api::chat &t) {
   c.title = t.title_;
   c.unread = t.unread_count_;
   c.marked_unread = t.is_marked_as_unread_;
+  c.mentions = t.unread_mention_count_;
+  c.reactions = t.unread_reaction_count_;
   c.read_inbox = t.last_read_inbox_message_id_;
   c.read_outbox = t.last_read_outbox_message_id_;
   if (t.notification_settings_) {
@@ -302,13 +316,19 @@ void set_scope(const td_api::updateScopeNotificationSettings &u) {
   } else if (u.scope_->get_id() == td_api::notificationSettingsScopeGroupChats::ID) {
     s = 1;
   }
-  if (scope_mute[s] == u.notification_settings_->mute_for_) {
+  const bool mute_same = scope_mute[s] == u.notification_settings_->mute_for_;
+  const bool mentions_same = scope_mentions_off[s] == u.notification_settings_->disable_mention_notifications_;
+  if (mute_same && mentions_same) {
     return;
   }
-  scope_mute[s] = u.notification_settings_->mute_for_;
-  scope_learned[s] = now();
+  if (!mute_same) {
+    scope_mute[s] = u.notification_settings_->mute_for_;
+    scope_learned[s] = now();
+  }
+  scope_mentions_off[s] = u.notification_settings_->disable_mention_notifications_;
   for (auto &entry : chats) {
-    if (entry.second.use_default_mute && scope_of(entry.second.kind) == s) {
+    if (((!mute_same && entry.second.use_default_mute) || (!mentions_same && entry.second.use_default_mentions)) &&
+        scope_of(entry.second.kind) == s) {
       touch(entry.second);
     }
   }
@@ -476,6 +496,9 @@ Row row_of(const Chat &c) {
   r.read_inbox = c.read_inbox;
   r.forum = c.forum;
   r.secret = secret_of(c);
+  r.mentions = c.mentions;
+  r.reactions = c.reactions;
+  r.mentions_off = (c.use_default_mentions ? scope_mentions_off[scope_of(c.kind)] : c.mentions_off) ? 1 : 0;
   return r;
 }
 
@@ -483,8 +506,8 @@ bool prepare() {
   if (insert_row.empty()) {
     insert_row = db.prepare(
         "INSERT OR REPLACE INTO chats(jid, kind, name, photo, last_ts, last_preview, last_out, last_state, unread, "
-        "muted_until, pinned, archived, read_inbox, forum, secret) "
-        "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)");
+        "muted_until, pinned, archived, read_inbox, forum, secret, mentions, mentions_off, reactions) "
+        "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)");
   }
   if (delete_row.empty()) {
     delete_row = db.prepare("DELETE FROM chats WHERE jid = ?1");
@@ -492,7 +515,7 @@ bool prepare() {
   if (select_row.empty()) {
     select_row = db.prepare(
         "SELECT kind, name, photo, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, "
-        "archived, read_inbox, forum, secret FROM chats WHERE jid = ?1");
+        "archived, read_inbox, forum, secret, mentions, mentions_off, reactions FROM chats WHERE jid = ?1");
   }
   return !insert_row.empty() && !delete_row.empty() && !select_row.empty();
 }
@@ -523,6 +546,9 @@ td::Status load_row(Chat &c) {
     r.read_inbox = s.view_int64(11);
     r.forum = s.view_int32(12);
     r.secret = s.view_int32(13);
+    r.mentions = s.view_int32(14);
+    r.mentions_off = s.view_int32(15);
+    r.reactions = s.view_int32(16);
     c.stored = Chat::Stored::Present;
   }
   select_row.reset();
@@ -548,6 +574,9 @@ td::Status write_row(const Chat &c, const Row &r) {
   TRY_STATUS(s.bind_int64(13, r.read_inbox));
   TRY_STATUS(s.bind_int32(14, r.forum));
   TRY_STATUS(s.bind_int32(15, r.secret));
+  TRY_STATUS(s.bind_int32(16, r.mentions));
+  TRY_STATUS(s.bind_int32(17, r.mentions_off));
+  TRY_STATUS(s.bind_int32(18, r.reactions));
   auto status = s.step();
   s.reset();
   return status;
@@ -791,6 +820,38 @@ void chats_update(td_api::Object &update) {
       }
       break;
     }
+    case td_api::updateChatUnreadMentionCount::ID: {
+      auto &u = static_cast<td_api::updateChatUnreadMentionCount &>(update);
+      if (Chat *c = find(u.chat_id_)) {
+        c->mentions = u.unread_mention_count_;
+        touch(*c);
+      }
+      break;
+    }
+    case td_api::updateMessageMentionRead::ID: {
+      auto &u = static_cast<td_api::updateMessageMentionRead &>(update);
+      if (Chat *c = find(u.chat_id_)) {
+        c->mentions = u.unread_mention_count_;
+        touch(*c);
+      }
+      break;
+    }
+    case td_api::updateChatUnreadReactionCount::ID: {
+      auto &u = static_cast<td_api::updateChatUnreadReactionCount &>(update);
+      if (Chat *c = find(u.chat_id_)) {
+        c->reactions = u.unread_reaction_count_;
+        touch(*c);
+      }
+      break;
+    }
+    case td_api::updateMessageUnreadReactions::ID: {
+      auto &u = static_cast<td_api::updateMessageUnreadReactions &>(update);
+      if (Chat *c = find(u.chat_id_)) {
+        c->reactions = u.unread_reaction_count_;
+        touch(*c);
+      }
+      break;
+    }
     case td_api::updateChatReadOutbox::ID: {
       auto &u = static_cast<td_api::updateChatReadOutbox &>(update);
       if (Chat *c = find(u.chat_id_)) {
@@ -1018,6 +1079,7 @@ void chats_reset() {
   for (int s = 0; s < 3; ++s) {
     scope_mute[s] = 0;
     scope_learned[s] = 0;
+    scope_mentions_off[s] = false;
   }
   flag_pending = false;
   flag_written = false;

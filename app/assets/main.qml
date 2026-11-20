@@ -206,7 +206,7 @@ NavigationPane {
         SystemDialog {
             id: memDialog
             title: qsTr("More memory for Tengram")
-            body: qsTr("Tengram needs to install a root patch that runs at every boot and lets every app use more memory in the background. Only the patch runs as root, and it changes just one value, the same for every app. Install it, and Tengram closes once: open it again. Without it, Tengram can't be used.")
+            body: qsTr("BlackBerry 10 gives an app's background service at most 30 MB of memory. Tengram's service, which keeps your chats in sync and brings your notifications, needs more.\n\nThis patch raises that limit to 128 MB. Each time the phone starts, a few minutes in, it changes that one number in the system's memory. No system file is changed, and it only affects apps that ask for the largest background size. Only the patch runs as root.\n\nAfter the install, Tengram closes once: open it again. Without the patch, Tengram can't work.")
             confirmButton.label: qsTr("Install")
             cancelButton.label: ""
             onFinished: {

@@ -74,6 +74,7 @@ Page {
         ctl.messages.itemAdded.connect(page.added)
         ctl.messages.newestComing.connect(page.coming)
         ctl.messages.loadingChanged.connect(page.loaded)
+        ctl.unreadFound.connect(page.jump) // the @ and heart buttons' message: loaded if far back, scrolled to and tinted
         media.ready.connect(page.mediaReady)
         media.openFailed.connect(mediaFailed.show)
         media.saved.connect(savedToast.show)
@@ -1148,56 +1149,43 @@ Page {
                     model: ctl.messages
                     placing: page.listHidden
                 }
-                // To the newest message, when the list is in a window of history or far above it. Square and
-                // opaque, as the cards are; a disc in Round mode (the user's ask, 2026-11-19). 5 px in from the right and the
-                // bottom in both modes (the user, 2026-11-19): a docked control's margins are ignored, so the button sits in
-                // a transparent Container docked in the corner, whose padding is the gap.
+                // The jump buttons (JumpButton.qml), bottom to top as Telegram's: to the newest message, when the list is in a
+                // window of history or far above it; to the next unread mention or reply to us (@); to our next message with
+                // unread reactions (the heart). The mention and reaction ones show while the chat (or the topic) has any, with
+                // the number; a tap jumps to the oldest, which the engine marks read (chat.mention, chat.reaction), so the next
+                // tap goes to the next (the user, 2026-11-20). 5 px in from the right and the bottom in both modes (the user,
+                // 2026-11-19): a docked control's margins are ignored, so the buttons sit in a transparent Container docked in
+                // the corner, whose padding is the gap.
                 // ponytail: entries, not pixels (~2 screens on the 720x720 Classic); measure in pixels if it
                 // misfires on tall photo runs.
                 Container {
+                    id: jumps
                     // The list runs bottom to top: entry 0 is the newest, and the first visible item is the
                     // lowest one on screen.
                     property bool far: scrollState.firstVisibleItem.length > 0 && scrollState.firstVisibleItem[0] > 12
-                    visible: !!ctl.messages && (ctl.messages.window || far)
                     horizontalAlignment: HorizontalAlignment.Right
                     verticalAlignment: VerticalAlignment.Bottom
                     rightPadding: ui.px(5)
                     bottomPadding: ui.px(5)
-                    // The Classic's trackpad reaches it: it takes the focus, in the pressed colour, and a click (Enter) taps it.
-                    Container {
-                        id: downBtn
-                        preferredWidth: ui.du(11)
-                        preferredHeight: ui.du(11)
-                        focusPolicy: FocusPolicy.KeyAndTouch
-                        background: settings.round ? Color.Transparent : Color.create(downBtn.focused ? nav.pressColor : nav.inColor)
-                        layout: DockLayout {
-                        }
-                        gestureHandlers: TapHandler {
-                            onTapped: {
-                                ctl.messages.toLiveEnd()
-                                list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.Default)
-                                page.startAim("bottom", "")
-                            }
-                        }
-                        keyListeners: KeyListener {
-                            onKeyReleased: {
-                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
-                                    ctl.messages.toLiveEnd()
-                                    list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.Default)
-                                    page.startAim("bottom", "")
-                                }
-                            }
-                        }
-                        RoundFill {
-                            filterColor: Color.create(downBtn.focused ? nav.pressColor : nav.inColor)
-                        }
-                        ImageView {
-                            horizontalAlignment: HorizontalAlignment.Center
-                            verticalAlignment: VerticalAlignment.Center
-                            preferredWidth: ui.du(5)
-                            preferredHeight: ui.du(5)
-                            imageSource: "asset:///images/bottom.png"
-                            filterColor: ui.palette.textOnPlain
+                    JumpButton {
+                        visible: !!ctl.messages && ctl.reactions > 0
+                        image: "asset:///images/heart.png"
+                        count: ctl.reactions
+                        onTapped: ctl.nextReaction()
+                    }
+                    JumpButton {
+                        visible: !!ctl.messages && ctl.mentions > 0
+                        glyph: "@"
+                        count: ctl.mentions
+                        onTapped: ctl.nextMention()
+                    }
+                    JumpButton {
+                        visible: !!ctl.messages && (ctl.messages.window || jumps.far)
+                        image: "asset:///images/bottom.png"
+                        onTapped: {
+                            ctl.messages.toLiveEnd()
+                            list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.Default)
+                            page.startAim("bottom", "")
                         }
                     }
                 }

@@ -10,7 +10,7 @@ When the code changes, this file changes with it.
 | file | what |
 |---|---|
 | `db/`, `files/` | TDLib's own database and files. Only the engine touches them. |
-| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2, 3, 4 and 5 are migrated in place to 6; the step to 4 empties `messages`, the step to 5 drops the unused `reactions` and `poll_votes` tables and the step to 6 adds `chats.secret`, see *chats.db*), or `db.key` is new. |
+| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2 to 8 are migrated in place to 9; the step to 4 empties `messages`, the step to 5 drops the unused `reactions` and `poll_votes` tables, the step to 6 adds `chats.secret`, the step to 7 `people`, the step to 8 `chats.mentions` and the step to 9 `chats.mentions_off`, `chats.reactions` and `topics.reactions`, see *chats.db*), or `db.key` is new. |
 | `db.key` | The key of both databases: 64 hex characters (32 bytes read from `/dev/random` at the first launch), mode 0600. The engine hands it to TDLib as its database key; the UI opens `chats.db` with `PRAGMA key = "x'<the 64 characters>'"` (a raw key: no key derivation). There is no setting to turn encryption off and no passcode. |
 | `engine.json` | `{"port": 41234, "token": "<32 hex characters>"}`, mode 0600, written as a temporary file and renamed, new at every start, removed at a clean stop. |
 
@@ -52,6 +52,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.close` | `chat` | — | |
 | `topics.list` | `chat` (a forum: `chats.forum` is 1) | `{count}` | `bad_chat` |
 | `chat.read` | `chat`; optional `upto` (a message id), `topic` | — | |
+| `chat.mention`, `chat.reaction` | `chat`; optional `topic` | `{id}` | |
 | `chat.typing` | `chat`, `on` (bool); optional `topic` | — | |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool); at least one | — | |
 | `chat.readAll` | none (no `chat`) | — | |
@@ -190,6 +191,11 @@ date is not kept), comes after that commit; no pins is an empty list. TDLib's er
 **`chat.read`:** marks the chat read up to its newest message, or with `upto` up to that message
 (an id above the chat's newest counts as the newest; anything but a message id is `bad_request`).
 `unread` changes with the `chats` event that follows.
+
+**`chat.mention`:** the chat's (or the topic's) oldest unread mention or reply to us, marked read (`viewMessages`, forced):
+`{id}`, its message id, "" when none is left. Its row is in `chats.db` before the reply, so the UI can jump to it; `mentions`
+changes with the `chats` event that follows (`topics.mentions` with a `topics` event). The oldest of the newest 100.
+**`chat.reaction`:** the same for the oldest of our messages with unread reactions; `reactions` changes.
 
 **`chat.set`:** `pin`, `archive`, `unread` and `mute` as HyperBerry's. The row changes when
 Telegram's echo arrives (a `chats` event), not before.
@@ -874,7 +880,7 @@ read on another device, and the delay while another device is in use are all Tel
 ## chats.db, as the UI reads it
 
 HyperBerry's tables and columns (`../hyperberry/docs/protocol.md`, *chats.db, as the UI reads
-it*), with these meanings for Telegram. `user_version` is 7. A file at version 2, 3, 4, 5 or 6 is migrated in place when the engine starts;
+it*), with these meanings for Telegram. `user_version` is 9. A file at version 2 to 8 is migrated in place when the engine starts;
 the step from 3 to 4 adds `chats.forum`, `messages.topic` and `topics`, and **empties `messages`**:
 the old rows have no topic, and the table is a cache that TDLib refills (the engine writes each chat's newest message again
 when it starts, and a page of history when the UI opens a chat). `chats` and its rows stay. The step from 4 to 5 **drops the
@@ -882,7 +888,11 @@ when it starts, and a page of history when the UI opens a chat). `chats` and its
 now (below). A row written before that has none until the engine writes it again, which it does for a chat's newest page on
 `chat.open` and for any update of the message (a new reaction, a vote, an edit). The step from 5 to 6 adds `chats.secret`, 0 in every old row, which is right: the engine
 had secret chats off until version 6. The step from 6 to 7 adds the `people` table (below), empty: the engine fills it as TDLib
-tells it of users, so a group's messages from a user it has not written yet have the UI's hash colour until it does.
+tells it of users, so a group's messages from a user it has not written yet have the UI's hash colour until it does. The step from
+7 to 8 adds `chats.mentions`, 0 in every old row until the engine writes the row again (the next start does, for every chat whose
+count is not 0). The step from 8 to 9 adds `chats.mentions_off`, `chats.reactions` and `topics.reactions`; version 8's `mentions` was 0 while
+the chat's mention notifications were off. The next start writes the chat rows that differ; a topic's row has 0 reactions
+until the UI next lists the forum's topics.
 
 **`chats`:** one row per chat in Telegram's main or archived chat list, and no others.
 
@@ -899,6 +909,9 @@ tells it of users, so a group's messages from a user it has not written yet have
 | `archived` | 1 when in the archive |
 | `read_inbox` | the id of the newest message read here or on another device; 0 when unknown (a database that was at `user_version` 2 has 0 until the engine next writes the chat's row) |
 | `forum` | 1 for a supergroup with topics (see *Forum topics*); 0 for any other chat, and until the engine next writes the row of a chat in a database that was at `user_version` 3. A group can become a forum or stop being one: a `chats` event names the row. Messages already in `messages` keep the `topic` they had (0 for a group that was not a forum): the UI uses `messages.topic` only while `forum` is 1, and a chat that has just become a forum gets its topics' messages from `chat.open` with `topic` |
+| `mentions` | the unread messages that mention us or reply to ours (TDLib's `unread_mention_count`). A mention is read only when its own message is viewed (`chat.mention`), not by `chat.read` |
+| `reactions` | our messages with reactions we have not seen (TDLib's `unread_reaction_count`), read only when that message is viewed (`chat.reaction`) |
+| `mentions_off` | 1 while the chat's mention notifications are off (its own setting, or its kind's default), else 0. A muted chat's `mentions` notify (the Hub) unless this is 1; the Active Frame counts them for a muted chat in place of `unread` |
 | `secret` | 0 for any chat that is not a secret chat; for a secret chat 1 pending, 2 ready, 3 closed (see *Secret chats*); a `chats` event names the row when it changes. 0 in a database that was at `user_version` 5 until the engine next writes the row (no old row is a secret chat) |
 
 **`people`:** one row per user the engine has had an `updateUser` for, so a group's messages open with their senders' colours and
@@ -989,6 +1002,7 @@ current by the engine. Only chats with `chats.forum` 1 have rows.
 | `ord` | TDLib's order, a decimal int64 as text: the date of the topic's newest message shifted left 32 bits plus that message's number; 0 for a topic with no message. Sort `pinned DESC`, then `CAST(ord AS INTEGER) DESC` |
 | `unread` | the unread count of the topic |
 | `mentions` | the unread messages with a mention of us or a reply to us |
+| `reactions` | our messages in the topic with reactions we have not seen (0 in a row written before `user_version` 9) |
 | `read_inbox` | the id of the newest incoming message read in the topic; 0 when none |
 | `last_id`, `last_ts`, `last_preview`, `last_out` | the newest message: its id (text; NULL with `last_preview` when the topic has none), unix seconds (0 when none), the one-line preview as a group's chat list shows it ("Anna: Photo", "You: hi"), ours or not |
 | `muted_until` | the topic's own mute, as `chats.muted_until` (unix seconds; 0 not muted; 2^40 forever). A topic that follows the chat's setting has 0, and so does one unmuted on purpose in a muted chat: a topic is muted when this is in the future or, when it is 0, when `chats.muted_until` is |

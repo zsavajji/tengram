@@ -39,6 +39,10 @@ class ChatController : public QObject
     // The last group.info result {subject, description, participants}, each participant with
     // initials and color added (and photo, when it has one); empty until it comes (groups only).
     Q_PROPERTY(QVariantMap groupInfo READ groupInfo NOTIFY groupInfoChanged)
+    // The chat's (or the topic's) unread mentions and replies to us, and our messages with unread reactions, from chats.db
+    // (chats.mentions and reactions, or the topic's): the @ and reactions buttons show while theirs isn't 0, with the number.
+    Q_PROPERTY(int mentions READ mentions NOTIFY mentionsChanged)
+    Q_PROPERTY(int reactions READ reactions NOTIFY mentionsChanged)
 public:
     explicit ChatController(QObject *parent = 0);
     ~ChatController();
@@ -51,6 +55,8 @@ public:
     QString replyText() const;
     bool editing() const { return !m_editId.isEmpty(); }
     QVariantMap groupInfo() const;
+    int mentions() const { return m_mentions; }
+    int reactions() const { return m_reactions; }
 
     // chat is a ChatListModel row (jid, kind). Once; later calls do nothing. topic is a forum topic's id (docs/protocol.md,
     // Forum topics) when the page shows one topic of the chat, 0 for the whole chat: everything the page asks for and
@@ -91,6 +97,11 @@ public:
     // Asks Telegram for the chat's (or the topic's) pinned messages: pinsReady comes with them (a failure shows in the
     // engine's failure, as chat.pins).
     Q_INVOKABLE void askPins();
+    // The @ button: asks for the oldest unread mention, which the engine marks read (chat.mention); unreadFound comes with
+    // its id. Nothing while an answer is awaited, so a double tap doesn't skip one.
+    Q_INVOKABLE void nextMention();
+    // The reactions button, the same for our oldest message with unread reactions (chat.reaction).
+    Q_INVOKABLE void nextReaction();
     // Delete for me waits for the Undo toast: the card hides at once, the request goes with
     // commitDelete (the toast closed, or the page going away).
     Q_INVOKABLE void deleteForMe(const QString &id);
@@ -111,6 +122,9 @@ signals:
     void voiceReady(const QString &id, const QString &path);
     // The pinned messages, newest message first: maps of id and preview (Pins.h), after askPins.
     void pinsReady(const QVariantList &pins);
+    void mentionsChanged();
+    // chat.mention's or chat.reaction's message: the page jumps to it.
+    void unreadFound(const QString &id);
     // A recording was dropped from here (minimised): the page resets its recorder.
     void voiceCancelled();
 
@@ -127,6 +141,10 @@ private slots:
     void onPhoto(const QString &jid, const QString &path);
     void onWantOpen();
     void onFailure();
+    void onChats(const QStringList &jids);
+    void onTopics(const QString &chat);
+    void readMentions();
+    void askUnread(const QString &cmd);
 
 private:
     void takeGroupInfo(QVariantMap info);
@@ -151,6 +169,9 @@ private:
     QString m_infoId; // the group.info request we wait for
     QString m_changeId; // the group.participants request we wait for
     QString m_pinsId; // the chat.pins request we wait for
+    QString m_mentionId; // the chat.mention or chat.reaction request we wait for (one at a time)
+    int m_mentions;
+    int m_reactions;
     QString m_participants; // "N participants", the status line of a group
     QStringList m_pending;
     bool m_group;

@@ -160,7 +160,9 @@ void hubuds_item(const HubItem &item, bool is_new) {
   // The Hub is light (a white glyph vanished, Q10) and tints nothing: yellow unread, grey read.
   uds.inbox_item_data_set_icon(i, item.unread > 0 ? "hub_unread2.png" : "hub_read2.png");
   uds.inbox_item_data_set_mime_type(i, kMime);
-  uds.inbox_item_data_set_unread_count(i, item.unread);
+  // 1, not the notifications: the Hub adds the items' counts, and it counts chats, as it shows a row per chat (5 for one
+  // person's five messages, the user, 2026-11-20).
+  uds.inbox_item_data_set_unread_count(i, item.unread > 0 ? 1 : 0);
   uds.inbox_item_data_set_total_count(i, 1);
   uds.inbox_item_data_set_timestamp(i, item.ts_ms);
   uds.inbox_item_data_set_context_state(i, item.unread > 0 ? 1 : 2);

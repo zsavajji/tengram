@@ -1,92 +1,120 @@
 import bb.cascades 1.4
 
-// The Active Frame (PLAN.md step 5.2). The Q10 shows all of its 310 x 211 px, above the system's
-// title strip (screenshot, 0.0.1.76): the count at 250 % with the labels' default spacing pushed
-// the last line under the strip. Margins are set, since unset ones put about 20 px between
-// labels. It takes no touch. Created by main.qml, so nav and chats are in its scope.
+// The Active Frame (PLAN.md step 5.2), HyperBerry's design of 2026-11-17 (its cover.qml) with three rows (the user,
+// 2026-11-20). The Q10 shows all of its 310 x 211 px, above the system's title strip (screenshot, 0.0.1.76), so
+// nothing may run past the bottom. Idle: the app's glyph, and "All caught up" low on the left. Active: three equal
+// rows on a panel, private chats, groups and channels (CoverRow.qml), each counting what the Hub notifies: an
+// unmuted chat's unread messages, a muted one's unread mentions and replies to us (ChatListModel::updateFrame).
+// Margins are set, since unset ones put about 20 px between labels. Type is sized in percent: at 100 % BodyText
+// and SmallText draw capitals 20 px tall in a cover (HyperBerry, measured on the Q10). It takes no touch. Created
+// by main.qml, so nav, chats and settings are in its scope.
 SceneCover {
+    id: cover
+    // It follows the theme: Bright's page and text, Dark's black. Written out: a cover's scene may not share the
+    // app's palette.
+    property bool bright: settings.theme == 1
+    property variant ink: bright ? Color.create("#111111") : Color.White
+    property variant quiet: bright ? Color.create("#5E5E5E") : Color.Gray
+    property variant accent: Color.create(bright ? "#168ACD" : "#24A1DE")
+    // The panel lifts the rows off the home screen's wallpaper behind the frame; the idle page is plain.
+    property variant panel: bright ? Color.White : Color.create("#2B2B2B")
+    // Dark with Dark background on Grey: the frame is the app's grey #181818, idle or not.
+    property bool grey: !bright && settings.darkGrey
+    property variant line: bright ? Color.create("#D0D0D0") : Color.create("#464646")
+    property bool idle: chats.unreadTotal == 0
     content: Container {
-        background: Color.Black
+        background: grey ? Color.create("#181818") : idle ? (bright ? Color.White : Color.Black) : panel
         preferredWidth: 310
         preferredHeight: 211
         layout: DockLayout {
         }
-        // Unread: the count, and the chats' names under it (the user's design, 2026-11-01).
+        // Idle. The glyph (gen-icon.py) is white and tinted. Padding, not margins: margins never space from a
+        // container's edge.
         Container {
-            visible: chats.unreadTotal > 0
-            horizontalAlignment: HorizontalAlignment.Fill
-            leftPadding: 16
-            rightPadding: 16
-            topPadding: 12
-            // The count and its word side by side: the count's line alone is about 86 px tall at
-            // 200 %, and the word under it left the second line touching the strip (0.0.1.78).
-            // Sizes follow the stock frames' small type (0.0.1.80 looked oversized beside
-            // Settings').
-            Container {
+            visible: idle
+            horizontalAlignment: HorizontalAlignment.Left
+            verticalAlignment: VerticalAlignment.Top
+            leftPadding: 18
+            topPadding: 17
+            ImageView {
+                imageSource: "asset:///images/cover_glyph.png"
+                filterColor: accent
+            }
+        }
+        Container {
+            visible: idle
+            horizontalAlignment: HorizontalAlignment.Left
+            verticalAlignment: VerticalAlignment.Bottom
+            leftPadding: 18
+            bottomPadding: 20
+            Label {
+                text: engine.linked ? qsTr("All caught up") : "Tengram"
+                textStyle.base: SystemDefaults.TextStyles.BodyText
+                textStyle.fontSize: FontSize.PercentageValue
+                textStyle.fontSizeValue: 95
+                textStyle.color: ink
                 topMargin: 0
                 bottomMargin: 0
-                layout: StackLayout {
-                    orientation: LayoutOrientation.LeftToRight
-                }
-                Label {
-                    text: chats.unreadTotal
-                    textStyle.base: SystemDefaults.TextStyles.BodyText
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: 130
-                    textStyle.color: Color.create("#24A1DE") // as the idle state's name
-                    topMargin: 0
-                    bottomMargin: 0
-                }
-                Label {
-                    verticalAlignment: VerticalAlignment.Bottom
-                    leftMargin: 12
-                    text: qsTr("unread")
-                    textStyle.base: SystemDefaults.TextStyles.SmallText
-                    textStyle.fontSize: FontSize.PercentageValue
-                    textStyle.fontSizeValue: 85
-                    textStyle.color: Color.Gray
-                    topMargin: 0
-                    bottomMargin: 0
-                }
             }
-            // Newest first, no message text. The emoji style, so names' emoji draw (they do, in a
-            // cover: 0.0.1.76), at the chat list's preview size; up to three lines, then "…".
             Label {
-                text: chats.unreadChats
-                textStyle.base: nav.emojiStyle
+                text: engine.linked ? qsTr("No new messages") : qsTr("Not logged in")
+                textStyle.base: SystemDefaults.TextStyles.SmallText
                 textStyle.fontSize: FontSize.PercentageValue
-                textStyle.fontSizeValue: 74
-                textStyle.color: Color.White
-                multiline: true
-                autoSize.maxLineCount: 3
-                topMargin: 8
+                // 47: at 55 HyperBerry's Italian line ran to the frame's edge.
+                textStyle.fontSizeValue: 47
+                textStyle.fontWeight: FontWeight.Bold
+                textStyle.color: quiet
+                topMargin: 4
                 bottomMargin: 0
             }
         }
-        // Nothing unread, or not linked: centred, in small type, the name in the primary colour
-        // (the user's, 2026-11-01). The bar descriptor's primary, written out: a cover's scene may
-        // not share the app's palette.
+        // Active: three rows of the same height, a separator between each.
         Container {
-            visible: chats.unreadTotal == 0
-            horizontalAlignment: HorizontalAlignment.Center
-            verticalAlignment: VerticalAlignment.Center
-            Label {
-                horizontalAlignment: HorizontalAlignment.Center
-                text: "Tengram"
-                textStyle.base: SystemDefaults.TextStyles.BodyText
-                textStyle.color: Color.create("#24A1DE")
+            visible: !idle
+            preferredWidth: 310
+            preferredHeight: 211
+            layout: StackLayout {
+            }
+            CoverRow {
+                count: chats.frameCounts[0]
+                label: qsTr("Private chats")
+                detail: chats.frameNames[0]
+                ink: cover.ink
+                quiet: cover.quiet
+                accent: cover.accent
+                emojiStyle: nav.emojiStyle
+            }
+            Container {
+                horizontalAlignment: HorizontalAlignment.Fill
+                preferredHeight: 2
+                background: line
                 topMargin: 0
                 bottomMargin: 0
             }
-            Label {
-                horizontalAlignment: HorizontalAlignment.Center
-                text: engine.linked ? qsTr("Nothing new to see") : qsTr("Not logged in")
-                textStyle.base: SystemDefaults.TextStyles.SmallText
-                textStyle.fontSize: FontSize.PercentageValue
-                textStyle.fontSizeValue: 85
-                textStyle.color: Color.Gray
-                topMargin: 4
+            CoverRow {
+                count: chats.frameCounts[1]
+                label: qsTr("Groups")
+                detail: chats.frameNames[1]
+                ink: cover.ink
+                quiet: cover.quiet
+                accent: cover.accent
+                emojiStyle: nav.emojiStyle
+            }
+            Container {
+                horizontalAlignment: HorizontalAlignment.Fill
+                preferredHeight: 2
+                background: line
+                topMargin: 0
                 bottomMargin: 0
+            }
+            CoverRow {
+                count: chats.frameCounts[2]
+                label: qsTr("Channels")
+                detail: chats.frameNames[2]
+                ink: cover.ink
+                quiet: cover.quiet
+                accent: cover.accent
+                emojiStyle: nav.emojiStyle
             }
         }
     }

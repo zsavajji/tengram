@@ -3931,21 +3931,44 @@
     </message>
 </context>
 <context>
+    <name>CoverRow</name>
+    <message>
+        <location filename="../assets/CoverRow.qml" line="58"/>
+        <source>None</source>
+        <translation>Không có</translation>
+    </message>
+</context>
+<context>
     <name>cover</name>
     <message>
-        <location filename="../assets/cover.qml" line="43"/>
-        <source>unread</source>
-        <translation>chưa đọc</translation>
+        <location filename="../assets/cover.qml" line="51"/>
+        <source>All caught up</source>
+        <translation>Đã xem hết</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="83"/>
-        <source>Nothing new to see</source>
-        <translation>Không có gì mới</translation>
+        <location filename="../assets/cover.qml" line="60"/>
+        <source>No new messages</source>
+        <translation>Không có tin nhắn mới</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="83"/>
+        <location filename="../assets/cover.qml" line="60"/>
         <source>Not logged in</source>
         <translation>Chưa đăng nhập</translation>
+    </message>
+    <message>
+        <location filename="../assets/cover.qml" line="80"/>
+        <source>Private chats</source>
+        <translation>Trò chuyện riêng</translation>
+    </message>
+    <message>
+        <location filename="../assets/cover.qml" line="96"/>
+        <source>Groups</source>
+        <translation>Nhóm</translation>
+    </message>
+    <message>
+        <location filename="../assets/cover.qml" line="112"/>
+        <source>Channels</source>
+        <translation>Kênh</translation>
     </message>
 </context>
 <context>
@@ -4074,8 +4097,16 @@
     </message>
     <message>
         <location filename="../assets/main.qml" line="137"/>
-        <source>Tengram needs to install a root patch that runs at every boot and lets every app use more memory in the background. Only the patch runs as root, and it changes just one value, the same for every app. Install it, and Tengram closes once: open it again. Without it, Tengram can&apos;t be used.</source>
-        <translation>Tengram cần cài một bản vá root chạy mỗi lần khởi động và cho phép mọi ứng dụng dùng nhiều bộ nhớ hơn ở chế độ nền. Chỉ bản vá chạy với quyền root, và nó chỉ đổi một giá trị, giống nhau cho mọi ứng dụng. Hãy cài nó, rồi Tengram sẽ đóng một lần: hãy mở lại. Không có nó, Tengram không dùng được.</translation>
+        <source>BlackBerry 10 gives an app&apos;s background service at most 30 MB of memory. Tengram&apos;s service, which keeps your chats in sync and brings your notifications, needs more.
+
+This patch raises that limit to 128 MB. Each time the phone starts, a few minutes in, it changes that one number in the system&apos;s memory. No system file is changed, and it only affects apps that ask for the largest background size. Only the patch runs as root.
+
+After the install, Tengram closes once: open it again. Without the patch, Tengram can&apos;t work.</source>
+        <translation>BlackBerry 10 chỉ cho dịch vụ chạy nền của một ứng dụng tối đa 30 MB bộ nhớ. Dịch vụ của Tengram, giữ cho các cuộc trò chuyện của bạn được đồng bộ và mang thông báo đến cho bạn, cần nhiều hơn.
+
+Bản vá này nâng giới hạn đó lên 128 MB. Mỗi lần điện thoại khởi động, sau vài phút, nó đổi đúng con số đó trong bộ nhớ của hệ thống. Không tệp hệ thống nào bị thay đổi, và chỉ những ứng dụng yêu cầu mức nền lớn nhất mới bị ảnh hưởng. Chỉ bản vá chạy với quyền root.
+
+Sau khi cài, Tengram sẽ đóng một lần: hãy mở lại. Không có bản vá, Tengram không hoạt động được.</translation>
     </message>
     <message>
         <location filename="../assets/main.qml" line="138"/>

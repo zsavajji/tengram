@@ -26,10 +26,12 @@ class ChatListModel : public bb::cascades::DataModel
     Q_OBJECT
     // True when there's no chat to show.
     Q_PROPERTY(bool empty READ empty NOTIFY emptyChanged)
-    // The Active Frame's two facts (step 5.2): unread messages in unmuted chats, and the newest
-    // incoming "Name: preview". Only recomputed while the app isn't fullscreen.
+    // The Active Frame's rows (step 5.2): what is unread in 1:1 chats, groups and channels ([0], [1], [2]), an
+    // unmuted chat's unread messages and a muted one's unread mentions and replies to us (what the Hub
+    // notifies), and those chats' names, newest first. Only recomputed while the app isn't fullscreen.
     Q_PROPERTY(int unreadTotal READ unreadTotal NOTIFY frameChanged)
-    Q_PROPERTY(QString unreadChats READ unreadChats NOTIFY frameChanged)
+    Q_PROPERTY(QVariantList frameCounts READ frameCounts NOTIFY frameChanged)
+    Q_PROPERTY(QStringList frameNames READ frameNames NOTIFY frameChanged)
     // Bumped after each reload or patch, so a QML binding that calls chat() is evaluated again.
     Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
 public:
@@ -43,7 +45,8 @@ public:
     QVariant data(const QVariantList &indexPath);
     bool empty() const;
     int unreadTotal() const { return m_unreadTotal; }
-    QString unreadChats() const { return m_unreadChats; }
+    QVariantList frameCounts() const { return m_frameCounts; }
+    QStringList frameNames() const { return m_frameNames; }
     int revision() const { return m_revision; }
     // The chat's map as the rows have it, archived chats included; empty when there is none.
     Q_INVOKABLE QVariantMap chat(const QString &jid);
@@ -83,7 +86,8 @@ private:
     QString m_dbName;
     QList<Group> m_groups;
     int m_unreadTotal;
-    QString m_unreadChats;
+    QVariantList m_frameCounts;
+    QStringList m_frameNames;
     int m_revision;
     bool m_stale;          // the app was not in front for a change: read the list when it is
     bool m_full;           // the changed jids are not all there is: reload, don't patch
