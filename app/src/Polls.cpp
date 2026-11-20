@@ -22,5 +22,6 @@ void Polls::fill(const QVariantMap &extra, QVariantMap &data)
     data["mine"] = extra.value("mine").toList();
     data["voted"] = extra.value("voted").toInt();
     data["pollClosed"] = extra.value("closed").toBool();
+    data["pollFixed"] = extra.value("fixed").toBool();
     data["options"] = options;
 }

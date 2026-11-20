@@ -52,7 +52,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     const int kind = q.value(7).toInt();
     m.kind = kind;
     m.who = q.value(5).isNull() ? q.value(6).toString() : q.value(5).toString();
-    m.data["readOnly"] = m_channel; // a channel: no reply, reaction, delete or vote (step 6.6g)
+    m.data["readOnly"] = m_channel; // a channel: no reply, reaction or delete (step 6.6g); its polls take votes
     m.data["album"] = QVariantList(); // MessageModel::albumData fills it for an album; never undefined in QML
     const QString text = q.value(8).toString();
     const bool deleted = q.value(11).toInt() != 0;

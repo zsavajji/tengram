@@ -69,14 +69,16 @@ void PollBubble::makeRow(int index, const QVariantMap &option)
     Container *line = new Container();
     line->setLayout(Card::across());
 
-    // The mark and the name vote.
+    // The whole row votes, the count and the bar too (the user, 2026-11-20: the mark and the name alone were too small
+    // to hit). Touch only: the Classic's trackpad doesn't focus a control inside a list item (0.1.0.86).
+    TapHandler *vote = new TapHandler(r.row);
+    vote->setProperty("index", index);
+    r.row->addGestureHandler(vote);
+    connect(vote, SIGNAL(tapped(bb::cascades::TapEvent *)), this, SLOT(onChoose()));
+
     Container *choice = new Container();
     Card::quota(choice, 1);
     choice->setLayout(Card::across());
-    TapHandler *vote = new TapHandler(choice);
-    vote->setProperty("index", index);
-    choice->addGestureHandler(vote);
-    connect(vote, SIGNAL(tapped(bb::cascades::TapEvent *)), this, SLOT(onChoose()));
 
     // From the phone's fallback font (DejaVu Sans), as ✕ ▲ ▼ are, so not the emoji style:
     // its font has ☑ as a colour emoji.
@@ -155,7 +157,8 @@ void PollBubble::restyle()
     const UIPalette *palette = m_ui->palette();
     for (int i = 0; i < m_rows.size(); i++) {
         const Row &r = m_rows.at(i);
-        r.row->setTopPadding(m_ui->du(1 * scale));
+        r.row->setTopPadding(m_ui->du(1.5 * scale));
+        r.row->setBottomPadding(m_ui->du(1 * scale));
 
         TextStyleDefinition *mark = r.mark->textStyle();
         mark->setBase(SystemDefaults::TextStyles::bodyText());
@@ -187,13 +190,14 @@ bool PollBubble::chosen(int i) const
 }
 
 // The whole new vote: one choice moves or goes, several toggle i and stop at max (0: no limit).
-// ponytail: from the vote last drawn, so two taps before the engine answers act on the same
-// state; an optimistic copy of mine if that shows.
+// From the vote last drawn: mine holds a vote TDLib is still sending too, which it shows at once.
 void PollBubble::choose(int i)
 {
-    if (m_msg.value("readOnly").toBool() || m_msg.value("pollClosed").toBool())
-        return;
     const QVariantList mine = m_msg.value("mine").toList();
+    // A channel's poll takes votes too: readOnly is only the channel's replies, reactions and deletes. A poll that
+    // takes no second vote (a quiz) ignores taps once we voted, else TDLib refuses it and the page says "not sent".
+    if (m_msg.value("pollClosed").toBool() || (m_msg.value("pollFixed").toBool() && !mine.isEmpty()))
+        return;
     const int max = m_msg.value("max").toInt();
     const bool on = chosen(i);
     QVariantList next;

@@ -17,7 +17,7 @@ class UIConfig;
 
 // The options of a poll in a card (step 6.5e), under its question: per option a mark (● ○ for one
 // choice, ☑ ☐ for several), the name, the count, and a bar of the share of the voters who chose it.
-// A tap on an option votes (the page's vote), unless the poll is closed or a channel's.
+// A tap on an option votes (the page's vote), unless the poll is closed.
 // Mirrors PollBubble.qml (gone since step 8.6). Cascades has no Repeater: the rows are made again whenever the vote changes,
 // since list items are recycled, and removeAll() deletes the old rows (container.h: it "frees up
 // their memory").
