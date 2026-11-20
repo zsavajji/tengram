@@ -74,6 +74,12 @@ public:
     // The thumbnail a video goes out with, as base64 of a small JPEG: a play mark on grey, so the phones that get
     // a video see one and not a grey box. "" on failure.
     Q_INVOKABLE QString videoPoster();
+    // An MP4's length in ms, read from the file itself (Mp4Length.h), for the video viewer when the player reports
+    // none; 0 when it can't be read.
+    Q_INVOKABLE int videoLength(const QString &path);
+    // A fragmented MP4 (Mp4Length.h), in which the player can't seek: the video viewer shows no timeline for it, and a
+    // button that opens it in the system's player.
+    Q_INVOKABLE bool videoFragmented(const QString &path);
     // What the staged bar shows for a file picked to send (step 6.4): {name, sizeText, picture (a
     // photo or a video: its caption rides in the message), image (a .jpg's thumbnail, as an Image;
     // missing for the rest)}. Empty when the file can't be read.

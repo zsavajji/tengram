@@ -3876,6 +3876,14 @@
     </message>
 </context>
 <context>
+    <name>VideoViewer</name>
+    <message>
+        <location filename="../assets/VideoViewer.qml" line="420"/>
+        <source>Open in player</source>
+        <translation>Mở bằng trình phát</translation>
+    </message>
+</context>
+<context>
     <name>WebsitesPage</name>
     <message>
         <location filename="../assets/WebsitesPage.qml" line="17"/>

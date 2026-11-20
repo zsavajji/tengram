@@ -15,6 +15,11 @@ Page {
     property string path
     property real ratio: 0.75
     property bool gif: false
+    // The length in ms read from the file (start() sets it), for a file whose player reports none.
+    property real fileMs: 0
+    // A fragmented MP4 (start() sets it): the player can't seek in it, so the timeline is hidden and the Open in player
+    // button shows.
+    property bool fragmented: false
     // Read by main.qml's nav: no peeking while this page is on top, or a drag on the timeline slides the page away.
     property bool noPeek: true
     property bool handedOver: false
@@ -31,8 +36,16 @@ Page {
     // 96 % of a 6 s clip, the user's screenshot 2026-11-19), so the fill is full until it plays or seeks again.
     property bool ended: false
     property bool playing: player.mediaState == MediaState.Started
-    // The length in ms, 0 until the player knows it.
-    property real dur: player.duration > 0 ? player.duration : 0
+    // The length in ms, 0 until the player knows it. A fragmented MP4 (moof boxes, the length only in mehd) has 0 in
+    // its track headers and the player never knows: the time stood at 0:00 / 0:00 and a touch on the timeline sought
+    // to 0 (the user, 2026-11-20, a 3:44 video). The file's own then (the message's was 0 too, as its sender gave none).
+    property real dur: player.duration > 0 ? player.duration : page.fileMs
+    // The player takes a seek only in a file whose length it knows: in a fragmented one it answers UnsupportedOperation
+    // and stops (1.0.0.90, the user). The timeline then only shows the place: no dot, and a touch just wakes the bar.
+    property bool canSeek: player.duration > 0
+    // A seek was asked and the player hasn't moved since: an error now is the seek's refusal, not a file that can't
+    // play (it sent the file to the system's player, 1.0.0.90).
+    property bool seekAsked: false
     property real frac: page.scrubbing || page.settling ? page.at
                         : page.ended ? 1 : page.dur > 0 ? Math.min(player.position / page.dur, 1) : 0
     // The bar's side padding and the timeline dot's size: the finger's x is measured inside the padding and half a dot, so
@@ -52,6 +65,8 @@ Page {
     // Called by nav.showVideo once the page is pushed. Not on the control's bind: the player creates the window when
     // it prepares, and the control binds to it after, so waiting for the bind would never start anything.
     function start() {
+        page.fileMs = opener.videoLength(page.path)
+        page.fragmented = opener.videoFragmented(page.path)
         player.sourceUrl = "file://" + page.path
         page.check(player.play())
         idle.start()
@@ -60,6 +75,13 @@ Page {
         if (e != 0) {
             page.fail("error " + e)
         }
+    }
+    // The system's player gets the file (the button a fragmented video shows): ours pauses, so the two don't play at once.
+    function openOut() {
+        if (page.playing) {
+            page.check(player.pause())
+        }
+        opener.openFile(page.path)
     }
     function fail(why) {
         console.log("chat video: " + why)
@@ -104,6 +126,12 @@ Page {
     // ends (up or cancel), wherever the finger drifts: a thumb leaves a thin bar at once, and the bar's touchExit
     // is not an end (it was, in 0.1.0.290, and the dot stopped under the finger).
     function scrub(event, width) {
+        if (!page.canSeek) {
+            if (event.isDown()) {
+                page.wake()
+            }
+            return
+        }
         if (event.isDown() || event.isMove()) {
             if (event.isDown()) {
                 console.log("video scrub: down at " + Math.round(event.windowX) + " of " + Math.round(width))
@@ -112,7 +140,8 @@ Page {
             page.at = Math.max(0, Math.min(1, (event.windowX - page.side - page.dot / 2) / (width - page.dot)))
             stale.start()
         } else {
-            console.log("video scrub: " + (event.isCancel() ? "cancel" : "up") + " at " + Math.round(page.at * 1000) / 1000)
+            console.log("video scrub: " + (event.isCancel() ? "cancel" : "up") + " at " + Math.round(page.at * 1000) / 1000
+                        + ", player at " + player.position + " of " + player.duration + ", length " + page.dur)
             page.release()
         }
     }
@@ -125,6 +154,7 @@ Page {
         page.scrubbing = false
         page.ended = false
         page.settling = true
+        page.seekAsked = true
         if (player.seekTime(Math.round(page.at * page.dur)) != 0) {
             page.settling = false
         }
@@ -142,11 +172,16 @@ Page {
             windowGroupId: surface.windowGroup
             statusInterval: 250
             repeatMode: page.gif ? RepeatMode.Track : RepeatMode.None
-            onPositionChanged: page.settling = false
+            onPositionChanged: {
+                page.settling = false
+                page.seekAsked = false
+            }
             onPlaybackCompleted: page.ended = true
             onMediaStateChanged: {
                 if (mediaState == MediaState.Started) {
                     page.ended = false
+                    console.log("chat video: started, the player's length " + player.duration + ", seekable " + player.seekable
+                                + ", the file's " + page.fileMs)
                 }
             }
             // The video's own shape, once the player has read it: mm-renderer stretches the picture to the window,
@@ -156,7 +191,15 @@ Page {
                     page.ratio = videoDimensions.height / videoDimensions.width
                 }
             }
-            onError: page.fail("error " + mediaError + " at " + position)
+            onError: {
+                if (page.seekAsked) {
+                    page.seekAsked = false
+                    page.settling = false
+                    console.log("chat video: seek refused, error " + mediaError)
+                } else {
+                    page.fail("error " + mediaError + " at " + position)
+                }
+            }
         },
         // A drag whose end never came (no up, no cancel) ends 1.5 s after its last move, so the dot is never left stuck.
         Timer {
@@ -249,6 +292,7 @@ Page {
                 Container {
                     id: line
                     property real w: 0
+                    visible: !page.fragmented
                     horizontalAlignment: HorizontalAlignment.Fill
                     preferredHeight: ui.du(8)
                     layout: DockLayout {}
@@ -284,6 +328,7 @@ Page {
                             background: ui.palette.primary
                         }
                         ImageView {
+                            visible: page.canSeek
                             verticalAlignment: VerticalAlignment.Center
                             preferredWidth: page.dot
                             preferredHeight: page.dot
@@ -337,6 +382,48 @@ Page {
                         verticalAlignment: VerticalAlignment.Center
                         text: page.clock(page.frac * page.dur) + " / " + page.clock(page.dur)
                         textStyle.color: Color.White
+                    }
+                    Container {
+                        layoutProperties: StackLayoutProperties {
+                            spaceQuota: 1
+                        }
+                    }
+                    // Opens the file in the system's player (this one can't seek it): built as StagedBar's Edit button.
+                    Container {
+                        id: openBtn
+                        visible: page.fragmented
+                        verticalAlignment: VerticalAlignment.Center
+                        rightMargin: ui.du(1)
+                        focusPolicy: FocusPolicy.Key
+                        background: settings.round ? Color.Transparent : Color.create(openBtn.focused ? "#80808080" : "#33808080")
+                        layout: DockLayout {}
+                        gestureHandlers: TapHandler {
+                            onTapped: page.openOut()
+                        }
+                        keyListeners: KeyListener {
+                            onKeyReleased: {
+                                if (event.key == 13 || event.key == 10) { // Enter: the trackpad's click
+                                    page.openOut()
+                                }
+                            }
+                        }
+                        RoundFill {
+                            pill: true
+                            filterColor: Color.create(openBtn.focused ? "#80808080" : "#33808080")
+                        }
+                        Container {
+                            leftPadding: ui.du(1.5)
+                            rightPadding: ui.du(1.5)
+                            topPadding: ui.du(1)
+                            bottomPadding: ui.du(1)
+                            Label {
+                                text: qsTr("Open in player")
+                                textFormat: TextFormat.Plain
+                                textStyle.fontSize: FontSize.PercentageValue
+                                textStyle.fontSizeValue: nav.smallSize
+                                textStyle.color: Color.White
+                            }
+                        }
                     }
                 }
             }

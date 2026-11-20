@@ -1,6 +1,7 @@
 #include "MediaOpener.h"
 
 #include "EngineLink.h"
+#include "Mp4Length.h"
 #include "sizes.h"
 
 #include <bb/cascades/Image>
@@ -369,6 +370,16 @@ QString MediaOpener::composePreview(const QString &path)
         return QString();
     }
     return out;
+}
+
+int MediaOpener::videoLength(const QString &path)
+{
+    return int(Mp4Length::ms(QFile::encodeName(path).constData()));
+}
+
+bool MediaOpener::videoFragmented(const QString &path)
+{
+    return Mp4Length::fragmented(QFile::encodeName(path).constData());
 }
 
 QString MediaOpener::videoPoster()
