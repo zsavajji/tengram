@@ -24,6 +24,13 @@ NavigationPane {
                 title: qsTr("About")
                 imageSource: "asset:///images/help_action.png"
                 onTriggered: nav.push(aboutDef.createObject())
+            },
+            // Every chat read, Archived too (chat.readAll), after a yes: it can't be undone.
+            ActionItem {
+                title: qsTranslate("TopicsPage", "Mark all read") // its translations
+                imageSource: "file:///usr/share/icons/bb_action_markread.png"
+                enabled: engine.linked
+                onTriggered: readAllDialog.show()
             }
         ]
     }
@@ -113,6 +120,18 @@ NavigationPane {
         },
         SystemToast {
             id: callFailed
+        },
+        SystemDialog {
+            id: readAllDialog
+            title: qsTr("Mark all chats as read?")
+            body: qsTr("Every chat, archived ones included, will show no unread messages.")
+            confirmButton.label: qsTranslate("TopicsPage", "Mark all read")
+            cancelButton.label: qsTr("Cancel")
+            onFinished: {
+                if (value == SystemUiResult.ConfirmButtonSelection) {
+                    engine.request("chat.readAll", {})
+                }
+            }
         },
         ComponentDefinition {
             id: chatsDef

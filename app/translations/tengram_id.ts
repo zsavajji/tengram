@@ -4051,6 +4051,16 @@
         <translation>Tentang</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="38"/>
+        <source>Mark all chats as read?</source>
+        <translation>Tandai semua chat sudah dibaca?</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="39"/>
+        <source>Every chat, archived ones included, will show no unread messages.</source>
+        <translation>Semua chat, termasuk yang diarsipkan, tidak akan menampilkan pesan belum dibaca.</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="120"/>
         <source>Cancel</source>
         <translation>Batal</translation>

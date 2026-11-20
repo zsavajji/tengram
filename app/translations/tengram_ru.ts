@@ -4061,6 +4061,16 @@
         <translation>О приложении</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="38"/>
+        <source>Mark all chats as read?</source>
+        <translation>Отметить все чаты как прочитанные?</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="39"/>
+        <source>Every chat, archived ones included, will show no unread messages.</source>
+        <translation>Ни в одном чате, включая архивные, не останется непрочитанных сообщений.</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="120"/>
         <source>Cancel</source>
         <translation>Отмена</translation>

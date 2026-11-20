@@ -4056,6 +4056,16 @@
         <translation>ऐप के बारे में</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="38"/>
+        <source>Mark all chats as read?</source>
+        <translation>सभी चैट को पढ़ा हुआ चिह्नित करें?</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="39"/>
+        <source>Every chat, archived ones included, will show no unread messages.</source>
+        <translation>किसी भी चैट में, संग्रहित चैट समेत, कोई अपठित संदेश नहीं दिखेगा।</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="120"/>
         <source>Cancel</source>
         <translation>रद्द करें</translation>

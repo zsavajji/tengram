@@ -4061,6 +4061,16 @@
         <translation>O aplikacji</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="38"/>
+        <source>Mark all chats as read?</source>
+        <translation>Oznaczyć wszystkie czaty jako przeczytane?</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="39"/>
+        <source>Every chat, archived ones included, will show no unread messages.</source>
+        <translation>Żaden czat, także zarchiwizowany, nie pokaże nieprzeczytanych wiadomości.</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="120"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>

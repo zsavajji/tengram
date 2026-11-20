@@ -4056,6 +4056,16 @@
         <translation>Acerca de</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="38"/>
+        <source>Mark all chats as read?</source>
+        <translation>¿Marcar todos los chats como leídos?</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="39"/>
+        <source>Every chat, archived ones included, will show no unread messages.</source>
+        <translation>Ningún chat, incluidos los archivados, mostrará mensajes sin leer.</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="120"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>

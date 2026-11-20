@@ -18,7 +18,7 @@ namespace {
 struct ChatState {
   int total[2] = {0, 0};  // its Messages group and its Mentions group
   bool has_item = false;  // the Hub has an item for the chat
-  int unread = 0;         // what that item says, with its title, body and time
+  int unread = 0;         // what that item says, with its title, body and time (hub.json: only whether it is 0)
   std::string title, body;
   std::int64_t ts_ms = 0;
 };
@@ -40,16 +40,20 @@ std::string path() {
 }
 
 void save() {
-  std::vector<std::int64_t> with_item;
+  std::vector<std::int64_t> with_item, read;
   for (const auto &entry : chats) {
     if (entry.second.has_item) {
       with_item.push_back(entry.first);
+      if (entry.second.unread == 0) {
+        read.push_back(entry.first);
+      }
     }
   }
   const std::string json = td::json_encode<std::string>(td::json_object([&](auto &o) {
     o("account", td::JsonBool(account));
     o("glyph", glyph);
     o("chats", td::json_array(with_item, [](std::int64_t id) { return std::to_string(id); }));
+    o("read", td::json_array(read, [](std::int64_t id) { return std::to_string(id); }));  // their items show read
   }));
   const std::string tmp = path() + ".tmp";
   if (!write_file(tmp, json) || rename(tmp.c_str(), path().c_str()) < 0) {
@@ -74,10 +78,23 @@ void load() {
   glyph = optional_field(obj, "glyph", td::JsonValue::Type::Number, has_glyph) == 1
               ? std::atoi(has_glyph.get_number().str().c_str())
               : 0;
+  // An item not in "read" (any item, in a hub.json older than "read") may show unread: 1 until the start says.
   if (optional_field(obj, "chats", td::JsonValue::Type::Array, list) == 1) {
     for (const td::JsonValue &item : list.get_array()) {
       if (item.type() == td::JsonValue::Type::String) {
-        chats[std::strtoll(item.get_string().str().c_str(), nullptr, 10)].has_item = true;
+        ChatState &s = chats[std::strtoll(item.get_string().str().c_str(), nullptr, 10)];
+        s.has_item = true;
+        s.unread = 1;
+      }
+    }
+  }
+  if (optional_field(obj, "read", td::JsonValue::Type::Array, list) == 1) {
+    for (const td::JsonValue &item : list.get_array()) {
+      if (item.type() == td::JsonValue::Type::String) {
+        auto it = chats.find(std::strtoll(item.get_string().str().c_str(), nullptr, 10));
+        if (it != chats.end()) {
+          it->second.unread = 0;
+        }
       }
     }
   }
@@ -131,7 +148,7 @@ bool secret_chat(std::int64_t chat) {
   if (chat_brief(chat, brief)) {
     return brief.secret != 0;
   }
-  const std::string value = stored(chat, "SELECT secret FROM chats WHERE jid = ?1");
+  const std::string value = stored(chat, "SELECT CAST(secret AS TEXT) FROM chats WHERE jid = ?1");  // read as text
   return !value.empty() && value != "0";
 }
 
@@ -166,7 +183,7 @@ std::string last_body(std::int64_t chat, const ChatState &s) {
 }
 
 // Adds or updates the chat's item. The account goes in before the first item ever; hub.json is written when
-// that, or the set of chats with an item, changes.
+// that, the set of chats with an item, or whether an item shows read changes.
 void put_item(std::int64_t chat, ChatState &s, const std::string &title, const std::string &body, int unread,
               std::int64_t ts_ms, bool alert) {
   bool changed = false;
@@ -176,6 +193,7 @@ void put_item(std::int64_t chat, ChatState &s, const std::string &title, const s
     glyph = kGlyph;
   }
   const bool is_new = !s.has_item;
+  changed = changed || (s.unread == 0) != (unread == 0);
   hub_item(HubItem{chat, title, body, unread, ts_ms, alert}, is_new);
   s.has_item = true;
   s.unread = unread;
@@ -233,9 +251,10 @@ void active_update(const td_api::updateActiveNotifications &u) {
                entry.second ? std::int64_t{entry.second->date_} * 1000 : now_ms, false);
     }
   }
-  // Items the last run left in the Hub for chats with nothing to show any more are read now, once.
+  // Items the last run left unread in the Hub, for chats with nothing to show any more, are read now; hub.json then
+  // says they are, so the next start leaves them (each is a Hub call of about 100 ms on this thread, 2026-11-20).
   for (auto &entry : chats) {
-    if (entry.second.has_item && !with_group.count(entry.first)) {
+    if (entry.second.has_item && entry.second.unread != 0 && !with_group.count(entry.first)) {
       ChatState &s = entry.second;
       put_item(entry.first, s, title_of(entry.first), last_body(entry.first, s), 0,
                s.ts_ms ? s.ts_ms : now_ms, false);

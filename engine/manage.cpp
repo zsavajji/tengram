@@ -1,7 +1,7 @@
 // The requests that act on people, groups, invite links and Telegram links, the secret chats and the chat's timer, the
 // chat's export to a text file, the order of the pinned chats and the search page's lists: contact.block,
 // group.participants, group.create, poll.create, invite.info, invite.accept, link.open, group.join, secret.start,
-// chat.ttl, chat.export, chat.pinOrder, search.chats, search.recentAdd and search.recentClear (docs/protocol.md).
+// chat.ttl, chat.export, chat.pinOrder, chat.readAll, search.chats, search.recentAdd and search.recentClear (docs/protocol.md).
 // What a chat is comes from pages.cpp (with_chat, person_of, basic_group_of, supergroup_of).
 
 #include "engine.h"
@@ -894,13 +894,13 @@ bool manage_handle(std::uint64_t conn, const std::string &id, const std::string 
   static const char *const ours[] = {"contact.block", "group.participants", "group.create", "poll.create",
                                      "invite.info",   "invite.accept",      "link.open",    "group.join",
                                      "secret.start",  "chat.ttl",           "chat.export",  "chat.pinOrder",
-                                     "search.chats",  "search.recentAdd",   "search.recentClear"};
+                                     "search.chats",  "search.recentAdd",   "search.recentClear", "chat.readAll"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
   if (cmd == "group.create" || cmd == "invite.info" || cmd == "invite.accept" || cmd == "link.open" ||
       cmd == "secret.start" || cmd == "chat.pinOrder" || cmd == "search.chats" ||
-      cmd == "search.recentClear") {  // no chat
+      cmd == "search.recentClear" || cmd == "chat.readAll") {  // no chat
     if (!link_ready()) {
       server.reply_error(conn, id, "unlinked", "not logged in");
     } else if (cmd == "group.create") {
@@ -917,6 +917,14 @@ bool manage_handle(std::uint64_t conn, const std::string &id, const std::string 
       search_chats(conn, id, req);
     } else if (cmd == "search.recentClear") {
       tdlib.send(make_object<td_api::clearRecentlyFoundChats>(), [conn, id](Obj o) { answer(conn, id, o); });
+    } else if (cmd == "chat.readAll") {  // every chat, main list then Archived, forums' topics and marked-unread ones too
+      tdlib.send(make_object<td_api::readChatList>(make_object<td_api::chatListMain>()), [conn, id](Obj o) {
+        if (as_error(o)) {
+          return answer(conn, id, o);
+        }
+        tdlib.send(make_object<td_api::readChatList>(make_object<td_api::chatListArchive>()),
+                   [conn, id](Obj o2) { answer(conn, id, o2); });
+      });
     } else {
       invite_accept(conn, id, req);
     }

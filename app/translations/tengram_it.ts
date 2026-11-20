@@ -4056,6 +4056,16 @@
         <translation>Informazioni</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="38"/>
+        <source>Mark all chats as read?</source>
+        <translation>Segnare tutte le chat come lette?</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="39"/>
+        <source>Every chat, archived ones included, will show no unread messages.</source>
+        <translation>Nessuna chat, comprese quelle archiviate, mostrerà messaggi non letti.</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="120"/>
         <source>Cancel</source>
         <translation>Annulla</translation>

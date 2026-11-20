@@ -4051,6 +4051,16 @@
         <translation>Giới thiệu</translation>
     </message>
     <message>
+        <location filename="../assets/main.qml" line="38"/>
+        <source>Mark all chats as read?</source>
+        <translation>Đánh dấu tất cả các cuộc trò chuyện là đã đọc?</translation>
+    </message>
+    <message>
+        <location filename="../assets/main.qml" line="39"/>
+        <source>Every chat, archived ones included, will show no unread messages.</source>
+        <translation>Không cuộc trò chuyện nào, kể cả đã lưu trữ, còn hiển thị tin nhắn chưa đọc.</translation>
+    </message>
+    <message>
         <location filename="../assets/main.qml" line="120"/>
         <source>Cancel</source>
         <translation>Hủy</translation>

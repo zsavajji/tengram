@@ -54,6 +54,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.read` | `chat`; optional `upto` (a message id), `topic` | — | |
 | `chat.typing` | `chat`, `on` (bool); optional `topic` | — | |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool); at least one | — | |
+| `chat.readAll` | none (no `chat`) | — | |
 | `chat.pinOrder` | `ids` (the main list's pinned chats, as strings, in their new order, top first; at least one; no `chat`) | — | |
 | `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` (optional) | `{id}` | |
 | `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`, `file` (true: a document whatever the extension, e.g. a JPEG as it is); all but `chat` and `path` optional | `{id}` | |
@@ -192,6 +193,9 @@ date is not kept), comes after that commit; no pins is an empty list. TDLib's er
 
 **`chat.set`:** `pin`, `archive`, `unread` and `mute` as HyperBerry's. The row changes when
 Telegram's echo arrives (a `chats` event), not before.
+
+**`chat.readAll`:** `readChatList` for the main list, then for the Archived one: every chat in them is read, a forum's topics too, and a chat marked
+unread is no longer marked. The rows' `unread` change with the `chats` events that follow.
 
 **`chat.pinOrder`:** `setPinnedChats` for the main list: `ids` is every pinned chat of the list in the order they should
 have, top first. TDLib takes it as the new set of pins, so a chat left out is unpinned and a chat added is pinned (a
@@ -863,7 +867,8 @@ read on another device, and the delay while another device is in use are all Tel
 - The text is the chat list's preview of the message, or "New message" when `notifyPreview` is
   false (default true), Telegram hides the preview, or the chat is a secret chat (their content is never shown). A new
   secret chat's request is an item "New secret chat".
-- `hub.json` in the data folder records the account and the chats that have items.
+- `hub.json` in the data folder records the account, the chats that have items and which of those items show read
+  (`read`). At the start only the items that may show unread, and whose chat has no notifications left, are set read.
 - An incoming call has an alerting item of its own, "Incoming voice call" or "Incoming video call", for as long as it rings (see "Calls").
 
 ## chats.db, as the UI reads it
