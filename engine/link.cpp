@@ -3,6 +3,7 @@
 #include "engine.h"
 
 #include <ctime>
+#include <fstream>
 
 #ifdef __QNX__
 #include <bps/bps.h>
@@ -175,6 +176,21 @@ void device_strings(std::string &model, std::string &system) {
 
 // TDLib's database goes under our key (db_key). `default_key` is the second try, for a database made before
 // the engine had a key of its own: it opens under TDLib's default key and is moved to ours at once.
+// The installed package's version, "1.0.0.120", from the bar's manifest beside the data folder (<sandbox>/data and
+// <sandbox>/app/META-INF/MANIFEST.MF): what Telegram shows in the account's Devices list after the app's name
+// ("Tengram 1.0.0.120, TDLib …"; it said "tengramd 0.1" through 1.0.0.120, the user 2026-11-21). "dev" for a test
+// engine run outside a bar (--data /root/tengram/data).
+std::string package_version() {
+  std::ifstream f(data_dir + "/../app/META-INF/MANIFEST.MF");
+  const std::string key = "Package-Version: ";
+  for (std::string line; std::getline(f, line);) {
+    if (line.compare(0, key.size(), key) == 0) {
+      return trim(line.substr(key.size(), line.find_last_not_of("\r") + 1 - key.size()));
+    }
+  }
+  return "dev";
+}
+
 void send_parameters(bool default_key = false) {
   auto p = td_api::make_object<td_api::setTdlibParameters>();
   p->database_directory_ = data_dir + "/db";
@@ -197,7 +213,7 @@ void send_parameters(bool default_key = false) {
   p->api_hash_ = api_hash;
   p->system_language_code_ = "en";
   device_strings(p->device_model_, p->system_version_);
-  p->application_version_ = "tengramd 0.1";
+  p->application_version_ = package_version();
   tdlib.send(std::move(p), [default_key](Obj o) {
     if (auto e = as_error(o)) {
       if (e->code_ == 401 && !default_key) {
