@@ -9,6 +9,8 @@
 #include <QPointer>
 #include <QString>
 
+#include "Sticker.h"
+
 class QThread;
 class StickerWorker;
 
@@ -26,8 +28,10 @@ public:
     ~StickerPlayer();
 
     // Plays the TGS at path in view from its first frame, looping or once, and stops what played before (its view gets its
-    // still back). On the view that already plays it starts over: a tap. still is what the view shows when it stops.
-    void play(bb::cascades::ImageView *view, const bb::cascades::Image &still, const QString &path, bool loop);
+    // still back). On the view that already plays it starts over: a tap. still is what the view shows when it stops. px is the
+    // side the frames are drawn at: a sticker's, or the welcome page's logo (Settings::playLogo).
+    void play(bb::cascades::ImageView *view, const bb::cascades::Image &still, const QString &path, bool loop,
+              int px = Sticker::kStickerPx);
     // Stops when view is the one playing; does nothing otherwise.
     void release(bb::cascades::ImageView *view);
     bool playing(bb::cascades::ImageView *view) const;
@@ -55,6 +59,7 @@ private:
     int m_token;        // what the worker's frames are tagged with: one that isn't the current is stale
     QString m_path;     // what plays, kept so it can start again after a pause
     bool m_loop;
+    int m_px;           // the side m_path's frames are drawn at
     QAtomicInt m_latest; // the newest token given out, read by the worker to skip a start that was replaced
     static bool s_covered; // a page other than a chat is on top
     QAtomicInt m_inFlight; // set by the worker with each frame, cleared when this side has taken it (onFrame)

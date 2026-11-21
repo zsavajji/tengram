@@ -11,6 +11,7 @@
 #include <bb/system/InvokeReply>
 #include <bb/system/InvokeReplyError>
 #include <bb/system/InvokeTimerRequest>
+#include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDate>
 #include <QDebug>
@@ -23,6 +24,7 @@
 #include <QImageReader>
 #include <QPainter>
 #include <QTime>
+#include <QUrl>
 
 #include "EngineLink.h"
 #include "PreviewMaker.h"
@@ -452,6 +454,20 @@ qint64 Settings::removeCache()
 void Settings::coverStickers(bool covered)
 {
     StickerPlayer::setCovered(covered);
+}
+
+void Settings::playLogo(QObject *view, int px)
+{
+    bb::cascades::ImageView *image = qobject_cast<bb::cascades::ImageView *>(view);
+    if (!image)
+        return;
+    const bb::cascades::Image still(QUrl("asset:///images/icon-288.png"));
+    // Animated stickers Off: the still alone, as a sticker's.
+    if (s_stickerPlay == 2)
+        image->setImage(still);
+    else
+        StickerPlayer::instance()->play(image, still, QCoreApplication::applicationDirPath() + "/assets/images/welcome.tgs",
+                                        false, px);
 }
 
 void Settings::forgetRound()

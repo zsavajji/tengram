@@ -6,6 +6,8 @@ import bb.cascades 1.4
 // Back from there comes here.
 Page {
     id: page
+    // The logo's animation plays while this page is on top (main.qml's onTopChanged).
+    property bool playsStickers: true
     actions: [
         ActionItem {
             title: qsTr("Start messaging")
@@ -40,14 +42,20 @@ Page {
             verticalAlignment: VerticalAlignment.Center
             leftPadding: ui.du(2)
             rightPadding: ui.du(2)
-            // 32 du is icon-288.png's own size on the Q10 (scripts/gen-icon.py).
+            // 32 du is icon-288.png's own size on the Q10 (scripts/gen-icon.py). The tangram square springs into the
+            // icon once (images/welcome.tgs, scripts/gen-welcome.py), drawn at the view's own px; a tap plays it again.
+            // icon-288.png, its last frame, is what it shows when it isn't playing.
             ImageView {
+                id: logo
                 horizontalAlignment: HorizontalAlignment.Center
                 preferredWidth: ui.du(32)
                 preferredHeight: ui.du(32)
                 scalingMethod: ScalingMethod.AspectFit
                 loadEffect: ImageViewLoadEffect.None
-                imageSource: "asset:///images/icon-288.png"
+                onCreationCompleted: settings.playLogo(logo, Math.round(ui.du(32)))
+                gestureHandlers: TapHandler {
+                    onTapped: settings.playLogo(logo, Math.round(ui.du(32)))
+                }
             }
             Label {
                 horizontalAlignment: HorizontalAlignment.Center

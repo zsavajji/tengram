@@ -24,7 +24,7 @@ class StickerWorker : public QObject
 public:
     StickerWorker(QAtomicInt *inFlight, QAtomicInt *latest)
         : m_inFlight(inFlight), m_latest(latest), m_animation(0), m_token(0), m_frame(0), m_frames(0), m_step(1), m_loop(false),
-          m_buffer(kStickerPx * kStickerPx)
+          m_px(kStickerPx)
     {
         // A child, so it moves to the thread with the worker.
         m_timer = new QTimer(this);
@@ -41,7 +41,7 @@ public:
 public slots:
     // Plays the TGS at path from its first frame. The animation of the last path stays loaded, so a tap that plays the same
     // sticker again parses nothing.
-    void start(int token, const QString &path, bool loop)
+    void start(int token, const QString &path, bool loop, int px)
     {
         m_timer->stop();
         // Replaced or stopped before the worker got to it: parsing it would be wasted (a fling past ten stickers parsed all ten).
@@ -69,6 +69,8 @@ public slots:
             m_step = qMax(1, qRound(lottie_animation_get_framerate(m_animation) / 30.0));
         }
         m_loop = loop;
+        m_px = px;
+        m_buffer.resize(px * px);
         m_frame = 0;
         m_timer->start();
     }
@@ -77,7 +79,7 @@ public slots:
     void halt() { m_timer->stop(); }
 
 signals:
-    // A frame as RGBA bytes, premultiplied, kStickerPx square; token is the start()'s.
+    // A frame as RGBA bytes, premultiplied, start()'s px square; token is the start()'s.
     void frameReady(int token, const QByteArray &bytes);
     // A failed load, or the last frame of a sticker that plays once.
     void finished(int token);
@@ -87,9 +89,9 @@ private slots:
     {
         // The UI hasn't taken the last frame yet: skip drawing, but go on, or the animation would slow down with it.
         if (!int(*m_inFlight)) {
-            lottie_animation_render(m_animation, m_frame, m_buffer.data(), kStickerPx, kStickerPx, kStickerPx * 4);
+            lottie_animation_render(m_animation, m_frame, m_buffer.data(), m_px, m_px, m_px * 4);
             // rlottie's pixels are 0xAARRGGBB; ImageData's RGBA_Premultiplied wants the bytes R, G, B, A.
-            QByteArray bytes(kStickerPx * kStickerPx * 4, 0);
+            QByteArray bytes(m_px * m_px * 4, 0);
             unsigned char *out = reinterpret_cast<unsigned char *>(bytes.data());
             for (int i = 0; i < m_buffer.size(); ++i) {
                 const uint32_t p = m_buffer.at(i);
@@ -122,6 +124,7 @@ private:
     int m_frames;
     int m_step;
     bool m_loop;
+    int m_px;
     QVector<uint32_t> m_buffer; // reused by every frame
     QTimer *m_timer;
 };
@@ -140,7 +143,7 @@ StickerPlayer *StickerPlayer::instance()
 
 StickerPlayer::StickerPlayer(QObject *parent)
     : QObject(parent), m_thread(new QThread(this)), m_worker(new StickerWorker(&m_inFlight, &m_latest)), m_token(0),
-      m_loop(false), m_latest(0), m_inFlight(0)
+      m_loop(false), m_px(kStickerPx), m_latest(0), m_inFlight(0)
 {
     m_worker->moveToThread(m_thread);
     // The worker dies on its own thread, when the thread ends (~StickerPlayer).
@@ -160,7 +163,8 @@ StickerPlayer::~StickerPlayer()
     m_thread->wait();
 }
 
-void StickerPlayer::play(bb::cascades::ImageView *view, const bb::cascades::Image &still, const QString &path, bool loop)
+void StickerPlayer::play(bb::cascades::ImageView *view, const bb::cascades::Image &still, const QString &path, bool loop,
+                         int px)
 {
     if (m_view && m_view != view)
         stop();
@@ -168,6 +172,7 @@ void StickerPlayer::play(bb::cascades::ImageView *view, const bb::cascades::Imag
     m_still = still;
     m_path = path;
     m_loop = loop;
+    m_px = px;
     // Under another page: it starts when a chat is on top again (setCovered).
     if (s_covered)
         return;
@@ -179,7 +184,7 @@ void StickerPlayer::begin()
     ++m_token;
     m_latest.fetchAndStoreOrdered(m_token);
     QMetaObject::invokeMethod(m_worker, "start", Qt::QueuedConnection, Q_ARG(int, m_token), Q_ARG(QString, m_path),
-                              Q_ARG(bool, m_loop));
+                              Q_ARG(bool, m_loop), Q_ARG(int, m_px));
 }
 
 void StickerPlayer::setCovered(bool covered)
@@ -231,11 +236,11 @@ void StickerPlayer::onFrame(int token, const QByteArray &bytes)
         stop();
         return;
     }
-    bb::ImageData image(bb::PixelFormat::RGBA_Premultiplied, kStickerPx, kStickerPx);
+    bb::ImageData image(bb::PixelFormat::RGBA_Premultiplied, m_px, m_px);
     unsigned char *pixels = image.pixels();
     const int stride = image.bytesPerLine();
-    for (int y = 0; y < kStickerPx; ++y)
-        memcpy(pixels + y * stride, bytes.constData() + y * kStickerPx * 4, kStickerPx * 4);
+    for (int y = 0; y < m_px; ++y)
+        memcpy(pixels + y * stride, bytes.constData() + y * m_px * 4, m_px * 4);
     m_view->setImage(bb::cascades::Image(image));
 }
 

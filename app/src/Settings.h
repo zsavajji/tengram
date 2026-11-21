@@ -132,6 +132,9 @@ public:
     // Called by main.qml's nav when the top page changes: true while no chat page is on top, and the animated stickers pause.
     // Here because Settings is the QML object that already has the sticker settings.
     Q_INVOKABLE void coverStickers(bool covered);
+    // Plays images/welcome.tgs (scripts/gen-welcome.py: the tangram square springing into the icon) once in WelcomePage's
+    // logo, an ImageView, at px; icon-288.png, its last frame, is the still. Again from the start when called again: a tap.
+    Q_INVOKABLE void playLogo(QObject *view, int px);
     // The round copy of a picture's file for Round mode (the free function below), "" when it can't be made: QML falls back to
     // the square picture. Two overloads, not a default argument: QML calls either by its argument count (160 px, or `size`).
     Q_INVOKABLE QString roundPhoto(const QString &path);
