@@ -11,6 +11,7 @@
 
 namespace bb {
 namespace cascades {
+class AbstractActionItem;
 class ActionItem;
 class ActionSet;
 class Container;
@@ -128,7 +129,7 @@ private:
     bb::cascades::ActionItem *m_translateItem;
     bb::cascades::ActionItem *m_archiveItem;
     bb::cascades::ActionItem *m_clearItem;  // Clear chat
-    bb::cascades::ActionItem *m_deleteItem; // Delete chat, Leave group or Unfollow channel: a DeleteActionItem, red, last
+    bb::cascades::AbstractActionItem *m_deleteItem; // Delete chat, Leave group or Unfollow channel: a DeleteActionItem, red, last
 };
 
 #endif

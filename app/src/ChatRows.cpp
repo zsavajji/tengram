@@ -1,5 +1,6 @@
 #include "ChatRows.h"
 
+#include <bb/cascades/AbstractActionItem>
 #include <bb/cascades/ActionItem>
 #include <bb/cascades/ActionSet>
 #include <bb/cascades/DeleteActionItem>
@@ -34,7 +35,7 @@ namespace {
 const char *const kContext = "ChatRow";
 
 // icon 0: no picture.
-void setItem(ActionItem *item, const char *title, const char *icon = 0)
+void setItem(AbstractActionItem *item, const char *title, const char *icon = 0)
 {
     item->setTitle(Card::tr(kContext, title));
     if (icon)
