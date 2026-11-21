@@ -378,7 +378,7 @@ void part_done(const std::shared_ptr<Several> &s, const td_api::error *e, bool l
 }
 
 void chat_set(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
-  td::JsonValue pin, archive, unread, mute;
+  td::JsonValue pin, archive, unread, mute, translate;
   const int has_pin = optional_field(req, "pin", td::JsonValue::Type::Boolean, pin);
   const int has_archive = optional_field(req, "archive", td::JsonValue::Type::Boolean, archive);
   const int has_unread = optional_field(req, "unread", td::JsonValue::Type::Boolean, unread);
@@ -392,11 +392,22 @@ void chat_set(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
       return bad_request(conn, id, "mute is unix seconds, 0 or -1");
     }
   }
-  if (has_pin < 0 || has_archive < 0 || has_unread < 0 || has_mute < 0) {
-    return bad_request(conn, id, "pin, archive and unread are true or false, mute is a number");
+  const int has_translate = optional_field(req, "translate", td::JsonValue::Type::String, translate);
+  const std::string lang = has_translate == 1 ? translate.get_string().str() : std::string();
+  if (has_translate == 1 && !lang.empty() && !language_code(lang)) {
+    return bad_request(conn, id, "translate is a language code or an empty string");
+  }
+  if (has_pin < 0 || has_archive < 0 || has_unread < 0 || has_mute < 0 || has_translate < 0) {
+    return bad_request(conn, id, "pin, archive and unread are true or false, mute is a number, translate a string");
+  }
+  if (has_pin + has_archive + has_unread + has_mute + has_translate == 0) {
+    return bad_request(conn, id, "at least one of pin, mute, archive, unread, translate");
+  }
+  if (has_translate) {
+    chats_set_translate(chat, lang);  // local: no TDLib call
   }
   if (has_pin + has_archive + has_unread + has_mute == 0) {
-    return bad_request(conn, id, "at least one of pin, mute, archive, unread");
+    return server.reply_ok(conn, id);
   }
 
   auto several = std::make_shared<Several>();

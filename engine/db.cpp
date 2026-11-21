@@ -33,9 +33,9 @@ std::string read_key(const std::string &path) {
   return n == 64 && raw.is_ok() ? raw.move_as_ok() : "";
 }
 
-// The version-9 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
+// The version-10 schema: HyperBerry's migrations (engine/db.go) as one step, without the stories tables, and
 // without its reactions and poll_votes tables (a message's reactions and a poll's counts are in messages.extra),
-// and with the engine's own messages.sig, chats.read_inbox, chats.forum, chats.secret, chats.mentions, chats.mentions_off, chats.reactions and messages.topic (and, in kTopics
+// and with the engine's own messages.sig, chats.read_inbox, chats.forum, chats.secret, chats.mentions, chats.mentions_off, chats.reactions, chats.translate, messages.topic, messages.tr and messages.tr_lang (and, in kTopics
 // and kPeople below, its own tables).
 // Column order is theirs, in case the UI reads by position; the engine's own come last, where ALTER TABLE
 // puts them in a migrated file. The first line removes the table that SqliteDb::change_key leaves in a
@@ -57,7 +57,8 @@ CREATE TABLE chats(
   secret INTEGER NOT NULL DEFAULT 0,
   mentions INTEGER NOT NULL DEFAULT 0,
   mentions_off INTEGER NOT NULL DEFAULT 0,
-  reactions INTEGER NOT NULL DEFAULT 0);
+  reactions INTEGER NOT NULL DEFAULT 0,
+  translate TEXT NOT NULL DEFAULT '');
 CREATE TABLE messages(
   chat TEXT NOT NULL, id TEXT NOT NULL,
   ts INTEGER NOT NULL,
@@ -74,6 +75,7 @@ CREATE TABLE messages(
   starred INTEGER NOT NULL DEFAULT 0,
   sig INTEGER,
   topic INTEGER NOT NULL DEFAULT 0,
+  tr TEXT, tr_lang TEXT,
   PRIMARY KEY(chat, id));
 CREATE INDEX messages_by_time ON messages(chat, ts);
 CREATE INDEX messages_by_kind ON messages(kind, ts);
@@ -162,7 +164,7 @@ bool Db::try_open(const std::string &raw_key) {
   }
   auto v = db_.user_version();
   if (v.is_error() || (v.ok() != 0 && v.ok() != 2 && v.ok() != 3 && v.ok() != 4 && v.ok() != 5 && v.ok() != 6 &&
-                         v.ok() != 7 && v.ok() != 8 && v.ok() != 9)) {
+                         v.ok() != 7 && v.ok() != 8 && v.ok() != 9 && v.ok() != 10)) {
     say("chats.db: user_version %d is not ours", v.is_ok() ? v.ok() : -1);
     db_.close();
     return false;
@@ -172,7 +174,8 @@ bool Db::try_open(const std::string &raw_key) {
       ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4) && !migrate_4_to_5()) ||
       ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4 || v.ok() == 5) && !migrate_5_to_6()) ||
       ((v.ok() == 2 || v.ok() == 3 || v.ok() == 4 || v.ok() == 5 || v.ok() == 6) && !migrate_6_to_7()) ||
-      ((v.ok() >= 2 && v.ok() <= 7) && !migrate_7_to_8()) || ((v.ok() >= 2 && v.ok() <= 8) && !migrate_8_to_9())) {
+      ((v.ok() >= 2 && v.ok() <= 7) && !migrate_7_to_8()) || ((v.ok() >= 2 && v.ok() <= 8) && !migrate_8_to_9()) ||
+      ((v.ok() >= 2 && v.ok() <= 9) && !migrate_9_to_10())) {
     db_.close();
     return false;
   }
@@ -182,7 +185,7 @@ bool Db::try_open(const std::string &raw_key) {
 bool Db::create_schema() {
   // One transaction, user_version inside it: a crash leaves either nothing or all of it.
   return ok(db_.begin_write_transaction(), "begin") && exec(kSchema) && exec(kTopics) && exec(kTopicReactions) && exec(kPeople) &&
-         ok(db_.set_user_version(9), "user_version") && ok(db_.commit_transaction(), "commit");
+         ok(db_.set_user_version(10), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 // Version 2 had no chats.read_inbox. One transaction with user_version inside it, as create_schema: a crash
@@ -247,6 +250,15 @@ bool Db::migrate_8_to_9() {
          exec("ALTER TABLE chats ADD COLUMN mentions_off INTEGER NOT NULL DEFAULT 0") &&
          exec("ALTER TABLE chats ADD COLUMN reactions INTEGER NOT NULL DEFAULT 0") && exec(kTopicReactions) &&
          ok(db_.set_user_version(9), "user_version") && ok(db_.commit_transaction(), "commit");
+}
+
+// Version 9 had no translation: messages.tr and tr_lang (NULL until a message is translated) and chats.translate (the language
+// the chat's incoming messages are shown in, '' off). Same shape as the others.
+bool Db::migrate_9_to_10() {
+  return ok(db_.begin_write_transaction(), "begin") && exec("ALTER TABLE messages ADD COLUMN tr TEXT") &&
+         exec("ALTER TABLE messages ADD COLUMN tr_lang TEXT") &&
+         exec("ALTER TABLE chats ADD COLUMN translate TEXT NOT NULL DEFAULT ''") &&
+         ok(db_.set_user_version(10), "user_version") && ok(db_.commit_transaction(), "commit");
 }
 
 void Db::close() {

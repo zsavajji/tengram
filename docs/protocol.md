@@ -10,7 +10,7 @@ When the code changes, this file changes with it.
 | file | what |
 |---|---|
 | `db/`, `files/` | TDLib's own database and files. Only the engine touches them. |
-| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2 to 8 are migrated in place to 9; the step to 4 empties `messages`, the step to 5 drops the unused `reactions` and `poll_votes` tables, the step to 6 adds `chats.secret`, the step to 7 `people`, the step to 8 `chats.mentions` and the step to 9 `chats.mentions_off`, `chats.reactions` and `topics.reactions`, see *chats.db*), or `db.key` is new. |
+| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2 to 9 are migrated in place to 10; the step to 4 empties `messages`, the step to 5 drops the unused `reactions` and `poll_votes` tables, the step to 6 adds `chats.secret`, the step to 7 `people`, the step to 8 `chats.mentions` and the step to 9 `chats.mentions_off`, `chats.reactions` and `topics.reactions` and the step to 10 `messages.tr`, `messages.tr_lang` and `chats.translate`, see *chats.db* and *Translation*), or `db.key` is new. |
 | `db.key` | The key of both databases: 64 hex characters (32 bytes read from `/dev/random` at the first launch), mode 0600. The engine hands it to TDLib as its database key; the UI opens `chats.db` with `PRAGMA key = "x'<the 64 characters>'"` (a raw key: no key derivation). There is no setting to turn encryption off and no passcode. |
 | `engine.json` | `{"port": 41234, "token": "<32 hex characters>"}`, mode 0600, written as a temporary file and renamed, new at every start, removed at a clean stop. |
 
@@ -54,7 +54,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.read` | `chat`; optional `upto` (a message id), `topic` | — | |
 | `chat.mention`, `chat.reaction` | `chat`; optional `topic` | `{id}` | |
 | `chat.typing` | `chat`, `on` (bool); optional `topic` | — | |
-| `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool); at least one | — | |
+| `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool), `translate` (a language code, or "" for off: see *Translation*); at least one | — | |
 | `chat.readAll` | none (no `chat`) | — | |
 | `chat.pinOrder` | `ids` (the main list's pinned chats, as strings, in their new order, top first; at least one; no `chat`) | — | |
 | `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` (optional) | `{id}` | |
@@ -122,7 +122,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `storage.clear` | — | `{freed}`, the bytes of downloaded media deleted | |
 | `network.get` | — | `{since, mobile: {sent, received}, wifi: {sent, received}, other: {sent, received}}`: bytes since `since` (unix seconds) | |
 | `network.reset` | — | — | |
-| `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `language` (string), `cacheMB` (64 to 512), `autoNet` (`none`, `wifi` or `all`), `autoPhotos` (bool), `autoVideoMB`, `autoFileMB` (0 to 2000), `galleryPrivate`, `galleryGroups`, `galleryChannels` (bool), `keepMB` (0, or 256 to 20000); each optional, at least one | — | |
+| `prefs.set` | `mode` (`auto`, `instant` or `batched`), `batchSecs` (60 to 3600), `notifyPreview` (bool), `language` (string), `googleKey` ("" for none, or 1 to 256 printable ASCII characters with no space: see *Translation*), `cacheMB` (64 to 512), `autoNet` (`none`, `wifi` or `all`), `autoPhotos` (bool), `autoVideoMB`, `autoFileMB` (0 to 2000), `galleryPrivate`, `galleryGroups`, `galleryChannels` (bool), `keepMB` (0, or 256 to 20000); each optional, at least one | — | |
 | `call.start` | `chat` (a person: a private or a secret chat); `video` (bool, default false: place a video call) | `{id}`, the call's id (a string); the call itself is told by `call` events | `unlinked`, `busy`, `bad_chat`, `bad_request` (`video` is not a bool) |
 | `call.answer` | `id` (the id of a ringing call, a string); `video` (bool, optional: with our video; absent, a video call is answered with it and a voice call without) | — | `not_found`, `bad_request` (`video` is not a bool) |
 | `call.reject` | `id` (the id of a ringing call, a string) | — | `not_found` |
@@ -198,7 +198,7 @@ changes with the `chats` event that follows (`topics.mentions` with a `topics` e
 **`chat.reaction`:** the same for the oldest of our messages with unread reactions; `reactions` changes.
 
 **`chat.set`:** `pin`, `archive`, `unread` and `mute` as HyperBerry's. The row changes when
-Telegram's echo arrives (a `chats` event), not before.
+Telegram's echo arrives (a `chats` event), not before. `translate` is ours alone: see *Translation*.
 
 **`chat.readAll`:** `readChatList` for the main list, then for the Archived one: every chat in them is read, a forum's topics too, and a chat marked
 unread is no longer marked. The rows' `unread` change with the `chats` events that follow.
@@ -618,6 +618,45 @@ HyperBerry had, is gone: `prefs.set` ignores it, so a request with only that fie
 and an old `prefs.json` keeps it unread. Defaults: `auto`, 300, true, "", 64, `wifi`, true, 15, 3, false,
 false, false, 2048. A value of the wrong type or out of range is `bad_request` and nothing is changed.
 
+## Translation
+
+Messages are translated by Telegram's own service (`translateMessageText`) unless the preference `googleKey` is set (`prefs.set`; "" is none). With a key every `msg.translate` goes to Google's Cloud Translation API (v2, `translation.googleapis.com`) instead, for when Telegram throttles translations. The key is kept in `prefs.json`, sent only to Google in a request header, and never written to a log or to an error message.
+
+| cmd | fields | result | errors |
+|---|---|---|---|
+| `msg.translate` | `chat`; `ids` (1 to 200 message ids, strings); optional `to` (a language code of 2 to 16 letters and `-`, default the base of the `language` preference, lowercased, or `en`) | `{items: [{id, text}]}` in the order of `ids` | `bad_request`, `unlinked`, `not_found`, `unsupported`, `rate_limited`, `no_key`, `offline`, `translate_failed` |
+
+Only a text message, or a photo's or video's caption, that is not deleted is translated: any other id is left out of `items`. When
+none is left, one id asked is `not_found` ("no such text") and several are `{items: []}`. `text` is '' when there is nothing to
+show: the translation is the same as the text, or the text has no letters (digits, punctuation: it is not sent). A row whose `tr_lang`
+is `to` is answered from the table. Telegram reports no source language, so there is no `from`. A secret chat is `translate_failed`
+("not in a secret chat").
+
+At most four requests are in flight at once for one `msg.translate`, started in the order of `ids`. The first failure is the
+reply and no new request starts after it; the ones in flight finish and their translations are written. `rate_limited` is code 429,
+or a message with FLOOD or QUOTA; `unsupported` a message with LANG (a language Telegram doesn't translate into); any other is
+`translate_failed`. The message is TDLib's. After a `rate_limited` answer, `msg.translate` answers `rate_limited` at once, sending
+nothing, for the "retry after N" seconds TDLib names, else 60 s, doubling at each further refusal up to 15 minutes. Four refusals
+at once count as one. A success ends the pause and starts the count over.
+
+With a Google key the texts go in requests of up to 50 texts and 10000 bytes of text (a longer text is a request of its own), one
+request at a time, in the order of `ids`; the rows that are not translated (no letters) are written as '' without a request. The
+first failure is the reply and no request starts after it; the translations already written stay. Google's source language is
+used: the text is '' also when it is the language of `to`. The errors, from Google's answer: `rate_limited` for HTTP 429 or a
+limit reason (`rateLimitExceeded`, `userRateLimitExceeded`, `dailyLimitExceeded`, `quotaExceeded`, `RESOURCE_EXHAUSTED`,
+`RATE_LIMIT_EXCEEDED`); `no_key` when Google refused the key or the API is not enabled for it (`API_KEY_INVALID`, or any other HTTP
+403); `unsupported` for any other HTTP 400; `offline` when Google gave no answer within 15 s (no network, no TLS, a timeout);
+`translate_failed` for the rest, also an answer that is not what Google sends. The message is "translate: HTTP <status>" or "translate: no
+answer from Google", never Google's body, the key or a text. The pause after `rate_limited` is Google's own, apart from Telegram's: it
+is the `Retry-After` seconds when Google sends them, else 60 s doubling up to 15 minutes, and a success of the same service ends it.
+
+Each translation is written to its row (`tr`, `tr_lang`) and the `msgs` event names the message. A row written again with the same
+`text` keeps them; an edit clears them. A translation is written only when the row's text is still the one that was sent, and, for a
+chat whose `translate` is another language, not at all (it is only the reply). `chat.set` takes `translate`: a language code, or "" for
+off. It is stored in `chats.translate` with no call to TDLib, the `chats` event names the row, and it counts as one of the "at least one" fields.
+
+The UI shows `tr` for an incoming text or caption when `tr_lang` is the chat's `translate` and `tr` isn't empty, and asks (`msg.translate`) for the rows it shows that have another `tr_lang`.
+
 ## Secret chats
 
 Secret chats are TDLib's (`use_secret_chats` is on): it does the end-to-end encryption, the engine mirrors each chat's state and
@@ -880,7 +919,7 @@ read on another device, and the delay while another device is in use are all Tel
 ## chats.db, as the UI reads it
 
 HyperBerry's tables and columns (`../hyperberry/docs/protocol.md`, *chats.db, as the UI reads
-it*), with these meanings for Telegram. `user_version` is 9. A file at version 2 to 8 is migrated in place when the engine starts;
+it*), with these meanings for Telegram. `user_version` is 10. A file at version 2 to 9 is migrated in place when the engine starts;
 the step from 3 to 4 adds `chats.forum`, `messages.topic` and `topics`, and **empties `messages`**:
 the old rows have no topic, and the table is a cache that TDLib refills (the engine writes each chat's newest message again
 when it starts, and a page of history when the UI opens a chat). `chats` and its rows stay. The step from 4 to 5 **drops the
@@ -892,7 +931,7 @@ tells it of users, so a group's messages from a user it has not written yet have
 7 to 8 adds `chats.mentions`, 0 in every old row until the engine writes the row again (the next start does, for every chat whose
 count is not 0). The step from 8 to 9 adds `chats.mentions_off`, `chats.reactions` and `topics.reactions`; version 8's `mentions` was 0 while
 the chat's mention notifications were off. The next start writes the chat rows that differ; a topic's row has 0 reactions
-until the UI next lists the forum's topics.
+until the UI next lists the forum's topics. The step from 9 to 10 adds `messages.tr` and `tr_lang` (NULL: not asked yet) and `chats.translate` ('' in every row), see *Translation*.
 
 **`chats`:** one row per chat in Telegram's main or archived chat list, and no others.
 
@@ -911,6 +950,7 @@ until the UI next lists the forum's topics.
 | `forum` | 1 for a supergroup with topics (see *Forum topics*); 0 for any other chat, and until the engine next writes the row of a chat in a database that was at `user_version` 3. A group can become a forum or stop being one: a `chats` event names the row. Messages already in `messages` keep the `topic` they had (0 for a group that was not a forum): the UI uses `messages.topic` only while `forum` is 1, and a chat that has just become a forum gets its topics' messages from `chat.open` with `topic` |
 | `mentions` | the unread messages that mention us or reply to ours (TDLib's `unread_mention_count`). A mention is read only when its own message is viewed (`chat.mention`), not by `chat.read` |
 | `reactions` | our messages with reactions we have not seen (TDLib's `unread_reaction_count`), read only when that message is viewed (`chat.reaction`) |
+| `translate` | the language the chat's incoming messages are shown in (`chat.set`'s `translate`); '' when off. Never rewritten by the engine's own row writes, only by `chat.set` |
 | `mentions_off` | 1 while the chat's mention notifications are off (its own setting, or its kind's default), else 0. A muted chat's `mentions` notify (the Hub) unless this is 1; the Active Frame counts them for a muted chat in place of `unread` |
 | `secret` | 0 for any chat that is not a secret chat; for a secret chat 1 pending, 2 ready, 3 closed (see *Secret chats*); a `chats` event names the row when it changes. 0 in a database that was at `user_version` 5 until the engine next writes the row (no old row is a secret chat) |
 
@@ -954,6 +994,7 @@ and for a photo that is not downloaded yet. The rows are never pruned, and a log
 | `played` | voice notes and round videos: 1 once listened to |
 | `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
 | `topic` | the forum topic the message belongs to: its id (General is 1); 0 in every chat that is not a forum. Index `messages_by_topic` on `(chat, topic, ts)`: a topic's page is `WHERE chat = ? AND topic = ? ORDER BY ts, CAST(id AS INTEGER)` |
+| `tr`, `tr_lang` | a translation (see *Translation*): `tr` is the text in the language `tr_lang`, '' when there is nothing to show (it is the same as `text`, or has no words); NULL, NULL when not asked. Cleared when the message's text changes |
 | `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted`, `closed` and `fixed`; a message's `reactions`; a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs`; `ttl` and `expiresAt` of a self-destructing message; `album`, Telegram's album id as a string, shared by the album's messages |
 
 **Reactions:** any kind's `extra` can carry `reactions: [{e, n, me}, …]`, one object for each emoji reaction on the message in

@@ -9,6 +9,7 @@
 #include <ctime>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -103,6 +104,7 @@ std::unordered_map<int, std::int64_t> user_downloads;  // the same for the users
 std::unordered_map<int, int> accent_colors;       // a server accent colour's id -> the built-in one (0 to 6) to use for it
 std::unordered_set<std::int64_t> unknown_chats;   // chats an update named that we have no record of (logged once)
 std::vector<std::int64_t> dirty_ids;              // the chats with dirty set
+std::vector<std::pair<std::int64_t, std::string>> translate_todo;  // chat.set's translate, written by chats_write
 std::vector<std::int64_t> changed;                // written or deleted, their event is still to come
 int scope_mute[3] = {0, 0, 0};                    // default mute_for of private chats, groups, channels
 std::int64_t scope_learned[3] = {0, 0, 0};
@@ -506,8 +508,9 @@ bool prepare() {
   if (insert_row.empty()) {
     insert_row = db.prepare(
         "INSERT OR REPLACE INTO chats(jid, kind, name, photo, last_ts, last_preview, last_out, last_state, unread, "
-        "muted_until, pinned, archived, read_inbox, forum, secret, mentions, mentions_off, reactions) "
-        "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)");
+        "muted_until, pinned, archived, read_inbox, forum, secret, mentions, mentions_off, reactions, translate) "
+        "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, "
+        "COALESCE((SELECT translate FROM chats WHERE jid = ?1), ''))");
   }
   if (delete_row.empty()) {
     delete_row = db.prepare("DELETE FROM chats WHERE jid = ?1");
@@ -974,6 +977,27 @@ void chats_write() {
     flag_written = db.exec("INSERT OR REPLACE INTO engine_state VALUES('chatlist_complete', 1)");
   }
   people_write();
+  if (!translate_todo.empty()) {
+    auto set = db.prepare("UPDATE chats SET translate = ?2 WHERE jid = ?1");
+    for (const auto &[chat, lang] : std::exchange(translate_todo, {})) {
+      const std::string jid = std::to_string(chat);  // bound by reference: it must outlive the step
+      td::Status status = set.empty() ? td::Status::Error("no statement") : set.bind_string(1, jid);
+      if (status.is_ok()) {
+        status = set.bind_string(2, lang);
+      }
+      if (status.is_ok()) {
+        status = set.step();
+      }
+      if (!set.empty()) {
+        set.reset();
+      }
+      if (status.is_error()) {
+        say("chats.db: translate of chat %lld: %s", static_cast<long long>(chat), status.message().c_str());
+      } else {
+        changed.push_back(chat);
+      }
+    }
+  }
   if (dirty_ids.empty()) {
     return;
   }
@@ -1041,6 +1065,11 @@ void chats_write() {
   dirty_ids.clear();
 }
 
+void chats_set_translate(std::int64_t chat, const std::string &lang) {
+  translate_todo.emplace_back(chat, lang);
+  mark_dirty(true);
+}
+
 void chats_events() {
   for (std::size_t i = 0; i < changed.size(); i += kEventJids) {
     const std::vector<std::int64_t> part(changed.begin() + static_cast<std::ptrdiff_t>(i),
@@ -1076,6 +1105,7 @@ void chats_reset() {
   user_downloads.clear();
   unknown_chats.clear();
   dirty_ids.clear();
+  translate_todo.clear();
   for (int s = 0; s < 3; ++s) {
     scope_mute[s] = 0;
     scope_learned[s] = 0;

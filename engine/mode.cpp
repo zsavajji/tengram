@@ -43,6 +43,7 @@ struct Prefs {
   // previews are worded in English (language), and TDLib's file cache is not pruned by it (cacheMB; the pruning is
   // data.keepMB).
   std::string language;
+  std::string google_key;  // translate.cpp's optional Google API key; never logged
   int cache_mb = 64;
   DataPrefs data;  // automatic download, the gallery copy, the media kept (data.cpp)
 } prefs;
@@ -194,6 +195,7 @@ void save_prefs() {
     o("batchSecs", prefs.batch_secs);
     o("notifyPreview", td::JsonBool(prefs.notify_preview));
     o("language", prefs.language);
+    o("googleKey", prefs.google_key);
     o("cacheMB", prefs.cache_mb);
     o("autoNet", prefs.data.auto_net);
     o("autoPhotos", td::JsonBool(prefs.data.auto_photos));
@@ -226,6 +228,12 @@ bool whole_in(const td::JsonValue &v, int lo, int hi, int &out) {
 bool valid_language(const td::JsonValue &v, std::string &out) {
   out = v.get_string().str();
   return out.size() <= 16;
+}
+
+// "" (none) or 1 to 256 bytes of printable ASCII with no space.
+bool valid_google_key(const td::JsonValue &v, std::string &out) {
+  out = v.get_string().str();
+  return out.size() <= 256 && std::all_of(out.begin(), out.end(), [](char c) { return c >= 0x21 && c <= 0x7E; });
 }
 
 // The data preferences in `obj`, merged into `d`: how many there were, or -1 when one has the wrong type or a value
@@ -290,26 +298,29 @@ void ui_state(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
 }
 
 void prefs_set(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
-  td::JsonValue mode, secs, preview, language, cache;
+  td::JsonValue mode, secs, preview, language, cache, google;
   const int has_mode = optional_field(req, "mode", td::JsonValue::Type::String, mode);
   const int has_secs = optional_field(req, "batchSecs", td::JsonValue::Type::Number, secs);
   const int has_preview = optional_field(req, "notifyPreview", td::JsonValue::Type::Boolean, preview);
   const int has_language = optional_field(req, "language", td::JsonValue::Type::String, language);
   const int has_cache = optional_field(req, "cacheMB", td::JsonValue::Type::Number, cache);
+  const int has_google = optional_field(req, "googleKey", td::JsonValue::Type::String, google);
   DataPrefs data = prefs.data;
   const int has_data = data_prefs_read(req, data);
   int batch = 0, cache_mb = 0;
-  std::string lang;
-  if (has_mode < 0 || has_secs < 0 || has_preview < 0 || has_language < 0 || has_cache < 0 || has_data < 0 ||
-      has_mode + has_secs + has_preview + has_language + has_cache + has_data == 0 ||
+  std::string lang, key;
+  if (has_mode < 0 || has_secs < 0 || has_preview < 0 || has_language < 0 || has_cache < 0 || has_google < 0 ||
+      has_data < 0 || has_mode + has_secs + has_preview + has_language + has_cache + has_google + has_data == 0 ||
       (has_mode == 1 && !valid_mode(mode.get_string().str())) ||
       (has_secs == 1 && !whole_in(secs, kBatchMin, kBatchMax, batch)) ||
       (has_language == 1 && !valid_language(language, lang)) ||
+      (has_google == 1 && !valid_google_key(google, key)) ||
       (has_cache == 1 && !whole_in(cache, 64, 512, cache_mb))) {
     server.reply_error(conn, id, "bad_request",
                        "mode is auto, instant or batched, batchSecs a whole number from " + std::to_string(kBatchMin) +
                            " to " + std::to_string(kBatchMax) + ", notifyPreview, autoPhotos, galleryPrivate, " +
                            "galleryGroups and galleryChannels true or false, language a string of at most 16 bytes, " +
+                           "googleKey \"\" or 1 to 256 printable ASCII characters with no space, " +
                            "cacheMB a whole number from 64 to 512, autoNet none, wifi or all, autoVideoMB and " +
                            "autoFileMB whole numbers from 0 to 2000, keepMB 0 or a whole number from 256 to 20000; " +
                            "at least one");
@@ -329,6 +340,9 @@ void prefs_set(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
   }
   if (has_language == 1) {
     prefs.language = lang;
+  }
+  if (has_google == 1) {
+    prefs.google_key = key;
   }
   if (has_cache == 1) {
     prefs.cache_mb = cache_mb;
@@ -353,10 +367,10 @@ void mode_init() {
   if (parsed.is_error() || parsed.ok_ref().type() != td::JsonValue::Type::Object) {
     return;  // missing or unreadable: the defaults
   }
-  td::JsonValue mode, secs, preview, language, cache;
+  td::JsonValue mode, secs, preview, language, cache, google;
   auto &obj = parsed.ok_ref().get_object();
   int batch = 0, cache_mb = 0;
-  std::string lang;
+  std::string lang, key;
   if (optional_field(obj, "mode", td::JsonValue::Type::String, mode) == 1 && valid_mode(mode.get_string().str())) {
     prefs.mode = mode.get_string().str();
   }
@@ -369,6 +383,9 @@ void mode_init() {
   }
   if (optional_field(obj, "language", td::JsonValue::Type::String, language) == 1 && valid_language(language, lang)) {
     prefs.language = lang;
+  }
+  if (optional_field(obj, "googleKey", td::JsonValue::Type::String, google) == 1 && valid_google_key(google, key)) {
+    prefs.google_key = key;
   }
   if (optional_field(obj, "cacheMB", td::JsonValue::Type::Number, cache) == 1 && whole_in(cache, 64, 512, cache_mb)) {
     prefs.cache_mb = cache_mb;
@@ -390,6 +407,14 @@ bool mode_request(std::uint64_t conn, const std::string &id, const std::string &
     return false;
   }
   return true;
+}
+
+const std::string &mode_language() {
+  return prefs.language;
+}
+
+const std::string &mode_google_key() {
+  return prefs.google_key;
 }
 
 bool mode_notify_preview() {

@@ -176,7 +176,7 @@ void handle_request(std::uint64_t conn, const std::string &id, const std::string
       profile_handle(conn, id, cmd, req) || sessions_handle(conn, id, cmd, req) || pages_handle(conn, id, cmd, req) ||
       manage_handle(conn, id, cmd, req) || account_handle(conn, id, cmd, req) || data_handle(conn, id, cmd, req) ||
       topics_handle(conn, id, cmd, req) || stickers_handle(conn, id, cmd, req) || calls_handle(conn, id, cmd, req) ||
-      mode_request(conn, id, cmd, req)) {
+      translate_handle(conn, id, cmd, req) || mode_request(conn, id, cmd, req)) {
     return;
   }
   server.reply_error(conn, id, "unknown_cmd", "unknown cmd " + cmd);
@@ -334,6 +334,7 @@ int main(int argc, char **argv) {
   }
   tdlib.start(wake[1]);
   calls_start(wake[1]);
+  translate_start(wake[1]);
   if (service) {
     bb10_start(wake[1]);
   }
@@ -399,6 +400,7 @@ int main(int argc, char **argv) {
       }
       tdlib.drain();
       calls_drain();
+      translate_drain();
       if (service) {
         bb10_drain();
       }

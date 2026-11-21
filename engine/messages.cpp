@@ -647,14 +647,15 @@ Row row_of(const td_api::message &m) {
 
 enum Stmt {
   kInsert, kSelSig, kSelText, kSelKind, kSelPlayed, kSelTopic, kDelete, kIdsInRange, kIdsRead, kSetRead, kSetPlayed,
-  kStmts
+  kSetTr, kChanges, kStmts
 };
 
 const char *const kSql[kStmts] = {
     "INSERT OR REPLACE INTO messages(chat, id, ts, out, state, sender, sender_name, kind, text, quote_id, "
     "quote_preview, edited, duration, waveform, media_state, played, thumb, width, height, size, path, extra, topic, "
-    "sig) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, "
-    "?23, ?24)",
+    "sig, tr, tr_lang) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, "
+    "?23, ?24, (SELECT tr FROM messages WHERE chat = ?1 AND id = ?2 AND text IS ?9), "
+    "(SELECT tr_lang FROM messages WHERE chat = ?1 AND id = ?2 AND text IS ?9))",
     "SELECT sig FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT text FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT kind FROM messages WHERE chat = ?1 AND id = ?2",
@@ -666,6 +667,9 @@ const char *const kSql[kStmts] = {
     "SELECT id FROM messages WHERE chat = ?1 AND out = 1 AND state = 1 AND CAST(id AS INTEGER) <= ?2",
     "UPDATE messages SET state = 3, sig = NULL WHERE chat = ?1 AND out = 1 AND state = 1 AND CAST(id AS INTEGER) <= ?2",
     "UPDATE messages SET played = 1, sig = NULL WHERE chat = ?1 AND id = ?2",
+    "UPDATE messages SET tr = ?3, tr_lang = ?4 WHERE chat = ?1 AND id = ?2 AND text = ?5 AND "
+    "COALESCE((SELECT translate FROM chats WHERE jid = ?1), '') IN ('', ?4)",
+    "SELECT changes()",
 };
 
 td::SqliteStatement stmts[kStmts];
@@ -810,6 +814,37 @@ void put(Row r) {
   check(status, "insert");
   if (status.is_ok()) {
     note(r.chat, r.id);
+  }
+}
+
+// Writes a translation. AND text: an edit that landed meanwhile keeps its cleared columns. A chat with its own language keeps
+// its rows in that language when the dialog asks for another one: that translation is only the reply.
+void translated(std::int64_t chat, std::int64_t id, const std::string &source, const std::string &tr,
+                const std::string &lang) {
+  const Key key(chat, id);
+  auto &s = stmts[kSetTr];
+  s.reset();
+  td::Status status = key.bind(s);
+  if (status.is_ok()) {
+    status = s.bind_string(3, tr);
+  }
+  if (status.is_ok()) {
+    status = s.bind_string(4, lang);
+  }
+  if (status.is_ok()) {
+    status = s.bind_string(5, source);
+  }
+  if (status.is_ok()) {
+    status = s.step();
+  }
+  s.reset();
+  check(status, "translation");
+  auto &c = stmts[kChanges];
+  c.reset();
+  const bool did = c.step().is_ok() && c.has_row() && c.view_int32(0) > 0;
+  c.reset();
+  if (status.is_ok() && did) {
+    note(chat, id);
   }
 }
 
@@ -1011,6 +1046,12 @@ void messages_queue(const td_api::message &m, const std::string &local) {
     append_extra(row, "\"local\":\"" + local + "\"");  // msg_send checked it is [a-z0-9-]
   }
   ops.push_back([row = std::move(row)] { put(row); });
+  mark_dirty();
+}
+
+void messages_translated(std::int64_t chat, std::int64_t id, const std::string &source, const std::string &tr,
+                         const std::string &lang) {
+  ops.push_back([=] { translated(chat, id, source, tr, lang); });
   mark_dirty();
 }
 

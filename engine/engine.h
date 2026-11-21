@@ -70,6 +70,8 @@ void chats_write();                         // flush(): write the changed rows (
 void chats_events();                        // flush(): the `chats` events, after the commit
 void chats_reset();                         // a new client after a logout, db.wipe() done: forget everything
 void chats_close();                         // before db.close(): finalizes the prepared statements
+// chat.set's translate: the language the chat's incoming messages are shown in ('' off), written at the next flush.
+void chats_set_translate(std::int64_t chat, const std::string &lang);
 std::string one_line(std::string s);  // newlines and tabs to spaces, at most 150 bytes, cut between characters
 struct ChatBrief {
   int kind;  // chats.kind
@@ -134,6 +136,10 @@ void messages_queue(const td_api::message &m, const std::string &local = std::st
 void messages_reconcile(std::int64_t chat, std::int32_t topic,
                         const std::vector<td_api::object_ptr<td_api::message>> &page, std::int64_t oldest,
                         std::int64_t upper);
+// A message's translation (translate.cpp): written when the row still holds `source` as its text, and the chat's own
+// language, if it has one, is `lang`. The `msgs` event goes out only when a row changed.
+void messages_translated(std::int64_t chat, std::int64_t id, const std::string &source, const std::string &tr,
+                         const std::string &lang);
 // A reply to send after the next flush has committed. Marks dirty.
 void queue_reply(std::uint64_t conn, const std::string &id, const std::string &result_json);
 
@@ -179,6 +185,13 @@ std::string path_json(const std::string &path);  // {"path": ...}, the result of
 bool voice_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 bool voice_deadline(std::chrono::steady_clock::time_point &due);  // while recording: when "recording" goes out again
 void voice_tick();                                                // that time has come
+
+// translate.cpp: msg.translate, a message's text through Telegram's own translation (docs/protocol.md, "Translation"). Up
+// to four requests to TDLib at once for one msg.translate, and a pause after Telegram refuses for too many.
+bool translate_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+void translate_start(int wake_fd);  // keeps the wake fd for the threads of the Google requests
+void translate_drain();             // runs what those threads posted (main thread)
+bool language_code(const std::string &s);  // 2 to 16 bytes of letters and '-': what msg.translate's `to` and chat.set's translate hold
 
 // topics.cpp: the `topics` table, topics.list, and what keeps the rows current. Only a chat the UI has asked for
 // (topics.list, or a chat.open, chat.newer or chat.read with a topic) is kept: no fetch for the forums it never saw.
@@ -275,6 +288,8 @@ void mode_connection(bool ready);           // TDLib's connection state changed:
 void mode_update(td_api::Object &update);   // updateUserStatus of our own account
 void mode_network(bool available, bool wifi);  // the system's network status: none, or Wi-Fi, or mobile data
 bool mode_notify_preview();                 // the preference notifyPreview
+const std::string &mode_language();         // the `language` preference, as the UI sent it ("" until it did)
+const std::string &mode_google_key();       // the `googleKey` preference: "" for none. Never to a log
 const DataPrefs &mode_data_prefs();         // the preferences of data.cpp
 bool mode_auto_download_ok();               // the system's network is one that autoNet allows
 bool mode_ui_shows(std::int64_t chat);      // a UI that is in front has this chat open

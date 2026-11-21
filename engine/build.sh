@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds build/tengramd (stripped), build/tengramd.unstripped, build/dbq and build/voice_check for BB10 inside the
+# Builds build/tengramd (stripped), build/tengramd.unstripped, build/dbq, build/voice_check and build/https_check for BB10 inside the
 # tengram-build image. Run from the Mac after scripts/build-deps.sh. With TG_API_ID and TG_API_HASH in the environment they are
 # compiled in (the packaged service gets no environment of ours); they are never written to a file. Same link line as probe/build.sh. TD_LTO= (empty) if the
 # libraries were built with TD_LTO=OFF.
@@ -24,4 +24,6 @@ bb10-clang++ -std=c++20 -O2 ${TD_LTO:+-flto=thin} -Wall $INC tests/dbq.cpp -o bu
 $STRIP build/dbq &&
 bb10-clang++ -std=c++20 -O2 -Wall -isystem build/prefix/include tests/voice_check.cpp engine/opus_ogg.cpp -o build/voice_check $L/libopus.a -lm &&
 $STRIP build/voice_check &&
-ls -l build/tengramd build/dbq build/voice_check'
+bb10-clang++ -std=c++20 -O2 -Wall -isystem build/prefix/include tests/https_check.cpp engine/https.cpp -o build/https_check $L/libssl.a $L/libcrypto.a -lsocket -lm &&
+$STRIP build/https_check &&
+ls -l build/tengramd build/dbq build/voice_check build/https_check'
