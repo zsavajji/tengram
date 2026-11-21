@@ -21,6 +21,9 @@ Page {
     property variant country: Phone.byRegion(Phone.all(Countries.data, phoneLocale.language), phoneLocale.region)
     // The user picked a country, or typed a number that carries its own.
     property bool chosen: false
+    // The number field's text as it is typed: a TextField's text changes only when it loses focus, so Get code stayed off
+    // until the field was left (the user, 2026-11-21), and submit() could read it stale.
+    property string typed: ""
     property string ipCountry: engine.link.country || ""
     // When the picker closed: the Enter that chose a country can reach the number field too.
     property double pickedAt: 0
@@ -33,7 +36,7 @@ Page {
             title: qsTr("Get code")
             imageSource: "file:///usr/share/icons/bb_action_sendtextmessage.png"
             ActionBar.placement: ActionBarPlacement.Signature
-            enabled: page.canAsk && !page.asking && page.country != null && number.text != ""
+            enabled: page.canAsk && !page.asking && page.country != null && page.typed.replace(/\s/g, "") != ""
             onTriggered: page.submit()
         },
         ActionItem {
@@ -65,13 +68,14 @@ Page {
     }
 
     function submit() {
-        if (!canAsk || !country || number.text == "" || asking)
+        var text = typed
+        if (!canAsk || !country || text.replace(/\s/g, "") == "" || asking)
             return
         asking = true
         // Still "+" or "00" at the start: detect() placed no country (a test server's 99966…), so it goes as typed.
-        var intl = /^\s*(\+|00)/.test(number.text)
-        engine.request("link.phone", {"phone": intl ? "+" + number.text.replace(/^\s*00/, "").replace(/\D/g, "")
-                                                    : Phone.international(country, number.text)})
+        var intl = /^\s*(\+|00)/.test(text)
+        engine.request("link.phone", {"phone": intl ? "+" + text.replace(/^\s*00/, "").replace(/\D/g, "")
+                                                    : Phone.international(country, text)})
     }
     function pickCountry() {
         var picker = countryDef.createObject()
@@ -98,6 +102,7 @@ Page {
             country = found.country
             chosen = true
             number.text = found.rest
+            typed = found.rest
         }
     }
     function useIpCountry() {
@@ -198,7 +203,10 @@ Page {
                         if (Date.now() - page.pickedAt > 1000)
                             page.submit()
                     }
-                    onTextChanging: page.detect(text)
+                    onTextChanging: {
+                        page.typed = text
+                        page.detect(text)
+                    }
                 }
             }
             Label {
