@@ -1174,6 +1174,13 @@ void MessageModel::onChats(const QStringList &jids)
     emit translateChanged();
     m_askedTr.clear();
     m_toTranslate.clear();
+    // The requests still with Telegram are for the language just left: nothing of theirs is shown, so they no longer
+    // count as translating (the title bar said so for as long as Telegram took, the user, 2026-11-21), and a late
+    // failure of theirs is not this language's.
+    if (!m_translating.isEmpty()) {
+        m_translating.clear();
+        emit translatingChanged();
+    }
     m_retries = 0;
     m_retry.stop();
     reload();
