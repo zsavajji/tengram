@@ -1,1 +1,3 @@
 - [Tengram direction](tengram-direction.md) — Telegram for BB10: 100% C++, HyperBerry UI fork, TDLib/TDLight, first gate = TDLib on QNX + 30 MB cap
+- [No session trailers](no-session-trailers.md) — no Claude-Session or co-author lines in commits; history was stripped of them
+- [Sign-up testing](signup-testing.md) — Telegram's test servers refuse every code now; only a never-registered number tests the sign-up
