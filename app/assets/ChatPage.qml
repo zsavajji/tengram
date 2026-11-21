@@ -183,9 +183,18 @@ Page {
             id: translateAction
             title: qsTr("Translate…")
             imageSource: "asset:///images/translate_action.png"
-            onTriggered: chatTranslate.pick(page.chat.jid, ctl.messages ? ctl.messages.translate : "")
+            // The picker is made at its first use, like translateDialog().
+            onTriggered: {
+                if (!page.pickerObj) {
+                    page.pickerObj = pickerDef.createObject(page)
+                }
+                page.pickerObj.pick(page.chat.jid, ctl.messages ? ctl.messages.translate : "")
+            }
         },
-        TranslatePicker { id: chatTranslate },
+        ComponentDefinition {
+            id: pickerDef
+            TranslatePicker {}
+        },
         SystemToast {
             id: translateWarning
         },
@@ -361,6 +370,7 @@ Page {
     property variant reactObj
     property variant stagedObj
     property variant translateObj
+    property variant pickerObj
     // The codes already warned about in this opening of the chat, "|" before each: the warning shows once for each.
     // A string: an object in a variant property is copied at each read, so a key set on it is lost.
     property string warned: ""
