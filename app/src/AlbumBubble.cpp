@@ -129,6 +129,19 @@ AlbumBubble::AlbumBubble(ListView *list)
     root->setTopPadding(m_ui->du(1));
     root->setBottomPadding(m_ui->du(1));
 
+    // The tiles, and over them the time's corner, 1 du in from the last tile's edges as on a photo.
+    Container *dock = new Container();
+    dock->setLayout(new DockLayout());
+    Container *grid = new Container();
+    dock->add(grid);
+    m_stamp = new Container();
+    m_stamp->setHorizontalAlignment(HorizontalAlignment::Right);
+    m_stamp->setVerticalAlignment(VerticalAlignment::Bottom);
+    m_stamp->setRightPadding(m_ui->du(1));
+    m_stamp->setBottomPadding(m_ui->du(1));
+    dock->add(m_stamp);
+    root->add(dock);
+
     // Two rows of two tiles, a gap apart; show() sizes them.
     const float gap = m_ui->du(0.5);
     for (int row = 0; row < 2; ++row) {
@@ -143,7 +156,7 @@ AlbumBubble::AlbumBubble(ListView *list)
             tiles->add(tile->box());
             m_tiles[row * 2 + column] = tile;
         }
-        root->add(tiles);
+        grid->add(tiles);
         if (row == 1)
             m_second = tiles;
     }

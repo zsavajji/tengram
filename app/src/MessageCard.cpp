@@ -29,6 +29,7 @@
 #include <bb/cascades/UIPalette>
 #include <bb/cascades/VerticalAlignment>
 
+#include "AlbumBubble.h"
 #include "CardStyle.h"
 #include "MediaBubble.h"
 #include "PollBubble.h"
@@ -1022,9 +1023,12 @@ void MessageCard::fillFoot()
     const bool small = !m_head && (named() || (!flag("deleted") && m_msg.value("forwarded").toInt() > 0) || !str("quote").isEmpty());
     const bool onPicture = m_head && !m_card->isVisible();
     const bool onSticker = m_media && str("media") == "sticker" && flag("hasThumb");
-    const int place = onPicture ? 2 : onSticker ? 4 : m_words->isVisible() ? 1 : m_voice && flag("voice") ? 3 : 0;
+    // An album with no caption: on its last tile, as on a photo (beside it, it took the time's width from the tiles,
+    // cut at the left, the user's screenshot 2026-11-21).
+    const bool onAlbum = m_album && !m_msg.value("album").toList().isEmpty();
+    const int place = onPicture ? 2 : onSticker ? 4 : m_words->isVisible() ? 1 : onAlbum ? 5 : m_voice && flag("voice") ? 3 : 0;
     placeTime(place);
-    const bool chip = place == 2 || place == 4;
+    const bool chip = place == 2 || place == 4 || place == 5;
     // The top padding is this one's, on a picture too; set only when it changed.
     const float top = chip ? m_ui->du(0.5) : place == 0 ? m_ui->px((small ? 11 : 16) * m_scale) : 0;
     if (top != m_timeTop) {
@@ -1109,13 +1113,13 @@ void MessageCard::placeTime(int place)
     if (place == m_timePlace)
         return;
     Container *const homes[] = { m_card, m_words, m_media ? m_media->stamp() : 0, m_voice ? m_voice->stamp() : 0,
-                                 m_media ? m_media->stickerStamp() : 0 };
+                                 m_media ? m_media->stickerStamp() : 0, m_album ? m_album->stamp() : 0 };
     if (m_timePlace >= 0)
         homes[m_timePlace]->remove(m_timeBox);
     homes[place]->add(m_timeBox);
     m_timePlace = place;
 
-    const bool onPicture = place == 2 || place == 4; // a sticker's has the picture's chip
+    const bool onPicture = place == 2 || place == 4 || place == 5; // a sticker's and an album's have the picture's chip
     const float chip = onPicture ? m_ui->du(1) : 0;
     m_timeBox->setHorizontalAlignment(place == 1 ? HorizontalAlignment::Right : HorizontalAlignment::Left);
     m_timeBox->setVerticalAlignment(place == 1 ? VerticalAlignment::Bottom : VerticalAlignment::Top);

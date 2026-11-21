@@ -133,7 +133,7 @@ private:
     bool m_rich;
     QVariantMap m_msg;
     bool m_pressed;
-    int m_timePlace; // where m_timeBox is: -1 nowhere yet, 0 beside the column, 1 at the text's end, 2 on the picture, 3 under the voice note, 4 on the sticker
+    int m_timePlace; // where m_timeBox is: -1 nowhere yet, 0 beside the column, 1 at the text's end, 2 on the picture, 3 under the voice note, 4 on the sticker, 5 on the album
     float m_timeTop; // m_timeBox's top padding as last set, -1 for none
     float m_colMax; // m_col's maxWidth as last set, -1 for none
     int m_tick; // the picture m_ticks has: -1 none yet, 0 the clock, 1 one tick, 2 two

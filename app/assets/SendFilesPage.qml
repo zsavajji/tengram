@@ -212,9 +212,13 @@ Page {
                             // The pencil and the cross are reached by the Classic's trackpad: a separate button in the item, so it takes
                             // the focus itself (FocusPolicy.Key: a touch leaves the focus, and the caption's keyboard, alone), lit in the
                             // primary colour, and a click (Enter) does what a tap does. The picture's tap, and a video's, are the pencil's.
+                            // Both boxes have a size: with none, Round mode's disc (circle.png) made each 256 px, two big discs over the
+                            // picture (the user, 2026-11-21; a preferred size of 0 on the disc did not stop it, on 1.0.0.108).
                             TapArea {
                                 id: editBtn
                                 visible: ListItemData.kind <= 1
+                                preferredWidth: ui.du(7)
+                                preferredHeight: ui.du(7)
                                 horizontalAlignment: HorizontalAlignment.Right
                                 verticalAlignment: VerticalAlignment.Bottom
                                 focusPolicy: FocusPolicy.Key
@@ -242,6 +246,8 @@ Page {
                             // The cross, a square in the corner, as the pencil is; a sibling of the picture, so its tap isn't the picture's.
                             TapArea {
                                 id: dropBtn
+                                preferredWidth: ui.du(7)
+                                preferredHeight: ui.du(7)
                                 horizontalAlignment: HorizontalAlignment.Right
                                 verticalAlignment: VerticalAlignment.Top
                                 focusPolicy: FocusPolicy.Key
@@ -253,10 +259,8 @@ Page {
                                     filterColor: dropBtn.focused ? ui.palette.primary : Color.create("#99000000")
                                 }
                                 Container {
-                                    leftPadding: ui.du(2)
-                                    rightPadding: ui.du(2)
-                                    topPadding: ui.du(1.5)
-                                    bottomPadding: ui.du(1.5)
+                                    horizontalAlignment: HorizontalAlignment.Center
+                                    verticalAlignment: VerticalAlignment.Center
                                     Label {
                                         text: "✕"
                                         textFormat: TextFormat.Plain

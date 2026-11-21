@@ -32,6 +32,8 @@ public:
     explicit AlbumBubble(bb::cascades::ListView *list);
 
     void show(const QVariantMap &msg);
+    // The time's corner over the tiles' bottom right, as MediaBubble's stamp(): empty unless the card puts the time in it.
+    bb::cascades::Container *stamp() const { return m_stamp; }
 
 private slots:
     void refresh();
@@ -45,6 +47,7 @@ private:
     QVariantMap m_msg;
     AlbumTile *m_tiles[4];
     bb::cascades::Container *m_second; // the second row of tiles: an album of two has none
+    bb::cascades::Container *m_stamp;
     float m_size; // a tile's side, set by show()
     bool m_wide;  // the third tile spans the row (an album of three)
 };
