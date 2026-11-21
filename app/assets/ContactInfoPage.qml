@@ -196,7 +196,10 @@ Page {
         SystemDialog {
             id: clearDialog
             title: qsTr("Clear this chat?")
-            body: qsTr("Its messages will be deleted from this phone.")
+            // Not "from this phone": the history goes from the account, on every device; an active secret chat's on both sides.
+            body: page.chat && (page.chat.secret == 1 || page.chat.secret == 2)
+                  ? qsTr("Its messages will be deleted for both of you.")
+                  : qsTr("Its messages will be deleted for you on all your devices. The others in the chat keep theirs.")
             confirmButton.label: qsTr("Clear")
             cancelButton.label: qsTr("Cancel")
             onFinished: {
@@ -220,7 +223,9 @@ Page {
         SystemDialog {
             id: deleteDialog
             title: qsTr("Delete this chat?")
-            body: qsTr("Its messages will be deleted from this phone.")
+            body: page.chat && (page.chat.secret == 1 || page.chat.secret == 2)
+                  ? qsTr("The secret chat ends, and its messages are deleted for both of you.")
+                  : qsTr("Its messages will be deleted for you on all your devices, and the chat leaves your list.")
             confirmButton.label: qsTr("Delete")
             cancelButton.label: qsTr("Cancel")
             onFinished: {

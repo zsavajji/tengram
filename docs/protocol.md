@@ -91,7 +91,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `group.info` | `chat` (a basic group, or a supergroup that is not a channel) | `{subject, description, participants: [{jid, name, admin, me, photo}], count, picture, membersAdd}`; `photo` is absent when not downloaded yet | `bad_chat` |
 | `contacts.list` | — | `[{jid, name, photo}]`, an array: the account's contacts by name; `photo` is absent when not downloaded yet | |
 | `senders.get` | `chat` (a basic group, or a supergroup that is not a channel), `users` [user ids, 1 to 100] | `{"<user id>": {color, tag, photo}, …}`, `photo` is absent when not downloaded yet; a user the engine does not know is left out | `bad_chat` |
-| `chat.clear` | `chat` | — | |
+| `chat.clear` | `chat` | — | `cant_clear` |
 | `chat.delete` | `chat` | — | |
 | `channel.unfollow` | `chat` (a channel) | — | `bad_chat` |
 | `contact.block` | `chat` (a person: a private or a secret chat), `block` (bool) | — | `bad_chat` |
@@ -483,7 +483,9 @@ chat opens with them before this answers; the UI asks for the tags, and takes a 
 **`chat.clear`:** deletes the chat's messages for us alone (TDLib's `deleteChatHistory`, the chat staying in the
 list); an active secret chat is the one exception, TDLib deletes its history only for both sides. The rows go with
 TDLib's delete updates, as `msg.delete`'s do (`msgs` events). The chat's `last_preview` stays as it was until its
-next message: the engine keeps a chat's preview when TDLib says it has no newest message. A TDLib error is `td`.
+next message: the engine keeps a chat's preview when TDLib says it has no newest message. A chat whose history Telegram lets
+no one clear (a channel, a public supergroup: TDLib's `can_be_deleted_only_for_self` and `can_be_deleted_for_all_users` both
+false) is `cant_clear`. A TDLib error is `td`.
 
 **`chat.delete`:** for a private chat, deletes its history for us and removes the chat from the list (a
 `chats` event names it). A secret chat that is pending or ready is closed first: TDLib's `deleteChat` ends it on Telegram's side

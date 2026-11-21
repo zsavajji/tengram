@@ -71,7 +71,8 @@ private slots:
     void onMute();
     void onTranslate();
     void onArchive();
-
+    void onClear();
+    void onDelete();
 private:
     QString str(const char *key) const { return m_chat.value(key).toString(); }
     bool flag(const char *key) const { return m_chat.value(key).toBool(); }
@@ -126,6 +127,8 @@ private:
     bb::cascades::ActionItem *m_muteItem;
     bb::cascades::ActionItem *m_translateItem;
     bb::cascades::ActionItem *m_archiveItem;
+    bb::cascades::ActionItem *m_clearItem;  // Clear chat
+    bb::cascades::ActionItem *m_deleteItem; // Delete chat, Leave group or Unfollow channel: a DeleteActionItem, red, last
 };
 
 #endif

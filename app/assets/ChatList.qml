@@ -31,6 +31,12 @@ ListView {
         if (failedCmd == "chat.pinOrder" && !archivedList && !topicList) {
             moveFailed.show()
         }
+        // From the menu's Clear chat and its red item: worded here, as nothing else shows them.
+        if ((failedCmd == "chat.clear" || failedCmd == "chat.delete" || failedCmd == "channel.unfollow") && !topicList) {
+            removeFailed.body = engine.failure.code == "cant_clear" ? qsTr("Telegram doesn't let anyone clear this chat's history.")
+                                                                    : qsTr("That didn't work: %1").arg(engine.failure.message)
+            removeFailed.show()
+        }
     }
 
     function set(jid, args) {
@@ -81,6 +87,40 @@ ListView {
             muteDialog.show()
         }
     }
+    // The menu's Clear chat and its red item (ChatRows.cpp), each confirmed first (the user, 2026-11-21). An active secret
+    // chat (pending or ready) loses its messages on both sides, and deleting one ends it (docs/protocol.md, chat.delete).
+    function askClear(chat) {
+        var secret = chat.secret == 1 || chat.secret == 2
+        confirmDialog.cmd = "chat.clear"
+        confirmDialog.jid = chat.jid
+        confirmDialog.title = qsTr("Clear this chat?")
+        confirmDialog.body = secret ? qsTr("Its messages will be deleted for both of you.")
+                                    : qsTr("Its messages will be deleted for you on all your devices. The others in the chat keep theirs.")
+        confirmDialog.confirmButton.label = qsTr("Clear")
+        confirmDialog.show()
+    }
+    function askDelete(chat) {
+        if (chat.kind == 3) {
+            unfollowDialog.jid = chat.jid
+            unfollowDialog.body = chat.name
+            unfollowDialog.show()
+            return
+        }
+        confirmDialog.cmd = "chat.delete"
+        confirmDialog.jid = chat.jid
+        if (chat.kind == 1) {
+            confirmDialog.title = qsTr("Leave this group?")
+            confirmDialog.body = qsTr("You'll stop getting its messages, and it leaves your chat list.")
+            confirmDialog.confirmButton.label = qsTr("Leave")
+        } else {
+            confirmDialog.title = qsTr("Delete this chat?")
+            confirmDialog.body = chat.secret == 1 || chat.secret == 2
+                    ? qsTr("The secret chat ends, and its messages are deleted for both of you.")
+                    : qsTr("Its messages will be deleted for you on all your devices, and the chat leaves your list.")
+            confirmDialog.confirmButton.label = qsTr("Delete")
+        }
+        confirmDialog.show()
+    }
     function pickTranslate(chat) {
         translateDialog.pick(chat.jid, chat.translate)
     }
@@ -91,6 +131,21 @@ ListView {
         SystemToast {
             id: moveFailed
             body: qsTr("Couldn't move this chat")
+        },
+        SystemToast {
+            id: removeFailed
+        },
+        // askClear's and askDelete's: what it asks and sends is set before each show.
+        SystemDialog {
+            id: confirmDialog
+            property string cmd
+            property string jid
+            cancelButton.label: qsTr("Cancel")
+            onFinished: {
+                if (value == SystemUiResult.ConfirmButtonSelection) {
+                    engine.request(cmd, {"chat": jid})
+                }
+            }
         },
         SystemDialog {
             id: unfollowDialog

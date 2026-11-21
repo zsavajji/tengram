@@ -43,6 +43,14 @@ Page {
     titleBar: PageBar {
         title: qsTr("Group info")
     }
+    // Leaving, confirmed first (the user, 2026-11-21), as the channel's page has Unfollow: chat.delete leaves a group.
+    actions: [
+        DeleteActionItem {
+            title: qsTr("Leave group")
+            ActionBar.placement: ActionBarPlacement.InOverflow
+            onTriggered: leaveDialog.show()
+        }
+    ]
     attachedObjects: [
         ArrayDataModel {
             id: people
@@ -74,6 +82,20 @@ Page {
         },
         SystemToast {
             id: changeFailed
+        },
+        SystemDialog {
+            id: leaveDialog
+            title: qsTr("Leave this group?")
+            body: qsTr("You'll stop getting its messages, and it leaves your chat list.")
+            confirmButton.label: qsTr("Leave")
+            cancelButton.label: qsTr("Cancel")
+            onFinished: {
+                if (value == SystemUiResult.ConfirmButtonSelection) {
+                    engine.request("chat.delete", {"chat": page.chat.jid})
+                    // The chat page under this one goes too: the chat is gone.
+                    nav.backToList()
+                }
+            }
         }
     ]
     // WhatsApp refuses per person: 403 is their privacy settings (on an add), 409 that they're

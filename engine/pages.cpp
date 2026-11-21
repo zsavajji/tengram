@@ -457,6 +457,10 @@ void leave(std::uint64_t conn, const std::string &id, std::int64_t chat, bool ba
 
 void chat_clear(std::uint64_t conn, const std::string &id, std::int64_t chat) {
   with_chat(conn, id, chat, [conn, id, chat](const td_api::chat &c) {
+    // A channel, a public supergroup, or one we are not in: Telegram lets no one clear it (TDLib's two flags say so).
+    if (!c.can_be_deleted_only_for_self_ && !c.can_be_deleted_for_all_users_) {
+      return server.reply_error(conn, id, "cant_clear", "Telegram allows no clearing of this chat's history");
+    }
     // The chat stays in the list; the messages go with TDLib's updateDeleteMessages, as msg.delete's do.
     tdlib.send(make_object<td_api::deleteChatHistory>(chat, false, revoke_of(c)), [conn, id, chat](Obj o) {
       if (!as_error(o)) {

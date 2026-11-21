@@ -724,6 +724,71 @@
         <source>Couldn&apos;t move this chat</source>
         <translation>Не вдалося перемістити чат</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="36"/>
+        <source>Telegram doesn&apos;t let anyone clear this chat&apos;s history.</source>
+        <translation>Telegram нікому не дозволяє очистити історію цього чату.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="37"/>
+        <source>That didn&apos;t work: %1</source>
+        <translation>Не вдалося: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="96"/>
+        <source>Clear this chat?</source>
+        <translation>Очистити цей чат?</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="97"/>
+        <source>Its messages will be deleted for both of you.</source>
+        <translation>Його повідомлення буде видалено у вас обох.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="98"/>
+        <source>Its messages will be deleted for you on all your devices. The others in the chat keep theirs.</source>
+        <translation>Його повідомлення буде видалено у вас на всіх ваших пристроях. В інших у чаті вони залишаться.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="99"/>
+        <source>Clear</source>
+        <translation>Очистити</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="112"/>
+        <source>Leave this group?</source>
+        <translation>Вийти з цієї групи?</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="113"/>
+        <source>You&apos;ll stop getting its messages, and it leaves your chat list.</source>
+        <translation>Ви перестанете отримувати її повідомлення, і вона зникне зі списку чатів.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="114"/>
+        <source>Leave</source>
+        <translation>Вийти</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="116"/>
+        <source>Delete this chat?</source>
+        <translation>Видалити цей чат?</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="118"/>
+        <source>The secret chat ends, and its messages are deleted for both of you.</source>
+        <translation>Секретний чат завершиться, а його повідомлення буде видалено у вас обох.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="119"/>
+        <source>Its messages will be deleted for you on all your devices, and the chat leaves your list.</source>
+        <translation>Його повідомлення буде видалено у вас на всіх ваших пристроях, і чат зникне зі списку.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="120"/>
+        <source>Delete</source>
+        <translation>Видалити</translation>
+    </message>
 </context>
 <context>
     <name>ChatListModel</name>
@@ -910,12 +975,10 @@
         <translation>Закріпити</translation>
     </message>
     <message>
-        <location filename="../src/ChatRows.cpp" line="399"/>
         <source>Move up</source>
         <translation>Перемістити вище</translation>
     </message>
     <message>
-        <location filename="../src/ChatRows.cpp" line="400"/>
         <source>Move down</source>
         <translation>Перемістити нижче</translation>
     </message>
@@ -946,6 +1009,22 @@
     <message>
         <source>Translate…</source>
         <translation>Переклад…</translation>
+    </message>
+    <message>
+        <source>Clear chat</source>
+        <translation>Очистити чат</translation>
+    </message>
+    <message>
+        <source>Unfollow channel</source>
+        <translation>Відписатися від каналу</translation>
+    </message>
+    <message>
+        <source>Leave group</source>
+        <translation>Вийти з групи</translation>
+    </message>
+    <message>
+        <source>Delete chat</source>
+        <translation>Видалити чат</translation>
     </message>
 </context>
 <context>
@@ -1284,6 +1363,26 @@
         <location filename="../assets/ContactInfoPage.qml" line="235"/>
         <source>Couldn&apos;t start a secret chat</source>
         <translation>Не вдалося почати секретний чат</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="201"/>
+        <source>Its messages will be deleted for both of you.</source>
+        <translation>Його повідомлення буде видалено у вас обох.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="202"/>
+        <source>Its messages will be deleted for you on all your devices. The others in the chat keep theirs.</source>
+        <translation>Його повідомлення буде видалено у вас на всіх ваших пристроях. В інших у чаті вони залишаться.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="227"/>
+        <source>The secret chat ends, and its messages are deleted for both of you.</source>
+        <translation>Секретний чат завершиться, а його повідомлення буде видалено у вас обох.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="228"/>
+        <source>Its messages will be deleted for you on all your devices, and the chat leaves your list.</source>
+        <translation>Його повідомлення буде видалено у вас на всіх ваших пристроях, і чат зникне зі списку.</translation>
     </message>
 </context>
 <context>
@@ -1761,6 +1860,26 @@
         <location filename="../assets/GroupInfoPage.qml" line="279"/>
         <source>Remove from group</source>
         <translation>Видалити з групи</translation>
+    </message>
+    <message>
+        <location filename="../assets/GroupInfoPage.qml" line="49"/>
+        <source>Leave group</source>
+        <translation>Вийти з групи</translation>
+    </message>
+    <message>
+        <location filename="../assets/GroupInfoPage.qml" line="88"/>
+        <source>Leave this group?</source>
+        <translation>Вийти з цієї групи?</translation>
+    </message>
+    <message>
+        <location filename="../assets/GroupInfoPage.qml" line="89"/>
+        <source>You&apos;ll stop getting its messages, and it leaves your chat list.</source>
+        <translation>Ви перестанете отримувати її повідомлення, і вона зникне зі списку чатів.</translation>
+    </message>
+    <message>
+        <location filename="../assets/GroupInfoPage.qml" line="90"/>
+        <source>Leave</source>
+        <translation>Вийти</translation>
     </message>
 </context>
 <context>

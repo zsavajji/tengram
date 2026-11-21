@@ -722,6 +722,71 @@
         <source>Couldn&apos;t move this chat</source>
         <translation>Không thể di chuyển đoạn chat này</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="36"/>
+        <source>Telegram doesn&apos;t let anyone clear this chat&apos;s history.</source>
+        <translation>Telegram không cho phép ai xóa lịch sử cuộc trò chuyện này.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="37"/>
+        <source>That didn&apos;t work: %1</source>
+        <translation>Không thành công: %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="96"/>
+        <source>Clear this chat?</source>
+        <translation>Xóa nội dung đoạn chat này?</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="97"/>
+        <source>Its messages will be deleted for both of you.</source>
+        <translation>Tin nhắn của nó sẽ bị xóa với cả hai bạn.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="98"/>
+        <source>Its messages will be deleted for you on all your devices. The others in the chat keep theirs.</source>
+        <translation>Tin nhắn của nó sẽ bị xóa với bạn trên mọi thiết bị của bạn. Những người khác trong cuộc trò chuyện vẫn giữ tin của họ.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="99"/>
+        <source>Clear</source>
+        <translation>Xóa nội dung</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="112"/>
+        <source>Leave this group?</source>
+        <translation>Rời nhóm này?</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="113"/>
+        <source>You&apos;ll stop getting its messages, and it leaves your chat list.</source>
+        <translation>Bạn sẽ không nhận tin nhắn của nhóm nữa, và nhóm sẽ rời khỏi danh sách trò chuyện.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="114"/>
+        <source>Leave</source>
+        <translation>Rời</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="116"/>
+        <source>Delete this chat?</source>
+        <translation>Xóa đoạn chat này?</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="118"/>
+        <source>The secret chat ends, and its messages are deleted for both of you.</source>
+        <translation>Cuộc trò chuyện bí mật kết thúc, và tin nhắn bị xóa với cả hai bạn.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="119"/>
+        <source>Its messages will be deleted for you on all your devices, and the chat leaves your list.</source>
+        <translation>Tin nhắn của nó sẽ bị xóa với bạn trên mọi thiết bị, và cuộc trò chuyện sẽ rời khỏi danh sách.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatList.qml" line="120"/>
+        <source>Delete</source>
+        <translation>Xóa</translation>
+    </message>
 </context>
 <context>
     <name>ChatListModel</name>
@@ -908,12 +973,10 @@
         <translation>Ghim</translation>
     </message>
     <message>
-        <location filename="../src/ChatRows.cpp" line="399"/>
         <source>Move up</source>
         <translation>Di chuyển lên</translation>
     </message>
     <message>
-        <location filename="../src/ChatRows.cpp" line="400"/>
         <source>Move down</source>
         <translation>Di chuyển xuống</translation>
     </message>
@@ -944,6 +1007,22 @@
     <message>
         <source>Translate…</source>
         <translation>Dịch…</translation>
+    </message>
+    <message>
+        <source>Clear chat</source>
+        <translation>Xóa nội dung chat</translation>
+    </message>
+    <message>
+        <source>Unfollow channel</source>
+        <translation>Bỏ theo dõi kênh</translation>
+    </message>
+    <message>
+        <source>Leave group</source>
+        <translation>Rời nhóm</translation>
+    </message>
+    <message>
+        <source>Delete chat</source>
+        <translation>Xóa đoạn chat</translation>
     </message>
 </context>
 <context>
@@ -1280,6 +1359,26 @@
         <location filename="../assets/ContactInfoPage.qml" line="235"/>
         <source>Couldn&apos;t start a secret chat</source>
         <translation>Không thể bắt đầu đoạn chat bí mật</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="201"/>
+        <source>Its messages will be deleted for both of you.</source>
+        <translation>Tin nhắn của nó sẽ bị xóa với cả hai bạn.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="202"/>
+        <source>Its messages will be deleted for you on all your devices. The others in the chat keep theirs.</source>
+        <translation>Tin nhắn của nó sẽ bị xóa với bạn trên mọi thiết bị của bạn. Những người khác trong cuộc trò chuyện vẫn giữ tin của họ.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="227"/>
+        <source>The secret chat ends, and its messages are deleted for both of you.</source>
+        <translation>Cuộc trò chuyện bí mật kết thúc, và tin nhắn bị xóa với cả hai bạn.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ContactInfoPage.qml" line="228"/>
+        <source>Its messages will be deleted for you on all your devices, and the chat leaves your list.</source>
+        <translation>Tin nhắn của nó sẽ bị xóa với bạn trên mọi thiết bị, và cuộc trò chuyện sẽ rời khỏi danh sách.</translation>
     </message>
 </context>
 <context>
@@ -1755,6 +1854,26 @@
         <location filename="../assets/GroupInfoPage.qml" line="279"/>
         <source>Remove from group</source>
         <translation>Xóa khỏi nhóm</translation>
+    </message>
+    <message>
+        <location filename="../assets/GroupInfoPage.qml" line="49"/>
+        <source>Leave group</source>
+        <translation>Rời nhóm</translation>
+    </message>
+    <message>
+        <location filename="../assets/GroupInfoPage.qml" line="88"/>
+        <source>Leave this group?</source>
+        <translation>Rời nhóm này?</translation>
+    </message>
+    <message>
+        <location filename="../assets/GroupInfoPage.qml" line="89"/>
+        <source>You&apos;ll stop getting its messages, and it leaves your chat list.</source>
+        <translation>Bạn sẽ không nhận tin nhắn của nhóm nữa, và nhóm sẽ rời khỏi danh sách trò chuyện.</translation>
+    </message>
+    <message>
+        <location filename="../assets/GroupInfoPage.qml" line="90"/>
+        <source>Leave</source>
+        <translation>Rời</translation>
     </message>
 </context>
 <context>

@@ -2,6 +2,7 @@
 
 #include <bb/cascades/ActionItem>
 #include <bb/cascades/ActionSet>
+#include <bb/cascades/DeleteActionItem>
 #include <bb/cascades/Container>
 #include <bb/cascades/ContextMenuHandler>
 #include <bb/cascades/DockLayout>
@@ -91,6 +92,8 @@ ChatRow::ChatRow(ListView *list)
     , m_muteItem(0)
     , m_translateItem(0)
     , m_archiveItem(0)
+    , m_clearItem(0)
+    , m_deleteItem(0)
 {
     // The row's own node and its root: a list item is as wide as its content unless it fills.
     setHorizontalAlignment(HorizontalAlignment::Fill);
@@ -491,6 +494,10 @@ void ChatRow::makeActions()
     m_muteItem = action(SLOT(onMute()));
     m_translateItem = action(SLOT(onTranslate()));
     m_archiveItem = action(SLOT(onArchive()));
+    m_clearItem = action(SLOT(onClear()));
+    m_deleteItem = new DeleteActionItem();
+    connect(m_deleteItem, SIGNAL(triggered()), this, SLOT(onDelete()));
+    m_menu->add(m_deleteItem);
 }
 
 // Move up and Move down sit under Pin only for a pinned chat: ActionItem has no visible, so they leave the menu and
@@ -544,6 +551,15 @@ void ChatRow::onPopulating()
     else
         setItem(m_archiveItem, archived ? QT_TRANSLATE_NOOP("ChatRow", "Unarchive") : QT_TRANSLATE_NOOP("ChatRow", "Archive"),
                 "file:///usr/share/icons/bb_action_archive.png");
+    // Clear chat and the red last item (the user, 2026-11-21: "why can't i delete chats?", each confirmed first), by
+    // kind: a person's chat (private or secret) is deleted, a group left, a channel unfollowed. A channel's history can't be cleared; a
+    // public supergroup's neither, which the engine answers (cant_clear) as chats.db doesn't tell the two groups apart.
+    const int kind = m_chat.value("kind").toInt();
+    setItem(m_clearItem, QT_TRANSLATE_NOOP("ChatRow", "Clear chat"), "file:///usr/share/icons/bb_action_delete.png");
+    m_clearItem->setEnabled(kind != 3);
+    setItem(m_deleteItem, kind == 3   ? QT_TRANSLATE_NOOP("ChatRow", "Unfollow channel")
+                          : kind == 1 ? QT_TRANSLATE_NOOP("ChatRow", "Leave group")
+                                      : QT_TRANSLATE_NOOP("ChatRow", "Delete chat"));
 }
 
 void ChatRow::onRead() { Card::call(m_list, "toggleUnread", m_chat); }
@@ -553,3 +569,5 @@ void ChatRow::onDown() { Card::call(m_list, "movePin", m_chat, 1); }
 void ChatRow::onMute() { Card::call(m_list, "toggleMute", m_chat); }
 void ChatRow::onTranslate() { Card::call(m_list, "pickTranslate", m_chat); }
 void ChatRow::onArchive() { Card::call(m_list, "toggleArchive", m_chat); }
+void ChatRow::onClear() { Card::call(m_list, "askClear", m_chat); }
+void ChatRow::onDelete() { Card::call(m_list, "askDelete", m_chat); }
