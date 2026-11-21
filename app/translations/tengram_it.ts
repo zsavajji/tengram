@@ -1982,6 +1982,21 @@
         <source>To sign up with this number, Telegram asks for a Telegram Premium purchase from the App Store or Google Play, which a BlackBerry can&apos;t make. Sign up on another phone first, then link this BlackBerry with its QR code.</source>
         <translation>Per registrarti con questo numero, Telegram richiede un acquisto di Telegram Premium dall&apos;App Store o da Google Play, che un BlackBerry non può fare. Registrati prima su un altro telefono, poi collega questo BlackBerry con il suo codice QR.</translation>
     </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="236"/>
+        <source>Send the code by SMS</source>
+        <translation>Invia il codice via SMS</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="236"/>
+        <source>Call me with the code</source>
+        <translation>Chiamami con il codice</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="240"/>
+        <source>%1 in %2</source>
+        <translation>%1 tra %2</translation>
+    </message>
 </context>
 <context>
     <name>MapChooser</name>
@@ -4310,6 +4325,11 @@
         <location filename="../assets/errors.js" line="15"/>
         <source>Type your first name, up to 64 characters.</source>
         <translation>Digita il tuo nome, al massimo 64 caratteri.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="19"/>
+        <source>Telegram can&apos;t send the code another way for this number. Use the code in the Telegram app, or log in with a QR code.</source>
+        <translation>Telegram non può inviare il codice in un altro modo per questo numero. Usa il codice nell&apos;app Telegram, oppure accedi con un codice QR.</translation>
     </message>
 </context>
 <context>

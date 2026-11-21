@@ -1,4 +1,5 @@
 import bb.cascades 1.4
+import tengram 1.0
 import "errors.js" as Errors
 
 // The linking page, pushed over LinkNumberPage (PLAN.md §7), for the step after the number or for the QR code: a QR code to scan, the code Telegram
@@ -18,6 +19,29 @@ Page {
     // die against it. memMB is the engine's limit at its start (0: none); the memory addon raises it to 128,
     // and the engine it restarts reports that. Until then nothing here asks Telegram for anything.
     property bool memBlocked: (engine.link.memMB || 0) > 0 && engine.link.memMB < 128
+    // The code another way, for a user without the device it went to (the user, 2026-11-21: "if i have no access to the
+    // other device, can we get an sms after a wait?"): Telegram's next way (`next`, an SMS or a call), allowed from
+    // resendAt. A Firebase or Fragment way can't be used here, so only those two are offered. left: seconds to wait.
+    property string next: linkState == "code" ? (engine.link.next || "") : ""
+    property bool canResend: next == "sms" || next == "call"
+    property int resendAt: canResend ? (engine.link.resendAt || 0) : 0
+    property int left: 0
+    function tick() {
+        left = Math.max(0, resendAt - Math.floor(Date.now() / 1000))
+        if (left == 0)
+            clock.stop()
+    }
+    function startClock() {
+        tick()
+        if (left > 0)
+            clock.start()
+    }
+    onCanResendChanged: startClock()
+    onResendAtChanged: startClock()
+    function resend() {
+        if (canResend && left == 0)
+            engine.request("link.resend", {})
+    }
 
     titleBar: PageBar {
         title: qsTr("Link to Telegram")
@@ -28,16 +52,23 @@ Page {
     // there is none (the QR code, a Premium purchase) and while a step is checked.
     property bool hasStep: linkState == "code" || linkState == "password" || linkState == "email" || linkState == "emailCode"
                            || linkState == "register"
-    attachedObjects: ActionItem {
-        id: stepAction
-        title: page.linkState == "register" ? qsTr("Sign up")
-             : page.linkState == "email" || page.linkState == "emailCode" ? qsTr("Next") : qsTr("Log in")
-        imageSource: page.linkState == "email" || page.linkState == "emailCode" ? "asset:///images/next_action.png"
-                                                                                  : "asset:///images/tick_action.png"
-        ActionBar.placement: ActionBarPlacement.Signature
-        enabled: page.up && !page.memBlocked && page.hasStep
-        onTriggered: page.step()
-    }
+    attachedObjects: [
+        Timer {
+            id: clock
+            interval: 1000
+            onTimeout: page.tick()
+        },
+        ActionItem {
+            id: stepAction
+            title: page.linkState == "register" ? qsTr("Sign up")
+                 : page.linkState == "email" || page.linkState == "emailCode" ? qsTr("Next") : qsTr("Log in")
+            imageSource: page.linkState == "email" || page.linkState == "emailCode" ? "asset:///images/next_action.png"
+                                                                                      : "asset:///images/tick_action.png"
+            ActionBar.placement: ActionBarPlacement.Signature
+            enabled: page.up && !page.memBlocked && page.hasStep
+            onTriggered: page.step()
+        }
+    ]
     function showStep() {
         if (hasStep && actionCount() == 0)
             addAction(stepAction, ActionBarPlacement.Signature)
@@ -127,6 +158,7 @@ Page {
         ask()
     }
     onCreationCompleted: {
+        startClock()
         if (linkState == "qr")
             shown = true
         showStep()
@@ -195,8 +227,22 @@ Page {
                         input.submitKey: SubmitKey.Submit
                         input.onSubmitted: page.sendCode()
                     }
+                    Button {
+                        visible: page.canResend
+                        horizontalAlignment: HorizontalAlignment.Fill
+                        topMargin: ui.du(2)
+                        enabled: page.left == 0
+                        text: {
+                            var what = page.next == "call" ? qsTr("Call me with the code") : qsTr("Send the code by SMS")
+                            if (page.left == 0)
+                                return what
+                            var s = page.left % 60
+                            return qsTr("%1 in %2").arg(what).arg(Math.floor(page.left / 60) + ":" + (s < 10 ? "0" : "") + s)
+                        }
+                        onClicked: page.resend()
+                    }
                     Label {
-                        visible: engine.failure.cmd == "link.code"
+                        visible: engine.failure.cmd == "link.code" || engine.failure.cmd == "link.resend"
                         multiline: true
                         text: Errors.errorText(engine.failure)
                     }

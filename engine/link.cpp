@@ -2,6 +2,8 @@
 
 #include "engine.h"
 
+#include <ctime>
+
 #ifdef __QNX__
 #include <bps/bps.h>
 #include <bps/deviceinfo.h>
@@ -17,6 +19,8 @@ struct Link {
   std::string conn = "connecting";
   std::string qr;                // Qr
   std::string phone, code_type;  // Code
+  std::string next_type;         // Code: how link.resend would send it ("" none)
+  std::int64_t resend_at = 0;    // Code: when Telegram allows link.resend, Unix seconds (0 now)
   int length = 0;                // Code and EmailCode, 0 unknown
   std::string hint;              // Password
   std::string pattern;           // EmailCode
@@ -47,6 +51,10 @@ void fields(td::JsonObjectScope &o) {
       o("phone", cur.phone);
       o("codeType", cur.code_type);
       o("length", cur.length);
+      if (!cur.next_type.empty()) {
+        o("next", cur.next_type);
+        o("resendAt", cur.resend_at);
+      }
       break;
     case State::Password:
       o("hint", cur.hint);
@@ -341,6 +349,9 @@ void link_auth(const td_api::AuthorizationState &s) {
       cur.phone = info.phone_number_;
       cur.length = 0;
       cur.code_type = info.type_ ? code_type(*info.type_, cur.length) : "other";
+      int next_length = 0;
+      cur.next_type = info.next_type_ ? code_type(*info.next_type_, next_length) : "";
+      cur.resend_at = info.timeout_ > 0 ? std::time(nullptr) + info.timeout_ : 0;
       break;
     }
     case td_api::authorizationStateWaitPassword::ID:
@@ -456,6 +467,16 @@ bool link_request(std::uint64_t conn, const std::string &id, const std::string &
       return bad_state();
     }
     step(conn, id, td_api::make_object<td_api::checkAuthenticationCode>(text));
+    return true;
+  }
+  // The code again by the next way Telegram offers (`next`: an SMS after the app, a call after an SMS); the state
+  // comes back as `code` with the new codeType.
+  if (cmd == "link.resend") {
+    if (s != State::Code || cur.next_type.empty()) {
+      return bad_state();
+    }
+    step(conn, id, td_api::make_object<td_api::resendAuthenticationCode>(
+                       td_api::make_object<td_api::resendCodeReasonUserRequest>()));
     return true;
   }
   if (cmd == "link.password") {

@@ -1985,6 +1985,21 @@
         <source>To sign up with this number, Telegram asks for a Telegram Premium purchase from the App Store or Google Play, which a BlackBerry can&apos;t make. Sign up on another phone first, then link this BlackBerry with its QR code.</source>
         <translation>Щоб зареєструватися з цим номером, Telegram вимагає купити Telegram Premium в App Store або Google Play, а BlackBerry цього зробити не може. Спершу зареєструйтеся на іншому телефоні, а потім прив’яжіть цей BlackBerry за його QR-кодом.</translation>
     </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="236"/>
+        <source>Send the code by SMS</source>
+        <translation>Надіслати код через SMS</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="236"/>
+        <source>Call me with the code</source>
+        <translation>Зателефонувати мені з кодом</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="240"/>
+        <source>%1 in %2</source>
+        <translation>%1 через %2</translation>
+    </message>
 </context>
 <context>
     <name>MapChooser</name>
@@ -4315,6 +4330,11 @@
         <location filename="../assets/errors.js" line="15"/>
         <source>Type your first name, up to 64 characters.</source>
         <translation>Введіть своє ім’я, не більше 64 символів.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="19"/>
+        <source>Telegram can&apos;t send the code another way for this number. Use the code in the Telegram app, or log in with a QR code.</source>
+        <translation>Telegram не може надіслати код іншим способом для цього номера. Скористайтеся кодом у застосунку Telegram або увійдіть за QR-кодом.</translation>
     </message>
 </context>
 <context>

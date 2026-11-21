@@ -1979,6 +1979,21 @@
         <source>To sign up with this number, Telegram asks for a Telegram Premium purchase from the App Store or Google Play, which a BlackBerry can&apos;t make. Sign up on another phone first, then link this BlackBerry with its QR code.</source>
         <translation>Để đăng ký bằng số này, Telegram yêu cầu mua Telegram Premium từ App Store hoặc Google Play, điều mà BlackBerry không làm được. Hãy đăng ký trên một điện thoại khác trước, rồi liên kết BlackBerry này bằng mã QR của nó.</translation>
     </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="236"/>
+        <source>Send the code by SMS</source>
+        <translation>Gửi mã qua SMS</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="236"/>
+        <source>Call me with the code</source>
+        <translation>Gọi cho tôi để đọc mã</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="240"/>
+        <source>%1 in %2</source>
+        <translation>%1 sau %2</translation>
+    </message>
 </context>
 <context>
     <name>MapChooser</name>
@@ -4305,6 +4320,11 @@
         <location filename="../assets/errors.js" line="15"/>
         <source>Type your first name, up to 64 characters.</source>
         <translation>Nhập tên của bạn, tối đa 64 ký tự.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="19"/>
+        <source>Telegram can&apos;t send the code another way for this number. Use the code in the Telegram app, or log in with a QR code.</source>
+        <translation>Telegram không thể gửi mã theo cách khác cho số này. Hãy dùng mã trong ứng dụng Telegram, hoặc đăng nhập bằng mã QR.</translation>
     </message>
 </context>
 <context>

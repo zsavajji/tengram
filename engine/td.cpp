@@ -32,6 +32,8 @@ void reply_td_error(std::uint64_t conn, const std::string &id, const td_api::err
     code = "bad_email";
   } else if (has("FIRSTNAME_INVALID") || has("LASTNAME_INVALID")) {
     code = "bad_name";
+  } else if (has("SEND_CODE_UNAVAILABLE")) {
+    code = "no_resend";  // link.resend: Telegram has no other way left for this number
   }
   server.reply_error(conn, id, code, std::to_string(e.code_) + " " + m);
 }

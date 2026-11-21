@@ -42,6 +42,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `link.qr` | — (states `unlinked`, `code`, `password`, `email`, `emailCode`, `register`, `premium`) | — (the code comes as a `link` event, state `qr`) | `linked`, `bad_state` |
 | `link.phone` | `phone` (international, non-digits ignored; states `unlinked`, `code`, `password`, `email`, `emailCode`, `register`, `premium`) | — (then state `code`) | `linked`, `bad_state`, `bad_phone` |
 | `link.code` | `code` | — (then `password`, `register` or `ready`) | `bad_state`, `bad_code` |
+| `link.resend` | — (state `code` with a `next`) | — (then `code` again, sent the `next` way) | `bad_state`, `no_resend`, `td` (429: wait) |
 | `link.password` | `password` | — (then `ready`) | `bad_state`, `bad_password` |
 | `link.email` | `email` (state `email`) | — (then state `emailCode`) | `bad_state`, `bad_email` |
 | `link.emailCode` | `code` | — (then `code`, `register` or `ready`) | `bad_state`, `bad_code` |
@@ -787,7 +788,7 @@ TDLib has downloaded the photo, which is always after the reply that left it out
 | `linking` | starting, or a step is being checked | |
 | `unlinked` | waiting for a phone number | |
 | `qr` | waiting for another device to scan | `qr`: the `tg://login?token=…` link to draw |
-| `code` | waiting for the code | `phone`, `codeType` (`app`, `sms`, `call`, `other`), `length` (0 unknown) |
+| `code` | waiting for the code | `phone`, `codeType` (`app`, `sms`, `call`, `other`), `length` (0 unknown); `next` (how `link.resend` sends it, the same four words) and `resendAt` (Unix seconds from which Telegram allows it; 0 at once), both absent when there is no other way |
 | `password` | waiting for the two-step password | `hint` |
 | `email` | waiting for a login e-mail address | |
 | `emailCode` | waiting for the code sent to it | `pattern` (the address as Telegram masks it), `length` (0 unknown) |

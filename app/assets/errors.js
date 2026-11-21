@@ -15,6 +15,8 @@ function errorText(f) {
         return qsTr("Type your first name, up to 64 characters.")
     case "bad_code":
         return qsTr("That code isn't right. Check it and type it again.")
+    case "no_resend":
+        return qsTr("Telegram can't send the code another way for this number. Use the code in the Telegram app, or log in with a QR code.")
     case "bad_password":
         return qsTr("That password isn't right.")
     case "bad_state":
