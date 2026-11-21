@@ -5,6 +5,8 @@ import bb.cascades 1.4
 // author's GitHub, the open source libraries with their licences and the app's own licence, each opening in the browser.
 Page {
     id: page
+    // The logo's animation plays while this page is on top (main.qml's onTopChanged).
+    property bool playsStickers: true
     titleBar: PageBar {
         title: qsTr("About")
     }
@@ -23,13 +25,20 @@ Page {
                     topPadding: ui.du(3)
                     leftPadding: ui.du(1.5)
                     rightPadding: ui.du(1.5)
-                    // 16 du is the icon's own 144 px on the Q10.
+                    // 16 du is the icon's own 144 px on the Q10. The welcome page's animation (the user, 2026-11-21:
+                    // "add the tangram animation in the about"): the tangram square springs into the icon once, drawn
+                    // at the view's own px, and again on a tap (Settings::playLogo).
                     ImageView {
+                        id: logo
                         horizontalAlignment: HorizontalAlignment.Center
                         preferredWidth: ui.du(16)
                         preferredHeight: ui.du(16)
                         scalingMethod: ScalingMethod.AspectFit
-                        imageSource: "asset:///images/icon-144.png"
+                        loadEffect: ImageViewLoadEffect.None
+                        onCreationCompleted: settings.playLogo(logo, Math.round(ui.du(16)))
+                        gestureHandlers: TapHandler {
+                            onTapped: settings.playLogo(logo, Math.round(ui.du(16)))
+                        }
                     }
                     Label {
                         horizontalAlignment: HorizontalAlignment.Center

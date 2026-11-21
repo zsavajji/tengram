@@ -29,7 +29,7 @@ public:
 
     // Plays the TGS at path in view from its first frame, looping or once, and stops what played before (its view gets its
     // still back). On the view that already plays it starts over: a tap. still is what the view shows when it stops. px is the
-    // side the frames are drawn at: a sticker's, or the welcome page's logo (Settings::playLogo).
+    // side the frames are drawn at: a sticker's, or a logo's (Settings::playLogo).
     void play(bb::cascades::ImageView *view, const bb::cascades::Image &still, const QString &path, bool loop,
               int px = Sticker::kStickerPx);
     // Stops when view is the one playing; does nothing otherwise.
