@@ -21,6 +21,11 @@
         <translation>ओपन सोर्स लाइब्रेरी</translation>
     </message>
     <message>
+        <location filename="../assets/AboutPage.qml" line="141"/>
+        <source>License</source>
+        <translation>लाइसेंस</translation>
+    </message>
+    <message>
         <source>Thanks</source>
         <translation type="obsolete">धन्यवाद</translation>
     </message>

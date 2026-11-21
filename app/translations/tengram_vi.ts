@@ -21,6 +21,11 @@
         <translation>Thư viện mã nguồn mở</translation>
     </message>
     <message>
+        <location filename="../assets/AboutPage.qml" line="141"/>
+        <source>License</source>
+        <translation>Giấy phép</translation>
+    </message>
+    <message>
         <source>Thanks</source>
         <translation type="obsolete">Lời cảm ơn</translation>
     </message>

@@ -1,8 +1,8 @@
 import bb.cascades 1.4
 
 // About, from the swipe-down menu beside Settings, laid out as My profile (ProfilePage.qml): the
-// logo for the picture, the app's name, its version where the number goes, then what it is and the
-// author's GitHub, opening in the browser.
+// logo for the picture, the app's name, its version where the number goes, then what it is, the
+// author's GitHub, the open source libraries with their licences and the app's own licence, each opening in the browser.
 Page {
     id: page
     titleBar: PageBar {
@@ -75,7 +75,8 @@ Page {
                     text: "github.com/zsavajji"
                     url: "https://github.com/zsavajji"
                 }
-                // What the app and its engine are built from (scripts/build-deps.sh, the fetch-*.sh scripts, app.pro), with
+                // What the app and its engine are built from (scripts/build-deps.sh, engine/build.sh's tgcalls and tg_owt,
+                // libtgs.so's rlottie, the fetch-*.sh scripts, app.pro), with
                 // their licences; a row opens the project's page. Names and licences stay untranslated.
                 Header {
                     title: qsTr("Open source libraries")
@@ -101,8 +102,20 @@ Page {
                     url: "https://github.com/qt/qt/tree/v4.8.6/src/sql/drivers/sqlite"
                 }
                 LinkRow {
+                    text: "tgcalls · LGPL 3.0"
+                    url: "https://github.com/TelegramMessenger/tgcalls"
+                }
+                LinkRow {
+                    text: "tg_owt (WebRTC) · BSD 3-Clause"
+                    url: "https://github.com/desktop-app/tg_owt"
+                }
+                LinkRow {
                     text: "libopus 1.6.1 · BSD 3-Clause"
                     url: "https://opus-codec.org"
+                }
+                LinkRow {
+                    text: "rlottie · LGPL 2.1; FreeType License, MIT"
+                    url: "https://github.com/desktop-app/rlottie"
                 }
                 LinkRow {
                     text: "libwebp 1.4.0 · BSD 3-Clause"
@@ -113,12 +126,23 @@ Page {
                     url: "https://www.nayuki.io/page/qr-code-generator-library"
                 }
                 LinkRow {
-                    text: "OpenMAX IL 1.1.2 headers · Khronos (MIT-style)"
-                    url: "https://www.khronos.org/openmax/il/"
+                    text: "OpenMAX IL headers (Android's) · Apache 2.0, Khronos (MIT-style)"
+                    url: "https://android.googlesource.com/platform/frameworks/native/+/refs/heads/main/headers/media_plugin/media/openmax"
                 }
                 LinkRow {
                     text: "Noto Color Emoji · SIL Open Font License 1.1"
                     url: "https://github.com/googlefonts/noto-emoji"
+                }
+                LinkRow {
+                    text: "Unicode emoji data 18.0 · Unicode License v3"
+                    url: "https://www.unicode.org/emoji/"
+                }
+                Header {
+                    title: qsTr("License")
+                }
+                LinkRow {
+                    text: "Tengram · GNU GPL 3.0"
+                    url: "https://www.gnu.org/licenses/gpl-3.0.html"
                 }
             }
         }

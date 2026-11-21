@@ -21,6 +21,11 @@
         <translation>Biblioteki open source</translation>
     </message>
     <message>
+        <location filename="../assets/AboutPage.qml" line="141"/>
+        <source>License</source>
+        <translation>Licencja</translation>
+    </message>
+    <message>
         <source>Thanks</source>
         <translation type="obsolete">Podziękowania</translation>
     </message>

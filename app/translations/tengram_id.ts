@@ -21,6 +21,11 @@
         <translation>Pustaka sumber terbuka</translation>
     </message>
     <message>
+        <location filename="../assets/AboutPage.qml" line="141"/>
+        <source>License</source>
+        <translation>Lisensi</translation>
+    </message>
+    <message>
         <source>Thanks</source>
         <translation type="obsolete">Terima kasih</translation>
     </message>

@@ -21,6 +21,11 @@
         <translation>Библиотеки с открытым кодом</translation>
     </message>
     <message>
+        <location filename="../assets/AboutPage.qml" line="141"/>
+        <source>License</source>
+        <translation>Лицензия</translation>
+    </message>
+    <message>
         <source>Thanks</source>
         <translation type="obsolete">Благодарности</translation>
     </message>
