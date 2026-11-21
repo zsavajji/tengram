@@ -20,6 +20,7 @@ struct Link {
   std::string qr;                // Qr
   std::string phone, code_type;  // Code
   std::string next_type;         // Code: how link.resend would send it ("" none)
+  std::string prefix;            // Code, codeType missedCall: the start of the number that calls
   std::int64_t resend_at = 0;    // Code: when Telegram allows link.resend, Unix seconds (0 now)
   int length = 0;                // Code and EmailCode, 0 unknown
   std::string hint;              // Password
@@ -51,6 +52,9 @@ void fields(td::JsonObjectScope &o) {
       o("phone", cur.phone);
       o("codeType", cur.code_type);
       o("length", cur.length);
+      if (cur.code_type == "missedCall") {
+        o("prefix", cur.prefix);
+      }
       if (!cur.next_type.empty()) {
         o("next", cur.next_type);
         o("resendAt", cur.resend_at);
@@ -106,7 +110,9 @@ void ask_country() {
   });
 }
 
-// How Telegram sends the code, in the protocol's four words, and the code's length when the type has one.
+// How Telegram sends the code, in the protocol's words, and the code's length when the type has one. A missed call
+// (the code is the last digits of the number that rings; the user reads it in the call log) is its own word; a flash
+// call is never allowed (link.phone), as an app can't catch it on BB10.
 const char *code_type(const td_api::AuthenticationCodeType &t, int &length) {
   switch (t.get_id()) {
     case td_api::authenticationCodeTypeTelegramMessage::ID:
@@ -123,9 +129,9 @@ const char *code_type(const td_api::AuthenticationCodeType &t, int &length) {
       return "call";
     case td_api::authenticationCodeTypeMissedCall::ID:
       length = static_cast<const td_api::authenticationCodeTypeMissedCall &>(t).length_;
-      return "call";
+      return "missedCall";
     case td_api::authenticationCodeTypeFlashCall::ID:
-      return "call";
+      return "other";
     case td_api::authenticationCodeTypeFragment::ID:
       length = static_cast<const td_api::authenticationCodeTypeFragment &>(t).length_;
       return "other";
@@ -349,9 +355,15 @@ void link_auth(const td_api::AuthorizationState &s) {
       cur.phone = info.phone_number_;
       cur.length = 0;
       cur.code_type = info.type_ ? code_type(*info.type_, cur.length) : "other";
+      cur.prefix = info.type_ && info.type_->get_id() == td_api::authenticationCodeTypeMissedCall::ID
+                       ? static_cast<const td_api::authenticationCodeTypeMissedCall &>(*info.type_).phone_number_prefix_
+                       : "";
       int next_length = 0;
       cur.next_type = info.next_type_ ? code_type(*info.next_type_, next_length) : "";
       cur.resend_at = info.timeout_ > 0 ? std::time(nullptr) + info.timeout_ : 0;
+      // What Telegram offered, so a missing "SMS" button can be told from the log (no number: it is the user's).
+      say("link: code by %s, length %d, next %s, timeout %d s", cur.code_type.c_str(), cur.length,
+          cur.next_type.empty() ? "none" : cur.next_type.c_str(), info.timeout_);
       break;
     }
     case td_api::authorizationStateWaitPassword::ID:
@@ -456,7 +468,13 @@ bool link_request(std::uint64_t conn, const std::string &id, const std::string &
     if (digits.empty()) {
       return fail("bad_phone", "no digits in the phone number");
     }
-    step(conn, id, td_api::make_object<td_api::setAuthenticationPhoneNumber>(digits, nullptr));
+    // What the official apps tell Telegram, as it weighs it in choosing how the code goes (with no settings, a number
+    // logged in elsewhere got the app alone, no SMS and no next way; the user, 2026-11-21, without the other device):
+    // the number is this phone's, the usual case for a login on a BlackBerry, and a missed call may carry the code,
+    // read from the call log. No flash call, which only an app that catches the call can use.
+    auto settings = td_api::make_object<td_api::phoneNumberAuthenticationSettings>(
+        false, true, true, false, false, nullptr, std::vector<std::string>());
+    step(conn, id, td_api::make_object<td_api::setAuthenticationPhoneNumber>(digits, std::move(settings)));
     return true;
   }
   if (cmd == "link.code") {

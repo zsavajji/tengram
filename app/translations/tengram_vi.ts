@@ -1994,6 +1994,16 @@
         <source>%1 in %2</source>
         <translation>%1 sau %2</translation>
     </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="110"/>
+        <source>Telegram will call %1 from a number starting with %2. Don&apos;t answer: the code is the last %3 digits of that number, in your call log.</source>
+        <translation>Telegram sẽ gọi đến %1 từ một số bắt đầu bằng %2. Đừng nghe máy: mã là %3 chữ số cuối của số đó, trong nhật ký cuộc gọi.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="239"/>
+        <source>Telegram sends this code only to your Telegram app, and offers no SMS for this number.</source>
+        <translation>Telegram chỉ gửi mã này đến ứng dụng Telegram của bạn và không cung cấp SMS cho số này.</translation>
+    </message>
 </context>
 <context>
     <name>MapChooser</name>

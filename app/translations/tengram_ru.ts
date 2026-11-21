@@ -2000,6 +2000,16 @@
         <source>%1 in %2</source>
         <translation>%1 через %2</translation>
     </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="110"/>
+        <source>Telegram will call %1 from a number starting with %2. Don&apos;t answer: the code is the last %3 digits of that number, in your call log.</source>
+        <translation>Telegram позвонит на %1 с номера, начинающегося на %2. Не отвечайте: код — последние %3 цифр этого номера в журнале звонков.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="239"/>
+        <source>Telegram sends this code only to your Telegram app, and offers no SMS for this number.</source>
+        <translation>Telegram отправляет этот код только в ваше приложение Telegram и не предлагает SMS для этого номера.</translation>
+    </message>
 </context>
 <context>
     <name>MapChooser</name>

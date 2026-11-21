@@ -21,9 +21,9 @@ Page {
     property bool memBlocked: (engine.link.memMB || 0) > 0 && engine.link.memMB < 128
     // The code another way, for a user without the device it went to (the user, 2026-11-21: "if i have no access to the
     // other device, can we get an sms after a wait?"): Telegram's next way (`next`, an SMS or a call), allowed from
-    // resendAt. A Firebase or Fragment way can't be used here, so only those two are offered. left: seconds to wait.
+    // resendAt. A Firebase or Fragment way can't be used here, so only those are offered. left: seconds to wait.
     property string next: linkState == "code" ? (engine.link.next || "") : ""
-    property bool canResend: next == "sms" || next == "call"
+    property bool canResend: next == "sms" || next == "call" || next == "missedCall"
     property int resendAt: canResend ? (engine.link.resendAt || 0) : 0
     property int left: 0
     function tick() {
@@ -106,6 +106,9 @@ Page {
             return qsTr("Telegram sent the code by SMS to %1.").arg(phone)
         if (t == "call")
             return qsTr("Telegram will call %1 and tell you the code.").arg(phone)
+        if (t == "missedCall")
+            return qsTr("Telegram will call %1 from a number starting with %2. Don't answer: the code is the last %3 digits of that number, in your call log.")
+                       .arg(phone).arg(engine.link.prefix || "+").arg(engine.link.length || "")
         return qsTr("Type the code Telegram sent to %1.").arg(phone)
     }
     function sendCode() {
@@ -227,13 +230,21 @@ Page {
                         input.submitKey: SubmitKey.Submit
                         input.onSubmitted: page.sendCode()
                     }
+                    // The code went to the app and Telegram gives no other way (no `next`): said, so the missing
+                    // button isn't a mystery.
+                    Label {
+                        visible: !page.canResend && engine.link.codeType == "app"
+                        multiline: true
+                        textStyle.color: ui.palette.secondaryTextOnPlain
+                        text: qsTr("Telegram sends this code only to your Telegram app, and offers no SMS for this number.")
+                    }
                     Button {
                         visible: page.canResend
                         horizontalAlignment: HorizontalAlignment.Fill
                         topMargin: ui.du(2)
                         enabled: page.left == 0
                         text: {
-                            var what = page.next == "call" ? qsTr("Call me with the code") : qsTr("Send the code by SMS")
+                            var what = page.next == "sms" ? qsTr("Send the code by SMS") : qsTr("Call me with the code")
                             if (page.left == 0)
                                 return what
                             var s = page.left % 60

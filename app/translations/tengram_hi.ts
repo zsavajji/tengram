@@ -1997,6 +1997,16 @@
         <source>%1 in %2</source>
         <translation>%2 में %1</translation>
     </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="110"/>
+        <source>Telegram will call %1 from a number starting with %2. Don&apos;t answer: the code is the last %3 digits of that number, in your call log.</source>
+        <translation>Telegram %1 पर %2 से शुरू होने वाले नंबर से कॉल करेगा। कॉल न उठाएँ: कोड उस नंबर के आखिरी %3 अंक हैं, आपके कॉल लॉग में।</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="239"/>
+        <source>Telegram sends this code only to your Telegram app, and offers no SMS for this number.</source>
+        <translation>Telegram यह कोड सिर्फ़ आपके Telegram ऐप पर भेजता है, और इस नंबर के लिए SMS नहीं देता।</translation>
+    </message>
 </context>
 <context>
     <name>MapChooser</name>

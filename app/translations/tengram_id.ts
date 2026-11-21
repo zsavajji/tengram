@@ -1994,6 +1994,16 @@
         <source>%1 in %2</source>
         <translation>%1 dalam %2</translation>
     </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="110"/>
+        <source>Telegram will call %1 from a number starting with %2. Don&apos;t answer: the code is the last %3 digits of that number, in your call log.</source>
+        <translation>Telegram akan menelepon %1 dari nomor yang diawali %2. Jangan dijawab: kodenya adalah %3 digit terakhir nomor itu, di log panggilan Anda.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="239"/>
+        <source>Telegram sends this code only to your Telegram app, and offers no SMS for this number.</source>
+        <translation>Telegram mengirim kode ini hanya ke aplikasi Telegram Anda, dan tidak menawarkan SMS untuk nomor ini.</translation>
+    </message>
 </context>
 <context>
     <name>MapChooser</name>
