@@ -879,6 +879,10 @@
         <source>Telegram is limiting translations. The messages will be translated when it answers again, or add a Google API key in Settings &gt; Translation.</source>
         <translation>Telegram membatasi terjemahan. Pesan akan diterjemahkan saat Telegram menjawab lagi; atau tambahkan kunci API Google di Pengaturan &gt; Terjemahan.</translation>
     </message>
+    <message>
+        <source>Translating…</source>
+        <translation>Menerjemahkan…</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>

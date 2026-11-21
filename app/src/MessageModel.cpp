@@ -100,6 +100,8 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     connect(engine, SIGNAL(failed(QString, QString, QString)), this, SLOT(onFailed(QString, QString, QString)));
     m_retry.setSingleShot(true);
     connect(&m_retry, SIGNAL(timeout()), this, SLOT(retryTranslate()));
+    m_trSoon.setSingleShot(true);
+    connect(&m_trSoon, SIGNAL(timeout()), this, SLOT(askTranslate()));
     connect(PreviewMaker::instance(), SIGNAL(ready(QStringList)), this, SLOT(onPreviews(QStringList)));
     m_historyAt.invalidate(); // QElapsedTimer has no constructor
     m_bridgeAt.invalidate();
@@ -217,6 +219,12 @@ QVariant MessageModel::data(const QVariantList &indexPath)
     if (e.msg < 0)
         return e.title;
     QVariantMap d = e.members.isEmpty() ? m_all[e.msg].data : albumData(e);
+    // The list draws this row: its translation is asked for now, if the chat has a language and the row none yet.
+    if (!m_translate.isEmpty()) {
+        wantTranslation(m_all[e.msg]);
+        foreach (int member, e.members)
+            wantTranslation(m_all[member]);
+    }
     // A countdown running: what is left now, every time the row is asked for (tickExpiry makes the list ask).
     const qint64 until = d.value("expiresAt").toLongLong();
     if (until > 0)
@@ -472,8 +480,11 @@ void MessageModel::expectOpen(const QString &requestId)
 void MessageModel::onReplied(const QString &id, const QString &cmd, const QVariant &result)
 {
     if (cmd == "msg.translate") {
-        if (m_translating.remove(id) > 0)
+        if (m_translating.remove(id) > 0) {
             m_retries = 0;
+            if (m_translating.isEmpty())
+                emit translatingChanged();
+        }
         return;
     }
     if (id == m_openId)
@@ -1136,7 +1147,11 @@ void MessageModel::onConnected()
     m_senderAsks.clear(); // and a senders.get: the rows read again below collect the senders still unknown
     m_sendersAsked = QSet<QString>::fromList(m_senders.keys());
     m_askedTr.clear(); // and a translation
-    m_translating.clear();
+    m_toTranslate.clear();
+    if (!m_translating.isEmpty()) {
+        m_translating.clear();
+        emit translatingChanged();
+    }
     m_retries = 0;
     m_retry.stop();
     const bool had = !m_all.isEmpty();
@@ -1158,6 +1173,7 @@ void MessageModel::onChats(const QStringList &jids)
     m_translate = now;
     emit translateChanged();
     m_askedTr.clear();
+    m_toTranslate.clear();
     m_retries = 0;
     m_retry.stop();
     reload();
@@ -1172,6 +1188,8 @@ void MessageModel::onFailed(const QString &id, const QString &cmd, const QString
         return;
     foreach (const QString &m, m_translating.take(id))
         m_askedTr.remove(m);
+    if (m_translating.isEmpty())
+        emit translatingChanged();
     emit translateStalled(code);
     // ponytail: a fixed 60 s, 5 times; the engine's pause doubles up to 15 min, so after the fifth the next page or reconnect asks again.
     if ((code == "rate_limited" || code == "offline" || code == "no_engine") && m_retries < 5 && !m_retry.isActive())

@@ -880,6 +880,10 @@
         <source>Telegram is limiting translations. The messages will be translated when it answers again, or add a Google API key in Settings &gt; Translation.</source>
         <translation>Telegram limite les traductions. Les messages seront traduits quand il répondra de nouveau ; ou ajoutez une clé API Google dans Paramètres &gt; Traduction.</translation>
     </message>
+    <message>
+        <source>Translating…</source>
+        <translation>Traduction en cours…</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>

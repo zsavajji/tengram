@@ -924,7 +924,8 @@ Page {
         visibility: page.atEar ? ChromeVisibility.Hidden : ChromeVisibility.Visible
         chat: page.chat
         topicName: page.topicName
-        status: ctl.status
+        // While the chat's messages are being translated the line says so: Telegram can take half a minute.
+        status: ctl.messages && ctl.messages.translating ? qsTr("Translating…") : ctl.status
         secret: page.secret
         members: ctl.groupInfo.participants ? ctl.groupInfo.participants.length : 0
         onTapped: infoAction.showInfo()

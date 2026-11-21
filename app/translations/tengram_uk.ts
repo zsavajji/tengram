@@ -881,6 +881,10 @@
         <source>Telegram is limiting translations. The messages will be translated when it answers again, or add a Google API key in Settings &gt; Translation.</source>
         <translation>Telegram обмежує переклади. Повідомлення буде перекладено, коли він знову відповість; або додайте ключ API Google у «Налаштування &gt; Переклад».</translation>
     </message>
+    <message>
+        <source>Translating…</source>
+        <translation>Переклад…</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>

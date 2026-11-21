@@ -880,6 +880,10 @@
         <source>Telegram is limiting translations. The messages will be translated when it answers again, or add a Google API key in Settings &gt; Translation.</source>
         <translation>Telegram अनुवाद सीमित कर रहा है। जब वह फिर जवाब देगा तब संदेशों का अनुवाद होगा; या सेटिंग &gt; अनुवाद में Google API कुंजी जोड़ें।</translation>
     </message>
+    <message>
+        <source>Translating…</source>
+        <translation>अनुवाद हो रहा है…</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>

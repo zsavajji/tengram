@@ -100,6 +100,9 @@ class MessageModel : public bb::cascades::DataModel
     Q_PROPERTY(bool awaitingOpen READ awaitingOpen NOTIFY awaitingChanged)
     // The language this chat's incoming messages are shown in ("it"), "" for off: chats.translate, read again on a chats event.
     Q_PROPERTY(QString translate READ translate NOTIFY translateChanged)
+    // True while a msg.translate of this chat's is not answered yet: Telegram can take half a minute for a page, and the
+    // title bar says so meanwhile (the user, 2026-11-21: "it worked but it did not tell me it was working").
+    Q_PROPERTY(bool translating READ translating NOTIFY translatingChanged)
 public:
     // topic: a forum topic's id (docs/protocol.md, Forum topics) when the model is one topic's messages, 0 for the chat's:
     // every read of messages then has `AND topic = ?`, the requests carry it, and the unread count and read_inbox are the
@@ -144,6 +147,7 @@ public:
     bool awaitingNewer() const { return !m_newerId.isEmpty(); }
     bool awaitingOpen() const { return !m_floorKnown; }
     QString translate() const { return m_translate; }
+    bool translating() const { return !m_translating.isEmpty(); }
     // The id of the newest loaded message, "" when none: what reading down to the bottom reports.
     // The newest message on screen when entry `first` is the bottom-most one shown (chat.read's upto).
     QString shownUpTo(int first) const;
@@ -178,6 +182,7 @@ signals:
     void loadingChanged();
     void windowChanged();
     void translateChanged();
+    void translatingChanged();
     // A msg.translate of this model's failed (the engine's error code, or no_engine): the page warns the user.
     void translateStalled(const QString &code);
     // awaitingOlder or awaitingNewer changed (one signal for both).
@@ -200,6 +205,7 @@ private slots:
     void onChats(const QStringList &jids);
     void onFailed(const QString &id, const QString &cmd, const QString &code);
     void retryTranslate();
+    void askTranslate();
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onPhoto(const QString &jid, const QString &path);
     void giveUp();
@@ -318,7 +324,7 @@ private:
     QString readTranslate() const;
     // Every loaded row read again, or the first page when none is loaded: onConnected, a new language, the retry.
     void reload();
-    void askTranslate();
+    void wantTranslation(const Msg &m);
 
     QPointer<EngineLink> m_engine;
     QString m_chat;
@@ -331,7 +337,8 @@ private:
     QHash<QString, QStringList> m_translating; // the msg.translate requests in flight: request id and the message ids it asked for
     QTimer m_retry; // single shot: the one retry armed after a failure that may pass (rate_limited, offline, no_engine)
     int m_retries; // the retries run in a row; a reply, a new language or a reconnect starts the count again
-    QStringList m_toTranslate; // read() queues, select() sends: newest first
+    QStringList m_toTranslate; // the rows drawn that want a translation (wantTranslation), sent by askTranslate
+    QTimer m_trSoon; // single shot, 200 ms: a screenful of rows is one request
     qint64 m_floor; // the oldest verified message id: older rows are not shown
     bool m_floorKnown; // false until the first chat.open reply
     int m_seenFirst; // the first visible entry the list last reported (nearTop), whatever the model's state; -1 before any

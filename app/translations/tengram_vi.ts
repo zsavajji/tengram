@@ -879,6 +879,10 @@
         <source>Telegram is limiting translations. The messages will be translated when it answers again, or add a Google API key in Settings &gt; Translation.</source>
         <translation>Telegram đang giới hạn việc dịch. Tin nhắn sẽ được dịch khi Telegram trả lời lại; hoặc thêm khóa API Google trong Cài đặt &gt; Dịch thuật.</translation>
     </message>
+    <message>
+        <source>Translating…</source>
+        <translation>Đang dịch…</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
