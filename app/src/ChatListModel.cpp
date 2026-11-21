@@ -42,7 +42,7 @@ static QString placeholder(int kind)
 
 // The row's fields from a SELECT of kRowColumns, all but the time, which depends on the list.
 static const char *const kRowColumns =
-    "jid, kind, name, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, photo, forum, secret, mentions";
+    "jid, kind, name, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, photo, forum, secret, mentions, translate";
 
 static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
 {
@@ -70,6 +70,7 @@ static QVariantMap baseRow(const QSqlQuery &q, qint64 now)
     row["forum"] = q.value(11).toInt() != 0; // a group with topics: a tap opens its TopicsPage
     row["secret"] = q.value(12).toInt(); // 0 not a secret chat, 1 pending, 2 ready, 3 closed (docs/protocol.md, Secret chats)
     row["mentions"] = q.value(13).toInt(); // unread mentions and replies to us: the row's @ beside the count
+    row["translate"] = q.value(14).toString(); // the language incoming messages are shown in, "" for off
     return row;
 }
 
@@ -354,7 +355,7 @@ bool ChatListModel::patch()
         // Does the chat belong in this list now?
         QVariantMap row;
         bool here = false;
-        if (q.next() && (q.value(14).toInt() != 0) == (m_mode == Archived)) {
+        if (q.next() && (q.value(15).toInt() != 0) == (m_mode == Archived)) {
             row = baseRow(q, clock.now);
             here = matches(row["name"].toString());
         }

@@ -57,6 +57,8 @@ void MessageCard::onPopulating()
     if (m_download)
         m_download->setEnabled(!deleted && !flag("secret") && (str("media") == "doc" || str("media") == "audio"));
     m_copy->setEnabled(!deleted && !str("text").isEmpty());
+    m_translate->setEnabled(flag("canTranslate"));
+    m_translate->setTitle(Card::tr(kContext, flag("translated") ? QT_TRANSLATE_NOOP("MessageItem", "Show original") : QT_TRANSLATE_NOOP("MessageItem", "Translate")));
     m_edit->setEnabled(flag("editable"));
     m_revoke->setEnabled(flag("revocable"));
     m_deleteMe->setEnabled(!readOnly);
@@ -104,6 +106,8 @@ void MessageCard::makeActions()
     }
     // /usr/share/icons has no copy icon: this one is the stock Text Messages app's.
     m_copy = action(QT_TRANSLATE_NOOP("MessageItem", "Copy"), "asset:///images/copy.png", SLOT(onCopy()), "c");
+    // Opens the translation dialog, or the original of a message already shown translated (onPopulating).
+    m_translate = action(QT_TRANSLATE_NOOP("MessageItem", "Translate"), "asset:///images/translate_action.png", SLOT(onTranslate()), "t");
     m_edit = action(QT_TRANSLATE_NOOP("MessageItem", "Edit"), "file:///usr/share/icons/ic_edit.png", SLOT(onEdit()), "e");
     m_revoke = action(QT_TRANSLATE_NOOP("MessageItem", "Delete for everyone"), "file:///usr/share/icons/bb_action_delete.png",
                       SLOT(onRevoke()), "x");
@@ -174,6 +178,7 @@ void MessageCard::onForward() { Card::call(m_list, "forward", m_msg); }
 void MessageCard::onDownload() { Card::call(m_list, "download", m_msg); }
 void MessageCard::onVotes() { Card::call(m_list, "showVoters", str("votesText")); }
 void MessageCard::onCopy() { Card::call(m_list, "copy", str("text")); }
+void MessageCard::onTranslate() { Card::call(m_list, "translate", m_msg); }
 void MessageCard::onEdit() { Card::call(m_list, "edit", m_msg); }
 void MessageCard::onRevoke() { Card::call(m_list, "deleteForEveryone", str("id")); }
 void MessageCard::onDeleteMe() { Card::call(m_list, "deleteForMe", str("id")); }

@@ -855,6 +855,31 @@
         <source>Secret chat cancelled</source>
         <translation>Discussion secrète annulée</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="184"/>
+        <source>Translate…</source>
+        <translation>Traduire…</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="371"/>
+        <source>The translation service is busy. The messages will be translated when it answers again.</source>
+        <translation>Le service de traduction est occupé. Les messages seront traduits dès qu&apos;il répondra de nouveau.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="372"/>
+        <source>Set up the translation service in Settings</source>
+        <translation>Configurez le service de traduction dans les Réglages</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="373"/>
+        <source>This service can&apos;t translate into this language</source>
+        <translation>Ce service ne peut pas traduire vers cette langue</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="370"/>
+        <source>Telegram is limiting translations. The messages will be translated when it answers again, or add a Google API key in Settings &gt; Translation.</source>
+        <translation>Telegram limite les traductions. Les messages seront traduits quand il répondra de nouveau ; ou ajoutez une clé API Google dans Paramètres &gt; Traduction.</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -907,6 +932,10 @@
     <message>
         <source>Call</source>
         <translation type="obsolete">Appeler</translation>
+    </message>
+    <message>
+        <source>Translate…</source>
+        <translation>Traduire…</translation>
     </message>
 </context>
 <context>
@@ -2095,6 +2124,14 @@
     <message>
         <source>Unstar</source>
         <translation type="obsolete">Retirer des favoris</translation>
+    </message>
+    <message>
+        <source>Translate</source>
+        <translation>Traduire</translation>
+    </message>
+    <message>
+        <source>Show original</source>
+        <translation>Afficher l&apos;original</translation>
     </message>
 </context>
 <context>
@@ -3545,6 +3582,16 @@
         <source>Unlink this device</source>
         <translation type="obsolete">Déconnecter cet appareil</translation>
     </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="64"/>
+        <source>Translation</source>
+        <translation>Traduction</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="64"/>
+        <source>Service, API key</source>
+        <translation>Service, clé API</translation>
+    </message>
 </context>
 <context>
     <name>SharePage</name>
@@ -3878,6 +3925,105 @@
         <location filename="../assets/TopicsPage.qml" line="123"/>
         <source>No topics</source>
         <translation>Aucun sujet</translation>
+    </message>
+</context>
+<context>
+    <name>TranslateDialog</name>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="39"/>
+        <source>Original</source>
+        <translation>Original</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="91"/>
+        <source>Already in %1</source>
+        <translation>Déjà en %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="173"/>
+        <source>Translate to</source>
+        <translation>Traduire en</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="222"/>
+        <source>Copy</source>
+        <translation>Copier</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="234"/>
+        <source>Close</source>
+        <translation>Fermer</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="103"/>
+        <source>Set up the translation service in Settings</source>
+        <translation>Configurez le service de traduction dans les Réglages</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="104"/>
+        <source>This service can&apos;t translate into this language</source>
+        <translation>Ce service ne peut pas traduire vers cette langue</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="105"/>
+        <source>Telegram is limiting translations. Try again later, or add a Google API key in Settings &gt; Translation.</source>
+        <translation>Telegram limite les traductions. Réessayez plus tard ou ajoutez une clé API Google dans Paramètres &gt; Traduction.</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="106"/>
+        <source>The translation service is busy. Try again later.</source>
+        <translation>Le service de traduction est occupé. Réessayez plus tard.</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="107"/>
+        <source>Couldn&apos;t reach the translation service</source>
+        <translation>Impossible de joindre le service de traduction</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="108"/>
+        <source>Couldn&apos;t translate this message</source>
+        <translation>Impossible de traduire ce message</translation>
+    </message>
+</context>
+<context>
+    <name>TranslatePicker</name>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="9"/>
+        <source>Translate incoming messages</source>
+        <translation>Traduire les messages reçus</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="10"/>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="11"/>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="16"/>
+        <source>Off</source>
+        <translation>Désactivé</translation>
+    </message>
+</context>
+<context>
+    <name>TranslationSettingsPage</name>
+    <message>
+        <location filename="../assets/TranslationSettingsPage.qml" line="10"/>
+        <source>Translation</source>
+        <translation>Traduction</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslationSettingsPage.qml" line="38"/>
+        <source>Google API key (optional)</source>
+        <translation>Clé API Google (facultative)</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslationSettingsPage.qml" line="52"/>
+        <source>Telegram translates the messages. If it limits translations, add a Google Cloud Translation API key: Google then translates in its place.</source>
+        <translation>Telegram traduit les messages. S&apos;il limite les traductions, ajoutez une clé API Google Cloud Translation : Google traduira à sa place.</translation>
     </message>
 </context>
 <context>

@@ -112,6 +112,10 @@ public:
     // A group's member changed by an admin: action is add, remove, promote or demote. groupInfo
     // is asked again once Telegram agrees; a refusal shows in the engine's failure.
     Q_INVOKABLE void changeParticipant(const QString &jid, const QString &action);
+    // Translates one message into the language `to` (msg.translate); translated or translateFailed answers.
+    Q_INVOKABLE void translate(const QString &id, const QString &to);
+    // A language's name in its own language, capitalised ("Italiano"); the code when Qt knows none.
+    Q_INVOKABLE QString languageName(const QString &code) const;
 
 signals:
     void messagesChanged();
@@ -127,6 +131,10 @@ signals:
     void unreadFound(const QString &id);
     // A recording was dropped from here (minimised): the page resets its recorder.
     void voiceCancelled();
+    // The answer to translate(): the message and its text in `to` ("" when it already is in it).
+    void translated(const QString &msgId, const QString &text, const QString &to);
+    // translate() failed: the engine's error code (rate_limited, no_key, unsupported, offline, no_engine, ...).
+    void translateFailed(const QString &code);
 
 private slots:
     void sendReadUpto();
@@ -145,6 +153,8 @@ private slots:
     void onTopics(const QString &chat);
     void readMentions();
     void askUnread(const QString &cmd);
+    void onTranslateReplied(const QString &id, const QString &cmd, const QVariant &result);
+    void onTranslateFailure();
 
 private:
     void takeGroupInfo(QVariantMap info);
@@ -169,6 +179,8 @@ private:
     QString m_infoId; // the group.info request we wait for
     QString m_changeId; // the group.participants request we wait for
     QString m_pinsId; // the chat.pins request we wait for
+    QString m_translateId; // the msg.translate request we wait for
+    QString m_translateTo; // and the language it asked for
     QString m_mentionId; // the chat.mention or chat.reaction request we wait for (one at a time)
     int m_mentions;
     int m_reactions;

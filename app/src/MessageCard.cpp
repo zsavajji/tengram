@@ -95,12 +95,14 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_chipSpare(0)
     , m_edited(Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "edited")) + " ")
     , m_starMark(QString::fromUtf8("\xE2\x98\x85 "))
+    , m_trMark(QString::fromUtf8("\xE2\x87\x84 "))
     , m_reply(0)
     , m_react(0)
     , m_forward(0)
     , m_votes(0)
     , m_download(0)
     , m_copy(0)
+    , m_translate(0)
     , m_edit(0)
     , m_revoke(0)
     , m_deleteMe(0)
@@ -949,12 +951,12 @@ void MessageCard::fillColumn()
 }
 
 // What goes before the time: the seconds a self-destructing message has left (or its timer's), a star for a starred message,
-// then "edited".
+// the translation's arrows, then "edited".
 QString MessageCard::timeLead() const
 {
     const QString ttl = str("ttlText");
     return (ttl.isEmpty() ? QString() : ttl + QString::fromUtf8(" \xC2\xB7 ")) + (flag("starred") ? m_starMark : QString())
-           + (flag("edited") ? m_edited : QString());
+           + (flag("translated") ? m_trMark : QString()) + (flag("edited") ? m_edited : QString());
 }
 
 // The accent bars, made when a card first shows one (fillFoot): every card made them, and Round mode, the default, never

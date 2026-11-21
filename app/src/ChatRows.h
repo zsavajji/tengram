@@ -69,6 +69,7 @@ private slots:
     void onUp();
     void onDown();
     void onMute();
+    void onTranslate();
     void onArchive();
 
 private:
@@ -123,6 +124,7 @@ private:
     bb::cascades::ActionItem *m_upItem; // Move up and down: in the menu for a pinned chat only (showMoves)
     bb::cascades::ActionItem *m_downItem;
     bb::cascades::ActionItem *m_muteItem;
+    bb::cascades::ActionItem *m_translateItem;
     bb::cascades::ActionItem *m_archiveItem;
 };
 

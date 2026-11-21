@@ -78,6 +78,7 @@ private slots:
     void onDownload();
     void onVotes();
     void onCopy();
+    void onTranslate();
     void onEdit();
     void onRevoke();
     void onDeleteMe();
@@ -225,6 +226,7 @@ private:
 
     QString m_edited; // "edited ", translated
     QString m_starMark; // the star (U+2605) and a space, before the time of a starred message
+    QString m_trMark; // U+21C4 and a space, before the time of a message shown translated
     float m_laidHeight;  // the height of the last layout (onLaidOut), 0 before the first: the slide's distance
     bb::cascades::ActionSet *m_menu;
     bb::cascades::ActionItem *m_reply;
@@ -233,6 +235,7 @@ private:
     bb::cascades::ActionItem *m_votes;
     bb::cascades::ActionItem *m_download;
     bb::cascades::ActionItem *m_copy;
+    bb::cascades::ActionItem *m_translate;
     bb::cascades::ActionItem *m_edit;
     bb::cascades::ActionItem *m_revoke;
     bb::cascades::DeleteActionItem *m_deleteMe;

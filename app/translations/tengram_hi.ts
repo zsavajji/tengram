@@ -855,6 +855,31 @@
         <source>Secret chat cancelled</source>
         <translation>सीक्रेट चैट रद्द की गई</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="184"/>
+        <source>Translate…</source>
+        <translation>अनुवाद…</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="371"/>
+        <source>The translation service is busy. The messages will be translated when it answers again.</source>
+        <translation>अनुवाद सेवा व्यस्त है। जब वह फिर जवाब देगी, संदेशों का अनुवाद हो जाएगा।</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="372"/>
+        <source>Set up the translation service in Settings</source>
+        <translation>सेटिंग्स में अनुवाद सेवा सेट करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="373"/>
+        <source>This service can&apos;t translate into this language</source>
+        <translation>यह सेवा इस भाषा में अनुवाद नहीं कर सकती</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="370"/>
+        <source>Telegram is limiting translations. The messages will be translated when it answers again, or add a Google API key in Settings &gt; Translation.</source>
+        <translation>Telegram अनुवाद सीमित कर रहा है। जब वह फिर जवाब देगा तब संदेशों का अनुवाद होगा; या सेटिंग &gt; अनुवाद में Google API कुंजी जोड़ें।</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -907,6 +932,10 @@
     <message>
         <source>Call</source>
         <translation type="obsolete">कॉल करें</translation>
+    </message>
+    <message>
+        <source>Translate…</source>
+        <translation>अनुवाद…</translation>
     </message>
 </context>
 <context>
@@ -2095,6 +2124,14 @@
     <message>
         <source>Unstar</source>
         <translation type="obsolete">स्टार हटाएं</translation>
+    </message>
+    <message>
+        <source>Translate</source>
+        <translation>अनुवाद करें</translation>
+    </message>
+    <message>
+        <source>Show original</source>
+        <translation>मूल दिखाएँ</translation>
     </message>
 </context>
 <context>
@@ -3545,6 +3582,16 @@
         <source>Unlink this device</source>
         <translation type="obsolete">इस डिवाइस को अनलिंक करें</translation>
     </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="64"/>
+        <source>Translation</source>
+        <translation>अनुवाद</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="64"/>
+        <source>Service, API key</source>
+        <translation>सेवा, API कुंजी</translation>
+    </message>
 </context>
 <context>
     <name>SharePage</name>
@@ -3878,6 +3925,105 @@
         <location filename="../assets/TopicsPage.qml" line="123"/>
         <source>No topics</source>
         <translation>कोई विषय नहीं</translation>
+    </message>
+</context>
+<context>
+    <name>TranslateDialog</name>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="39"/>
+        <source>Original</source>
+        <translation>मूल</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="91"/>
+        <source>Already in %1</source>
+        <translation>पहले से %1 में</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="173"/>
+        <source>Translate to</source>
+        <translation>इसमें अनुवाद करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="222"/>
+        <source>Copy</source>
+        <translation>कॉपी करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="234"/>
+        <source>Close</source>
+        <translation>बंद करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="103"/>
+        <source>Set up the translation service in Settings</source>
+        <translation>सेटिंग्स में अनुवाद सेवा सेट करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="104"/>
+        <source>This service can&apos;t translate into this language</source>
+        <translation>यह सेवा इस भाषा में अनुवाद नहीं कर सकती</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="105"/>
+        <source>Telegram is limiting translations. Try again later, or add a Google API key in Settings &gt; Translation.</source>
+        <translation>Telegram अनुवाद सीमित कर रहा है। बाद में फिर कोशिश करें, या सेटिंग &gt; अनुवाद में Google API कुंजी जोड़ें।</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="106"/>
+        <source>The translation service is busy. Try again later.</source>
+        <translation>अनुवाद सेवा व्यस्त है। बाद में फिर कोशिश करें।</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="107"/>
+        <source>Couldn&apos;t reach the translation service</source>
+        <translation>अनुवाद सेवा तक नहीं पहुँच सके</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="108"/>
+        <source>Couldn&apos;t translate this message</source>
+        <translation>इस संदेश का अनुवाद नहीं हो सका</translation>
+    </message>
+</context>
+<context>
+    <name>TranslatePicker</name>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="9"/>
+        <source>Translate incoming messages</source>
+        <translation>आने वाले संदेशों का अनुवाद करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="10"/>
+        <source>OK</source>
+        <translation>ठीक है</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="11"/>
+        <source>Cancel</source>
+        <translation>रद्द करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="16"/>
+        <source>Off</source>
+        <translation>बंद</translation>
+    </message>
+</context>
+<context>
+    <name>TranslationSettingsPage</name>
+    <message>
+        <location filename="../assets/TranslationSettingsPage.qml" line="10"/>
+        <source>Translation</source>
+        <translation>अनुवाद</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslationSettingsPage.qml" line="38"/>
+        <source>Google API key (optional)</source>
+        <translation>Google API कुंजी (वैकल्पिक)</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslationSettingsPage.qml" line="52"/>
+        <source>Telegram translates the messages. If it limits translations, add a Google Cloud Translation API key: Google then translates in its place.</source>
+        <translation>संदेशों का अनुवाद Telegram करता है। अगर वह अनुवाद सीमित करे, तो Google Cloud Translation की API कुंजी जोड़ें: तब अनुवाद Google करेगा।</translation>
     </message>
 </context>
 <context>

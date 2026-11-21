@@ -854,6 +854,31 @@
         <source>Secret chat cancelled</source>
         <translation>Đã hủy đoạn chat bí mật</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="184"/>
+        <source>Translate…</source>
+        <translation>Dịch…</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="371"/>
+        <source>The translation service is busy. The messages will be translated when it answers again.</source>
+        <translation>Dịch vụ dịch đang bận. Các tin nhắn sẽ được dịch khi dịch vụ phản hồi lại.</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="372"/>
+        <source>Set up the translation service in Settings</source>
+        <translation>Thiết lập dịch vụ dịch trong Cài đặt</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="373"/>
+        <source>This service can&apos;t translate into this language</source>
+        <translation>Dịch vụ này không dịch được sang ngôn ngữ này</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="370"/>
+        <source>Telegram is limiting translations. The messages will be translated when it answers again, or add a Google API key in Settings &gt; Translation.</source>
+        <translation>Telegram đang giới hạn việc dịch. Tin nhắn sẽ được dịch khi Telegram trả lời lại; hoặc thêm khóa API Google trong Cài đặt &gt; Dịch thuật.</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -906,6 +931,10 @@
     <message>
         <source>Call</source>
         <translation type="obsolete">Gọi</translation>
+    </message>
+    <message>
+        <source>Translate…</source>
+        <translation>Dịch…</translation>
     </message>
 </context>
 <context>
@@ -2092,6 +2121,14 @@
     <message>
         <source>Unstar</source>
         <translation type="obsolete">Bỏ dấu sao</translation>
+    </message>
+    <message>
+        <source>Translate</source>
+        <translation>Dịch</translation>
+    </message>
+    <message>
+        <source>Show original</source>
+        <translation>Hiện bản gốc</translation>
     </message>
 </context>
 <context>
@@ -3540,6 +3577,16 @@
         <source>Unlink this device</source>
         <translation type="obsolete">Hủy liên kết thiết bị này</translation>
     </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="64"/>
+        <source>Translation</source>
+        <translation>Dịch thuật</translation>
+    </message>
+    <message>
+        <location filename="../assets/SettingsPage.qml" line="64"/>
+        <source>Service, API key</source>
+        <translation>Dịch vụ, khóa API</translation>
+    </message>
 </context>
 <context>
     <name>SharePage</name>
@@ -3873,6 +3920,105 @@
         <location filename="../assets/TopicsPage.qml" line="123"/>
         <source>No topics</source>
         <translation>Không có chủ đề</translation>
+    </message>
+</context>
+<context>
+    <name>TranslateDialog</name>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="39"/>
+        <source>Original</source>
+        <translation>Bản gốc</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="91"/>
+        <source>Already in %1</source>
+        <translation>Đã bằng %1</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="173"/>
+        <source>Translate to</source>
+        <translation>Dịch sang</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="222"/>
+        <source>Copy</source>
+        <translation>Sao chép</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="234"/>
+        <source>Close</source>
+        <translation>Đóng</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="103"/>
+        <source>Set up the translation service in Settings</source>
+        <translation>Thiết lập dịch vụ dịch trong Cài đặt</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="104"/>
+        <source>This service can&apos;t translate into this language</source>
+        <translation>Dịch vụ này không dịch được sang ngôn ngữ này</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="105"/>
+        <source>Telegram is limiting translations. Try again later, or add a Google API key in Settings &gt; Translation.</source>
+        <translation>Telegram đang giới hạn việc dịch. Hãy thử lại sau, hoặc thêm khóa API Google trong Cài đặt &gt; Dịch thuật.</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="106"/>
+        <source>The translation service is busy. Try again later.</source>
+        <translation>Dịch vụ dịch đang bận. Hãy thử lại sau.</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="107"/>
+        <source>Couldn&apos;t reach the translation service</source>
+        <translation>Không thể kết nối đến dịch vụ dịch</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslateDialog.qml" line="108"/>
+        <source>Couldn&apos;t translate this message</source>
+        <translation>Không thể dịch tin nhắn này</translation>
+    </message>
+</context>
+<context>
+    <name>TranslatePicker</name>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="9"/>
+        <source>Translate incoming messages</source>
+        <translation>Dịch tin nhắn đến</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="10"/>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="11"/>
+        <source>Cancel</source>
+        <translation>Hủy</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslatePicker.qml" line="16"/>
+        <source>Off</source>
+        <translation>Tắt</translation>
+    </message>
+</context>
+<context>
+    <name>TranslationSettingsPage</name>
+    <message>
+        <location filename="../assets/TranslationSettingsPage.qml" line="10"/>
+        <source>Translation</source>
+        <translation>Dịch thuật</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslationSettingsPage.qml" line="38"/>
+        <source>Google API key (optional)</source>
+        <translation>Khóa API Google (tùy chọn)</translation>
+    </message>
+    <message>
+        <location filename="../assets/TranslationSettingsPage.qml" line="52"/>
+        <source>Telegram translates the messages. If it limits translations, add a Google Cloud Translation API key: Google then translates in its place.</source>
+        <translation>Telegram dịch tin nhắn. Nếu Telegram giới hạn việc dịch, hãy thêm khóa API Google Cloud Translation: khi đó Google sẽ dịch.</translation>
     </message>
 </context>
 <context>

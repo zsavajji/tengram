@@ -267,6 +267,7 @@ void EngineLink::readLines()
                     // Data and storage: automatic download, the gallery copy, the media kept (Settings::dataPrefs).
                     prefs.unite(Settings::dataPrefs(file));
                     prefs["language"] = m_language;
+                    prefs["googleKey"] = file.value("googleKey").toString();
                     prefs["cacheMB"] = qBound(64, file.value("cacheLimit", 64).toInt(), 512);
                     prefs["mode"] = file.value("deliveryMode", "auto").toString();
                     request("prefs.set", prefs);
@@ -282,6 +283,8 @@ void EngineLink::readLines()
             } else {
                 const QString cmd = m_pending.take(id);
                 const bool quiet = m_quiet.remove(id);
+                if (!ok)
+                    emit failed(id, cmd, error["code"].toString());
                 if (!ok && quiet)
                     qWarning() << "engine:" << cmd << "failed:" << error["code"].toString()
                                << error["message"].toString();
@@ -376,6 +379,7 @@ void EngineLink::lost()
     const QHash<QString, QString> pending = m_pending;
     m_pending.clear();
     for (QHash<QString, QString>::const_iterator it = pending.begin(); it != pending.end(); ++it) {
+        emit failed(it.key(), it.value(), "no_engine");
         if (!m_quiet.contains(it.key()))
             fail(it.value(), "no_engine", tr("The engine isn't running."));
     }

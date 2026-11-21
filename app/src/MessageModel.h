@@ -98,6 +98,8 @@ class MessageModel : public bb::cascades::DataModel
     // True until the chat.open answer that gives the floor has come: no older page can be read or asked for before it, so
     // a list resting at its top has nothing to show but this wait (the user, 2026-11-20: 8 s with no spinner).
     Q_PROPERTY(bool awaitingOpen READ awaitingOpen NOTIFY awaitingChanged)
+    // The language this chat's incoming messages are shown in ("it"), "" for off: chats.translate, read again on a chats event.
+    Q_PROPERTY(QString translate READ translate NOTIFY translateChanged)
 public:
     // topic: a forum topic's id (docs/protocol.md, Forum topics) when the model is one topic's messages, 0 for the chat's:
     // every read of messages then has `AND topic = ?`, the requests carry it, and the unread count and read_inbox are the
@@ -141,6 +143,7 @@ public:
     bool awaitingOlder() const { return !m_historyId.isEmpty(); }
     bool awaitingNewer() const { return !m_newerId.isEmpty(); }
     bool awaitingOpen() const { return !m_floorKnown; }
+    QString translate() const { return m_translate; }
     // The id of the newest loaded message, "" when none: what reading down to the bottom reports.
     // The newest message on screen when entry `first` is the bottom-most one shown (chat.read's upto).
     QString shownUpTo(int first) const;
@@ -174,6 +177,9 @@ signals:
     void emptyChanged();
     void loadingChanged();
     void windowChanged();
+    void translateChanged();
+    // A msg.translate of this model's failed (the engine's error code, or no_engine): the page warns the user.
+    void translateStalled(const QString &code);
     // awaitingOlder or awaitingNewer changed (one signal for both).
     void awaitingChanged();
     // The model left window mode and has no verified floor: the controller sends chat.open again.
@@ -191,6 +197,9 @@ private slots:
     void onMsgs(const QString &chat, const QStringList &ids);
     void onPreviews(const QStringList &ids);
     void onConnected();
+    void onChats(const QStringList &jids);
+    void onFailed(const QString &id, const QString &cmd, const QString &code);
+    void retryTranslate();
     void onReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onPhoto(const QString &jid, const QString &path);
     void giveUp();
@@ -306,6 +315,10 @@ private:
     // A time as the foot shows it: "10 s", "5 min", "1 h", "7 d" (rounded up).
     static QString span(qint64 secs);
     QString dayTitle(const Msg &m);
+    QString readTranslate() const;
+    // Every loaded row read again, or the first page when none is loaded: onConnected, a new language, the retry.
+    void reload();
+    void askTranslate();
 
     QPointer<EngineLink> m_engine;
     QString m_chat;
@@ -313,6 +326,12 @@ private:
     bool m_channel; // a channel (kind 3): read-only for us
     bool m_secret; // a secret chat: no forward, edit or reaction
     int m_topic; // the forum topic shown, 0 for the whole chat
+    QString m_translate; // the language this chat's incoming messages are shown in (chats.translate), "" for off
+    QSet<QString> m_askedTr; // the ids asked to be translated: never twice until the chat is reopened (or the link comes back)
+    QHash<QString, QStringList> m_translating; // the msg.translate requests in flight: request id and the message ids it asked for
+    QTimer m_retry; // single shot: the one retry armed after a failure that may pass (rate_limited, offline, no_engine)
+    int m_retries; // the retries run in a row; a reply, a new language or a reconnect starts the count again
+    QStringList m_toTranslate; // read() queues, select() sends: newest first
     qint64 m_floor; // the oldest verified message id: older rows are not shown
     bool m_floorKnown; // false until the first chat.open reply
     int m_seenFirst; // the first visible entry the list last reported (nearTop), whatever the model's state; -1 before any

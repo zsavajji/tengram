@@ -81,7 +81,13 @@ ListView {
             muteDialog.show()
         }
     }
+    function pickTranslate(chat) {
+        translateDialog.pick(chat.jid, chat.translate)
+    }
     attachedObjects: [
+        TranslatePicker {
+            id: translateDialog
+        },
         SystemToast {
             id: moveFailed
             body: qsTr("Couldn't move this chat")

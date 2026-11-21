@@ -84,6 +84,7 @@ bool Settings::round() const { return m_file.value("round", true).toBool(); }
 bool Settings::darkGrey() const { return m_file.value("darkGrey", false).toBool(); }
 int Settings::callHints() const { return qMax(0, m_file.value("callHints", 0).toInt()); }
 bool Settings::syncContacts() const { return m_file.value("syncContacts", false).toBool(); }
+QString Settings::googleKey() const { return m_file.value("googleKey").toString(); }
 
 qreal Settings::textScale() const
 {
@@ -388,6 +389,21 @@ void Settings::setSyncContacts(bool on)
         return;
     store("syncContacts", on);
     emit syncContactsChanged();
+}
+
+// A pref the engine keeps too (prefs.set): stored here, and sent when connected.
+void Settings::setGoogleKey(const QString &key)
+{
+    if (key == googleKey())
+        return;
+    store("googleKey", key);
+    // Not connected: the hello path sends it on the next connect.
+    if (m_engine->connected()) {
+        QVariantMap prefs;
+        prefs["googleKey"] = key;
+        m_engine->request("prefs.set", prefs);
+    }
+    emit googleKeyChanged();
 }
 
 // The round copies roundPhoto has made, by the picture's path, size and time: a list scrolling asks again and again. Emptied

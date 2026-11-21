@@ -70,12 +70,15 @@ Page {
         revealGuard.start()
         // Pinned messages, not in a secret chat (Telegram has no pins there), after Search as before.
         if (!chat.secret) addAction(pinnedAction, ActionBarPlacement.InOverflow)
+        // Translation is refused in a secret chat. Every other kind of chat, channels too.
+        if (!chat.secret) addAction(translateAction, ActionBarPlacement.InOverflow)
         if (chat.kind != 2) addAction(infoAction, ActionBarPlacement.InOverflow)
         if (chat.kind == 1) addAction(pollAction, ActionBarPlacement.InOverflow) // groups: Telegram refuses polls in a chat with a person
         if (chat.secret) addAction(timerAction, ActionBarPlacement.InOverflow)
         ctl.messages.itemAdded.connect(page.added)
         ctl.messages.newestComing.connect(page.coming)
         ctl.messages.loadingChanged.connect(page.loaded)
+        ctl.messages.translateStalled.connect(page.translateStalled)
         ctl.mentionsChanged.connect(page.jumpCounts)
         ctl.unreadFound.connect(page.jump) // the @ and heart buttons' message: loaded if far back, scrolled to and tinted
         media.ready.connect(page.mediaReady)
@@ -175,6 +178,17 @@ Page {
             chatCtl: ctl
             onJump: page.jump(id)
         },
+        // Added for every chat but a secret one (ActionItem has no visible). Opened with the language the model has now.
+        ActionItem {
+            id: translateAction
+            title: qsTr("Translate…")
+            imageSource: "asset:///images/translate_action.png"
+            onTriggered: chatTranslate.pick(page.chat.jid, ctl.messages ? ctl.messages.translate : "")
+        },
+        TranslatePicker { id: chatTranslate },
+        SystemToast {
+            id: translateWarning
+        },
         SystemToast {
             id: notSent
             body: qsTr("Not sent: Tengram is reconnecting. Try again in a moment.")
@@ -233,6 +247,14 @@ Page {
             id: reactDef
             ReactBar {
                 jid: page.chat ? page.chat.jid : ""
+            }
+        },
+        ComponentDefinition {
+            id: translateDef
+            TranslateDialog {
+                chatCtl: ctl
+                // The chat's live language (the model re-reads it), not page.chat's, which is as it was at the open.
+                defaultLang: ctl.messages && ctl.messages.translate ? ctl.messages.translate : phoneLocale.language
             }
         },
         ComponentDefinition {
@@ -338,6 +360,24 @@ Page {
     property variant searchObj
     property variant reactObj
     property variant stagedObj
+    property variant translateObj
+    // The codes already warned about in this opening of the chat, "|" before each: the warning shows once for each.
+    // A string: an object in a variant property is copied at each read, so a key set on it is lost.
+    property string warned: ""
+    // In-place translation failed (MessageModel retries the ones that may pass, itself). The other codes, offline above all, are
+    // not worth a toast.
+    function translateStalled(code) {
+        var words = code == "rate_limited" ? (settings.googleKey == "" ? qsTr("Telegram is limiting translations. The messages will be translated when it answers again, or add a Google API key in Settings > Translation.")
+                                                                      : qsTr("The translation service is busy. The messages will be translated when it answers again."))
+                  : code == "no_key" ? qsTr("Set up the translation service in Settings")
+                  : code == "unsupported" ? qsTr("This service can't translate into this language") : ""
+        if (words == "" || warned.indexOf("|" + code) >= 0) {
+            return
+        }
+        warned += "|" + code
+        translateWarning.body = words
+        translateWarning.show()
+    }
     // The send-files page over this one (openFiles); only meant while nav.top is it (edited).
     property variant filesPage
     function player() {
@@ -375,6 +415,16 @@ Page {
             reactObj = b
         }
         return reactObj
+    }
+    // The translation dialog, made at its first use; its parent is the page, which it goes with.
+    function translateDialog() {
+        if (!translateObj) {
+            var d = translateDef.createObject(page)
+            ctl.translated.connect(d.got)
+            ctl.translateFailed.connect(d.failed)
+            translateObj = d
+        }
+        return translateObj
     }
     function stagedBar() {
         if (!stagedObj) {
@@ -930,6 +980,14 @@ Page {
                     }
                     function copy(text) {
                         ctl.copy(text)
+                    }
+                    // Translate: a message already shown translated gives its original, any other its translation.
+                    function translate(msg) {
+                        if (msg.translated) {
+                            page.translateDialog().showOriginal(msg)
+                        } else {
+                            page.translateDialog().ask(msg)
+                        }
                     }
                     // Forward: the Send to page, titled Forward to; its pick sends the message (main.qml's forwardTo).
                     function forward(msg) {

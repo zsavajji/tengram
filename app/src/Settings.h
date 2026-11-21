@@ -57,6 +57,8 @@ class Settings : public QObject
     // Privacy and security > Sync contacts: the phone's address book goes to Telegram (contacts.book) only while this
     // is on. Off by default: uploading the address book is a setting the user turns on (ContactBook acts on it).
     Q_PROPERTY(bool syncContacts READ syncContacts WRITE setSyncContacts NOTIFY syncContactsChanged)
+    // Settings > Translation: a Google Cloud Translation API key, "" for none (Telegram translates then). The engine's pref.
+    Q_PROPERTY(QString googleKey READ googleKey WRITE setGoogleKey NOTIFY googleKeyChanged)
 
 public:
     explicit Settings(EngineLink *engine, QObject *parent = 0);
@@ -85,6 +87,7 @@ public:
     bool darkGrey() const;
     int callHints() const;
     bool syncContacts() const;
+    QString googleKey() const;
     void setTheme(int theme);
     void setEnterSends(bool on);
     void setNotifyPreview(bool on);
@@ -116,6 +119,7 @@ public:
     void setStickerSize(int size);
     void setCallHints(int count);
     void setSyncContacts(bool on);
+    void setGoogleKey(const QString &key);
     // The eight Data and storage prefs as prefs.set takes them, read from file with their defaults and limits: what the
     // getters answer, and what EngineLink sends at every connect.
     static QVariantMap dataPrefs(const QSettings &file);
@@ -158,6 +162,7 @@ signals:
     void darkGreyChanged();
     void callHintsChanged();
     void syncContactsChanged();
+    void googleKeyChanged();
 
 private slots:
     void bootTimerReplied();

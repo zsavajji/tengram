@@ -89,6 +89,7 @@ ChatRow::ChatRow(ListView *list)
     , m_upItem(0)
     , m_downItem(0)
     , m_muteItem(0)
+    , m_translateItem(0)
     , m_archiveItem(0)
 {
     // The row's own node and its root: a list item is as wide as its content unless it fills.
@@ -488,6 +489,7 @@ void ChatRow::makeActions()
     m_upItem = action(SLOT(onUp()));
     m_downItem = action(SLOT(onDown()));
     m_muteItem = action(SLOT(onMute()));
+    m_translateItem = action(SLOT(onTranslate()));
     m_archiveItem = action(SLOT(onArchive()));
 }
 
@@ -534,6 +536,9 @@ void ChatRow::onPopulating()
     }
     setItem(m_muteItem, flag("muted") ? QT_TRANSLATE_NOOP("ChatRow", "Unmute") : QT_TRANSLATE_NOOP("ChatRow", "Mute\xE2\x80\xA6"), "asset:///images/mute_action.png");
     m_muteItem->setEnabled(!channels);
+    // Off in a secret chat (nothing of it goes to a service) and for a forum's topics, which are not chats.
+    setItem(m_translateItem, QT_TRANSLATE_NOOP("ChatRow", "Translate\xE2\x80\xA6"), "asset:///images/translate_action.png");
+    m_translateItem->setEnabled(m_chat.value("secret").toInt() == 0 && !m_topics);
     if (channels)
         setItem(m_archiveItem, QT_TRANSLATE_NOOP("ChatRow", "Unfollow"), "file:///usr/share/icons/bb_action_delete.png");
     else
@@ -546,4 +551,5 @@ void ChatRow::onPin() { Card::call(m_list, "togglePin", m_chat); }
 void ChatRow::onUp() { Card::call(m_list, "movePin", m_chat, -1); }
 void ChatRow::onDown() { Card::call(m_list, "movePin", m_chat, 1); }
 void ChatRow::onMute() { Card::call(m_list, "toggleMute", m_chat); }
+void ChatRow::onTranslate() { Card::call(m_list, "pickTranslate", m_chat); }
 void ChatRow::onArchive() { Card::call(m_list, "toggleArchive", m_chat); }

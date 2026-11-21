@@ -104,6 +104,9 @@ signals:
     // cmd and the result. For C++ objects only: a connection ends with its object, so nothing
     // stays connected to a destroyed page (as with failure).
     void replied(const QString &id, const QString &cmd, const QVariant &result);
+    // A failed request, every one (the quiet ones too, which `failure` leaves out): its id, the cmd and the engine's
+    // error code, or "no_engine" when the engine went down before it replied. For C++ objects only, as `replied`.
+    void failed(const QString &id, const QString &cmd, const QString &code);
     void linkedChanged();
     void failureChanged();
     void callChanged();
