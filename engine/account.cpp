@@ -69,11 +69,6 @@ bool choice_field(std::uint64_t conn, const std::string &id, td::JsonObject &req
   return false;
 }
 
-std::string trim(const std::string &s) {
-  const std::size_t from = s.find_first_not_of(' ');
-  return from == std::string::npos ? "" : s.substr(from, s.find_last_not_of(' ') + 1 - from);
-}
-
 // ---- privacy.get and privacy.set
 
 template <class T>

@@ -152,7 +152,8 @@ def app_images(folder):
     screen a portrait app can meet (Q10 and Classic, Z30, Z10, Passport): the icon on black, 30 % of the width,
     as HyperBerry's (../hyperberry/scripts/gen-icons.py)."""
     from PIL import Image
-    for px in (86, 90, 96, 110, 144):
+    # 288 is not the home screen's: WelcomePage.qml's logo, 32 du on the Q10.
+    for px in (86, 90, 96, 110, 144, 288):
         icon(px).save(folder / f"icon-{px}.png")
     for w, h in ((720, 720), (720, 1280), (768, 1280), (1440, 1440)):
         splash = Image.new("RGB", (w, h), (0, 0, 0))

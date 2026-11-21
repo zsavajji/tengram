@@ -13,16 +13,25 @@ std::string type_name(const td_api::BaseObject &o) {
   return s.substr(0, s.find_first_of(" \n"));
 }
 
+std::string trim(const std::string &s) {
+  const std::size_t from = s.find_first_not_of(' ');
+  return from == std::string::npos ? "" : s.substr(from, s.find_last_not_of(' ') + 1 - from);
+}
+
 void reply_td_error(std::uint64_t conn, const std::string &id, const td_api::error &e) {
   const std::string &m = e.message_;
   auto has = [&](const char *part) { return m.find(part) != std::string::npos; };
   const char *code = "td";
   if (has("PHONE_NUMBER_INVALID")) {
     code = "bad_phone";
-  } else if (has("PHONE_CODE_INVALID") || has("PHONE_CODE_EMPTY") || has("PHONE_CODE_EXPIRED")) {
-    code = "bad_code";
+  } else if (has("CODE_INVALID") || has("CODE_EMPTY") || has("CODE_EXPIRED")) {
+    code = "bad_code";  // PHONE_CODE_* and EMAIL_CODE_* alike
   } else if (has("PASSWORD_HASH_INVALID")) {
     code = "bad_password";
+  } else if (has("EMAIL_INVALID") || has("EMAIL_NOT_ALLOWED")) {
+    code = "bad_email";
+  } else if (has("FIRSTNAME_INVALID") || has("LASTNAME_INVALID")) {
+    code = "bad_name";
   }
   server.reply_error(conn, id, code, std::to_string(e.code_) + " " + m);
 }

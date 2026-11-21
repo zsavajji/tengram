@@ -4,7 +4,7 @@ import "errors.js" as Errors
 
 // The app's root (PLAN.md §7): the NavigationPane `nav` of every earlier step (pages reach it by that id,
 // and everything that pushes onto it), with the application menu. It shows the chat list when linked, else the
-// linking page: not linked, the root is the linking page, not a sheet.
+// welcome page (WelcomePage.qml), whose Next opens the linking page: not linked, the root is the welcome page, not a sheet.
 NavigationPane {
     id: nav
     Menu.definition: MenuDefinition {
@@ -139,9 +139,10 @@ NavigationPane {
             id: chatsDef
             source: "ChatsPage.qml"
         },
+        // Not linked, the root is the welcome page; its Next opens LinkPage.qml.
         ComponentDefinition {
-            id: linkDef
-            source: "LinkPage.qml"
+            id: welcomeDef
+            source: "WelcomePage.qml"
         },
         ComponentDefinition {
             id: settingsDef
@@ -346,7 +347,7 @@ NavigationPane {
             return
         }
         shownLinked = linked
-        var page = (linked ? chatsDef : linkDef).createObject()
+        var page = (linked ? chatsDef : welcomeDef).createObject()
         if (count() == 0) {
             push(page)
             return

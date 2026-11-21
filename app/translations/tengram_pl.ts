@@ -1776,9 +1776,9 @@
         <translation>Pobierz kod</translation>
     </message>
     <message>
-        <location filename="../assets/LinkNumberPage.qml" line="88"/>
-        <source>Type the number of the phone that has Telegram.</source>
-        <translation>Wpisz numer telefonu, na którym masz Telegram.</translation>
+        <location filename="../assets/LinkNumberPage.qml" line="93"/>
+        <source>Type your phone number. A number that isn&apos;t on Telegram yet signs up.</source>
+        <translation>Wpisz swój numer telefonu. Numer, którego nie ma jeszcze w Telegramie, służy do rejestracji.</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="119"/>
@@ -1794,6 +1794,16 @@
         <location filename="../assets/LinkNumberPage.qml" line="155"/>
         <source>Asking Telegram for a code…</source>
         <translation>Pobieranie kodu z Telegram…</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkNumberPage.qml" line="35"/>
+        <source>Log in with QR code</source>
+        <translation>Zaloguj się kodem QR</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkNumberPage.qml" line="126"/>
+        <source>Already have an account and prefer to log in with a QR code? Press the button at the bottom.</source>
+        <translation>Masz już konto i wolisz zalogować się kodem QR? Naciśnij przycisk na dole.</translation>
     </message>
 </context>
 <context>
@@ -1924,6 +1934,56 @@
     <message>
         <source>Getting your chats from your phone… This can take a few minutes.</source>
         <translation type="obsolete">Pobieranie czatów z telefonu… Może to potrwać kilka minut.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="236"/>
+        <source>Telegram needs an e-mail address for this account, to send you a code there.</source>
+        <translation>Telegram potrzebuje adresu e-mail dla tego konta, aby wysłać na niego kod.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="241"/>
+        <source>E-mail address</source>
+        <translation>Adres e-mail</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="247"/>
+        <source>Next</source>
+        <translation>Dalej</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="286"/>
+        <source>This number isn&apos;t on Telegram yet. Type your name to sign up.</source>
+        <translation>Ten numer nie jest jeszcze w Telegramie. Wpisz swoje imię, aby się zarejestrować.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="290"/>
+        <source>First name</source>
+        <translation>Imię</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="296"/>
+        <source>Last name (optional)</source>
+        <translation>Nazwisko (opcjonalnie)</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="302"/>
+        <source>Sign up</source>
+        <translation>Zarejestruj się</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="312"/>
+        <source>By signing up you accept Telegram&apos;s Terms of Service:</source>
+        <translation>Rejestrując się, akceptujesz Warunki korzystania z usługi Telegram:</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="317"/>
+        <source>You must be at least %1 years old to use Telegram.</source>
+        <translation>Aby korzystać z Telegrama, musisz mieć co najmniej %1 lat.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="332"/>
+        <source>To sign up with this number, Telegram asks for a Telegram Premium purchase from the App Store or Google Play, which a BlackBerry can&apos;t make. Sign up on another phone first, then link this BlackBerry with its QR code.</source>
+        <translation>Aby zarejestrować się z tym numerem, Telegram wymaga zakupu Telegram Premium w App Store lub Google Play, czego BlackBerry nie może zrobić. Najpierw zarejestruj się na innym telefonie, a potem połącz ten BlackBerry za pomocą jego kodu QR.</translation>
     </message>
 </context>
 <context>
@@ -4104,6 +4164,19 @@
     </message>
 </context>
 <context>
+    <name>WelcomePage</name>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="10"/>
+        <source>Start messaging</source>
+        <translation>Zacznij pisać</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="59"/>
+        <source>A client for Telegram for BlackBerry 10</source>
+        <translation>Klient Telegram dla BlackBerry 10</translation>
+    </message>
+</context>
+<context>
     <name>CoverRow</name>
     <message>
         <location filename="../assets/CoverRow.qml" line="58"/>
@@ -4232,6 +4305,16 @@
     <message>
         <source>You can only call a person, not a group.</source>
         <translation type="obsolete">Możesz zadzwonić tylko do osoby, nie do grupy.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="13"/>
+        <source>Telegram doesn&apos;t accept that e-mail address. Check it and type it again.</source>
+        <translation>Telegram nie akceptuje tego adresu e-mail. Sprawdź go i wpisz ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="15"/>
+        <source>Type your first name, up to 64 characters.</source>
+        <translation>Wpisz swoje imię, maksymalnie 64 znaki.</translation>
     </message>
 </context>
 <context>

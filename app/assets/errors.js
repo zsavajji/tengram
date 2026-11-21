@@ -9,6 +9,10 @@ function errorText(f) {
         return qsTr("Tengram's engine isn't running yet. Try again in a moment.")
     case "linked":
         return qsTr("This BlackBerry is already linked.")
+    case "bad_email":
+        return qsTr("Telegram doesn't accept that e-mail address. Check it and type it again.")
+    case "bad_name":
+        return qsTr("Type your first name, up to 64 characters.")
     case "bad_code":
         return qsTr("That code isn't right. Check it and type it again.")
     case "bad_password":

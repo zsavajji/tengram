@@ -1,8 +1,9 @@
 import bb.cascades 1.4
 import "errors.js" as Errors
 
-// The linking page, the root while not linked (PLAN.md §7): a QR code to scan, the code Telegram
-// sent to type, or the two-step password, by what the engine's link state says.
+// The linking page, pushed over LinkNumberPage (PLAN.md §7), for the step after the number or for the QR code: a QR code to scan, the code Telegram
+// sent to type, the two-step password, or the sign-up of a number new to Telegram (a login e-mail and its
+// code, a name, or a Premium purchase that can't be made here), by what the engine's link state says.
 Page {
     id: page
     property bool up: engine.connected
@@ -10,6 +11,8 @@ Page {
     property bool syncing: engine.link.syncing || false
     // asked: this page already requested a code for this engine run. shown: a code was on screen.
     property bool asked: false
+    // Set by LinkNumberPage's QR button; only then does this page ask Telegram for a QR code.
+    property bool wantQr: false
     property bool shown: false
     // No login on an engine under the stock 30 MB headless cap (the user, 2026-11-17): the first sync would
     // die against it. memMB is the engine's limit at its start (0: none); the memory addon raises it to 128,
@@ -19,36 +22,46 @@ Page {
     titleBar: PageBar {
         title: qsTr("Link to Telegram")
     }
-    actions: [
-        // Off once the phone accepted the link, through "Getting your chats…", so no stray press
-        // starts a second link (the user's, 2026-11-01). ActionItem has no visible.
-        ActionItem {
-            title: qsTr("Link with phone number")
-            ActionBar.placement: ActionBarPlacement.OnBar
-            enabled: !page.memBlocked && page.linkState != "linking" && page.linkState != "ready"
-            onTriggered: page.openNumber()
-        }
-    ]
-    attachedObjects: ComponentDefinition {
-        id: numberDef
-        source: "LinkNumberPage.qml"
+    // The step's own action at the bottom (the user, 2026-11-21): Log in for the code and the password, Next for the login
+    // e-mail and its code, Sign up for a new account. No other action: Back goes to the number page, which also has the
+    // QR code. ActionItem has no visible, so showStep() adds it the first time a state has a step and it stays, off where
+    // there is none (the QR code, a Premium purchase) and while a step is checked.
+    property bool hasStep: linkState == "code" || linkState == "password" || linkState == "email" || linkState == "emailCode"
+                           || linkState == "register"
+    attachedObjects: ActionItem {
+        id: stepAction
+        title: page.linkState == "register" ? qsTr("Sign up")
+             : page.linkState == "email" || page.linkState == "emailCode" ? qsTr("Next") : qsTr("Log in")
+        imageSource: page.linkState == "email" || page.linkState == "emailCode" ? "asset:///images/next_action.png"
+                                                                                  : "asset:///images/tick_action.png"
+        ActionBar.placement: ActionBarPlacement.Signature
+        enabled: page.up && !page.memBlocked && page.hasStep
+        onTriggered: page.step()
     }
+    function showStep() {
+        if (hasStep && actionCount() == 0)
+            addAction(stepAction, ActionBarPlacement.Signature)
+    }
+    function step() {
+        if (linkState == "code")
+            sendCode()
+        else if (linkState == "password")
+            sendPassword()
+        else if (linkState == "email")
+            sendEmail()
+        else if (linkState == "emailCode")
+            sendEmailCode()
+        else if (linkState == "register")
+            signUp()
+    }
+    onWantQrChanged: ask()
 
     // The engine makes codes only on request; ask once per run, and again after a restart.
     function ask() {
-        if (up && !memBlocked && linkState == "unlinked" && !asked) {
+        if (wantQr && up && !memBlocked && linkState == "unlinked" && !asked) {
             asked = true
             engine.request("link.qr", {})
         }
-    }
-    // TDLib takes no phone number while a QR code waits; a logout there ends nothing, there is no
-    // session yet. The state goes back to "unlinked" and the number page can then ask.
-    // asked: the "unlinked" that follows must not ask for a QR code under the number page.
-    function openNumber() {
-        asked = true
-        if (linkState == "qr")
-            engine.request("link.logout", {})
-        nav.push(numberDef.createObject())
     }
     // Where the code went, by the type TDLib reports.
     function codeWhere() {
@@ -74,6 +87,21 @@ Page {
             return
         engine.request("link.password", {"password": passwordField.text})
     }
+    function sendEmail() {
+        if (emailField.text == "")
+            return
+        engine.request("link.email", {"email": emailField.text})
+    }
+    function sendEmailCode() {
+        if (emailCodeField.text == "")
+            return
+        engine.request("link.emailCode", {"code": emailCodeField.text})
+    }
+    function signUp() {
+        if (firstField.text == "")
+            return
+        engine.request("link.register", {"first": firstField.text, "last": lastField.text})
+    }
     onUpChanged: {
         if (!up)
             asked = false
@@ -87,11 +115,21 @@ Page {
             codeField.text = ""
         if (linkState == "password")
             passwordField.text = ""
+        if (linkState == "email")
+            emailField.text = ""
+        if (linkState == "emailCode")
+            emailCodeField.text = ""
+        if (linkState == "register") {
+            firstField.text = ""
+            lastField.text = ""
+        }
+        showStep()
         ask()
     }
     onCreationCompleted: {
         if (linkState == "qr")
             shown = true
+        showStep()
         ask()
     }
 
@@ -157,16 +195,6 @@ Page {
                         input.submitKey: SubmitKey.Submit
                         input.onSubmitted: page.sendCode()
                     }
-                    Button {
-                        horizontalAlignment: HorizontalAlignment.Center
-                        text: qsTr("Log in")
-                        onClicked: page.sendCode()
-                    }
-                    Button {
-                        horizontalAlignment: HorizontalAlignment.Center
-                        text: qsTr("Show a QR code instead")
-                        onClicked: engine.request("link.qr", {})
-                    }
                     Label {
                         visible: engine.failure.cmd == "link.code"
                         multiline: true
@@ -193,15 +221,104 @@ Page {
                         input.submitKey: SubmitKey.Submit
                         input.onSubmitted: page.sendPassword()
                     }
-                    Button {
-                        horizontalAlignment: HorizontalAlignment.Center
-                        text: qsTr("Log in")
-                        onClicked: page.sendPassword()
-                    }
                     Label {
                         visible: engine.failure.cmd == "link.password"
                         multiline: true
                         text: Errors.errorText(engine.failure)
+                    }
+                }
+                Container {
+                    visible: page.up && !page.memBlocked && page.linkState == "email"
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    Label {
+                        multiline: true
+                        text: qsTr("Telegram needs an e-mail address for this account, to send you a code there.")
+                    }
+                    TextField {
+                        id: emailField
+                        inputMode: TextFieldInputMode.EmailAddress
+                        hintText: qsTr("E-mail address")
+                        input.submitKey: SubmitKey.Submit
+                        input.onSubmitted: page.sendEmail()
+                    }
+                    Label {
+                        visible: engine.failure.cmd == "link.email"
+                        multiline: true
+                        text: Errors.errorText(engine.failure)
+                    }
+                }
+                Container {
+                    visible: page.up && !page.memBlocked && page.linkState == "emailCode"
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    Label {
+                        multiline: true
+                        text: qsTr("Type the code Telegram sent to %1.").arg(engine.link.pattern || "")
+                    }
+                    TextField {
+                        id: emailCodeField
+                        inputMode: TextFieldInputMode.NumbersAndPunctuation
+                        hintText: qsTr("Code")
+                        input.submitKey: SubmitKey.Submit
+                        input.onSubmitted: page.sendEmailCode()
+                    }
+                    Label {
+                        visible: engine.failure.cmd == "link.emailCode"
+                        multiline: true
+                        text: Errors.errorText(engine.failure)
+                    }
+                }
+                Container {
+                    visible: page.up && !page.memBlocked && page.linkState == "register"
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    Label {
+                        multiline: true
+                        text: qsTr("This number isn't on Telegram yet. Type your name to sign up.")
+                    }
+                    TextField {
+                        id: firstField
+                        hintText: qsTr("First name")
+                        input.submitKey: SubmitKey.Submit
+                        input.onSubmitted: page.signUp()
+                    }
+                    TextField {
+                        id: lastField
+                        hintText: qsTr("Last name (optional)")
+                        input.submitKey: SubmitKey.Submit
+                        input.onSubmitted: page.signUp()
+                    }
+                    Label {
+                        visible: engine.failure.cmd == "link.register"
+                        multiline: true
+                        text: Errors.errorText(engine.failure)
+                    }
+                    Label {
+                        multiline: true
+                        text: qsTr("By signing up you accept Telegram's Terms of Service:")
+                    }
+                    Label {
+                        visible: (engine.link.minAge || 0) > 0
+                        multiline: true
+                        text: qsTr("You must be at least %1 years old to use Telegram.").arg(engine.link.minAge)
+                    }
+                    Label {
+                        multiline: true
+                        textFormat: TextFormat.Plain
+                        text: engine.link.terms || ""
+                        textStyle.base: SystemDefaults.TextStyles.SmallText
+                        textStyle.color: ui.palette.secondaryTextOnPlain
+                    }
+                }
+                Container {
+                    visible: page.up && !page.memBlocked && page.linkState == "premium"
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    Label {
+                        multiline: true
+                        text: qsTr("To sign up with this number, Telegram asks for a Telegram Premium purchase from the App Store or Google Play, which a BlackBerry can't make. Sign up on another phone first, then link this BlackBerry with its QR code.")
+                    }
+                    Button {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        text: qsTr("Show a QR code instead")
+                        onClicked: engine.request("link.qr", {})
                     }
                 }
                 Container {

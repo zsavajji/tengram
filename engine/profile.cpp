@@ -89,11 +89,6 @@ void delete_photo(Td::Callback done) {
   });
 }
 
-std::string trim(const std::string &s) {
-  const std::size_t from = s.find_first_not_of(' ');
-  return from == std::string::npos ? "" : s.substr(from, s.find_last_not_of(' ') + 1 - from);
-}
-
 // The characters of a UTF-8 string, which is how Telegram counts its limits: the bytes that do not continue one.
 std::size_t code_points(const std::string &s) {
   return std::count_if(s.begin(), s.end(), [](char c) { return (c & 0xC0) != 0x80; });

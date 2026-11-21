@@ -1770,9 +1770,9 @@
         <translation>Dapatkan kode</translation>
     </message>
     <message>
-        <location filename="../assets/LinkNumberPage.qml" line="88"/>
-        <source>Type the number of the phone that has Telegram.</source>
-        <translation>Ketik nomor ponsel yang memiliki Telegram.</translation>
+        <location filename="../assets/LinkNumberPage.qml" line="93"/>
+        <source>Type your phone number. A number that isn&apos;t on Telegram yet signs up.</source>
+        <translation>Ketik nomor telepon Anda. Nomor yang belum ada di Telegram akan didaftarkan.</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="119"/>
@@ -1788,6 +1788,16 @@
         <location filename="../assets/LinkNumberPage.qml" line="155"/>
         <source>Asking Telegram for a code…</source>
         <translation>Meminta kode ke Telegram…</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkNumberPage.qml" line="35"/>
+        <source>Log in with QR code</source>
+        <translation>Masuk dengan kode QR</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkNumberPage.qml" line="126"/>
+        <source>Already have an account and prefer to log in with a QR code? Press the button at the bottom.</source>
+        <translation>Sudah punya akun dan lebih suka masuk dengan kode QR? Tekan tombol di bagian bawah.</translation>
     </message>
 </context>
 <context>
@@ -1918,6 +1928,56 @@
     <message>
         <source>Getting your chats from your phone… This can take a few minutes.</source>
         <translation type="obsolete">Mengambil chat dari ponsel Anda… Ini bisa memakan waktu beberapa menit.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="236"/>
+        <source>Telegram needs an e-mail address for this account, to send you a code there.</source>
+        <translation>Telegram memerlukan alamat email untuk akun ini, untuk mengirim kode ke sana.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="241"/>
+        <source>E-mail address</source>
+        <translation>Alamat email</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="247"/>
+        <source>Next</source>
+        <translation>Berikutnya</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="286"/>
+        <source>This number isn&apos;t on Telegram yet. Type your name to sign up.</source>
+        <translation>Nomor ini belum ada di Telegram. Ketik nama Anda untuk mendaftar.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="290"/>
+        <source>First name</source>
+        <translation>Nama depan</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="296"/>
+        <source>Last name (optional)</source>
+        <translation>Nama belakang (opsional)</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="302"/>
+        <source>Sign up</source>
+        <translation>Daftar</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="312"/>
+        <source>By signing up you accept Telegram&apos;s Terms of Service:</source>
+        <translation>Dengan mendaftar, Anda menerima Ketentuan Layanan Telegram:</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="317"/>
+        <source>You must be at least %1 years old to use Telegram.</source>
+        <translation>Anda harus berusia minimal %1 tahun untuk menggunakan Telegram.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="332"/>
+        <source>To sign up with this number, Telegram asks for a Telegram Premium purchase from the App Store or Google Play, which a BlackBerry can&apos;t make. Sign up on another phone first, then link this BlackBerry with its QR code.</source>
+        <translation>Untuk mendaftar dengan nomor ini, Telegram meminta pembelian Telegram Premium dari App Store atau Google Play, yang tidak bisa dilakukan BlackBerry. Daftar dulu di ponsel lain, lalu tautkan BlackBerry ini dengan kode QR-nya.</translation>
     </message>
 </context>
 <context>
@@ -4094,6 +4154,19 @@
     </message>
 </context>
 <context>
+    <name>WelcomePage</name>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="10"/>
+        <source>Start messaging</source>
+        <translation>Mulai berkirim pesan</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="59"/>
+        <source>A client for Telegram for BlackBerry 10</source>
+        <translation>Klien Telegram untuk BlackBerry 10</translation>
+    </message>
+</context>
+<context>
     <name>CoverRow</name>
     <message>
         <location filename="../assets/CoverRow.qml" line="58"/>
@@ -4222,6 +4295,16 @@
     <message>
         <source>You can only call a person, not a group.</source>
         <translation type="obsolete">Anda hanya dapat menelepon satu orang, bukan grup.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="13"/>
+        <source>Telegram doesn&apos;t accept that e-mail address. Check it and type it again.</source>
+        <translation>Telegram tidak menerima alamat email itu. Periksa lalu ketik ulang.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="15"/>
+        <source>Type your first name, up to 64 characters.</source>
+        <translation>Ketik nama depan Anda, maksimal 64 karakter.</translation>
     </message>
 </context>
 <context>

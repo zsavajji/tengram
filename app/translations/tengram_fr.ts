@@ -1773,9 +1773,9 @@
         <translation>Obtenir le code</translation>
     </message>
     <message>
-        <location filename="../assets/LinkNumberPage.qml" line="88"/>
-        <source>Type the number of the phone that has Telegram.</source>
-        <translation>Saisissez le numéro du téléphone sur lequel vous avez Telegram.</translation>
+        <location filename="../assets/LinkNumberPage.qml" line="93"/>
+        <source>Type your phone number. A number that isn&apos;t on Telegram yet signs up.</source>
+        <translation>Saisissez votre numéro de téléphone. Un numéro qui n&apos;est pas encore sur Telegram permet de s&apos;inscrire.</translation>
     </message>
     <message>
         <location filename="../assets/LinkNumberPage.qml" line="119"/>
@@ -1791,6 +1791,16 @@
         <location filename="../assets/LinkNumberPage.qml" line="155"/>
         <source>Asking Telegram for a code…</source>
         <translation>Demande du code à Telegram…</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkNumberPage.qml" line="35"/>
+        <source>Log in with QR code</source>
+        <translation>Se connecter avec un code QR</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkNumberPage.qml" line="126"/>
+        <source>Already have an account and prefer to log in with a QR code? Press the button at the bottom.</source>
+        <translation>Vous avez déjà un compte et préférez vous connecter avec un code QR ? Appuyez sur le bouton en bas.</translation>
     </message>
 </context>
 <context>
@@ -1921,6 +1931,56 @@
     <message>
         <source>Getting your chats from your phone… This can take a few minutes.</source>
         <translation type="obsolete">Récupération de vos discussions depuis votre téléphone… Cela peut prendre quelques minutes.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="236"/>
+        <source>Telegram needs an e-mail address for this account, to send you a code there.</source>
+        <translation>Telegram a besoin d&apos;une adresse e-mail pour ce compte, afin de vous y envoyer un code.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="241"/>
+        <source>E-mail address</source>
+        <translation>Adresse e-mail</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="247"/>
+        <source>Next</source>
+        <translation>Suivant</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="286"/>
+        <source>This number isn&apos;t on Telegram yet. Type your name to sign up.</source>
+        <translation>Ce numéro n&apos;est pas encore sur Telegram. Saisissez votre nom pour vous inscrire.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="290"/>
+        <source>First name</source>
+        <translation>Prénom</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="296"/>
+        <source>Last name (optional)</source>
+        <translation>Nom (facultatif)</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="302"/>
+        <source>Sign up</source>
+        <translation>S&apos;inscrire</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="312"/>
+        <source>By signing up you accept Telegram&apos;s Terms of Service:</source>
+        <translation>En vous inscrivant, vous acceptez les Conditions d&apos;utilisation de Telegram :</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="317"/>
+        <source>You must be at least %1 years old to use Telegram.</source>
+        <translation>Vous devez avoir au moins %1 ans pour utiliser Telegram.</translation>
+    </message>
+    <message>
+        <location filename="../assets/LinkPage.qml" line="332"/>
+        <source>To sign up with this number, Telegram asks for a Telegram Premium purchase from the App Store or Google Play, which a BlackBerry can&apos;t make. Sign up on another phone first, then link this BlackBerry with its QR code.</source>
+        <translation>Pour s&apos;inscrire avec ce numéro, Telegram demande un achat de Telegram Premium sur l&apos;App Store ou Google Play, ce qu&apos;un BlackBerry ne peut pas faire. Inscrivez-vous d&apos;abord sur un autre téléphone, puis associez ce BlackBerry avec son code QR.</translation>
     </message>
 </context>
 <context>
@@ -4099,6 +4159,19 @@
     </message>
 </context>
 <context>
+    <name>WelcomePage</name>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="10"/>
+        <source>Start messaging</source>
+        <translation>Commencer à discuter</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="59"/>
+        <source>A client for Telegram for BlackBerry 10</source>
+        <translation>Un client Telegram pour BlackBerry 10</translation>
+    </message>
+</context>
+<context>
     <name>CoverRow</name>
     <message>
         <location filename="../assets/CoverRow.qml" line="58"/>
@@ -4227,6 +4300,16 @@
     <message>
         <source>You can only call a person, not a group.</source>
         <translation type="obsolete">Vous ne pouvez appeler qu&apos;une personne, pas un groupe.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="13"/>
+        <source>Telegram doesn&apos;t accept that e-mail address. Check it and type it again.</source>
+        <translation>Telegram n&apos;accepte pas cette adresse e-mail. Vérifiez-la et saisissez-la à nouveau.</translation>
+    </message>
+    <message>
+        <location filename="../assets/errors.js" line="15"/>
+        <source>Type your first name, up to 64 characters.</source>
+        <translation>Saisissez votre prénom, 64 caractères au maximum.</translation>
     </message>
 </context>
 <context>

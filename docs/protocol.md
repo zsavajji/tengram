@@ -39,10 +39,13 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | cmd | fields | result | own errors |
 |---|---|---|---|
 | `hello` | `token`, `proto: 1`; `audio` or `video` (a call's id, string; not both) for the call's audio or video link | the link body; nothing for the audio and video links | `auth`, `proto`, `bad_request` (`audio` or `video` is not a string, or both are there), `not_found` (the link's call is not live) |
-| `link.qr` | — (states `unlinked`, `code`, `password`) | — (the code comes as a `link` event, state `qr`) | `linked`, `bad_state` |
-| `link.phone` | `phone` (international, non-digits ignored; states `unlinked`, `code`, `password`) | — (then state `code`) | `linked`, `bad_state`, `bad_phone` |
-| `link.code` | `code` | — (then `password` or `ready`) | `bad_state`, `bad_code` |
+| `link.qr` | — (states `unlinked`, `code`, `password`, `email`, `emailCode`, `register`, `premium`) | — (the code comes as a `link` event, state `qr`) | `linked`, `bad_state` |
+| `link.phone` | `phone` (international, non-digits ignored; states `unlinked`, `code`, `password`, `email`, `emailCode`, `register`, `premium`) | — (then state `code`) | `linked`, `bad_state`, `bad_phone` |
+| `link.code` | `code` | — (then `password`, `register` or `ready`) | `bad_state`, `bad_code` |
 | `link.password` | `password` | — (then `ready`) | `bad_state`, `bad_password` |
+| `link.email` | `email` (state `email`) | — (then state `emailCode`) | `bad_state`, `bad_email` |
+| `link.emailCode` | `code` | — (then `code`, `register` or `ready`) | `bad_state`, `bad_code` |
+| `link.register` | `first`, optional `last`; accepts Telegram's terms (state `register`) | — (then `ready`) | `bad_state`, `bad_name` |
 | `link.logout` | — | — | — |
 | `ui.state` | `fullscreen` (bool), `openChat` (key or "") | — | — |
 | `chat.open` | `chat`, `limit` (1 to 200, default 50); optional `topic` (a forum topic's id) | `{oldest, newest, count, more}` | |
@@ -137,7 +140,12 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 (`requestQrCodeAuthentication`); `link.phone`, `link.code` and `link.password` are the phone
 number, the code Telegram sends and the two-step password. Each answers when TDLib took it;
 the new state comes as a `link` event. `bad_state` is a command the current state doesn't expect.
-`link.qr` and `link.phone` are accepted only in `unlinked`, `code` and `password` (TDLib refuses
+A number new to Telegram signs up: `code`, then `register`, where `link.register` gives the name and accepts
+Telegram's terms. Telegram may first ask for a login e-mail: `email` (`link.email`), then `emailCode`
+(`link.emailCode`). `premium` is a purchase Telegram demands in some countries, which BB10 can't make: only
+`link.phone` or `link.qr` lead out of it.
+`link.qr` and `link.phone` are accepted only in `unlinked`, `code`, `password`, `email`, `emailCode`, `register`
+and `premium` (TDLib refuses
 both while a QR code waits, state `qr`, with "unexpected"); any other state answers `bad_state`.
 From `qr` the way to a phone login is `link.logout`, which ends in `unlinked` (nothing is lost:
 no session exists yet), then `link.phone`.
@@ -781,7 +789,15 @@ TDLib has downloaded the photo, which is always after the reply that left it out
 | `qr` | waiting for another device to scan | `qr`: the `tg://login?token=…` link to draw |
 | `code` | waiting for the code | `phone`, `codeType` (`app`, `sms`, `call`, `other`), `length` (0 unknown) |
 | `password` | waiting for the two-step password | `hint` |
+| `email` | waiting for a login e-mail address | |
+| `emailCode` | waiting for the code sent to it | `pattern` (the address as Telegram masks it), `length` (0 unknown) |
+| `register` | a number new to Telegram: waiting for a name | `terms` (Telegram's terms of service as plain text), `minAge` (0 for none) |
+| `premium` | Telegram asks for a Premium purchase to sign up this number | |
 | `ready` | logged in | `me` (our user id), `name` |
+
+`country` goes with every state but `ready` once Telegram answered `getCountryCode` (asked once a run, when the state
+first turns `unlinked`): the ISO 3166-1 alpha-2 code (`IT`) of the country Telegram places our IP address in, for the
+number page's first country. Absent until then, and when Telegram refused.
 
 `memMB` goes with every state: the engine's `RLIMIT_DATA` in MiB as it was at start, after the engine raised
 its soft limit to the hard one (0 for none, or when it could not be read). **30 means the `headless-mem` addon

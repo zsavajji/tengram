@@ -9,19 +9,24 @@
 
 namespace {
 
-enum class State { Linking, Unlinked, Qr, Code, Password, Ready };
-const char *const kStates[] = {"linking", "unlinked", "qr", "code", "password", "ready"};
+enum class State { Linking, Unlinked, Qr, Code, Password, Email, EmailCode, Register, Premium, Ready };
+const char *const kStates[] = {"linking", "unlinked", "qr", "code", "password", "email", "emailCode", "register", "premium", "ready"};
 
 struct Link {
   State state = State::Linking;
   std::string conn = "connecting";
   std::string qr;                // Qr
   std::string phone, code_type;  // Code
-  int length = 0;                // Code, 0 unknown
+  int length = 0;                // Code and EmailCode, 0 unknown
   std::string hint;              // Password
+  std::string pattern;           // EmailCode
+  std::string terms;             // Register
+  int min_age = 0;               // Register
   std::string me, name;          // Ready
   std::int64_t me_id = 0;
   bool syncing = false;          // Ready: the first full chat list load is still running
+  std::string country;           // not Ready: Telegram's country for our IP address (ask_country), "" until it answers
+  bool country_asked = false;
 } cur;
 
 bool logging_out = false;  // authorizationStateLoggingOut came: the Closed after it is a logout's
@@ -31,6 +36,9 @@ void fields(td::JsonObjectScope &o) {
   o("state", kStates[static_cast<int>(cur.state)]);
   o("conn", cur.conn);
   o("memMB", mem_mb);
+  if (!cur.country.empty() && cur.state != State::Ready) {
+    o("country", cur.country);
+  }
   switch (cur.state) {
     case State::Qr:
       o("qr", cur.qr);
@@ -42,6 +50,14 @@ void fields(td::JsonObjectScope &o) {
       break;
     case State::Password:
       o("hint", cur.hint);
+      break;
+    case State::EmailCode:
+      o("pattern", cur.pattern);
+      o("length", cur.length);
+      break;
+    case State::Register:
+      o("terms", cur.terms);
+      o("minAge", cur.min_age);
       break;
     case State::Ready:
       o("me", cur.me);
@@ -60,6 +76,26 @@ void changed() {
     o("ev", "link");
     fields(o);
   })));
+}
+
+// The country the phone number page starts on (the user, 2026-11-21): Telegram's own guess from our IP address
+// (getCountryCode, which works before a login and asks no other service), once a run. TDLib answers once it is
+// connected; the link event that follows carries it.
+void ask_country() {
+  if (cur.country_asked) {
+    return;
+  }
+  cur.country_asked = true;
+  tdlib.send(td_api::make_object<td_api::getCountryCode>(), [](Obj o) {
+    if (auto e = as_error(o)) {
+      say("getCountryCode: %d %s", e->code_, e->message_.c_str());
+      return;
+    }
+    cur.country = static_cast<const td_api::text &>(*o).text_;
+    if (cur.state != State::Ready) {
+      changed();
+    }
+  });
 }
 
 // How Telegram sends the code, in the protocol's four words, and the code's length when the type has one.
@@ -140,6 +176,9 @@ void send_parameters(bool default_key = false) {
   // old database holds no secret chat, and no schema change or reset is involved. Requests from other devices that
   // came while it was off are gone; TDLib accepts a new one itself, 2 s (online) or 3 s after it arrives.
   p->use_secret_chats_ = true;
+#ifdef TENGRAM_TEST_DC
+  p->use_test_dc_ = true;  // TG_TEST_DC=1 engine/build.sh: Telegram's test servers, to try the sign-up (engine/build.sh)
+#endif
   p->api_id_ = api_id;
   p->api_hash_ = api_hash;
   p->system_language_code_ = "en";
@@ -240,6 +279,13 @@ void step(std::uint64_t conn, const std::string &id, td_api::object_ptr<td_api::
   });
 }
 
+// The states that take a new phone number or QR code: TDLib's docs for setAuthenticationPhoneNumber and
+// requestQrCodeAuthentication list these.
+bool restartable(State s) {
+  return s == State::Unlinked || s == State::Code || s == State::Password || s == State::Email ||
+         s == State::EmailCode || s == State::Register || s == State::Premium;
+}
+
 bool need_string(std::uint64_t conn, const std::string &id, td::JsonObject &req, const char *name, std::string &out) {
   auto r = string_field(req, name);
   if (r.is_error()) {
@@ -283,6 +329,7 @@ void link_auth(const td_api::AuthorizationState &s) {
       return;
     case td_api::authorizationStateWaitPhoneNumber::ID:
       cur.state = State::Unlinked;
+      ask_country();
       break;
     case td_api::authorizationStateWaitOtherDeviceConfirmation::ID:
       cur.state = State::Qr;
@@ -299,6 +346,26 @@ void link_auth(const td_api::AuthorizationState &s) {
     case td_api::authorizationStateWaitPassword::ID:
       cur.state = State::Password;
       cur.hint = static_cast<const td_api::authorizationStateWaitPassword &>(s).password_hint_;
+      break;
+    case td_api::authorizationStateWaitEmailAddress::ID:
+      cur.state = State::Email;
+      break;
+    case td_api::authorizationStateWaitEmailCode::ID: {
+      auto &info = static_cast<const td_api::authorizationStateWaitEmailCode &>(s).code_info_;
+      cur.state = State::EmailCode;
+      cur.pattern = info ? info->email_address_pattern_ : "";
+      cur.length = info ? info->length_ : 0;
+      break;
+    }
+    case td_api::authorizationStateWaitRegistration::ID: {
+      auto &tos = static_cast<const td_api::authorizationStateWaitRegistration &>(s).terms_of_service_;
+      cur.state = State::Register;
+      cur.terms = tos && tos->text_ ? tos->text_->text_ : "";
+      cur.min_age = tos ? tos->min_user_age_ : 0;
+      break;
+    }
+    case td_api::authorizationStateWaitPremiumPurchase::ID:
+      cur.state = State::Premium;  // a store purchase, which a BB10 phone can't make
       break;
     case td_api::authorizationStateReady::ID:
       on_ready();  // the state becomes `ready` when getMe answers
@@ -353,7 +420,7 @@ bool link_request(std::uint64_t conn, const std::string &id, const std::string &
     if (s == State::Ready) {
       return fail("linked", "already linked");
     }
-    if (s != State::Unlinked && s != State::Code && s != State::Password) {
+    if (!restartable(s)) {
       return bad_state();
     }
     step(conn, id, td_api::make_object<td_api::requestQrCodeAuthentication>(std::vector<std::int64_t>()));
@@ -366,7 +433,7 @@ bool link_request(std::uint64_t conn, const std::string &id, const std::string &
     if (s == State::Ready) {
       return fail("linked", "already linked");
     }
-    if (s != State::Unlinked && s != State::Code && s != State::Password) {
+    if (!restartable(s)) {
       return bad_state();
     }
     std::string digits;  // international format, anything that is not a digit ignored
@@ -399,6 +466,51 @@ bool link_request(std::uint64_t conn, const std::string &id, const std::string &
       return bad_state();
     }
     step(conn, id, td_api::make_object<td_api::checkAuthenticationPassword>(text));
+    return true;
+  }
+  if (cmd == "link.email") {
+    if (!need_string(conn, id, req, "email", text)) {
+      return true;
+    }
+    if (s != State::Email) {
+      return bad_state();
+    }
+    text = trim(text);
+    if (text.empty()) {
+      return fail("bad_email", "no e-mail address");
+    }
+    step(conn, id, td_api::make_object<td_api::setAuthenticationEmailAddress>(text));
+    return true;
+  }
+  if (cmd == "link.emailCode") {
+    if (!need_string(conn, id, req, "code", text)) {
+      return true;
+    }
+    if (s != State::EmailCode) {
+      return bad_state();
+    }
+    step(conn, id, td_api::make_object<td_api::checkAuthenticationEmailCode>(
+                       td_api::make_object<td_api::emailAddressAuthenticationCode>(text)));
+    return true;
+  }
+  if (cmd == "link.register") {
+    std::string first, last;
+    if (!need_string(conn, id, req, "first", first)) {
+      return true;
+    }
+    if (s != State::Register) {
+      return bad_state();
+    }
+    auto l = string_field(req, "last");  // optional: absent or not a string is no last name
+    if (l.is_ok()) {
+      last = l.move_as_ok();
+    }
+    first = trim(first);
+    last = trim(last);
+    if (first.empty()) {
+      return fail("bad_name", "the first name is empty");
+    }
+    step(conn, id, td_api::make_object<td_api::registerUser>(first, last, false));
     return true;
   }
   if (cmd == "link.logout") {

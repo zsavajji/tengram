@@ -69,3 +69,6 @@ const td_api::error *as_error(const Obj &o);
 
 // First token of to_string(), i.e. the TL constructor name ("updateNewChat"). For logs: no field values.
 std::string type_name(const td_api::BaseObject &o);
+
+// The text without the spaces at its two ends.
+std::string trim(const std::string &s);

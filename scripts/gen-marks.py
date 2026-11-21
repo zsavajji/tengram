@@ -6,7 +6,8 @@ The phone has only the trash can among the info page's and chat menu's icons (us
 (a floppy disk), block_action (the "forbidden" sign), attach_action (a paperclip), plus_action
 (a plus, which the phone has only beside a contact, a place or an event), megaphone_action and
 help_action (a question mark in a ring, for About), back_action (a thin "<" chevron, the chat
-title bar's Back) and overflow_action (three vertical dots, the composer's ⋮ column).
+title bar's Back), next_action (it mirrored, ">", the welcome page's Start messaging), qr_action (a QR code, the number page's Log in
+with QR code) and overflow_action (three vertical dots, the composer's ⋮ column).
 A forwarded card's marks are forward.png and forward_many.png.
 The app's icon, the splash screens and the Hub's item and account glyphs (hub_read2.png, hub_unread2.png,
 hub_account2.png) are not drawn here: they are Tengram's own (scripts/gen-icon.py).
@@ -191,6 +192,19 @@ def main(out):
     img, d = canvas(H)
     d.line(pts((0.62, 0.18), (0.30, 0.5), (0.62, 0.82)), white, w, joint="curve")
     action(img, out, "back")
+    # The same chevron turned to ">": the welcome page's Start messaging.
+    action(img.transpose(Image.FLIP_LEFT_RIGHT), out, "next")
+
+    # A QR code, for the number page's Log in with QR code (the phone has no such icon): its three finder squares,
+    # a ring round a dot each, and a few modules in the fourth corner.
+    img, d = canvas(H)
+    ring = round(0.07 * H * S)
+    for x, y in ((0.06, 0.06), (0.58, 0.06), (0.06, 0.58)):
+        d.rectangle(pts((x, y), (x + 0.36, y + 0.36)), outline=white, width=ring)
+        d.rectangle(pts((x + 0.12, y + 0.12), (x + 0.24, y + 0.24)), fill=white)
+    for x, y in ((0.58, 0.58), (0.82, 0.58), (0.70, 0.70), (0.58, 0.82), (0.82, 0.82)):
+        d.rectangle(pts((x, y), (x + 0.12, y + 0.12)), fill=white)
+    action(img, out, "qr")
 
     # Three vertical dots: the composer's ⋮ column, which opens the action menu.
     img, d = canvas(H)
