@@ -3516,6 +3516,16 @@
         <translation>रिएक्शन भेजा नहीं गया</translation>
     </message>
     <message>
+        <location filename="../assets/ReactBar.qml" line="70"/>
+        <source>Reactions are off for this message</source>
+        <translation>इस संदेश के लिए रिएक्शन बंद हैं</translation>
+    </message>
+    <message>
+        <location filename="../assets/ReactBar.qml" line="91"/>
+        <source>That reaction isn&apos;t allowed here</source>
+        <translation>यहाँ यह रिएक्शन अनुमत नहीं है</translation>
+    </message>
+    <message>
         <location filename="../assets/ReactBar.qml" line="62"/>
         <source>Vote not sent</source>
         <translation>वोट भेजा नहीं गया</translation>

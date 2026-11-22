@@ -1,7 +1,7 @@
 // The requests about chats and messages: chat.open, chat.history, chat.newer, chat.pins, chat.close, chat.read,
-// chat.typing, chat.set, msg.send, media.send, media.album, msg.delete, msg.edit, msg.forward, msg.react, poll.vote,
-// media.get and media.cancel (docs/protocol.md). The rows they ask for are written by messages.cpp; the replies that
-// tell the UI to read them come after the flush that commits them (queue_reply).
+// chat.typing, chat.set, msg.send, media.send, media.album, msg.delete, msg.edit, msg.forward, msg.react, msg.reactions,
+// poll.vote, media.get and media.cancel (docs/protocol.md). The rows they ask for are written by messages.cpp; the
+// replies that tell the UI to read them come after the flush that commits them (queue_reply).
 
 #include "engine.h"
 
@@ -899,13 +899,64 @@ void msg_react(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
   if (emoji.is_error() || emoji.ok().empty() || optional_field(req, "remove", td::JsonValue::Type::Boolean, remove) < 0) {
     return bad_request(conn, id, "need the field emoji, a string that is not empty; remove is true or false");
   }
-  auto type = make_object<td_api::reactionTypeEmoji>(emoji.ok());
+  // Telegram's reactions carry no emoji selector (U+FE0F): the heart is "❤", and TDLib compares the string exactly, so the
+  // keyboard's and the picker's "❤️" was refused ("The reaction isn't available for the message", the user, 2026-11-22).
+  std::string plain = emoji.ok();
+  for (size_t at; (at = plain.find("\xEF\xB8\x8F")) != std::string::npos;) {
+    plain.erase(at, 3);
+  }
+  if (plain.empty()) {
+    return bad_request(conn, id, "need the field emoji, a string that is not empty; remove is true or false");
+  }
+  auto type = make_object<td_api::reactionTypeEmoji>(plain);
   auto done = [conn, id](Obj o) { answer(conn, id, o); };
   if (remove.type() == td::JsonValue::Type::Boolean && remove.get_boolean()) {
     tdlib.send(make_object<td_api::removeMessageReaction>(chat, message, std::move(type)), done);
   } else {
     tdlib.send(make_object<td_api::addMessageReaction>(chat, message, std::move(type), false, true), done);
   }
+}
+
+// The emoji reactions a message allows (getMessageAvailableReactions): the UI's bar shows only these, because TDLib
+// refuses the rest ("The reaction isn't available for the message", the user, 2026-11-22). `top` is what Telegram's own bar
+// shows, in order; `all` is the top, then the recent, then the popular ones, each emoji once. Both are empty when the
+// message takes no reactions (off in the chat, a restricted group member, a guest of a supergroup).
+// ponytail: premium-only and custom-emoji reactions are left out; a Premium account would see them in Telegram's own apps.
+void msg_reactions(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t message = 0;
+  if (!message_id(conn, id, req, "id", message)) {
+    return;
+  }
+  tdlib.send(make_object<td_api::getMessageAvailableReactions>(chat, message, 8), [conn, id](Obj o) {
+    if (auto e = as_error(o)) {
+      say("td error: %d %s", e->code_, e->message_.c_str());
+      return reply_td_error(conn, id, *e);
+    }
+    auto &found = static_cast<td_api::availableReactions &>(*o);
+    std::vector<std::string> top, all;
+    const auto add = [&all](const std::vector<td_api::object_ptr<td_api::availableReaction>> &list,
+                            std::vector<std::string> *first) {
+      for (const auto &r : list) {
+        if (!r || !r->type_ || r->type_->get_id() != td_api::reactionTypeEmoji::ID || r->needs_premium_) {
+          continue;
+        }
+        const std::string &emoji = static_cast<const td_api::reactionTypeEmoji &>(*r->type_).emoji_;
+        if (first) {
+          first->push_back(emoji);
+        }
+        if (std::find(all.begin(), all.end(), emoji) == all.end()) {
+          all.push_back(emoji);
+        }
+      }
+    };
+    add(found.top_reactions_, &top);
+    add(found.recent_reactions_, nullptr);
+    add(found.popular_reactions_, nullptr);
+    server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                      r("top", td::json_array(top, [](const std::string &s) { return s; }));
+                      r("all", td::json_array(all, [](const std::string &s) { return s; }));
+                    })));
+  });
 }
 
 // Our answer to a poll: option positions (0-based, as extra.options lists them); none takes the vote back. TDLib
@@ -1246,8 +1297,8 @@ bool regular_file(const std::string &path, std::int64_t &size) {
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.close", "chat.read",
                                      "chat.typing", "chat.set", "msg.send", "media.send", "media.album", "msg.delete",
-                                     "msg.edit", "msg.forward", "msg.react", "poll.vote", "media.get", "media.cancel",
-                                     "chat.mention", "chat.reaction"};
+                                     "msg.edit", "msg.forward", "msg.react", "msg.reactions", "poll.vote", "media.get",
+                                     "media.cancel", "chat.mention", "chat.reaction"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -1331,6 +1382,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     msg_forward(conn, id, req, chat);
   } else if (cmd == "msg.react") {
     msg_react(conn, id, req, chat);
+  } else if (cmd == "msg.reactions") {
+    msg_reactions(conn, id, req, chat);
   } else if (cmd == "poll.vote") {
     poll_vote(conn, id, req, chat);
   } else if (cmd == "media.cancel") {

@@ -114,6 +114,9 @@ public:
     Q_INVOKABLE void changeParticipant(const QString &jid, const QString &action);
     // Translates one message into the language `to` (msg.translate); translated or translateFailed answers.
     Q_INVOKABLE void translate(const QString &id, const QString &to);
+    // Asks which reactions a message allows (msg.reactions); reactionsAvailable or reactionsFailed answers. False when the
+    // engine isn't connected: nothing was sent, and nothing will be emitted.
+    Q_INVOKABLE bool reactionsFor(const QString &id);
     // A language's name in its own language, capitalised ("Italiano"); the code when Qt knows none.
     Q_INVOKABLE QString languageName(const QString &code) const;
 
@@ -135,6 +138,11 @@ signals:
     void translated(const QString &msgId, const QString &text, const QString &to);
     // translate() failed: the engine's error code (rate_limited, no_key, unsupported, offline, no_engine, ...).
     void translateFailed(const QString &code);
+    // The answer to reactionsFor(): the emoji the message allows, Telegram's own bar first (`top`), then all of them
+    // (`top` again at the head). Both empty when the message takes no reactions.
+    void reactionsAvailable(const QString &msgId, const QStringList &top, const QStringList &all);
+    // reactionsFor() was refused or failed.
+    void reactionsFailed(const QString &msgId);
 
 private slots:
     void sendReadUpto();
@@ -155,6 +163,8 @@ private slots:
     void askUnread(const QString &cmd);
     void onTranslateReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onTranslateFailure();
+    void onReactionsReplied(const QString &id, const QString &cmd, const QVariant &result);
+    void onReactionsFailure();
 
 private:
     void takeGroupInfo(QVariantMap info);
@@ -181,6 +191,8 @@ private:
     QString m_pinsId; // the chat.pins request we wait for
     QString m_translateId; // the msg.translate request we wait for
     QString m_translateTo; // and the language it asked for
+    QString m_reactionsId; // the msg.reactions request we wait for
+    QString m_reactionsMsg; // and the message it asked about
     QString m_mentionId; // the chat.mention or chat.reaction request we wait for (one at a time)
     int m_mentions;
     int m_reactions;

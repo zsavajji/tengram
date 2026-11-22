@@ -144,7 +144,7 @@ void messages_translated(std::int64_t chat, std::int64_t id, const std::string &
 void queue_reply(std::uint64_t conn, const std::string &id, const std::string &result_json);
 
 // requests.cpp: chat.open, chat.history, chat.newer, chat.pins, chat.close, chat.read, chat.typing, chat.set, msg.send,
-// media.send, msg.delete, msg.edit, msg.forward, msg.react, poll.vote, media.get, media.cancel.
+// media.send, msg.delete, msg.edit, msg.forward, msg.react, msg.reactions, poll.vote, media.get, media.cancel.
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 // A file TDLib updated: when a media.get is downloading it, or a message of ours is uploading it, the `media.progress`
 // event (at most every 200 ms; an upload's last one, with done = size, is never held back).

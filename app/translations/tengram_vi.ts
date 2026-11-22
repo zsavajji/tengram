@@ -3511,6 +3511,16 @@
         <translation>Chưa gửi cảm xúc</translation>
     </message>
     <message>
+        <location filename="../assets/ReactBar.qml" line="70"/>
+        <source>Reactions are off for this message</source>
+        <translation>Tin nhắn này đã tắt cảm xúc</translation>
+    </message>
+    <message>
+        <location filename="../assets/ReactBar.qml" line="91"/>
+        <source>That reaction isn&apos;t allowed here</source>
+        <translation>Cảm xúc này không được phép ở đây</translation>
+    </message>
+    <message>
         <location filename="../assets/ReactBar.qml" line="62"/>
         <source>Vote not sent</source>
         <translation>Chưa gửi lượt bình chọn</translation>

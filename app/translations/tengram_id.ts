@@ -3511,6 +3511,16 @@
         <translation>Reaksi tidak terkirim</translation>
     </message>
     <message>
+        <location filename="../assets/ReactBar.qml" line="70"/>
+        <source>Reactions are off for this message</source>
+        <translation>Reaksi dimatikan untuk pesan ini</translation>
+    </message>
+    <message>
+        <location filename="../assets/ReactBar.qml" line="91"/>
+        <source>That reaction isn&apos;t allowed here</source>
+        <translation>Reaksi itu tidak diizinkan di sini</translation>
+    </message>
+    <message>
         <location filename="../assets/ReactBar.qml" line="62"/>
         <source>Vote not sent</source>
         <translation>Suara tidak terkirim</translation>

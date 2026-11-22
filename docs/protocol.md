@@ -68,6 +68,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
 | `msg.forward` | `chat` (the message's chat), `id` (the message's id), `to` (the chat it goes to); optional `topic` (a topic of `to`) | `{id}`, the new message's id | |
 | `msg.react` | `chat`, `id`, `emoji` (a non-empty string); optional `remove` (bool, default false) | — | |
+| `msg.reactions` | `chat`, `id` (a message id) | `{top, all}`: emoji strings, see below | |
 | `poll.vote` | `chat`, `id` (a poll's message id), `options` (an array of option numbers, 0-based as `extra.options`; missing, null or `[]` takes our vote back) | — | |
 | `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool), `save` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`, of the copy in Downloads with `save`) | `not_found`, `download_failed`, `cancelled`, `not_saved` |
 | `media.cancel` | `chat`, `id` (a message with a file) | — | `not_found` |
@@ -260,10 +261,17 @@ a chat we can't write to) comes back as its `td` error. Our row in the target ch
 under a temporary id, and `{id}` is that id.
 
 **`msg.react`:** adds our reaction of `emoji` to the message (`addMessageReaction`), or with `remove: true` takes our reaction of
-that emoji back (`removeMessageReaction`). When the account may have one reaction only, TDLib replaces our old one. Anyone may
+that emoji back (`removeMessageReaction`). The emoji selector U+FE0F is dropped first (Telegram's heart is "❤", and TDLib
+compares exactly: "❤️" was refused as "The reaction isn't available for the message"). When the account may have one reaction only, TDLib replaces our old one. Anyone may
 react in a channel. Custom emoji and the paid reaction are not supported. What TDLib refuses (a reaction the chat doesn't allow, a
 message that can't be reacted to) comes back as its `td` error. The row changes with Telegram's update of the message's
 interactions (`extra.reactions`, a `msgs` event); the reply only says TDLib took the request.
+
+**`msg.reactions`:** the emoji reactions the message allows (`getMessageAvailableReactions`), so the UI offers only those; TDLib
+refuses any other (a chat that allows a few, "The reaction isn't available for the message"). `top` is the ones Telegram's own bar
+shows, in its order; `all` is every emoji the message allows, the `top` first, then the recent and the popular ones, each once.
+Both are empty when reactions are off for the message, for a restricted group member and for a guest of a supergroup.
+Premium-only and custom-emoji reactions are left out. What TDLib refuses comes back as its `td` error.
 
 **`poll.vote`:** our answer to the poll (`setPollAnswer`): the options we choose, all of them, so a new vote replaces the old and
 an empty or missing `options` takes it back. An option number that is not a whole number of 0 to 1000 is `bad_request`. TDLib

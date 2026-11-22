@@ -3521,6 +3521,16 @@
         <translation>Nie wysłano reakcji</translation>
     </message>
     <message>
+        <location filename="../assets/ReactBar.qml" line="70"/>
+        <source>Reactions are off for this message</source>
+        <translation>Reakcje są wyłączone dla tej wiadomości</translation>
+    </message>
+    <message>
+        <location filename="../assets/ReactBar.qml" line="91"/>
+        <source>That reaction isn&apos;t allowed here</source>
+        <translation>Ta reakcja nie jest tutaj dozwolona</translation>
+    </message>
+    <message>
         <location filename="../assets/ReactBar.qml" line="62"/>
         <source>Vote not sent</source>
         <translation>Nie wysłano głosu</translation>

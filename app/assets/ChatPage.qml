@@ -256,6 +256,7 @@ Page {
             id: reactDef
             ReactBar {
                 jid: page.chat ? page.chat.jid : ""
+                chatCtl: ctl
             }
         },
         ComponentDefinition {
@@ -421,6 +422,8 @@ Page {
     function reactBar() {
         if (!reactObj) {
             var b = reactDef.createObject()
+            ctl.reactionsAvailable.connect(b.got)
+            ctl.reactionsFailed.connect(b.failed)
             reactSlot.add(b)
             reactObj = b
         }
