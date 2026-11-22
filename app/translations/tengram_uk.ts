@@ -4319,6 +4319,41 @@
         <source>A client for Telegram for BlackBerry 10</source>
         <translation>Клієнт Telegram для BlackBerry 10</translation>
     </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Tengram&apos;s engine has 30 MB of memory, too little to sign in and load your chats. Install the memory addon first.</source>
+        <translation>Рушій Tengram має 30 МБ пам’яті — замало, щоб увійти й завантажити чати. Спершу встановіть додаток для пам’яті.</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Installing…</source>
+        <translation>Встановлення…</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Install the memory addon</source>
+        <translation>Встановити додаток для пам’яті</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>More memory for Tengram</source>
+        <translation>Більше пам’яті для Tengram</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Install</source>
+        <translation>Встановити</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>The memory addon isn&apos;t installed. Install it now?</source>
+        <translation>Додаток для пам’яті не встановлено. Встановити зараз?</translation>
+    </message>
 </context>
 <context>
     <name>CoverRow</name>

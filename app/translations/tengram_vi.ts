@@ -4309,6 +4309,41 @@
         <source>A client for Telegram for BlackBerry 10</source>
         <translation>Ứng dụng Telegram cho BlackBerry 10</translation>
     </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Tengram&apos;s engine has 30 MB of memory, too little to sign in and load your chats. Install the memory addon first.</source>
+        <translation>Engine của Tengram chỉ có 30 MB bộ nhớ, quá ít để đăng nhập và tải các đoạn chat. Hãy cài tiện ích bộ nhớ trước.</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Installing…</source>
+        <translation>Đang cài đặt…</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Install the memory addon</source>
+        <translation>Cài tiện ích bộ nhớ</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>More memory for Tengram</source>
+        <translation>Thêm bộ nhớ cho Tengram</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Install</source>
+        <translation>Cài đặt</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Cancel</source>
+        <translation>Hủy</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>The memory addon isn&apos;t installed. Install it now?</source>
+        <translation>Tiện ích bộ nhớ chưa được cài. Cài ngay bây giờ?</translation>
+    </message>
 </context>
 <context>
     <name>CoverRow</name>

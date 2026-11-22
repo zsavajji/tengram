@@ -1,11 +1,15 @@
 import bb.cascades 1.4
+import bb.system 1.2
 
 // The first page while not linked, the root then (main.qml's show; the user, 2026-11-21): the logo big, the name and what
 // Tengram is. Start messaging (with a ">") opens the phone number page (LinkNumberPage.qml), the main route, whose
 // Log in with QR code button is the alternative. A login under way when the app was reopened goes on to the linking page at once.
-// Back from there comes here.
+// Back from there comes here. Under the 30 MB headless cap the memory addon is installed here first (as LinkPage's
+// block, the user, 2026-11-22): Start messaging asks to install it until the engine reports 128 MB, so no number goes
+// to Telegram from an engine that can't hold a login.
 Page {
     id: page
+    property bool memBlocked: (engine.link.memMB || 0) > 0 && engine.link.memMB < 128
     // The logo's animation plays while this page is on top (main.qml's onTopChanged).
     property bool playsStickers: true
     actions: [
@@ -16,14 +20,35 @@ Page {
             onTriggered: page.next()
         }
     ]
-    attachedObjects: ComponentDefinition {
-        id: numberDef
-        source: "LinkNumberPage.qml"
-    }
+    attachedObjects: [
+        ComponentDefinition {
+            id: numberDef
+            source: "LinkNumberPage.qml"
+        },
+        SystemDialog {
+            id: installAsk
+            title: qsTr("More memory for Tengram")
+            body: qsTr("The memory addon isn't installed. Install it now?")
+            confirmButton.label: qsTr("Install")
+            cancelButton.label: qsTr("Cancel")
+            onFinished: {
+                if (value == SystemUiResult.ConfirmButtonSelection)
+                    memPatch.install()
+            }
+        }
+    ]
     // Once: a second tap while the linking page slides in would push another.
     function next() {
-        if (nav.top != page)
+        if (nav.top != page || memPatch.busy)
             return
+        // Without root there is nothing to install: main.qml's rootDialog says so.
+        if (memBlocked) {
+            if (memPatch.rootAvailable)
+                installAsk.show()
+            else
+                rootDialog.show()
+            return
+        }
         var number = numberDef.createObject()
         nav.push(number)
         var s = engine.link.state
@@ -77,6 +102,26 @@ Page {
                 textStyle.fontSize: FontSize.PercentageValue
                 textStyle.fontSizeValue: nav.bodySize
                 textStyle.color: ui.palette.secondaryTextOnPlain
+            }
+            Container {
+                visible: page.memBlocked
+                horizontalAlignment: HorizontalAlignment.Fill
+                topMargin: ui.du(4)
+                Label {
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    multiline: true
+                    text: memPatch.rootAvailable
+                          ? qsTr("Tengram's engine has 30 MB of memory, too little to sign in and load your chats. Install the memory addon first.")
+                          : memPatch.headline
+                    textStyle.textAlign: TextAlign.Center
+                }
+                Button {
+                    horizontalAlignment: HorizontalAlignment.Center
+                    visible: memPatch.rootAvailable
+                    enabled: !memPatch.busy
+                    text: memPatch.busy ? qsTr("Installing…") : qsTr("Install the memory addon")
+                    onClicked: memPatch.install()
+                }
             }
         }
     }

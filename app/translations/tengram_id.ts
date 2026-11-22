@@ -4309,6 +4309,41 @@
         <source>A client for Telegram for BlackBerry 10</source>
         <translation>Klien Telegram untuk BlackBerry 10</translation>
     </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Tengram&apos;s engine has 30 MB of memory, too little to sign in and load your chats. Install the memory addon first.</source>
+        <translation>Mesin Tengram hanya punya memori 30 MB, terlalu sedikit untuk masuk dan memuat chat Anda. Pasang add-on memori terlebih dahulu.</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Installing…</source>
+        <translation>Memasang…</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Install the memory addon</source>
+        <translation>Pasang add-on memori</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>More memory for Tengram</source>
+        <translation>Lebih banyak memori untuk Tengram</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Install</source>
+        <translation>Pasang</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Cancel</source>
+        <translation>Batal</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>The memory addon isn&apos;t installed. Install it now?</source>
+        <translation>Add-on memori belum terpasang. Pasang sekarang?</translation>
+    </message>
 </context>
 <context>
     <name>CoverRow</name>

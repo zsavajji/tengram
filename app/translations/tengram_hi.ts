@@ -4314,6 +4314,41 @@
         <source>A client for Telegram for BlackBerry 10</source>
         <translation>BlackBerry 10 के लिए Telegram क्लाइंट</translation>
     </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Tengram&apos;s engine has 30 MB of memory, too little to sign in and load your chats. Install the memory addon first.</source>
+        <translation>Tengram के इंजन के पास 30 MB मेमोरी है, जो साइन इन करने और आपकी चैट लोड करने के लिए बहुत कम है। पहले मेमोरी ऐड-ऑन इंस्टॉल करें।</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Installing…</source>
+        <translation>इंस्टॉल हो रहा है…</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Install the memory addon</source>
+        <translation>मेमोरी ऐड-ऑन इंस्टॉल करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>More memory for Tengram</source>
+        <translation>Tengram के लिए ज़्यादा मेमोरी</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Install</source>
+        <translation>इंस्टॉल करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>Cancel</source>
+        <translation>रद्द करें</translation>
+    </message>
+    <message>
+        <location filename="../assets/WelcomePage.qml" line="0"/>
+        <source>The memory addon isn&apos;t installed. Install it now?</source>
+        <translation>मेमोरी ऐड-ऑन इंस्टॉल नहीं है। अभी इंस्टॉल करें?</translation>
+    </message>
 </context>
 <context>
     <name>CoverRow</name>
