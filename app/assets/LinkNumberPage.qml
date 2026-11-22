@@ -11,6 +11,11 @@ import "phone.js" as Phone
 Page {
     id: page
     property bool asking: false
+    // This page opened the linking page at least once. Until then a login TDLib kept waiting at a step (the password
+    // after a restart: the user, 2026-11-22, a user who couldn't enter the 2FA password) opens it by itself.
+    property bool opened: false
+    property bool atStep: linkState == "code" || linkState == "password" || linkState == "email" || linkState == "emailCode"
+                          || linkState == "register" || linkState == "premium"
     property string failedCmd: engine.failure.cmd || ""
     property string linkState: engine.link.state || ""
     // While a logout from "qr" runs, the state is "linking" or "qr": wait for the next one.
@@ -62,6 +67,7 @@ Page {
     function openLink(qr) {
         if (nav.top != page)
             return
+        opened = true
         var link = linkDef.createObject()
         link.wantQr = qr
         nav.push(link)
@@ -125,6 +131,11 @@ Page {
             asking = false
             openLink(false)
         }
+        resume()
+    }
+    function resume() {
+        if (!opened && !asking && atStep)
+            openLink(false)
     }
     onCreationCompleted: {
         useIpCountry()
@@ -137,6 +148,7 @@ Page {
     onOnTopChanged: {
         if (onTop && linkState == "qr")
             engine.request("link.logout", {})
+        resume()
     }
 
     Container {
