@@ -4,7 +4,7 @@
          data/ (db/ holds the Telegram session, which would have to be linked again). -->
     <id>com.zsavajji.tengram</id>
     <name>Tengram</name>
-    <versionNumber>1.0.2</versionNumber>
+    <versionNumber>1.0.3</versionNumber>
     <!-- Overwritten at packaging by -buildIdFile (scripts/build-ui.sh): the installer keeps
          the old app when Package-Version (versionNumber.buildId) didn't change. -->
     <buildId>1</buildId>
@@ -19,7 +19,7 @@
 
     <configuration name="Device-Release">
         <platformArchitecture>armle-v7</platformArchitecture>
-        <asset entryPointId="Tengram" path="../build/ui/app/tengram" entry="true" type="Qnx/Elf">tengram</asset>
+        <asset entryPointId="Tengram" path="../build/ui/app/libtengram.so" entry="true" type="Qnx/Elf">libtengram.so</asset>
         <asset entryPointId="TengramService" path="../build/tengramd" type="Qnx/Elf">tengramd</asset>
         <!-- The memory patch (app/src/MemoryPatch.cpp, docs/headless-cap.md): the root addon that raises the
              headless cap to 128 MB, and the helper that starts its install as a new application, so that it
@@ -30,8 +30,11 @@
         <asset path="../build/headless-mem.zip">headless-mem.zip</asset>
     </configuration>
 
+    <!-- The launcher forks /bin/cascades (Cascades and Qt already loaded) and calls libtengram.so's main(); a plain
+         executable loaded about 100 libraries itself at every start. -->
     <entryPoint id="Tengram">
         <name>Tengram</name>
+        <entryPointType>Qnx/Cascades</entryPointType>
     </entryPoint>
     <!-- The engine (PLAN.md §3): headless, started by the UI and kept running. Not at boot
          (user, 2026-10-29): an unsigned app can't run until root is up, and the boot event

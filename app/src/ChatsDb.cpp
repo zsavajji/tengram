@@ -7,6 +7,8 @@
 #include <QDir>
 #include <QFile>
 #include <QHash>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QSqlError>
 #include <QSqlQuery>
 
@@ -16,6 +18,9 @@ namespace {
 int generation = 0;
 // By connection name: the generation it was last opened in.
 QHash<QString, int> openedIn;
+// open() runs on the UI thread and on the chat list's reader: this guards the two above, and is not held across the
+// opening or the keying.
+QMutex mutex;
 
 // db.key: 64 hex characters, "" when the file is missing or isn't that.
 QString readKey()
@@ -63,7 +68,14 @@ QSqlDatabase ChatsDb::open(const QString &connectionName)
         added.setConnectOptions("QSQLITE_OPEN_READONLY");
     }
     QSqlDatabase db = QSqlDatabase::database(connectionName, false);
-    if (db.isOpen() && openedIn.value(connectionName, -1) != generation)
+    int now;
+    bool stale;
+    {
+        QMutexLocker lock(&mutex);
+        now = generation;
+        stale = openedIn.value(connectionName, -1) != now;
+    }
+    if (db.isOpen() && stale)
         db.close();
     if (db.isOpen())
         return db;
@@ -74,12 +86,16 @@ QSqlDatabase ChatsDb::open(const QString &connectionName)
         db.close();
         return db;
     }
-    openedIn.insert(connectionName, generation);
+    {
+        QMutexLocker lock(&mutex);
+        openedIn.insert(connectionName, now);
+    }
     return db;
 }
 
 void ChatsDb::engineReconnected()
 {
+    QMutexLocker lock(&mutex);
     ++generation;
 }
 

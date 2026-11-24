@@ -61,6 +61,10 @@ using namespace bb::cascades;
 // 0.0.1.132 left nothing to read (Q10, 2026-11-02).
 static slog2_buffer_t logBuffer;
 static bool toSlog = false;
+// A start whose scene is set later than this (ms) is slow, and the address book's first read then waits SlowBookWaitMs.
+// Through the launcher the scene is set at 1.3 to 1.5 s (Classic, 1.0.2.129, two starts).
+static const int SlowStartMs = 2000;
+static const int SlowBookWaitMs = 15000;
 static FILE *logFile = 0;
 
 static void writeLog(QtMsgType type, const char *msg)
@@ -106,9 +110,10 @@ static void startLog()
 }
 
 // Milliseconds since the system started this process, -1 when it won't say. With "ui: main" and "ui: scene
-// set" it times a cold start: on the Q10 main comes 1.2 s in and the application is made by 1.6 s, the
-// system's share (103 libraries, 97 of them Cascades' own), and the scene is set at 2.2 s (0.1.1.310; 3.2 s
-// before the speed work of 2026-11-13).
+// set" it times a cold start. As a plain executable main came 1.5 s in and the application was made by 3.4 s, the
+// system's share (103 libraries, 97 of them Cascades' own, then the Application's own file lookups), and the scene
+// was set at 4.35 s with 500 chats (Classic, 1.0.2.128). Forked from the launcher's /bin/cascades, which holds all
+// that already: 0.14 s, 0.29 s and 1.47 s (1.0.2.129, the engine up).
 static int sinceLaunch()
 {
     procfs_info info;
@@ -151,10 +156,11 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
     // The phone's language, once at start (no live switching): the .qm is in the bar's assets, and
-    // English, the source text, has none. Before the QML loads, whose qsTr reads it then.
+    // English, the source text, has none. Before the QML loads, whose qsTr reads it then. Not applicationDirPath():
+    // that is the launcher's /bin now; the bar's folder is app/native under the working directory.
     QTranslator translator;
     const QString language = bb::system::LocaleHandler(bb::system::LocaleType::Messages).locale().name().section('_', 0, 0);
-    if (translator.load("tengram_" + language, QCoreApplication::applicationDirPath() + "/assets/translations"))
+    if (translator.load("tengram_" + language, QDir::currentPath() + "/app/native/assets/translations"))
         app.installTranslator(&translator);
     EngineLink engine(&app);
     engine.setLanguage(language); // before engine.start(): the hello sends it
@@ -241,6 +247,16 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     if (!root)
         return 1;
     app.setScene(root);
-    qDebug("ui: scene set at %d ms", sinceLaunch());
+    const int sceneAt = sinceLaunch();
+    qDebug("ui: scene set at %d ms", sceneAt);
+    // The address book's first read makes the phone's contacts service work at a higher priority than the UI thread:
+    // on a start that is already slow it stalled the UI over a second (the user, 2026-11-24; Classic, the plain
+    // executable's scene at 5.8 to 7.2 s against 4.0 to 4.8). Such a start reads the book once things have settled.
+    // ponytail: SlowStartMs is from two starts through the launcher, and no slow one has been seen yet: set it again
+    // from ui.log's "scene set" lines if a "stalled" line follows a start it let through.
+    const bool slow = sceneAt > SlowStartMs;
+    if (slow)
+        qDebug("ui: a slow start, the contact book waits %d s", SlowBookWaitMs / 1000);
+    book.readAfter(slow ? SlowBookWaitMs : 2000);
     return Application::exec();
 }

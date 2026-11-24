@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds the Cascades UI, build/ui/app/tengram, in the Native SDK 10.3.1 image: fetches what is not in git
+# Builds the Cascades UI, build/ui/app/libtengram.so, in the Native SDK 10.3.1 image: fetches what is not in git
 # (emoji font, qrcodegen, OpenMAX headers, libwebp, the SQLCipher driver), checks that Qt 4.8 can parse every
 # QML and JS file, turns the translations into .qm files, then qmake and make. It does not build the engine and
 # it does not package: packaging comes later, once the UI runs.

@@ -14,7 +14,8 @@ namespace ChatsDb {
 // The named connection, open and keyed, or a closed one when that isn't possible yet: the engine
 // hasn't made db.key or chats.db (before the first launch's end), or the key doesn't open it. The
 // callers then return and try again at the next event. A connection is never left open without its
-// key. The connection is read-only: only the engine writes chats.db.
+// key. The connection is read-only: only the engine writes chats.db. A connection belongs to the thread that first
+// opens it (Qt's rule), so each thread uses its own connection name; open() itself may be called from any thread.
 QSqlDatabase open(const QString &connectionName);
 
 // The engine (re)connected: it may have deleted and rebuilt chats.db (another schema version, a new

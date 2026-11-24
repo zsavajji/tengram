@@ -23,10 +23,10 @@ static const int MaxEntries = 4000;
 
 BookReader::BookReader()
     : m_service(0),
-      m_timer(new QTimer(this))
+      m_timer(new QTimer(this)),
+      m_first(true)
 {
     m_timer->setSingleShot(true);
-    m_timer->setInterval(2000);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(read()));
 }
 
@@ -37,16 +37,24 @@ void BookReader::start()
     connect(m_service, SIGNAL(contactsChanged(QList<int>)), this, SLOT(changed()));
     connect(m_service, SIGNAL(contactsDeleted(QList<int>)), this, SLOT(changed()));
     connect(m_service, SIGNAL(contactsReset()), this, SLOT(changed()));
-    m_timer->start(); // not at once, so the first read doesn't compete with the app's start
+}
+
+void BookReader::readIn(int ms)
+{
+    m_timer->start(ms);
 }
 
 void BookReader::changed()
 {
-    m_timer->start(); // restarts a running timer
+    // The first read takes the whole book, and must not come sooner than readIn() asked.
+    if (m_first)
+        return;
+    m_timer->start(2000); // restarts a running timer
 }
 
 void BookReader::read()
 {
+    m_first = false;
     QVariantList entries;
     int contacts = 0;
     ContactListFilters options;
@@ -93,9 +101,10 @@ ContactBook::ContactBook(EngineLink *engine, Settings *settings, QObject *parent
     : QObject(parent),
       m_engine(engine),
       m_settings(settings),
-      m_thread(new QThread) // no parent, see ~ContactBook
+      m_thread(new QThread), // no parent, see ~ContactBook
+      m_reader(new BookReader)
 {
-    BookReader *reader = new BookReader;
+    BookReader *reader = m_reader;
     reader->moveToThread(m_thread);
     connect(m_thread, SIGNAL(started()), reader, SLOT(start()));
     connect(reader, SIGNAL(ready(QVariantList)), this, SLOT(onRead(QVariantList)), Qt::QueuedConnection);
@@ -112,6 +121,11 @@ ContactBook::~ContactBook()
     // The thread (and the reader on it) is deliberately not deleted: a QThread destroyed while it
     // still runs aborts the process, as it would if the reader is in a long read, and this object
     // lasts as long as the app does.
+}
+
+void ContactBook::readAfter(int ms)
+{
+    QMetaObject::invokeMethod(m_reader, "readIn", Qt::QueuedConnection, Q_ARG(int, ms));
 }
 
 void ContactBook::onRead(const QVariantList &entries)

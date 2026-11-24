@@ -1,8 +1,8 @@
-# Tengram's UI, a plain executable as the bar's Qnx/Elf entry point. Built by scripts/build-ui.sh, out of
-# tree in build/ui (packaging comes later).
-TEMPLATE = app
+# Tengram's UI is a shared object, the bar's Qnx/Cascades entry point, which the launcher's /bin/cascades (already holding
+# Cascades and Qt) loads and whose exported main() it calls. Built by scripts/build-ui.sh, out of tree in build/ui.
+TEMPLATE = lib
 TARGET = tengram
-CONFIG += qt warn_on release
+CONFIG += qt warn_on release plugin
 QT += declarative network sql gui
 # QtGui links anyway (QtDeclarative needs it); QImage and QImageReader make the photo previews and the
 # thumbnail sent with a photo (step 6.3), since the engine decodes no picture.
@@ -93,9 +93,13 @@ DEFINES += OMIT_MEMLOCK SQLITE_DEFAULT_MEMSTATUS=0 SQLITE_DEFAULT_RECURSIVE_TRIG
 QMAKE_CFLAGS_WARN_ON = -w
 LIBS += $$PWD/../build/prefix/lib/libcrypto.a -lsocket
 QMAKE_LFLAGS += -Wl,--gc-sections
-# Nothing of the static libcrypto may show in the executable's dynamic symbols: a system library that uses the
+# Nothing of the static libcrypto may show in the library's dynamic symbols: a system library that uses the
 # phone's own OpenSSL 1.0 (QtNetwork, say) would bind to ours, 3.5, and crash.
 QMAKE_LFLAGS += -Wl,--exclude-libs,ALL
+# As a shared object loaded into a process that already holds the system's libraries, our own globals (libwebp, qrcodegen,
+# our classes) would otherwise bind to a same-named symbol loaded before us; -Bsymbolic binds our references to our own
+# definitions.
+QMAKE_LFLAGS += -Wl,-Bsymbolic
 
 # lupdate reads the QML too; scripts/build-ui.sh turns the .ts into the .qm the bar ships.
 CODECFORTR = UTF-8

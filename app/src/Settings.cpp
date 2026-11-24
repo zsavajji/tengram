@@ -466,7 +466,7 @@ void Settings::playLogo(QObject *view, int px)
     if (s_stickerPlay == 2)
         image->setImage(still);
     else
-        StickerPlayer::instance()->play(image, still, QCoreApplication::applicationDirPath() + "/assets/images/welcome.tgs",
+        StickerPlayer::instance()->play(image, still, QDir::currentPath() + "/app/native/assets/images/welcome.tgs",
                                         false, px);
 }
 
