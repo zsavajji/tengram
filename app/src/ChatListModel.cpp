@@ -445,9 +445,19 @@ void ChatListModel::reload()
     dayFormatter().applyCurrentTimeAsAnchor();
     RowClock clock(m_region.locale());
 
+    // Where a reload's time goes (the user, 2026-11-24: a cold start reads 500 chats twice, 293 and 278 ms on the
+    // Classic): the query, SQLCipher's fetching and decrypting of the rows (next()), building them, and Cascades.
+    const qint64 execNs = timer.nsecsElapsed();
+    qint64 fetchNs = 0;
+    QElapsedTimer step;
     QList<Group> groups;
     Moves *moves = new Moves;
-    while (q.next()) {
+    for (;;) {
+        step.start();
+        const bool more = q.next();
+        fetchNs += step.nsecsElapsed();
+        if (!more)
+            break;
         const QString jid = q.value(0).toString();
         QVariantMap row = baseRow(q, clock.now);
         if (!matches(row["name"].toString()))
@@ -469,6 +479,7 @@ void ChatListModel::reload()
             jids.append(row["jid"].toString());
         moves->oldItems.append(jids);
     }
+    const qint64 builtNs = timer.nsecsElapsed();
     const bool wasEmpty = m_groups.isEmpty();
     m_groups = groups;
     if (wasEmpty) {
@@ -498,7 +509,9 @@ void ChatListModel::reload()
     // A phone run decides whether insertions and moves need a patch too.
     const qint64 ms = timer.elapsed();
     if (ms > 50)
-        qDebug() << "chat list: reload," << chats << "chats in" << ms << "ms";
+        qDebug("chat list: reload, %d chats in %d ms (query %d, fetch %d, rows %d, list %d)", chats, int(ms),
+               int(execNs / 1000000), int(fetchNs / 1000000), int((builtNs - execNs - fetchNs) / 1000000),
+               int(ms - builtNs / 1000000));
 }
 
 // A chat marked unread (unread < 0, step 5.3) counts as 1. 2^40 in muted_until is forever. A muted chat counts only
