@@ -118,8 +118,6 @@ public:
     int revision() const { return m_revision; }
     // The chat's map as the rows have it, archived chats included; empty when there is none.
     Q_INVOKABLE QVariantMap chat(const QString &jid);
-    // The ids of the chat's messages whose text has text in it, any case, newest first (step 5.10).
-    Q_INVOKABLE QStringList findMessages(const QString &jid, const QString &text);
     // The jids of the pinned chats of the main list, top first (all of them, whatever the filter); for chat.pinOrder.
     Q_INVOKABLE QStringList pinnedJids();
     // Shows only the chats whose name has a word starting with text; "" shows all.

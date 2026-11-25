@@ -122,6 +122,9 @@ public:
     // Asks for the comments of a channel's post (msg.thread); threadFound or threadFailed answers. False when the engine isn't
     // connected: nothing was sent, and nothing will be emitted. The page's chat is the channel.
     Q_INVOKABLE bool openThread(const QString &id);
+    // Searches the chat's messages (the topic's or thread's, when the page shows one) on Telegram's server, its whole history
+    // and its own matching (chat.find); found() answers. False when nothing was sent: found() is then emitted at once, empty.
+    Q_INVOKABLE bool find(const QString &text);
     // A language's name in its own language, capitalised ("Italiano"); the code when Qt knows none.
     Q_INVOKABLE QString languageName(const QString &code) const;
 
@@ -153,6 +156,9 @@ signals:
     void threadFound(const QString &chat, const QString &thread, const QString &name);
     // openThread() was refused or failed.
     void threadFailed();
+    // The answer to find(): the ids of the messages found, a list of strings, newest first; empty when none matched or the
+    // search failed.
+    void found(const QVariant &ids);
 
 private slots:
     void sendReadUpto();
@@ -177,6 +183,8 @@ private slots:
     void onReactionsFailure();
     void onThreadReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onThreadFailure();
+    void onFindReplied(const QString &id, const QString &cmd, const QVariant &result);
+    void onFindFailure();
 
 private:
     void takeGroupInfo(QVariantMap info);
@@ -207,6 +215,7 @@ private:
     QString m_reactionsId; // the msg.reactions request we wait for
     QString m_reactionsMsg; // and the message it asked about
     QString m_threadId; // the msg.thread request we wait for
+    QString m_findId; // the chat.find request we wait for (a newer one makes an older reply stale)
     QString m_mentionId; // the chat.mention or chat.reaction request we wait for (one at a time)
     int m_mentions;
     int m_reactions;

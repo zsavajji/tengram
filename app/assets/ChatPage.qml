@@ -17,10 +17,10 @@ Page {
     // A comment thread's root id in the discussion group (a string: ids exceed what QML's numbers hold), set before chat, with
     // topicName: the page is that thread's messages only, as a topic's (ChatController.open). "" for any other chat.
     property string thread: ""
-    // A group we are not in, as a channel's discussion group opened from Discuss: Join instead of the composer (Composer.qml)
-    // until we are. A group of ours is a row of chats.db's chats (the main or the archived list), so no row is not in. A comment
+    // A group or channel we are not in, as a channel's discussion group opened from Discuss or a public chat opened from
+    // Search (the user, 2026-11-25: the chat, not a dialog): Join instead of the composer (Composer.qml) until we are. A group of ours is a row of chats.db's chats (the main or the archived list), so no row is not in. A comment
     // thread stays open to write in: Telegram takes comments from anyone the group lets write.
-    property bool notJoined: page.chat ? page.chat.kind == 1 && thread == "" && !(chats.revision >= 0 && chats.chat(page.chat.jid).jid) : false
+    property bool notJoined: page.chat ? (page.chat.kind == 1 || page.chat.kind == 3) && thread == "" && !(chats.revision >= 0 && chats.chat(page.chat.jid).jid) : false
     // The composer's TextArea (Composer.qml): text, editor and requestFocus() are used all over this page.
     property variant composer: composerBar.field
     // Back is in the title bar and the composer is ours: nothing left for the bar. openActionMenu()
@@ -267,6 +267,7 @@ Page {
             SearchBar {
                 jid: page.chat ? page.chat.jid : ""
                 onJump: page.jump(id)
+                onFind: ctl.find(text)
                 onClosed: list.foundId = ""
             }
         },
@@ -445,6 +446,7 @@ Page {
     function searchBar() {
         if (!searchObj) {
             var b = searchDef.createObject()
+            ctl.found.connect(b.take)
             searchSlot.add(b)
             searchObj = b
         }
@@ -893,8 +895,8 @@ Page {
             list.scrollToItem([i], ScrollAnimation.None)
             startAim("item", id)
         } else if (ctl.messages.loading) {
-            // A window far back that doesn't hold it: the model left it for the regular chat and loads until
-            // chat.open answers; loaded() jumps then.
+            // Beyond what the model holds: it opened a window of history at the message (openWindowAt) and loads until
+            // chat.newer answers; loaded() jumps then.
             page.jumpPending = id
         } else {
             revealList() // the message isn't shown (hidden by a pending delete): nothing to wait for

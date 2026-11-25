@@ -27,8 +27,9 @@ Container {
     property bool channel: false
     property bool muted: false
     property bool discuss: false
-    // A group we are not in (a channel's discussion group opened by Discuss, the user's ask, 2026-11-25, as Telegram's): Join
-    // in the whole row's place but the menu, until we are in. Set with readOnly.
+    // A group or channel we are not in (a channel's discussion group opened by Discuss, a public chat opened from Search; the
+    // user's ask, 2026-11-25, as Telegram's): Join in the whole row's place but the menu (and a channel's Search and Discuss),
+    // until we are in. Set with readOnly.
     property bool join: false
     signal emoji
     signal discard
@@ -193,7 +194,7 @@ Container {
         // A channel's mute toggle, in the field's place: the stock Button (a pill or box of our own read as a label, the user,
         // 2026-11-25). A channel's bar has no text field, so the focus a touch gives it takes no keyboard away.
         Button {
-            visible: bar.readOnly && bar.channel
+            visible: bar.readOnly && bar.channel && !bar.join
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1
             }

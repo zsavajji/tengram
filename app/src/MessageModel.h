@@ -71,6 +71,9 @@ static const int kCostText = 1;     // any other row
 // In window mode a live row beyond the loaded newest is dropped (merge), chat.open replies are ignored
 // (takeOpen), and toLiveEnd (sending from far back) or a window that never answers (15 s) drops the window
 // and opens at the newest, as a chat with nothing unread does (leaveWindow).
+// A jump (search, pins, a notification) to a message the model can't reach, the floor not known or the message below it,
+// opens a window at that message (openWindowAt): chat.newer verifies a page that starts at it, with no divider, and
+// older pages come as in any window. toLiveEnd forgets the jump, so a later one may open a window again.
 // A chat that opens at its newest message (nothing unread, no window) reads only two screens of rows first (loadFirst, the
 // budget of select(): a picture message counts a screen, a sticker a third, a text a fifteenth; the user, 2026-11-20), so the
 // list shows after a few rows, not 20 to 50 at 2 to 10 ms each. The rest of the page is read 700 ms later (loadRest), as a
@@ -296,7 +299,9 @@ private:
     void askNewer();
     void loadNewer();
     void joinLive();
-    void leaveWindow(bool awaitOpen = false);
+    void leaveWindow();
+    void dropLoaded();
+    void openWindowAt(const QString &id);
     void dropBelowFloor();
     bool atStart() const;
     void merge(const QStringList &asked, const QList<Msg> &fresh, bool older);
@@ -375,7 +380,7 @@ private:
     // Where scrollToItem leaves an item in this bottom-to-top list it did not say (Classic, 0.1.0.8 to 0.1.0.11).
     bool m_holdOlder;
     bool m_window; // window mode (the class comment): the rows from m_floor to the newest loaded, not the newest end
-    bool m_awaitOpen; // left the window for a jump: loading until chat.open sets the floor (leaveWindow)
+    QString m_jumpWindow; // the message a jump window was opened at, "" none; a jump to it that finds nothing gives up instead of opening again
     bool m_newerMore; // newer messages exist beyond m_top (chat.newer's more)
     qint64 m_readInbox; // chats.read_inbox when the window was chosen: the window starts after it
     QString m_newerId; // the chat.newer request in flight (the window's first included), "" for none

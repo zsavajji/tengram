@@ -1,7 +1,8 @@
 // The requests that act on people, groups, invite links and Telegram links, the secret chats and the chat's timer, the
 // chat's export to a text file, the order of the pinned chats and the search page's lists: contact.block,
 // group.participants, group.create, poll.create, invite.info, invite.accept, link.open, group.join, secret.start,
-// chat.ttl, chat.export, chat.pinOrder, chat.readAll, search.chats, search.recentAdd and search.recentClear (docs/protocol.md).
+// chat.ttl, chat.export, chat.pinOrder, chat.readAll, search.chats, search.messages, search.recentAdd and search.recentClear
+// (docs/protocol.md).
 // What a chat is comes from pages.cpp (with_chat, person_of, basic_group_of, supergroup_of).
 
 #include "engine.h"
@@ -9,9 +10,11 @@
 #include <sys/stat.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <map>
 #include <memory>
 
 namespace {
@@ -639,28 +642,76 @@ void search_suggest(const std::shared_ptr<Search> &s) {
   });
 }
 
-// With text, the second half: the public chats Telegram finds (an error gives none: it refuses a text that is too short).
-void search_global(const std::shared_ptr<Search> &s, std::vector<std::int64_t> local) {
-  tdlib.send(make_object<td_api::searchPublicChats>(s->text, tab_filter(s->tab)),
-             [s, local = std::move(local)](Obj o) { search_go(s, local, chat_ids(o)); });
+// The chats of `more` that `list` lacks, added at its end.
+void add_new(std::vector<std::int64_t> &list, const std::vector<std::int64_t> &more) {
+  for (std::int64_t chat : more) {
+    if (std::find(list.begin(), list.end(), chat) == list.end()) {
+      list.push_back(chat);
+    }
+  }
 }
 
-// With text, the first half: the chats TDLib knows by title or username and, on the chats tab, the address book's people.
-void search_local(const std::shared_ptr<Search> &s) {
-  tdlib.send(make_object<td_api::searchChats>(s->text, tab_filter(s->tab), kSearchMax), [s](Obj o) {
-    if (s->tab != "chats") {
-      return search_global(s, chat_ids(o));
+// The username in a text typed as one, "@name" (letters, digits and _, 4 to 32 of them, a letter first); "" for any other.
+std::string typed_username(const std::string &text) {
+  if (text.size() < 5 || text.size() > 33 || text[0] != '@' || !std::isalpha(static_cast<unsigned char>(text[1]))) {
+    return std::string();
+  }
+  for (std::size_t i = 2; i < text.size(); ++i) {
+    if (!std::isalnum(static_cast<unsigned char>(text[i])) && text[i] != '_') {
+      return std::string();
     }
-    tdlib.send(make_object<td_api::searchContacts>(s->text, kSearchMax), [s, local = chat_ids(o)](Obj people) mutable {
-      if (!as_error(people)) {
-        for (std::int64_t user : static_cast<const td_api::users &>(*people).user_ids_) {  // a user's chat has their id
-          if (std::find(local.begin(), local.end(), user) == local.end()) {
-            local.push_back(user);
-          }
+  }
+  return text.substr(1);
+}
+
+// With text, the second half: the public chats Telegram finds (an error gives none: it refuses a text that is too short).
+// A text typed as a username ("@name") also resolves that username, and its chat goes first: Telegram's search does not
+// list every public chat to every account (the user, 2026-11-25: @rapelogic, a channel of 1668, not found, though
+// t.me/rapelogic opens it). Only for "@name": resolving is rate-limited by Telegram, every word typed would spend it.
+void search_global(const std::shared_ptr<Search> &s, std::vector<std::int64_t> local) {
+  tdlib.send(make_object<td_api::searchPublicChats>(s->text, tab_filter(s->tab)), [s, local = std::move(local)](Obj o) {
+    const std::string username = typed_username(s->text);
+    if (username.empty()) {
+      return search_go(s, local, chat_ids(o));
+    }
+    tdlib.send(make_object<td_api::searchPublicChat>(username), [s, local, found = chat_ids(o)](Obj exact) {
+      std::vector<std::int64_t> global;
+      if (!as_error(exact)) {
+        const std::int64_t chat = static_cast<const td_api::chat &>(*exact).id_;
+        if (std::find(local.begin(), local.end(), chat) == local.end()) {
+          global.push_back(chat);
         }
       }
-      search_global(s, std::move(local));
+      add_new(global, found);
+      search_go(s, local, global);
     });
+  });
+}
+
+// On the chats tab, the address book's people after the chats (a user's chat has their id); then the global half.
+void search_people(const std::shared_ptr<Search> &s, std::vector<std::int64_t> local) {
+  if (s->tab != "chats") {
+    return search_global(s, std::move(local));
+  }
+  tdlib.send(make_object<td_api::searchContacts>(s->text, kSearchMax), [s, local = std::move(local)](Obj people) mutable {
+    if (!as_error(people)) {
+      add_new(local, static_cast<const td_api::users &>(*people).user_ids_);
+    }
+    search_global(s, std::move(local));
+  });
+}
+
+// With text, the first half: the chats TDLib knows by title or username, then the user's own chats Telegram's server
+// finds (searchChatsOnServer: the "my results" of the same server search whose other half is the global one; a channel
+// we follow that TDLib hasn't loaded is only there: the user, 2026-11-25, @rapelogic found by Telegram's app and not by
+// ours), then the people (search_people).
+void search_local(const std::shared_ptr<Search> &s) {
+  tdlib.send(make_object<td_api::searchChats>(s->text, tab_filter(s->tab), kSearchMax), [s](Obj o) {
+    tdlib.send(make_object<td_api::searchChatsOnServer>(s->text, tab_filter(s->tab), kSearchMax),
+               [s, local = chat_ids(o)](Obj mine) mutable {
+                 add_new(local, chat_ids(mine));
+                 search_people(s, std::move(local));
+               });
   });
 }
 
@@ -680,6 +731,106 @@ void search_chats(std::uint64_t conn, const std::string &id, td::JsonObject &req
   } else {
     search_local(s);
   }
+}
+
+// ---- search.messages: Telegram's search of the messages of every chat (the search page's "Messages")
+
+constexpr std::int32_t kMessagesPage = 30;  // messages in a page of search.messages
+
+// The chat of a found message, as the row needs it.
+struct Where {
+  bool ok = false;  // false: the lookup failed, so its messages are left out
+  bool group = false;  // a group: its rows say who wrote the message
+  std::string name, photo;
+};
+
+struct Hits {
+  std::uint64_t conn;
+  std::string id;
+  std::vector<td_api::object_ptr<td_api::message>> messages;  // in the order Telegram found them
+  std::string next;                                            // the offset of the next page, "" when there is none
+  std::map<std::int64_t, Where> where;
+  std::size_t pending = 0;  // the chats still to be looked up
+};
+
+// Not written to chats.db: the messages are shown on the search page, and a tap opens a window of history at one.
+void hits_reply(const std::shared_ptr<Hits> &h) {
+  server.reply_ok(h->conn, h->id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                    r("messages", td::json_array([&](auto &list) {
+                        for (const auto &m : h->messages) {
+                          const Where &w = h->where[m->chat_id_];
+                          if (!w.ok) {
+                            continue;
+                          }
+                          bool service = false;
+                          const std::string text = message_body(*m, service);
+                          const std::string who = w.group ? sender_name(*m) : std::string();
+                          list(td::json_object([&](auto &one) {
+                            one("chat", std::to_string(m->chat_id_));
+                            one("id", std::to_string(m->id_));
+                            one("name", w.name);
+                            if (!w.photo.empty()) {
+                              one("photo", w.photo);
+                            }
+                            one("sender", who);
+                            one("text", text);
+                            one("ts", m->date_);
+                            one("out", td::JsonBool(m->is_outgoing_));
+                          }));
+                        }
+                      }));
+                    r("next", h->next);
+                  })));
+}
+
+void search_messages(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
+  auto text = string_field(req, "query");
+  td::JsonValue from;
+  const int has_offset = optional_field(req, "offset", td::JsonValue::Type::String, from);
+  if (text.is_error() || text.ok().empty() || has_offset < 0) {
+    return bad_request(conn, id, "need the field query, a string that is not empty, and offset, a string, when given");
+  }
+  const std::string offset = has_offset == 1 ? from.get_string().str() : std::string();
+  tdlib.send(make_object<td_api::searchMessages>(nullptr, text.ok(), offset, kMessagesPage, nullptr, nullptr, 0, 0),
+             [conn, id](Obj o) {
+               if (auto e = as_error(o)) {
+                 return td_failed(conn, id, *e);
+               }
+               auto &found = static_cast<td_api::foundMessages &>(*o);
+               auto h = std::make_shared<Hits>();
+               h->conn = conn;
+               h->id = id;
+               h->next = found.next_offset_;
+               for (auto &m : found.messages_) {
+                 if (m) {
+                   h->where[m->chat_id_];  // a slot for the chat, filled below
+                   h->messages.push_back(std::move(m));
+                 }
+               }
+               h->pending = h->where.size();
+               if (h->pending == 0) {
+                 return hits_reply(h);
+               }
+               for (const auto &entry : h->where) {
+                 const std::int64_t chat = entry.first;
+                 tdlib.send(chat_lookup(chat), [h, chat](Obj c) {
+                   if (!as_error(c)) {
+                     const auto &info = static_cast<const td_api::chat &>(*c);
+                     Where &w = h->where[chat];
+                     w.ok = true;
+                     w.name = info.title_;
+                     w.group = basic_group_of(info) != 0 || supergroup_of(info, false) != 0;
+                     const td_api::file *small = info.photo_ ? info.photo_->small_.get() : nullptr;
+                     if (small && small->local_ && small->local_->is_downloading_completed_) {
+                       w.photo = small->local_->path_;
+                     }
+                   }
+                   if (--h->pending == 0) {
+                     hits_reply(h);
+                   }
+                 });
+               }
+             });
 }
 
 // ---- secret.start and chat.ttl
@@ -895,12 +1046,13 @@ bool manage_handle(std::uint64_t conn, const std::string &id, const std::string 
   static const char *const ours[] = {"contact.block", "group.participants", "group.create", "poll.create",
                                      "invite.info",   "invite.accept",      "link.open",    "group.join",
                                      "secret.start",  "chat.ttl",           "chat.export",  "chat.pinOrder",
-                                     "search.chats",  "search.recentAdd",   "search.recentClear", "chat.readAll"};
+                                     "search.chats",  "search.messages",    "search.recentAdd",   "search.recentClear",
+                                     "chat.readAll"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
   if (cmd == "group.create" || cmd == "invite.info" || cmd == "invite.accept" || cmd == "link.open" ||
-      cmd == "secret.start" || cmd == "chat.pinOrder" || cmd == "search.chats" ||
+      cmd == "secret.start" || cmd == "chat.pinOrder" || cmd == "search.chats" || cmd == "search.messages" ||
       cmd == "search.recentClear" || cmd == "chat.readAll") {  // no chat
     if (!link_ready()) {
       server.reply_error(conn, id, "unlinked", "not logged in");
@@ -916,6 +1068,8 @@ bool manage_handle(std::uint64_t conn, const std::string &id, const std::string 
       chat_pin_order(conn, id, req);
     } else if (cmd == "search.chats") {
       search_chats(conn, id, req);
+    } else if (cmd == "search.messages") {
+      search_messages(conn, id, req);
     } else if (cmd == "search.recentClear") {
       tdlib.send(make_object<td_api::clearRecentlyFoundChats>(), [conn, id](Obj o) { answer(conn, id, o); });
     } else if (cmd == "chat.readAll") {  // every chat, main list then Archived, forums' topics and marked-unread ones too

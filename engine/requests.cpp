@@ -1,4 +1,4 @@
-// The requests about chats and messages: chat.open, chat.history, chat.newer, chat.pins, chat.close, chat.read,
+// The requests about chats and messages: chat.open, chat.history, chat.newer, chat.pins, chat.find, chat.close, chat.read,
 // chat.typing, chat.set, msg.send, media.send, media.album, msg.delete, msg.edit, msg.forward, msg.react, msg.reactions,
 // msg.thread, poll.vote, media.get and media.cancel (docs/protocol.md). The rows they ask for are written by messages.cpp; the
 // replies that tell the UI to read them come after the flush that commits them (queue_reply).
@@ -301,23 +301,30 @@ void chat_newer(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   });
 }
 
-// ---- chat.pins: the pinned messages, newest message first
+// ---- chat.pins and chat.find: the pinned messages, or the messages Telegram finds for a text, newest message first
 
 struct Pinned {
   std::uint64_t conn;
   std::string id;
   std::int64_t chat;
   std::int32_t topic;
+  std::int64_t thread;
+  std::string query;  // "": the pinned messages; else the messages Telegram's search finds for it
   std::vector<std::int64_t> found;
   int calls = 0;
 };
 
-// Telegram's own list: a pin never expires, and unpinning leaves no message, so it is asked for, not kept.
-// Every message goes through messages_queue: the UI reads its row for the preview and the jump.
+// Telegram's own list: a pin never expires, and unpinning leaves no message, so it is asked for, not kept. The same walk
+// serves chat.find (query not empty): Telegram's search of the chat's whole history, fuzzy as its app's.
+// A pinned message goes through messages_queue: the UI reads its row for the preview and the jump. A found one does
+// not: the jump to it opens a window of history at it (chat.newer), which writes the rows it reads.
 void fetch_pins(const std::shared_ptr<Pinned> &p, std::int64_t from) {
-  tdlib.send(make_object<td_api::searchChatMessages>(p->chat, topic_object(p->topic), "", nullptr, from, 0, 100,
-                                                     make_object<td_api::searchMessagesFilterPinned>()),
-             [p](Obj o) {
+  const bool pinned = p->query.empty();
+  tdlib.send(make_object<td_api::searchChatMessages>(
+                 p->chat, topic_object(p->topic, p->thread), p->query, nullptr, from, 0, 100,
+                 pinned ? td_api::object_ptr<td_api::SearchMessagesFilter>(make_object<td_api::searchMessagesFilterPinned>())
+                        : nullptr),
+             [p, pinned](Obj o) {
                if (auto e = as_error(o)) {
                  say("td error: %d %s", e->code_, e->message_.c_str());
                  return reply_td_error(p->conn, p->id, *e);
@@ -325,7 +332,9 @@ void fetch_pins(const std::shared_ptr<Pinned> &p, std::int64_t from) {
                auto &r = static_cast<td_api::foundChatMessages &>(*o);
                for (auto &m : r.messages_) {
                  if (m) {
-                   messages_queue(*m);
+                   if (pinned) {
+                     messages_queue(*m);
+                   }
                    p->found.push_back(m->id_);
                  }
                }
@@ -345,7 +354,20 @@ void fetch_pins(const std::shared_ptr<Pinned> &p, std::int64_t from) {
 void chat_pins(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   std::int32_t topic = -1;
   if (topic_field(conn, id, req, topic)) {
-    fetch_pins(std::make_shared<Pinned>(Pinned{conn, id, chat, topic, {}}), 0);
+    fetch_pins(std::make_shared<Pinned>(Pinned{conn, id, chat, topic, 0, "", {}}), 0);
+  }
+}
+
+// `query` is the text to find, not empty; `topic` or `thread` narrows it to a forum topic or a comment thread.
+void chat_find(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  auto text = string_field(req, "query");
+  if (text.is_error() || text.ok().empty()) {
+    return bad_request(conn, id, "need the field query, a string that is not empty");
+  }
+  std::int32_t topic = -1;
+  std::int64_t thread = 0;
+  if (topic_thread_fields(conn, id, req, topic, thread)) {
+    fetch_pins(std::make_shared<Pinned>(Pinned{conn, id, chat, topic, thread, text.move_as_ok(), {}}), 0);
   }
 }
 
@@ -1423,8 +1445,8 @@ bool regular_file(const std::string &path, std::int64_t &size) {
 }
 
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
-  static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.close", "chat.read",
-                                     "chat.typing", "chat.set", "msg.send", "media.send", "media.album", "msg.delete",
+  static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.find", "chat.close",
+                                     "chat.read", "chat.typing", "chat.set", "msg.send", "media.send", "media.album", "msg.delete",
                                      "msg.edit", "msg.forward", "msg.react", "msg.reactions", "msg.thread", "poll.vote",
                                      "media.get", "media.cancel", "chat.mention", "chat.reaction"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
@@ -1448,6 +1470,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     chat_newer(conn, id, req, chat);
   } else if (cmd == "chat.pins") {
     chat_pins(conn, id, req, chat);
+  } else if (cmd == "chat.find") {
+    chat_find(conn, id, req, chat);
   } else if (cmd == "chat.mention" || cmd == "chat.reaction") {
     chat_mention(conn, id, req, chat, cmd == "chat.reaction");
   } else if (cmd == "chat.close") {

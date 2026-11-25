@@ -81,7 +81,6 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_bridgeBefore(0)
     , m_holdOlder(false)
     , m_window(false)
-    , m_awaitOpen(false)
     , m_restPending(false)
     , m_newerMore(false)
     , m_readInbox(0)
@@ -639,21 +638,6 @@ void MessageModel::takeOpen(const QVariantMap &r)
     m_floor = oldest.isEmpty() ? kNoFloor : oldest.toLongLong();
     m_top = newest;
     m_more = r["more"].toBool() && !oldest.isEmpty();
-    if (m_awaitOpen) {
-        // Left the window for a jump (reveal): msgs events were skipped while loading, so the newest page is
-        // read again, now from the floor up, and the spinner goes; the page's pending jump runs on that.
-        m_awaitOpen = false;
-        m_windowGiveUp.stop();
-        m_restPending = false; // reloaded from scratch: a stale loadRest must not read a page into it
-        m_restTimer.stop();
-        const QStringList old = keys();
-        m_all.clear();
-        refresh(old, QSet<QString>());
-        loadPage();
-        m_loading = false;
-        emit loadingChanged();
-        return;
-    }
     if (m_loading) // the first page reads from the floor up
         return;
     dropBelowFloor();
@@ -826,10 +810,13 @@ void MessageModel::takeWindow(const QVariantMap &r)
     m_top = top;
     m_newerMore = r["more"].toBool();
     m_more = true; // older is unknown until chat.history says
-    foreach (const Msg &m, rows) {
-        if (!m.data["out"].toBool()) {
-            m_unreadId = m.id; // oldest first: the first one the user hasn't read
-            break;
+    // A jump window has no divider: the user came for a message, not for what is unread.
+    if (m_jumpWindow.isEmpty()) {
+        foreach (const Msg &m, rows) {
+            if (!m.data["out"].toBool()) {
+                m_unreadId = m.id; // oldest first: the first one the user hasn't read
+                break;
+            }
         }
     }
     m_windowGiveUp.stop();
@@ -844,7 +831,7 @@ void MessageModel::takeWindow(const QVariantMap &r)
     else
         joinLive();
     qDebug() << "chat: window of" << m_all.size() << "messages after" << m_readInbox
-             << (m_window ? "(more to come)" : "(reaches the newest)");
+             << (m_jumpWindow.isEmpty() ? "" : "(a jump)") << (m_window ? "(more to come)" : "(reaches the newest)");
 }
 
 // One page ahead of the bottom: chat.newer verifies the next page after m_top into chats.db (docs/protocol.md).
@@ -899,21 +886,15 @@ void MessageModel::joinLive()
     merge(QStringList(), select("AND CAST(id AS INTEGER) > ?", QVariantList() << m_top, -1), true);
 }
 
-// Back to the newest end, with the floor unknown as at a first open: the window never answered, held nothing,
-// or the user sent a message (toLiveEnd). Everything loaded goes (a window is not the newest page); the
-// cache's newest page shows as the first paint of any chat and chat.open, sent again by the controller,
-// sets the floor.
-// awaitOpen (a jump to a message the window doesn't hold): the spinner stays until chat.open sets the floor,
-// since reveal can't load back to a message before that; the page's pending jump then runs (ChatPage.loaded).
-void MessageModel::leaveWindow(bool awaitOpen)
+// Everything loaded goes, and the model is as at a first open before chat.open or chat.newer answers: the floor is
+// unknown, nothing is asked for or held, no divider. The caller says what comes next (leaveWindow: the cache's newest page
+// and chat.open; openWindowAt: a window at a message).
+void MessageModel::dropLoaded()
 {
-    const bool wasLoading = m_loading;
     const bool had = !m_entries.isEmpty();
     m_windowGiveUp.stop();
     m_restPending = false; // everything loaded goes: no stale loadRest
     m_restTimer.stop();
-    m_window = false;
-    emit windowChanged();
     setAsked(m_newerId, QString());
     m_newerMore = false;
     m_unreadId.clear();
@@ -932,19 +913,45 @@ void MessageModel::leaveWindow(bool awaitOpen)
     rebuild();
     if (had)
         emit itemsChanged(DataModelChangeType::Init);
+}
+
+// Back to the newest end, with the floor unknown as at a first open: the window never answered, held nothing,
+// or the user sent a message (toLiveEnd). Everything loaded goes (a window is not the newest page); the
+// cache's newest page shows as the first paint of any chat and chat.open, sent again by the controller,
+// sets the floor.
+void MessageModel::leaveWindow()
+{
+    const bool wasLoading = m_loading;
+    m_window = false;
+    emit windowChanged();
+    dropLoaded();
     loadPage();
-    if (awaitOpen) {
-        m_awaitOpen = true;
-        m_windowGiveUp.start(); // an answer that never comes ends the spinner (giveUp)
-        if (!wasLoading) {
-            m_loading = true;
-            emit loadingChanged();
-        }
-    } else if (wasLoading) {
+    if (wasLoading) {
         m_loading = false;
         emit loadingChanged();
     }
     emit wantOpen();
+}
+
+// A window of history at message `id`, which the loaded rows and the cache can't reach (reveal): everything loaded goes
+// and chat.newer verifies a page that starts at the message itself (after = the id before it), as for the unread ones;
+// the spinner stays until it answers and the page's pending jump runs then (ChatPage.loaded).
+void MessageModel::openWindowAt(const QString &id)
+{
+    m_jumpWindow = id;
+    dropLoaded();
+    m_window = true;
+    emit windowChanged();
+    // One server id back, not id - 1: TDLib's ids keep a type in their low 20 bits, and id - 1 is no valid id (its history
+    // would start elsewhere). The page after it starts at the message, as fetch_newer drops anything not newer.
+    m_readInbox = id.toLongLong() - (Q_INT64_C(1) << 20);
+    if (!m_loading) {
+        m_loading = true;
+        emit loadingChanged();
+    }
+    askWindow();
+    m_windowGiveUp.start();
+    qDebug() << "chat: window at" << id;
 }
 
 void MessageModel::releaseOlder()
@@ -960,6 +967,7 @@ void MessageModel::releaseOlder()
 
 void MessageModel::toLiveEnd()
 {
+    m_jumpWindow.clear(); // the user went to the newest end: a jump may open a window again
     if (m_window)
         leaveWindow();
 }
@@ -967,12 +975,6 @@ void MessageModel::toLiveEnd()
 // The window's first reply never came.
 void MessageModel::giveUp()
 {
-    if (m_awaitOpen) { // chat.open never answered after leaving for a jump: the newest page stays, no jump
-        m_awaitOpen = false;
-        m_loading = false;
-        emit loadingChanged();
-        return;
-    }
     if (m_window && !m_floorKnown) {
         qDebug() << "chat: no window after" << kWindowGiveUpMs << "ms, opening at the newest";
         leaveWindow();
@@ -1019,8 +1021,12 @@ QString MessageModel::shownUpTo(int first) const
     return QString();
 }
 
-// The entry index of a message to jump to, -1 when it isn't shown (or is below the verified floor). One
-// older than what is loaded brings in every message back to its day first.
+// The entry index of a message to jump to, -1 when it isn't shown. One older than what is loaded, and in the cache above
+// the floor, brings in every message back to its day first. Search, pins and notifications reach anywhere: a message the
+// loaded rows and the verified cache don't hold (below the floor, or the floor not known yet, or the model in another
+// window) opens a window of history at it (openWindowAt): -1 now, the model loading meanwhile, and the page jumps once
+// it is in (ChatPage.loaded). A window opened at the message that still doesn't show it means the message is gone: -1
+// again, and no new window.
 // ponytail: a match far back loads every message in between, one itemAdded each; a window around
 // the match if that is slow.
 int MessageModel::reveal(const QString &id)
@@ -1029,27 +1035,29 @@ int MessageModel::reveal(const QString &id)
     const int at = entryOf(id);
     if (at >= 0)
         return at;
-    // Search and pins reach anywhere: a message the window doesn't hold leaves it for the regular chat, and the
-    // page jumps once chat.open has set the floor (-1 now, the model loading meanwhile; the user's ask).
+    if (id == m_jumpWindow)
+        return -1;
     if (m_window) {
-        leaveWindow(true);
+        openWindowAt(id);
         return -1;
     }
     if (atStart() || m_all.isEmpty())
         return at;
-    if (!m_floorKnown)
-        return -1;
-    const QList<Msg> target = select("AND id = ?", QVariantList() << id, 1);
-    if (target.isEmpty() || target.first().rowid < m_floor)
-        return -1;
-    // Every row from the match's day to the oldest loaded one, so there is no gap.
-    const Msg o = m_all.first();
-    const uint midnight =
-        QDateTime(QDateTime::fromTime_t(target.first().ts).date(), QTime(0, 0)).toTime_t();
-    merge(QStringList(), select("AND ts >= ? AND (ts < ? OR (ts = ? AND CAST(id AS INTEGER) < ?))"
-                                " AND CAST(id AS INTEGER) >= ?",
-                                QVariantList() << midnight << o.ts << o.ts << o.rowid << m_floor, -1), true);
-    return entryOf(id);
+    if (m_floorKnown) {
+        const QList<Msg> target = select("AND id = ?", QVariantList() << id, 1);
+        if (!target.isEmpty() && target.first().rowid >= m_floor) {
+            // Every row from the match's day to the oldest loaded one, so there is no gap.
+            const Msg o = m_all.first();
+            const uint midnight =
+                QDateTime(QDateTime::fromTime_t(target.first().ts).date(), QTime(0, 0)).toTime_t();
+            merge(QStringList(), select("AND ts >= ? AND (ts < ? OR (ts = ? AND CAST(id AS INTEGER) < ?))"
+                                        " AND CAST(id AS INTEGER) >= ?",
+                                        QVariantList() << midnight << o.ts << o.ts << o.rowid << m_floor, -1), true);
+            return entryOf(id);
+        }
+    }
+    openWindowAt(id);
+    return -1;
 }
 
 void MessageModel::unspoil(const QString &id)
@@ -1060,8 +1068,7 @@ void MessageModel::unspoil(const QString &id)
 
 // PreviewMaker made the picture files of these rows, in any chat: the loaded rows of this one are read again and take the
 // file in place of their inline thumbnail. Not through onMsgs' check for loading, which is for rows not read yet (the first
-// page reads them with the file there): these are read already, and a spinner after a jump (awaitOpen) may hold them for
-// seconds, or end without reading the page again (giveUp).
+// page reads them with the file there): these are read already.
 void MessageModel::onPreviews(const QStringList &ids)
 {
     // A sender's round picture is made (roundPhotoSoon asked for it): let the next call look at the file again, and draw

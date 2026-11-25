@@ -173,6 +173,48 @@ void ChatController::askPins()
     m_pinsId = m_engine->request("chat.pins", args);
 }
 
+// The search bar's search runs on Telegram's server (chat.find), not over the cache: the whole history, fuzzy as Telegram's
+// app. The connections are made at the first search, so a chat that is never searched carries none.
+bool ChatController::find(const QString &text)
+{
+    if (!m_engine) {
+        emit found(QVariantList());
+        return false;
+    }
+    connect(m_engine, SIGNAL(replied(QString, QString, QVariant)), this,
+            SLOT(onFindReplied(QString, QString, QVariant)), Qt::UniqueConnection);
+    connect(m_engine, SIGNAL(failureChanged()), this, SLOT(onFindFailure()), Qt::UniqueConnection);
+    QVariantMap args;
+    args["chat"] = m_jid;
+    args["query"] = text;
+    addTopic(args);
+    // Not connected, request() fails at once, inside the call: the "-" is there for onFindFailure.
+    m_findId = "-";
+    m_findId = m_engine->request("chat.find", args);
+    if (m_findId.isEmpty()) {
+        emit found(QVariantList());
+        return false;
+    }
+    return true;
+}
+
+void ChatController::onFindReplied(const QString &id, const QString &cmd, const QVariant &result)
+{
+    if (cmd != "chat.find" || id != m_findId)
+        return;
+    m_findId.clear();
+    emit found(result.toMap()["ids"]);
+}
+
+void ChatController::onFindFailure()
+{
+    const QVariantMap failure = m_engine ? m_engine->failure() : QVariantMap();
+    if (m_findId.isEmpty() || m_findId == "-" || failure.value("cmd").toString() != "chat.find")
+        return;
+    m_findId.clear();
+    emit found(QVariantList());
+}
+
 void ChatController::nextMention()
 {
     askUnread("chat.mention");

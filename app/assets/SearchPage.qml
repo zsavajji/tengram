@@ -4,8 +4,10 @@ import tengram 1.0
 
 // Search (the user's ask, 2026-11-19): Telegram's own search, as its Android app has it, in place of the chat list's
 // filter. Tabs Chats, Channels and Apps in the title bar. With no text, the people the user writes to most in a strip and
-// the chats found before ("Recent"); with text, the chats Tengram knows and then Telegram's "Global search". The tiles
-// are squares, as everywhere, or discs in Round mode (Tile.qml).
+// the chats found before ("Recent"); with text, the chats Tengram knows and then Telegram's "Global search". On the Chats
+// tab Telegram's message search follows ("Messages", as in its app): more of them load as the list reaches its end, and a
+// tap opens the chat over this page at that message. The tiles are squares, as everywhere, or discs in Round mode
+// (Tile.qml).
 Page {
     id: page
     // The text in the field. Not the field's own `text`, which does not tell a binding while the user types.
@@ -53,9 +55,23 @@ Page {
         field.requestFocus()
     }
     // A chat from the lists. One we are in opens from the chat list; a person or a bot opens as a contact page's Message
-    // does (the chat may not exist yet); a public group or channel we are not in goes through its link, which asks to
-    // join (main.qml's askToJoin).
+    // does (the chat may not exist yet); a public group or channel we are not in opens over this page with Join in the
+    // composer's place.
     function open(r) {
+        // A message found: its chat opens over this page, so Back returns to the results, and jumps to the message. A
+        // forum opens its topics page, which has no jump. Not remembered: a message is not a found chat.
+        if (r.msg) {
+            var chat = chats.chat(r.jid)
+            if (!chat.jid) {
+                noOpen.show()
+                return
+            }
+            var opened = nav.at(0).openChat(chat)
+            if (opened.jump) {
+                opened.jump(r.id)
+            }
+            return
+        }
         search.remember(r.jid)
         if (r.member) {
             nav.openRequested(r.jid)
@@ -63,7 +79,10 @@ Page {
             nav.openRow({"jid": r.jid, "kind": 0, "name": r.name, "initials": r.initials, "color": r.color,
                          "photo": r.photo || ""})
         } else if (r.username) {
-            invites.openLink("https://t.me/" + r.username)
+            // A public group or channel we are not in: its chat over this page, read-only with Join in the composer's place
+            // (ChatPage.notJoined), as Telegram's (the user, 2026-11-25: the chat, not the join dialog).
+            nav.at(0).openChat({"jid": r.jid, "kind": r.kind == "channel" ? 3 : 1, "name": r.name, "initials": r.initials,
+                                "color": r.color, "photo": r.photo || ""})
         } else {
             noOpen.show()
         }
@@ -140,6 +159,16 @@ Page {
                 property string pressColor: nav.pressColor
                 property variant look: settings // the tiles' Shape (Tile.qml)
                 dataModel: search.results
+                // The next page of the messages when the list reaches its end.
+                attachedObjects: [
+                    ListScrollStateHandler {
+                        onAtEndChanged: {
+                            if (atEnd) {
+                                search.more()
+                            }
+                        }
+                    }
+                ]
                 // A list item sees the page's ids no more than its `nav`: "Clear all" comes through the view.
                 function clearRecent() {
                     search.clearRecent()

@@ -1,13 +1,18 @@
 #include "ChatSearch.h"
 
+#include "ChatListModel.h"
 #include "EngineLink.h"
 #include "colors.h"
+
+#include <QLocale>
 
 ChatSearch::ChatSearch(QObject *parent)
     : QObject(parent)
     , m_tab("chats")
     , m_results(new bb::cascades::ArrayDataModel(this))
     , m_top(new bb::cascades::ArrayDataModel(this))
+    , m_chatRows(0)
+    , m_msgFirst(false)
     , m_searched(false)
 {
     // Typing waits for a pause: the engine asks Telegram's servers for each text.
@@ -42,8 +47,11 @@ void ChatSearch::setTab(const QString &tab)
         return;
     m_tab = tab;
     m_id.clear();
+    m_msgId.clear();
+    m_next.clear();
     m_searched = false;
     m_results->clear();
+    m_chatRows = 0;
     m_top->clear();
     send();
 }
@@ -56,10 +64,13 @@ void ChatSearch::setQuery(const QString &query)
     const bool modeChanged = text.isEmpty() != m_query.isEmpty();
     m_query = text;
     m_id.clear();
+    m_msgId.clear();
+    m_next.clear();
     m_searched = false;
     // The suggestions and the results are two lists: the one shown is not for the other's text.
     if (modeChanged) {
         m_results->clear();
+        m_chatRows = 0;
         m_top->clear();
     }
     if (text.isEmpty()) {
@@ -91,7 +102,30 @@ void ChatSearch::send()
         args["query"] = m_query;
         args["tab"] = m_tab;
         m_id = m_engine->request("search.chats", args);
+        // Telegram's message search follows the chats' on the Chats tab, as in its app: another request, which comes
+        // back on its own and is put under the chats.
+        m_next.clear();
+        if (!m_query.isEmpty() && m_tab == "chats") {
+            QVariantMap find;
+            find["query"] = m_query;
+            m_msgFirst = true;
+            m_msgId = m_engine->request("search.messages", find);
+        }
     }
+    emit stateChanged();
+}
+
+// The list reached its end: the next page of the messages, from the offset the last one gave.
+void ChatSearch::more()
+{
+    if (m_tab != "chats" || m_query.isEmpty() || !m_msgId.isEmpty() || m_next.isEmpty() || !m_engine ||
+        !m_engine->connected() || !m_engine->linked())
+        return;
+    QVariantMap args;
+    args["query"] = m_query;
+    args["offset"] = m_next;
+    m_msgFirst = false;
+    m_msgId = m_engine->request("search.messages", args);
     emit stateChanged();
 }
 
@@ -109,6 +143,7 @@ void ChatSearch::clearRecent()
     if (m_engine)
         m_engine->requestQuiet("search.recentClear", QVariantMap());
     m_results->clear();
+    m_chatRows = 0;
     emit stateChanged();
 }
 
@@ -161,8 +196,80 @@ void ChatSearch::addRows(QVariantList &rows, const QString &header, bool clear, 
     }
 }
 
+// The line under a message found: the text around the word that matched, so the word shows in the one line, as Telegram's
+// "…ovviamente sotto claude ma è mega"; the whole query when the text has it, else its first word (Telegram's matching is
+// fuzzier than ours).
+static QString snippet(const QString &text, const QString &query)
+{
+    QString t = text;
+    t.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ');
+    int pos = t.indexOf(query, 0, Qt::CaseInsensitive);
+    if (pos < 0)
+        pos = t.indexOf(query.section(' ', 0, 0), 0, Qt::CaseInsensitive);
+    if (pos > 30) {
+        const int space = t.lastIndexOf(' ', pos - 15);
+        t = QString(QChar(0x2026)) + t.mid(space >= 0 ? space + 1 : pos - 15);
+    }
+    return t.left(120);
+}
+
+// The message rows go: what follows the chats' rows.
+void ChatSearch::dropMessages()
+{
+    while (m_results->size() > m_chatRows)
+        m_results->removeAt(m_results->size() - 1);
+}
+
+// A page of search.messages: under the chats, behind a "Messages" header when it is the first page. Each row opens its chat
+// at the message (SearchPage.open); the engine gives the chat's name and picture, and the sender's name in a group.
+void ChatSearch::takeMessages(const QVariantMap &r)
+{
+    const bool first = m_msgFirst;
+    m_msgId.clear();
+    m_next = r["next"].toString();
+    if (first)
+        dropMessages();
+    const QVariantList found = r["messages"].toList();
+    if (!found.isEmpty()) {
+        QVariantList rows;
+        if (first) {
+            QVariantMap head;
+            head["header"] = tr("Messages");
+            head["clear"] = false;
+            rows << QVariant(head);
+        }
+        const QLocale locale;
+        const RowClock clock(locale);
+        foreach (const QVariant &f, found) {
+            const QVariantMap m = f.toMap();
+            const QString name = m["name"].toString();
+            const QString sender = m["sender"].toString();
+            QVariantMap row;
+            row["msg"] = true;
+            row["jid"] = m["chat"];
+            row["id"] = m["id"];
+            row["name"] = name;
+            row["initials"] = initials(name);
+            row["color"] = pickColor(m["chat"].toString(), kSenders, kSenderCount);
+            if (!m["photo"].toString().isEmpty())
+                row["photo"] = m["photo"];
+            row["sub"] = (sender.isEmpty() ? QString() : sender + ": ") + snippet(m["text"].toString(), m_query);
+            QVariantMap t;
+            clock.place(&t, m["ts"], false);
+            row["time"] = t["time"];
+            rows << QVariant(row);
+        }
+        m_results->append(rows);
+    }
+    emit stateChanged();
+}
+
 void ChatSearch::onReplied(const QString &id, const QString &cmd, const QVariant &result)
 {
+    if (cmd == "search.messages" && id == m_msgId) {
+        takeMessages(result.toMap());
+        return;
+    }
     if (cmd != "search.chats" || id != m_id)
         return;
     m_id.clear();
@@ -181,20 +288,37 @@ void ChatSearch::onReplied(const QString &id, const QString &cmd, const QVariant
                 r["local"].toList());
         addRows(rows, tr("Global search"), false, r["global"].toList());
     }
-    m_results->clear();
-    m_results->append(rows);
+    if (m_query.isEmpty()) {
+        m_results->clear();
+        m_results->append(rows);
+    } else {
+        // Only the chats' rows: the messages under them stay (or come after).
+        for (int i = 0; i < m_chatRows; ++i)
+            m_results->removeAt(0);
+        m_results->insert(0, rows);
+    }
+    m_chatRows = rows.size();
     m_top->clear();
     m_top->append(top);
     m_searched = true;
     emit stateChanged();
 }
 
-// The failure carries no id: ours, when there is one out, is the search.chats that failed.
+// The failure carries no id: ours, when there is one out, is the search.chats or the search.messages that failed.
 void ChatSearch::onFailure()
 {
-    if (m_id.isEmpty() || !m_engine || m_engine->failure().value("cmd").toString() != "search.chats")
+    if (!m_engine)
         return;
-    m_id.clear();
+    const QString cmd = m_engine->failure().value("cmd").toString();
+    if (cmd == "search.chats" && !m_id.isEmpty()) {
+        m_id.clear();
+    } else if (cmd == "search.messages" && !m_msgId.isEmpty()) {
+        m_msgId.clear();
+        if (m_msgFirst)
+            dropMessages(); // the ones under are for an older text
+    } else {
+        return;
+    }
     emit stateChanged();
 }
 

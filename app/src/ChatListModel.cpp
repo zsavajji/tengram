@@ -256,33 +256,6 @@ QVariantMap ChatListModel::chat(const QString &jid)
     return baseRow(q, QDateTime::currentMSecsSinceEpoch() / 1000);
 }
 
-// Qt does the matching, not SQL's LIKE: LIKE folds ASCII only, so "è" would not find "È".
-// ponytail: reads every text of the chat on each search; an FTS table if a chat of many thousands
-// makes Enter slow.
-QStringList ChatListModel::findMessages(const QString &jid, const QString &text)
-{
-    QStringList ids;
-    const QString t = text.trimmed();
-    if (t.isEmpty())
-        return ids;
-    QSqlDatabase db = ChatsDb::open(m_dbName);
-    if (!db.isOpen())
-        return ids;
-    QSqlQuery q(db);
-    q.prepare("SELECT id, text FROM messages WHERE chat = ? AND kind NOT IN (6, 13) AND deleted = 0 "
-              "AND text != '' ORDER BY ts DESC, CAST(id AS INTEGER) DESC");
-    q.addBindValue(jid);
-    if (!q.exec()) {
-        qWarning() << "find:" << q.lastError().text();
-        return ids;
-    }
-    while (q.next()) {
-        if (q.value(1).toString().contains(t, Qt::CaseInsensitive))
-            ids << q.value(0).toString();
-    }
-    return ids;
-}
-
 // Every pinned chat of the main list in their order, top first, read from the table and not from the rows so a filter
 // does not hide any: chat.pinOrder takes them all. Empty on the Archived page.
 QStringList ChatListModel::pinnedJids()
