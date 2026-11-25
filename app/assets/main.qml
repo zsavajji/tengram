@@ -381,6 +381,22 @@ NavigationPane {
         push(c)
     }
 
+    // A group's chat page over what is on screen (Back returns): a channel's discussion group (its Discuss), or, with thread,
+    // one post's comments in it, titled title (ChatPage's thread and topicName, set before chat: its change opens the
+    // controller). The group is often not in the chat list (not joined): its row is then built as showPerson builds a
+    // person's. Always the chat page: a discussion group is never a forum.
+    function openGroup(jid, name, thread, title) {
+        var row = chats.chat(jid)
+        if (!row.jid) {
+            row = {"kind": 1, "jid": jid, "name": name, "initials": name.charAt(0).toUpperCase() || "#", "color": "#087099"}
+        }
+        var p = at(0).takeChatPage()
+        p.thread = thread
+        p.topicName = title
+        p.chat = row
+        push(p)
+    }
+
     function shareRequested(path, text) {
         pendingShare = {"path": path, "text": text}
         openPending()

@@ -28,7 +28,7 @@ class ChatController : public QObject
     Q_PROPERTY(QObject *link READ link WRITE setLink)
     Q_PROPERTY(bb::cascades::DataModel *messages READ messages NOTIFY messagesChanged)
     // The title bar's status line: "typing…", "online", "last seen …", a group's "N participants" or "". A topic's
-    // page has the group's name under the topic's.
+    // page, and a comment thread's, has the group's name under its own.
     Q_PROPERTY(QString status READ status NOTIFY statusChanged)
     // The message the composer is replying to (step 3.3): who wrote it and a line of it; "" when
     // not replying.
@@ -60,8 +60,10 @@ public:
 
     // chat is a ChatListModel row (jid, kind). Once; later calls do nothing. topic is a forum topic's id (docs/protocol.md,
     // Forum topics) when the page shows one topic of the chat, 0 for the whole chat: everything the page asks for and
-    // sends then carries it.
-    Q_INVOKABLE void open(const QVariantMap &chat, int topic = 0);
+    // sends then carries it. thread is a channel post's comment thread (docs/protocol.md, Comments) in the discussion group
+    // `chat`: the root's message id as a string (ids exceed 2^53, and QML's int is 32 bits), "" for none; it works as topic
+    // does, and the two are never both given.
+    Q_INVOKABLE void open(const QVariantMap &chat, int topic = 0, const QString &thread = QString());
     // A group's info only, for a page with no messages (TopicsPage's Group info): groupInfo and changeParticipant
     // work, nothing else. Asks group.info again at each call; does nothing after open().
     Q_INVOKABLE void openInfo(const QVariantMap &chat);
@@ -117,6 +119,9 @@ public:
     // Asks which reactions a message allows (msg.reactions); reactionsAvailable or reactionsFailed answers. False when the
     // engine isn't connected: nothing was sent, and nothing will be emitted.
     Q_INVOKABLE bool reactionsFor(const QString &id);
+    // Asks for the comments of a channel's post (msg.thread); threadFound or threadFailed answers. False when the engine isn't
+    // connected: nothing was sent, and nothing will be emitted. The page's chat is the channel.
+    Q_INVOKABLE bool openThread(const QString &id);
     // A language's name in its own language, capitalised ("Italiano"); the code when Qt knows none.
     Q_INVOKABLE QString languageName(const QString &code) const;
 
@@ -143,6 +148,11 @@ signals:
     void reactionsAvailable(const QString &msgId, const QStringList &top, const QStringList &all);
     // reactionsFor() was refused or failed.
     void reactionsFailed(const QString &msgId);
+    // The answer to openThread(): the discussion group (a chat id), the thread's root message there (a string) and the
+    // group's title, "" when the group is not mirrored.
+    void threadFound(const QString &chat, const QString &thread, const QString &name);
+    // openThread() was refused or failed.
+    void threadFailed();
 
 private slots:
     void sendReadUpto();
@@ -165,6 +175,8 @@ private slots:
     void onTranslateFailure();
     void onReactionsReplied(const QString &id, const QString &cmd, const QVariant &result);
     void onReactionsFailure();
+    void onThreadReplied(const QString &id, const QString &cmd, const QVariant &result);
+    void onThreadFailure();
 
 private:
     void takeGroupInfo(QVariantMap info);
@@ -179,6 +191,7 @@ private:
     MessageModel *m_messages;
     QString m_jid;
     int m_topic; // the forum topic the page shows, 0 for none
+    QString m_thread; // the comment thread the page shows (its root's message id), "" for none
     QString m_name;
     QString m_quoteId;
     QString m_editId;
@@ -193,6 +206,7 @@ private:
     QString m_translateTo; // and the language it asked for
     QString m_reactionsId; // the msg.reactions request we wait for
     QString m_reactionsMsg; // and the message it asked about
+    QString m_threadId; // the msg.thread request we wait for
     QString m_mentionId; // the chat.mention or chat.reaction request we wait for (one at a time)
     int m_mentions;
     int m_reactions;

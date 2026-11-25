@@ -107,9 +107,13 @@ public:
     // topic: a forum topic's id (docs/protocol.md, Forum topics) when the model is one topic's messages, 0 for the chat's:
     // every read of messages then has `AND topic = ?`, the requests carry it, and the unread count and read_inbox are the
     // topic's own (the topics table's).
+    // thread: a channel post's comment thread (docs/protocol.md, Comments), the thread root's message id in the discussion
+    // group `chat`, as a string; "" for none. The model is then that thread's messages, as a topic's are: the same `AND topic = ?`
+    // (the engine's topic column holds the root's id), and the requests carry `thread`. A thread has no unread count of its own
+    // here: it opens at its newest comment.
     // secret: a secret chat (chats.secret above 0): its messages can't be forwarded or edited, and carry timers (extra.ttl,
     // extra.expiresAt: the foot's countdown, ticked once a second by m_expiry while any row has one).
-    MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, bool secret, int topic, QObject *parent = 0);
+    MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, bool secret, int topic, const QString &thread, QObject *parent = 0);
 
     int childCount(const QVariantList &indexPath);
     bool hasChildren(const QVariantList &indexPath);
@@ -166,7 +170,7 @@ public:
     // Takes every local row out: msg.send failed.
     void dropLocals();
 
-    // The chat's (or topic's) unread count as chats.db has it now.
+    // The chat's (or topic's) unread count as chats.db has it now; 0 for a comment thread, which has no row.
     int unread() const;
 
     // How many of the newest messages chat.open verifies: 50, more when the unread ones reach back further.
@@ -268,8 +272,8 @@ private:
     // A text as it is compared: runs of white space are one space and the ends are cut, so what TDLib trims or tidies in a
     // text it keeps (trailing newlines, a doubled space) still reads as what was typed.
     static QString words(const QString &text) { return text.simplified(); }
-    // " AND topic = ?" in a topic's model, "": bindChat binds what chat = ? and it want.
-    const char *topicSql() const { return m_topic ? " AND topic = ?" : ""; }
+    // " AND topic = ?" in a topic's or a thread's model, "": bindChat binds what chat = ? and it want.
+    const char *topicSql() const { return m_topic || m_thread ? " AND topic = ?" : ""; }
     void bindChat(QSqlQuery &q) const;
     Msg read(QSqlQuery &q);
     // The Msg of a local row: read() of a one-row table with messages' columns (MessageRows.cpp). id "" in the result: no chats.db.
@@ -332,6 +336,7 @@ private:
     bool m_channel; // a channel (kind 3): read-only for us
     bool m_secret; // a secret chat: no forward, edit or reaction
     int m_topic; // the forum topic shown, 0 for the whole chat
+    qint64 m_thread; // the comment thread's root id shown, 0 for none
     QString m_translate; // the language this chat's incoming messages are shown in (chats.translate), "" for off
     QSet<QString> m_askedTr; // the ids asked to be translated: never twice until the chat is reopened (or the link comes back)
     QHash<QString, QStringList> m_translating; // the msg.translate requests in flight: request id and the message ids it asked for

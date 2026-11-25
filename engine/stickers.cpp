@@ -161,13 +161,14 @@ void stickers_file(std::uint64_t conn, const std::string &id, td::JsonObject &re
 void sticker_send(std::uint64_t conn, const std::string &id, td::JsonObject &req) {
   std::int64_t chat = 0;
   std::int32_t file = 0, topic = -1;
+  std::int64_t thread = 0;
   td_api::object_ptr<td_api::InputMessageReplyTo> reply;
   if (!request_chat(conn, id, req, chat) || !file_field(conn, id, req, file) || !quote_field(conn, id, req, reply) ||
-      !topic_field(conn, id, req, topic)) {
+      !topic_thread_fields(conn, id, req, topic, thread)) {
     return;
   }
   // The emoji is left empty: TDLib takes the sticker's own. It also puts the sent sticker first in Recent by itself.
-  send_content(conn, id, chat, topic, std::move(reply),
+  send_content(conn, id, chat, topic, thread, std::move(reply),
                make_object<td_api::inputMessageSticker>(
                    make_object<td_api::inputSticker>(make_object<td_api::inputFileId>(file), nullptr, 0, 0), ""));
 }

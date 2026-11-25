@@ -579,6 +579,11 @@
         <source>Description</source>
         <translation>Mô tả</translation>
     </message>
+    <message>
+        <location filename="../assets/ChannelInfoPage.qml" line="56"/>
+        <source>Discuss</source>
+        <translation>Thảo luận</translation>
+    </message>
 </context>
 <context>
     <name>ChannelsPage</name>
@@ -953,6 +958,16 @@
         <source>Translating…</source>
         <translation>Đang dịch…</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="325"/>
+        <source>Couldn&apos;t open the comments</source>
+        <translation>Không thể mở bình luận</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="416"/>
+        <source>Comments</source>
+        <translation>Bình luận</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -1211,6 +1226,21 @@
         <location filename="../assets/Composer.qml" line="89"/>
         <source>Message</source>
         <translation>Tin nhắn</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="215"/>
+        <source>Mute notifications</source>
+        <translation>Tắt thông báo</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="215"/>
+        <source>Unmute notifications</source>
+        <translation>Bật thông báo</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="250"/>
+        <source>Join</source>
+        <translation>Tham gia</translation>
     </message>
 </context>
 <context>
@@ -2343,6 +2373,11 @@
         <source>Show original</source>
         <translation>Hiện bản gốc</translation>
     </message>
+    <message>
+        <location filename="../src/MessageCardActions.cpp" line="103"/>
+        <source>Comments</source>
+        <translation>Bình luận</translation>
+    </message>
 </context>
 <context>
     <name>MessageKinds</name>
@@ -2502,6 +2537,18 @@
         <location filename="../src/MessageModel.cpp" line="196"/>
         <source>%1 d</source>
         <translation>%1 ngày</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../src/MessageRows.cpp" line="164"/>
+        <source>%n comments</source>
+        <translation>
+            <numerusform>%n bình luận</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../src/MessageRows.cpp" line="164"/>
+        <source>Leave a comment</source>
+        <translation>Để lại bình luận</translation>
     </message>
 </context>
 <context>

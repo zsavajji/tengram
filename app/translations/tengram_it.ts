@@ -580,6 +580,11 @@
         <source>Description</source>
         <translation>Descrizione</translation>
     </message>
+    <message>
+        <location filename="../assets/ChannelInfoPage.qml" line="56"/>
+        <source>Discuss</source>
+        <translation>Discuti</translation>
+    </message>
 </context>
 <context>
     <name>ChannelsPage</name>
@@ -954,6 +959,16 @@
         <source>Translating…</source>
         <translation>Traduzione in corso…</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="325"/>
+        <source>Couldn&apos;t open the comments</source>
+        <translation>Impossibile aprire i commenti</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="416"/>
+        <source>Comments</source>
+        <translation>Commenti</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -1213,6 +1228,21 @@
         <location filename="../assets/Composer.qml" line="89"/>
         <source>Message</source>
         <translation>Messaggio</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="215"/>
+        <source>Mute notifications</source>
+        <translation>Disattiva notifiche</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="215"/>
+        <source>Unmute notifications</source>
+        <translation>Riattiva notifiche</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="250"/>
+        <source>Join</source>
+        <translation>Unisciti</translation>
     </message>
 </context>
 <context>
@@ -2346,6 +2376,11 @@
         <source>Show original</source>
         <translation>Mostra originale</translation>
     </message>
+    <message>
+        <location filename="../src/MessageCardActions.cpp" line="103"/>
+        <source>Comments</source>
+        <translation>Commenti</translation>
+    </message>
 </context>
 <context>
     <name>MessageKinds</name>
@@ -2506,6 +2541,19 @@
         <location filename="../src/MessageModel.cpp" line="196"/>
         <source>%1 d</source>
         <translation>%1 g</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../src/MessageRows.cpp" line="164"/>
+        <source>%n comments</source>
+        <translation>
+            <numerusform>%n commento</numerusform>
+            <numerusform>%n commenti</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../src/MessageRows.cpp" line="164"/>
+        <source>Leave a comment</source>
+        <translation>Lascia un commento</translation>
     </message>
 </context>
 <context>

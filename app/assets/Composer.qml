@@ -22,6 +22,14 @@ Container {
     // with `notice` in the field's place.
     property bool readOnly
     property string notice
+    // A channel (the user's ask, 2026-11-25, as Telegram's bar): Search at the left, the mute toggle in the field's place,
+    // and, when it has a discussion group (the page's channel.discuss), Discuss before the menu. muted: the chat's now.
+    property bool channel: false
+    property bool muted: false
+    property bool discuss: false
+    // A group we are not in (a channel's discussion group opened by Discuss, the user's ask, 2026-11-25, as Telegram's): Join
+    // in the whole row's place but the menu, until we are in. Set with readOnly.
+    property bool join: false
     signal emoji
     signal discard
     signal attach
@@ -30,6 +38,10 @@ Container {
     // Forwarded: field.text notifies only when committed (as SearchBar's field), this follows the keys.
     signal changing(string text)
     signal menu
+    signal discussTapped
+    signal searchTapped
+    signal muteTapped
+    signal joinTapped
     // On the Passport the row is a quarter bigger, text and icons (the user, 2026-11-14, from a
     // Passport screenshot: both looked small on its 120 du of width), and on the Classic a fifth:
     // it is the Q10's 720 x 720 at 8 px a du, not 9, which is how it is told from the Q10 here.
@@ -157,9 +169,53 @@ Container {
                 }
             }
         }
+        // A channel's Search, where Emoji is in a chat that takes messages.
+        TapArea {
+            id: searchBtn
+            visible: bar.readOnly && bar.channel
+            verticalAlignment: VerticalAlignment.Center
+            preferredWidth: ui.du(9 * bar.big)
+            minHeight: ui.du(9 * bar.big)
+            layout: DockLayout {}
+            focusPolicy: FocusPolicy.Key
+            background: searchBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
+            onClicked: bar.searchTapped()
+            ImageView {
+                horizontalAlignment: HorizontalAlignment.Center
+                verticalAlignment: VerticalAlignment.Center
+                preferredWidth: ui.du(6 * bar.big)
+                preferredHeight: ui.du(6 * bar.big)
+                scalingMethod: ScalingMethod.AspectFit
+                imageSource: "asset:///images/search.png"
+                filterColor: ui.palette.textOnPlain
+            }
+        }
+        // A channel's mute toggle, in the field's place: the stock Button (a pill or box of our own read as a label, the user,
+        // 2026-11-25). A channel's bar has no text field, so the focus a touch gives it takes no keyboard away.
+        Button {
+            visible: bar.readOnly && bar.channel
+            layoutProperties: StackLayoutProperties {
+                spaceQuota: 1
+            }
+            horizontalAlignment: HorizontalAlignment.Fill
+            verticalAlignment: VerticalAlignment.Center
+            text: bar.muted ? qsTr("Unmute notifications") : qsTr("Mute notifications")
+            onClicked: bar.muteTapped()
+        }
+        Button {
+            visible: bar.join
+            layoutProperties: StackLayoutProperties {
+                spaceQuota: 1
+            }
+            horizontalAlignment: HorizontalAlignment.Fill
+            verticalAlignment: VerticalAlignment.Center
+            text: qsTr("Join")
+            color: ui.palette.primary
+            onClicked: bar.joinTapped()
+        }
         // In a secret chat that can't take a message yet, or any more, it says why.
         Container {
-            visible: bar.readOnly
+            visible: bar.readOnly && !bar.channel && !bar.join
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1
             }
@@ -175,6 +231,28 @@ Container {
                 textStyle.fontSize: FontSize.PercentageValue
                 textStyle.fontSizeValue: 90
                 textStyle.color: ui.palette.secondaryTextOnPlain
+            }
+        }
+        // Discuss (the user's ask, 2026-11-25: on this bar, the double bubble): a channel's discussion group, where its
+        // posts' comments are. Only in a channel that has one.
+        TapArea {
+            id: discussBtn
+            visible: bar.readOnly && bar.discuss
+            verticalAlignment: VerticalAlignment.Center
+            preferredWidth: ui.du(9 * bar.big)
+            minHeight: ui.du(9 * bar.big)
+            layout: DockLayout {}
+            focusPolicy: FocusPolicy.Key
+            background: discussBtn.focused ? Color.create(nav.pressColor) : Color.Transparent
+            onClicked: bar.discussTapped()
+            ImageView {
+                horizontalAlignment: HorizontalAlignment.Center
+                verticalAlignment: VerticalAlignment.Center
+                preferredWidth: ui.du(6 * bar.big)
+                preferredHeight: ui.du(6 * bar.big)
+                scalingMethod: ScalingMethod.AspectFit
+                imageSource: "asset:///images/discuss.png"
+                filterColor: ui.palette.textOnPlain
             }
         }
         // The action menu (Search, Pinned, info, ...); always live, a channel needs it too.

@@ -157,6 +157,11 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     }
     m.data["reactions"] = chips;
     m.data["myReactions"] = mine;
+    // A channel post's comments (docs/protocol.md, Comments): how many, 0 too; -1 for a row that has none to show (no
+    // discussion group, or deleted), so QML and the card never read undefined. commentsText is the line under the card.
+    const int comments = extra.contains("comments") && !deleted ? extra.value("comments").toInt() : -1;
+    m.data["comments"] = comments;
+    m.data["commentsText"] = comments > 0 ? tr("%n comments", "", comments) : comments == 0 ? tr("Leave a comment") : QString();
     // Delete for everyone: ours, sent, and inside WhatsApp's limit of about 2.5 days.
     // ponytail: read when the row is read, so a page left open for days can offer it a little late.
     const int state = q.value(4).toInt();
@@ -355,13 +360,18 @@ void MessageModel::bindChat(QSqlQuery &q) const
     q.addBindValue(m_chat);
     if (m_topic)
         q.addBindValue(m_topic);
+    else if (m_thread)
+        q.addBindValue(qlonglong(m_thread));
 }
 
 // The chat's unread count in chats.db, 0 when it has no row (a contact with no chat yet). A topic's is its row's in topics.
+// A comment thread has no row in either: 0.
+// ponytail: a thread opens at its newest comment, not at the first unread one; messageThreadInfo.unread_message_count would
+// give that.
 int MessageModel::unread() const
 {
     QSqlDatabase db = database();
-    if (!db.isOpen())
+    if (!db.isOpen() || m_thread)
         return 0;
     QSqlQuery q(db);
     q.prepare(m_topic ? "SELECT unread FROM topics WHERE chat = ? AND topic = ?" : "SELECT unread FROM chats WHERE jid = ?");
@@ -384,7 +394,7 @@ static const int kUnreadMax = 150;
 void MessageModel::findUnread()
 {
     QSqlDatabase db = database();
-    if (!db.isOpen())
+    if (!db.isOpen() || m_thread) // a thread has no row to read it from (unread())
         return;
     QSqlQuery q(db);
     q.prepare(m_topic ? "SELECT read_inbox, unread FROM topics WHERE chat = ? AND topic = ?"

@@ -75,6 +75,7 @@ private slots:
     void onTouch(bb::cascades::TouchEvent *event);
     void onReact();
     void onForward();
+    void onComments();
     void onDownload();
     void onVotes();
     void onCopy();
@@ -107,6 +108,8 @@ private:
     void makeChip();
     void growChips(int n);
     void fillChips();
+    void makeComments();
+    void fillComments();
     float chipWidth(int count) const;
     void makeActions();
     void makeBubbles();
@@ -223,6 +226,10 @@ private:
     QList<bb::cascades::Label *> m_chipLabels;
     QList<bb::cascades::ImageView *> m_chipPills; // Round mode: each chip's colour, a pill under it
     QList<int> m_chipAt;
+    // A channel post's comments line, under the chips (the last child of m_root): one label, a speech balloon and "12
+    // comments" or "Leave a comment", which a tap turns into onComments(). Both 0 until a card first shows one (makeComments).
+    bb::cascades::Container *m_comments;
+    bb::cascades::Label *m_commentsLabel;
 
     QString m_edited; // "edited ", translated
     QString m_starMark; // the star (U+2605) and a space, before the time of a starred message
@@ -232,6 +239,7 @@ private:
     bb::cascades::ActionItem *m_reply;
     bb::cascades::ActionItem *m_react;
     bb::cascades::ActionItem *m_forward;
+    bb::cascades::ActionItem *m_commentsItem;
     bb::cascades::ActionItem *m_votes;
     bb::cascades::ActionItem *m_download;
     bb::cascades::ActionItem *m_copy;

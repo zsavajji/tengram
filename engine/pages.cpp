@@ -1,4 +1,4 @@
-// The requests behind the info pages: contact.info, channel.info, group.info, contacts.list, senders.get, chat.clear,
+// The requests behind the info pages: contact.info, channel.info, channel.discuss, group.info, contacts.list, senders.get, chat.clear,
 // chat.delete and channel.unfollow (docs/protocol.md). Each is a chain of TDLib calls with one reply at the end;
 // what the pages show of people and chats comes from the mirror in chats.cpp (user_name, chat_title) where TDLib
 // guarantees it is there already: an updateUser or updateNewChat comes before any answer names the user or the chat.
@@ -186,6 +186,43 @@ void channel_info(std::uint64_t conn, const std::string &id, std::int64_t chat) 
                                       })));
                     });
                   });
+  });
+}
+
+// ---- channel.discuss
+
+// The channel's discussion group, where its posts' comments are, for the chat page's Discuss button: the id and the title,
+// "" for both when the channel has none, or when TDLib can't give the group (only logged). No picture is fetched, as
+// channel.info's is: it is asked at every open of a channel.
+void channel_discuss(std::uint64_t conn, const std::string &id, std::int64_t chat) {
+  with_chat(conn, id, chat, [conn, id](const td_api::chat &c) {
+    const std::int64_t channel = supergroup_of(c, true);
+    if (!channel) {
+      return bad_chat(conn, id, "not a channel");
+    }
+    const auto reply = [conn, id](std::int64_t group, const std::string &name) {
+      server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                        r("jid", group ? std::to_string(group) : std::string());
+                        r("name", name);
+                      })));
+    };
+    tdlib.send(make_object<td_api::getSupergroupFullInfo>(channel), [conn, id, reply](Obj o) {
+      if (auto e = as_error(o)) {
+        return td_failed(conn, id, *e);
+      }
+      const std::int64_t linked = static_cast<const td_api::supergroupFullInfo &>(*o).linked_chat_id_;
+      if (linked == 0) {
+        return reply(0, "");
+      }
+      tdlib.send(make_object<td_api::getChat>(linked), [reply](Obj o2) {
+        if (auto e = as_error(o2)) {
+          say("channel.discuss: td error: %d %s", e->code_, e->message_.c_str());
+          return reply(0, "");
+        }
+        const auto &group = static_cast<const td_api::chat &>(*o2);
+        reply(group.id_, group.title_);
+      });
+    });
   });
 }
 
@@ -500,8 +537,8 @@ void channel_unfollow(std::uint64_t conn, const std::string &id, std::int64_t ch
 }  // namespace
 
 bool pages_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
-  static const char *const ours[] = {"contact.info", "channel.info", "group.info", "contacts.list",
-                                     "senders.get",  "chat.clear",   "chat.delete", "channel.unfollow"};
+  static const char *const ours[] = {"contact.info", "channel.info", "channel.discuss", "group.info", "contacts.list",
+                                     "senders.get",  "chat.clear",   "chat.delete",     "channel.unfollow"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -521,6 +558,8 @@ bool pages_handle(std::uint64_t conn, const std::string &id, const std::string &
     contact_info(conn, id, chat);
   } else if (cmd == "channel.info") {
     channel_info(conn, id, chat);
+  } else if (cmd == "channel.discuss") {
+    channel_discuss(conn, id, chat);
   } else if (cmd == "group.info") {
     group_info(conn, id, chat);
   } else if (cmd == "senders.get") {

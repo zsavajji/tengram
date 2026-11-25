@@ -579,6 +579,11 @@
         <source>Description</source>
         <translation>Deskripsi</translation>
     </message>
+    <message>
+        <location filename="../assets/ChannelInfoPage.qml" line="56"/>
+        <source>Discuss</source>
+        <translation>Diskusi</translation>
+    </message>
 </context>
 <context>
     <name>ChannelsPage</name>
@@ -953,6 +958,16 @@
         <source>Translating…</source>
         <translation>Menerjemahkan…</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="325"/>
+        <source>Couldn&apos;t open the comments</source>
+        <translation>Tidak dapat membuka komentar</translation>
+    </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="416"/>
+        <source>Comments</source>
+        <translation>Komentar</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -1211,6 +1226,21 @@
         <location filename="../assets/Composer.qml" line="89"/>
         <source>Message</source>
         <translation>Pesan</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="215"/>
+        <source>Mute notifications</source>
+        <translation>Bisukan notifikasi</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="215"/>
+        <source>Unmute notifications</source>
+        <translation>Aktifkan notifikasi</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="250"/>
+        <source>Join</source>
+        <translation>Gabung</translation>
     </message>
 </context>
 <context>
@@ -2343,6 +2373,11 @@
         <source>Show original</source>
         <translation>Tampilkan asli</translation>
     </message>
+    <message>
+        <location filename="../src/MessageCardActions.cpp" line="103"/>
+        <source>Comments</source>
+        <translation>Komentar</translation>
+    </message>
 </context>
 <context>
     <name>MessageKinds</name>
@@ -2502,6 +2537,18 @@
         <location filename="../src/MessageModel.cpp" line="196"/>
         <source>%1 d</source>
         <translation>%1 hr</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../src/MessageRows.cpp" line="164"/>
+        <source>%n comments</source>
+        <translation>
+            <numerusform>%n komentar</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../src/MessageRows.cpp" line="164"/>
+        <source>Leave a comment</source>
+        <translation>Tinggalkan komentar</translation>
     </message>
 </context>
 <context>

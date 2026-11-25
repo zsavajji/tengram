@@ -1,6 +1,6 @@
 // The requests about chats and messages: chat.open, chat.history, chat.newer, chat.pins, chat.close, chat.read,
 // chat.typing, chat.set, msg.send, media.send, media.album, msg.delete, msg.edit, msg.forward, msg.react, msg.reactions,
-// poll.vote, media.get and media.cancel (docs/protocol.md). The rows they ask for are written by messages.cpp; the
+// msg.thread, poll.vote, media.get and media.cancel (docs/protocol.md). The rows they ask for are written by messages.cpp; the
 // replies that tell the UI to read them come after the flush that commits them (queue_reply).
 
 #include "engine.h"
@@ -47,20 +47,25 @@ struct Page {
   int calls = 0;
   bool newer = false;  // chat.newer: upper is the newest message's id + 1, and `more` asks about newer messages
   std::int32_t topic = -1;  // a forum topic's page (its history, its rows reconciled), or -1 for the chat's
-  std::int64_t last = 0;    // chat.newer of a topic: the topic's newest message id when the request began
+  std::int64_t last = 0;    // chat.newer of a topic or a thread: its newest message id when the request began
+  std::int64_t thread = 0;  // a comment thread's page: the thread's root id in the discussion group, else 0
+  bool rooted = false;      // a thread's page has asked for the root post, once
 };
 
-// The newest message the engine knows of in the page's chat, or topic; 0 when there is none.
+// The newest message the engine knows of in the page's chat, or topic or thread; 0 when there is none.
 std::int64_t newest_known(const Page &p) {
   ChatBrief brief = {};
-  if (p.topic > 0) {
+  if (p.topic > 0 || p.thread > 0) {
     return p.last;
   }
   return chat_brief(p.chat, brief) && brief.has_last ? brief.last_id : 0;
 }
 
-// The history call of the page. A topic's comes from Telegram every time: TDLib keeps no local list of it.
+// The history call of the page. A topic's or a thread's comes from Telegram every time: TDLib keeps no local list of it.
 td_api::object_ptr<td_api::Function> history_call(const Page &p, std::int64_t from, int offset, int limit) {
+  if (p.thread > 0) {
+    return make_object<td_api::getMessageThreadHistory>(p.chat, p.thread, from, offset, limit);
+  }
   if (p.topic > 0) {
     return make_object<td_api::getForumTopicHistory>(p.chat, p.topic, from, offset, limit);
   }
@@ -79,8 +84,27 @@ void finish(const std::shared_ptr<Page> &p) {
     p->more = newest < newest_known(*p);
     upper = newest + 1;
   }
-  messages_reconcile(p->chat, p->topic, p->got, oldest, upper);
+  messages_reconcile(p->chat, p->thread > 0 ? p->thread : p->topic, p->got, oldest, upper);
   queue_reply(p->conn, p->id, page_json(std::to_string(oldest), std::to_string(newest), p->got.size(), p->more));
+}
+
+// The start of a comment thread's history: getMessageThreadHistory leaves the root out, so the post itself (the
+// group's copy of it) is asked for and goes at the end of the page, below the oldest comment. A failure only costs the
+// post: the comments are the page.
+void add_root(const std::shared_ptr<Page> &p) {
+  tdlib.send(make_object<td_api::getMessageThread>(p->chat, p->thread), [p](Obj o) {
+    if (auto e = as_error(o)) {
+      say("td error: %d %s", e->code_, e->message_.c_str());
+    } else {
+      const std::int64_t below = p->got.empty() ? INT64_MAX : p->got.back()->id_;
+      for (auto &m : static_cast<td_api::messageThreadInfo &>(*o).messages_) {  // newest first, as the page
+        if (m && m->chat_id_ == p->chat && m->id_ < below) {
+          p->got.push_back(std::move(m));
+        }
+      }
+    }
+    finish(p);
+  });
 }
 
 // TDLib may answer with fewer messages than asked (often one, the first time), so this asks again from the
@@ -108,6 +132,10 @@ void fetch(const std::shared_ptr<Page> &p, std::int64_t from) {
         say("history: nothing older than %lld in %lld", static_cast<long long>(from), static_cast<long long>(p->chat));
       }
       p->more = false;
+      if (p->thread > 0 && !p->rooted) {
+        p->rooted = true;
+        return add_root(p);
+      }
       return finish(p);
     }
     if (p->got.size() >= p->want || ++p->calls >= 20) {
@@ -128,7 +156,9 @@ void fetch(const std::shared_ptr<Page> &p, std::int64_t from) {
 //
 // A topic's page (getForumTopicHistory) has no such abort: it never reads TDLib's loaded messages, only Telegram's
 // answer (a search for the topic's messages), so no CHECK(!have_a_gap) is on its path. The bound is still used, as the
-// end of the page: for a topic it is the topic's newest message (Page::last), fetched when the request began.
+// end of the page: for a topic it is the topic's newest message (Page::last), fetched when the request began. A comment
+// thread's page (getMessageThreadHistory) is the same: it is cut like a topic's, and its bound is the thread's last
+// comment.
 void fetch_newer(const std::shared_ptr<Page> &p, std::int64_t from) {
   if (from >= newest_known(*p)) {
     return finish(p);
@@ -138,8 +168,8 @@ void fetch_newer(const std::shared_ptr<Page> &p, std::int64_t from) {
   // can come back, which the filter drops).
   // A topic's history cuts its slice differently: with offset -k and limit k it answers `from` and the k - 1 messages
   // above it (and for k = 1 nothing but `from`). So a topic is asked for offset -(k + 1) and limit k + 1, which gives
-  // `from` and k above it: -offset must stay under 100, so its k is at most 98.
-  const int extra = p->topic > 0 ? 1 : 0;
+  // `from` and k above it: -offset must stay under 100, so its k is at most 98. A thread's history slices as a topic's.
+  const int extra = p->topic > 0 || p->thread > 0 ? 1 : 0;
   const int k = static_cast<int>(std::min<std::size_t>(99 - extra, p->want - p->got.size()));
   tdlib.send(history_call(*p, from, -k - extra, k + extra), [p, from](Obj o) {
     if (auto e = as_error(o)) {
@@ -185,7 +215,8 @@ bool parse_limit(std::uint64_t conn, const std::string &id, td::JsonObject &req,
   return true;
 }
 
-void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat, std::size_t want, std::int32_t topic) {
+void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat, std::size_t want, std::int32_t topic,
+               std::int64_t thread) {
   tdlib.send(chat_lookup(chat), [=](Obj o) {
     if (as_error(o)) {
       return server.reply_error(conn, id, "bad_chat", "no such chat");
@@ -198,6 +229,7 @@ void chat_open(std::uint64_t conn, const std::string &id, std::int64_t chat, std
       live_open(conn, chat);  // typing and presence now flow for it
       auto page = std::make_shared<Page>(Page{conn, id, chat, want, INT64_MAX, {}});
       page->topic = topic;
+      page->thread = thread;
       if (topic > 0) {
         topics_watch(chat);
       }
@@ -214,11 +246,13 @@ void chat_history(std::uint64_t conn, const std::string &id, td::JsonObject &req
   }
   long limit = 0;
   std::int32_t topic = -1;
-  if (!parse_limit(conn, id, req, 100, limit) || !topic_field(conn, id, req, topic)) {
+  std::int64_t thread = 0;
+  if (!parse_limit(conn, id, req, 100, limit) || !topic_thread_fields(conn, id, req, topic, thread)) {
     return;
   }
   auto page = std::make_shared<Page>(Page{conn, id, chat, static_cast<std::size_t>(limit), before, {}});
   page->topic = topic;
+  page->thread = thread;
   fetch(page, before);
 }
 
@@ -226,8 +260,9 @@ void chat_newer(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   std::int64_t after = 0;
   long limit = 0;
   std::int32_t topic = -1;
+  std::int64_t thread = 0;
   if (!message_id(conn, id, req, "after", after) || !parse_limit(conn, id, req, 100, limit) ||
-      !topic_field(conn, id, req, topic)) {
+      !topic_thread_fields(conn, id, req, topic, thread)) {
     return;
   }
   ChatBrief brief = {};
@@ -237,6 +272,20 @@ void chat_newer(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   auto page = std::make_shared<Page>(Page{conn, id, chat, static_cast<std::size_t>(limit), 0, {}});
   page->newer = true;
   page->topic = topic;
+  page->thread = thread;
+  if (thread > 0) {
+    // The thread's newest comment is Telegram's to say, as a topic's: the group's own last message is not it.
+    tdlib.send(make_object<td_api::getMessageThread>(chat, thread), [page, after](Obj o) {
+      if (auto e = as_error(o)) {
+        say("td error: %d %s", e->code_, e->message_.c_str());
+        return reply_td_error(page->conn, page->id, *e);
+      }
+      const auto &info = static_cast<td_api::messageThreadInfo &>(*o);
+      page->last = info.reply_info_ ? info.reply_info_->last_message_id_ : 0;
+      fetch_newer(page, after);
+    });
+    return;
+  }
   if (topic < 0) {
     // Replies at once with the empty page when `after` is the chat's last message or newer.
     return fetch_newer(page, after);
@@ -524,7 +573,8 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   }
   td_api::object_ptr<td_api::InputMessageReplyTo> reply;
   std::int32_t topic = -1;
-  if (!quote_field(conn, id, req, reply) || !topic_field(conn, id, req, topic)) {
+  std::int64_t thread = 0;
+  if (!quote_field(conn, id, req, reply) || !topic_thread_fields(conn, id, req, topic, thread)) {
     return;
   }
   std::vector<std::pair<std::string, std::string>> mentions;  // jid, name
@@ -562,7 +612,7 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   }
   auto content = make_object<td_api::inputMessageText>(
       plain_text(text.ok(), mention_entities(text.ok(), mentions)), nullptr, true);
-  send_content(conn, id, chat, topic, std::move(reply), std::move(content), local);
+  send_content(conn, id, chat, topic, thread, std::move(reply), std::move(content), local);
 }
 
 // The optional field `name`, a whole number from 0 up, into `out` (which stays as it was when the field is
@@ -711,7 +761,8 @@ void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   }
   td_api::object_ptr<td_api::InputMessageReplyTo> reply;
   std::int32_t topic = -1;
-  if (!quote_field(conn, id, req, reply) || !topic_field(conn, id, req, topic)) {
+  std::int64_t thread = 0;
+  if (!quote_field(conn, id, req, reply) || !topic_thread_fields(conn, id, req, topic, thread)) {
     return;
   }
   td::JsonValue v;
@@ -729,7 +780,7 @@ void media_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
     return bad_request(conn, id, "file is true or false");
   }
   const bool document = has_file == 1 && as_file.get_boolean();  // a picture as it is, not as a compressed photo
-  send_content(conn, id, chat, topic, std::move(reply),
+  send_content(conn, id, chat, topic, thread, std::move(reply),
                file_content(path.ok(), document, width, height, has_caption == 1 ? v.get_string().str() : ""));
 }
 
@@ -745,7 +796,8 @@ void media_album(std::uint64_t conn, const std::string &id, td::JsonObject &req,
   }
   td_api::object_ptr<td_api::InputMessageReplyTo> reply;
   std::int32_t topic = -1;
-  if (!quote_field(conn, id, req, reply) || !topic_field(conn, id, req, topic)) {
+  std::int64_t thread = 0;
+  if (!quote_field(conn, id, req, reply) || !topic_thread_fields(conn, id, req, topic, thread)) {
     return;
   }
   td::JsonValue v;
@@ -778,7 +830,7 @@ void media_album(std::uint64_t conn, const std::string &id, td::JsonObject &req,
     contents.push_back(file_content(path.ok(), document, width, height,
                                     first && has_caption == 1 ? v.get_string().str() : ""));
   }
-  tdlib.send(make_object<td_api::sendMessageAlbum>(chat, topic_object(topic), std::move(reply), nullptr,
+  tdlib.send(make_object<td_api::sendMessageAlbum>(chat, topic_object(topic, thread), std::move(reply), nullptr,
                                                    std::move(contents)),
              [conn, id](Obj o) {
                if (auto e = as_error(o)) {
@@ -956,6 +1008,55 @@ void msg_reactions(std::uint64_t conn, const std::string &id, td::JsonObject &re
                       r("top", td::json_array(top, [](const std::string &s) { return s; }));
                       r("all", td::json_array(all, [](const std::string &s) { return s; }));
                     })));
+  });
+}
+
+// msg.thread: the comments of a channel post (getMessageThread). The thread is in the channel's discussion group: the
+// answer names that group and the thread's root there, which chat.open, chat.history, chat.newer, chat.read, chat.typing
+// and the senders take as `chat` and `thread`. `count` is the comments there are (0 when TDLib has no reply info yet).
+void msg_thread(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int64_t message = 0;
+  if (!message_id(conn, id, req, "id", message)) {
+    return;
+  }
+  tdlib.send(make_object<td_api::getMessageThread>(chat, message), [conn, id](Obj o) {
+    if (auto e = as_error(o)) {
+      say("td error: %d %s", e->code_, e->message_.c_str());
+      return reply_td_error(conn, id, *e);
+    }
+    auto &info = static_cast<td_api::messageThreadInfo &>(*o);
+    server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                      r("chat", std::to_string(info.chat_id_));
+                      r("thread", std::to_string(info.message_thread_id_));
+                      r("name", chat_title(info.chat_id_));
+                      r("count", info.reply_info_ ? info.reply_info_->reply_count_ : 0);
+                    })));
+  });
+}
+
+// chat.read of a comment thread: the thread's messages are viewed as the thread's history (Telegram counts the thread's
+// unread comments by that), and the group's own read marker is left alone. Up to `upto`, or up to the thread's newest
+// comment when it is 0; a thread with no comments has nothing to view.
+void thread_read(std::int64_t chat, std::int64_t thread, std::int64_t upto,
+                 std::function<void(const td_api::error *)> done) {
+  const auto view = [chat, done](std::int64_t message) {
+    tdlib.send(make_object<td_api::viewMessages>(chat, std::vector<std::int64_t>{message},
+                                                 make_object<td_api::messageSourceMessageThreadHistory>(), true),
+               [done](Obj o) { done(as_error(o)); });
+  };
+  if (upto > 0) {
+    return view(upto);
+  }
+  tdlib.send(make_object<td_api::getMessageThread>(chat, thread), [done, view](Obj o) {
+    if (auto e = as_error(o)) {
+      return done(e);
+    }
+    const auto &info = static_cast<td_api::messageThreadInfo &>(*o);
+    const std::int64_t last = info.reply_info_ ? info.reply_info_->last_message_id_ : 0;
+    if (last <= 0) {
+      return done(nullptr);
+    }
+    view(last);
   });
 }
 
@@ -1199,11 +1300,11 @@ bool quote_field(std::uint64_t conn, const std::string &id, td::JsonObject &req,
 
 // Sends the content as a new message of the chat. TDLib's answer is the message: its row is queued, state 0 under
 // a temporary id, and `{id}` is that id.
-void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat, std::int32_t topic,
+void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat, std::int32_t topic, std::int64_t thread,
                   td_api::object_ptr<td_api::InputMessageReplyTo> reply,
                   td_api::object_ptr<td_api::InputMessageContent> content,
                   const std::string &local) {
-  tdlib.send(make_object<td_api::sendMessage>(chat, topic_object(topic), std::move(reply), nullptr, nullptr,
+  tdlib.send(make_object<td_api::sendMessage>(chat, topic_object(topic, thread), std::move(reply), nullptr, nullptr,
                                               std::move(content)),
              [conn, id, local](Obj o) {
                if (auto e = as_error(o)) {
@@ -1243,7 +1344,34 @@ bool topic_field(std::uint64_t conn, const std::string &id, td::JsonObject &req,
   return true;
 }
 
-td_api::object_ptr<td_api::MessageTopic> topic_object(std::int32_t topic) {
+bool thread_field(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t &thread) {
+  thread = 0;
+  td::JsonValue v;
+  const int given = optional_field(req, "thread", td::JsonValue::Type::String, v);
+  if (given < 0 || (given == 1 && (!parse_i64(v.get_string().str(), thread) || thread <= 0))) {
+    thread = 0;
+    bad_request(conn, id, "thread is a string with a message id");
+    return false;
+  }
+  return true;
+}
+
+bool topic_thread_fields(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int32_t &topic,
+                         std::int64_t &thread) {
+  if (!topic_field(conn, id, req, topic) || !thread_field(conn, id, req, thread)) {
+    return false;
+  }
+  if (topic > 0 && thread > 0) {
+    bad_request(conn, id, "topic and thread can't both be given");
+    return false;
+  }
+  return true;
+}
+
+td_api::object_ptr<td_api::MessageTopic> topic_object(std::int32_t topic, std::int64_t thread) {
+  if (thread > 0) {
+    return make_object<td_api::messageTopicThread>(thread);
+  }
   if (topic < 1) {
     return nullptr;
   }
@@ -1297,8 +1425,8 @@ bool regular_file(const std::string &path, std::int64_t &size) {
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.close", "chat.read",
                                      "chat.typing", "chat.set", "msg.send", "media.send", "media.album", "msg.delete",
-                                     "msg.edit", "msg.forward", "msg.react", "msg.reactions", "poll.vote", "media.get",
-                                     "media.cancel", "chat.mention", "chat.reaction"};
+                                     "msg.edit", "msg.forward", "msg.react", "msg.reactions", "msg.thread", "poll.vote",
+                                     "media.get", "media.cancel", "chat.mention", "chat.reaction"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -1310,8 +1438,9 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
   if (cmd == "chat.open") {
     long limit = 0;
     std::int32_t topic = -1;
-    if (parse_limit(conn, id, req, 200, limit) && topic_field(conn, id, req, topic)) {
-      chat_open(conn, id, chat, static_cast<std::size_t>(limit), topic);
+    std::int64_t thread = 0;
+    if (parse_limit(conn, id, req, 200, limit) && topic_thread_fields(conn, id, req, topic, thread)) {
+      chat_open(conn, id, chat, static_cast<std::size_t>(limit), topic, thread);
     }
   } else if (cmd == "chat.history") {
     chat_history(conn, id, req, chat);
@@ -1333,7 +1462,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
       return true;
     }
     std::int32_t topic = -1;
-    if (!topic_field(conn, id, req, topic)) {
+    std::int64_t thread = 0;
+    if (!topic_thread_fields(conn, id, req, topic, thread)) {
       return true;
     }
     auto done = [conn, id](const td_api::error *e) {
@@ -1344,6 +1474,10 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
         server.reply_ok(conn, id);
       }
     };
+    if (thread > 0) {
+      thread_read(chat, thread, upto, done);
+      return true;
+    }
     const bool known = topic > 0 ? topics_read(chat, topic, done, upto) : chats_read(chat, done, upto);
     if (!known) {
       server.reply_error(conn, id, "bad_chat", "no such chat");
@@ -1355,7 +1489,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
       return true;
     }
     std::int32_t topic = -1;
-    if (!topic_field(conn, id, req, topic)) {
+    std::int64_t thread = 0;
+    if (!topic_thread_fields(conn, id, req, topic, thread)) {
       return true;
     }
     td_api::object_ptr<td_api::ChatAction> action;
@@ -1364,7 +1499,7 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     } else {
       action = make_object<td_api::chatActionCancel>();
     }
-    tdlib.send(make_object<td_api::sendChatAction>(chat, topic_object(topic), "", std::move(action)),
+    tdlib.send(make_object<td_api::sendChatAction>(chat, topic_object(topic, thread), "", std::move(action)),
                [conn, id](Obj o) { answer(conn, id, o); });
   } else if (cmd == "chat.set") {
     chat_set(conn, id, req, chat);
@@ -1384,6 +1519,8 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     msg_react(conn, id, req, chat);
   } else if (cmd == "msg.reactions") {
     msg_reactions(conn, id, req, chat);
+  } else if (cmd == "msg.thread") {
+    msg_thread(conn, id, req, chat);
   } else if (cmd == "poll.vote") {
     poll_vote(conn, id, req, chat);
   } else if (cmd == "media.cancel") {

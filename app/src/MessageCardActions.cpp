@@ -52,6 +52,7 @@ void MessageCard::onPopulating()
     m_reply->setEnabled(!deleted && !readOnly);
     m_react->setEnabled(!deleted && !flag("secret")); // a channel's post too: anyone may react; not in a secret chat
     m_forward->setEnabled(flag("forwardable"));
+    m_commentsItem->setEnabled(m_msg.value("comments", -1).toInt() >= 0 && !deleted); // a channel post with a discussion group
     if (m_votes)
         m_votes->setEnabled(flag("poll") && !deleted);
     if (m_download)
@@ -98,6 +99,8 @@ void MessageCard::makeActions()
     // The icon is the emoji picker's action (step 5.11); the bar opens over the composer.
     m_react = action(QT_TRANSLATE_NOOP("MessageItem", "React"), "asset:///images/emoji.png", SLOT(onReact()), "a");
     m_forward = action(QT_TRANSLATE_NOOP("MessageItem", "Forward"), "file:///usr/share/icons/bb_action_forward.png", SLOT(onForward()), "f");
+    // The post's comments, where the line under the card is out of the trackpad's reach (onPopulating).
+    m_commentsItem = action(QT_TRANSLATE_NOOP("MessageItem", "Comments"), "file:///usr/share/icons/bb_action_sendtextmessage.png", SLOT(onComments()), "m");
     if (m_rich) {
         // Who chose what in a poll (the user's request, 0.0.1.132), as the counts' tap shows it per option.
         m_votes = action(QT_TRANSLATE_NOOP("MessageItem", "View votes"), "file:///usr/share/icons/ic_accept.png", SLOT(onVotes()), "v");
@@ -175,6 +178,7 @@ void MessageCard::onTouch(TouchEvent *event)
 }
 void MessageCard::onReact() { Card::call(m_list, "react", m_msg); }
 void MessageCard::onForward() { Card::call(m_list, "forward", m_msg); }
+void MessageCard::onComments() { Card::call(m_list, "openComments", str("id")); }
 void MessageCard::onDownload() { Card::call(m_list, "download", m_msg); }
 void MessageCard::onVotes() { Card::call(m_list, "showVoters", str("votesText")); }
 void MessageCard::onCopy() { Card::call(m_list, "copy", str("text")); }

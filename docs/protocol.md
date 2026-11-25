@@ -49,36 +49,37 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `link.register` | `first`, optional `last`; accepts Telegram's terms (state `register`) | — (then `ready`) | `bad_state`, `bad_name` |
 | `link.logout` | — | — | — |
 | `ui.state` | `fullscreen` (bool), `openChat` (key or "") | — | — |
-| `chat.open` | `chat`, `limit` (1 to 200, default 50); optional `topic` (a forum topic's id) | `{oldest, newest, count, more}` | |
-| `chat.history` | `chat`, `before` (a message id), `limit` (1 to 100, default 50); optional `topic` | `{oldest, newest, count, more}` | |
-| `chat.newer` | `chat`, `after` (a message id), `limit` (1 to 100, default 50); optional `topic` | `{oldest, newest, count, more}` | |
+| `chat.open` | `chat`, `limit` (1 to 200, default 50); optional `topic` (a forum topic's id) or `thread` (a comment thread's root id, a string; see *Comments*) | `{oldest, newest, count, more}` | |
+| `chat.history` | `chat`, `before` (a message id), `limit` (1 to 100, default 50); optional `topic` or `thread` | `{oldest, newest, count, more}` | |
+| `chat.newer` | `chat`, `after` (a message id), `limit` (1 to 100, default 50); optional `topic` or `thread` | `{oldest, newest, count, more}` | |
 | `chat.pins` | `chat`; optional `topic` | `{ids: [message ids]}`, newest message first | |
 | `chat.close` | `chat` | — | |
 | `topics.list` | `chat` (a forum: `chats.forum` is 1) | `{count}` | `bad_chat` |
-| `chat.read` | `chat`; optional `upto` (a message id), `topic` | — | |
+| `chat.read` | `chat`; optional `upto` (a message id), `topic` or `thread` | — | |
 | `chat.mention`, `chat.reaction` | `chat`; optional `topic` | `{id}` | |
-| `chat.typing` | `chat`, `on` (bool); optional `topic` | — | |
+| `chat.typing` | `chat`, `on` (bool); optional `topic` or `thread` | — | |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool), `translate` (a language code, or "" for off: see *Translation*); at least one | — | |
 | `chat.readAll` | none (no `chat`) | — | |
 | `chat.pinOrder` | `ids` (the main list's pinned chats, as strings, in their new order, top first; at least one; no `chat`) | — | |
-| `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` (optional) | `{id}` | |
-| `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`, `file` (true: a document whatever the extension, e.g. a JPEG as it is); all but `chat` and `path` optional | `{id}` | |
-| `media.album` | `chat`, `items` (2 to 10 objects `{path, width, height, file}`, each as `media.send`'s of those names; `path` required), `caption` (on the first item), `quote` (a message id), `topic`; all but `chat` and `items` optional | `{ids}`, the rows' temporary ids in order | |
+| `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` or `thread` (optional) | `{id}` | |
+| `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`, `thread`, `file` (true: a document whatever the extension, e.g. a JPEG as it is); all but `chat` and `path` optional | `{id}` | |
+| `media.album` | `chat`, `items` (2 to 10 objects `{path, width, height, file}`, each as `media.send`'s of those names; `path` required), `caption` (on the first item), `quote` (a message id), `topic`, `thread`; all but `chat` and `items` optional | `{ids}`, the rows' temporary ids in order | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
 | `msg.edit` | `chat`, `id`, `text` (non-empty: the new text, or the new caption of a photo or video) | — | `not_found` |
 | `msg.forward` | `chat` (the message's chat), `id` (the message's id), `to` (the chat it goes to); optional `topic` (a topic of `to`) | `{id}`, the new message's id | |
 | `msg.react` | `chat`, `id`, `emoji` (a non-empty string); optional `remove` (bool, default false) | — | |
 | `msg.reactions` | `chat`, `id` (a message id) | `{top, all}`: emoji strings, see below | |
+| `msg.thread` | `chat` (a channel), `id` (a post's message id) | `{chat, thread, name, count}`: the discussion group, the thread's root id there, the group's title, the comments' count; see *Comments* | |
 | `poll.vote` | `chat`, `id` (a poll's message id), `options` (an array of option numbers, 0-based as `extra.options`; missing, null or `[]` takes our vote back) | — | |
 | `media.get` | `chat`, `id` (a message with a file); optional `preview` (bool), `save` (bool) | `{path}`, the absolute path of the file (of the preview picture with `preview`, of the copy in Downloads with `save`) | `not_found`, `download_failed`, `cancelled`, `not_saved` |
 | `media.cancel` | `chat`, `id` (a message with a file) | — | `not_found` |
 | `stickers.sets` | — (no `chat`) | `{sets: [{set, title, count, cover}]}`: the installed regular sticker sets in the order TDLib gives them; `set` the set's id (a decimal string), `count` its size, `cover` a sticker object (see *Stickers*), left out when TDLib has no cover for the set | `unlinked` |
 | `stickers.get` | `set` (a set's id as a decimal string, or `"recent"` or `"faves"`; no `chat`) | `{stickers: [sticker objects]}` in TDLib's order | `unlinked`, `bad_request` (`set` is none of those) |
 | `stickers.file` | `file` (a TDLib file id, a decimal string from 1; no `chat`) | `{path}`, the absolute path of the file once it is downloaded (at once when it is here already) | `unlinked`, `bad_request`, `not_found` (TDLib has no such file), `download_failed` |
-| `sticker.send` | `chat`, `file` (the sticker's `file`), `quote` (a message id), `topic`; both optional | `{id}`, as `media.send` | |
+| `sticker.send` | `chat`, `file` (the sticker's `file`), `quote` (a message id), `topic`, `thread`; both optional | `{id}`, as `media.send` | |
 | `sticker.fave` | `file` (the sticker's `file`), `on` (bool: true adds it to Favourites, false removes it; no `chat`) | — | `unlinked`, `bad_request` |
-| `voice.start` | `chat`, `path` (the `.wav` the recorder is writing, inside the data folder); optional `topic` | — | |
-| `voice.send` | `chat`, `path` (as `voice.start`), `quote` (a message id, optional), `topic` (optional) | `{id}`, the message's id | |
+| `voice.start` | `chat`, `path` (the `.wav` the recorder is writing, inside the data folder); optional `topic` or `thread` | — | |
+| `voice.send` | `chat`, `path` (as `voice.start`), `quote` (a message id, optional), `topic` or `thread` (optional) | `{id}`, the message's id | |
 | `voice.cancel` | `path` (as `voice.start`) | — | |
 | `voice.play` | `chat`, `id` (a voice note's message id) | `{path}`, the absolute path of a WAV (48 kHz, mono) | `not_found`, `download_failed` |
 | `profile.get` | — | `{name, about, phone, picture}` | |
@@ -89,6 +90,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `sessions.confirmQr` | `link` (the `tg://login?token=` link of a QR code) | the new session, as a `sessions.list` entry | |
 | `contact.info` | `chat` (a person: a private or a secret chat) | `{phone, about, groups: [{jid, name}], blocked, picture}` | `bad_chat` |
 | `channel.info` | `chat` (a channel) | `{followers, description, picture}` | `bad_chat` |
+| `channel.discuss` | `chat` (a channel) | `{jid, name}`: its discussion group, "" for both when none | `bad_chat` |
 | `group.info` | `chat` (a basic group, or a supergroup that is not a channel) | `{subject, description, participants: [{jid, name, admin, me, photo}], count, picture, membersAdd}`; `photo` is absent when not downloaded yet | `bad_chat` |
 | `contacts.list` | — | `[{jid, name, photo}]`, an array: the account's contacts by name; `photo` is absent when not downloaded yet | |
 | `senders.get` | `chat` (a basic group, or a supergroup that is not a channel), `users` [user ids, 1 to 100] | `{"<user id>": {color, tag, photo}, …}`, `photo` is absent when not downloaded yet; a user the engine does not know is left out | `bad_chat` |
@@ -98,7 +100,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `contact.block` | `chat` (a person: a private or a secret chat), `block` (bool) | — | `bad_chat` |
 | `group.participants` | `chat` (a basic group, or a supergroup that is not a channel), `jid` (a user id), `action` (`add`, `remove`, `promote` or `demote`) | — | `bad_chat`, `refused` |
 | `group.create` | `name`, `participants` [user ids] | `{jid, refused}`, the new group's chat key and how many of the people could not be added | `name_too_long` |
-| `poll.create` | `chat`, `question`, `options` [2 to 12 strings], `multiple` (bool); optional `topic` | `{id}`, the new message's id | `bad_chat` |
+| `poll.create` | `chat`, `question`, `options` [2 to 12 strings], `multiple` (bool); optional `topic` or `thread` | `{id}`, the new message's id | `bad_chat` |
 | `invite.info` | `url` (a `t.me/+…` or `t.me/joinchat/…` link) | `{member: true, jid}`, or `{member: false, kind, code, jid, name, count}` | `invite_invalid` |
 | `invite.accept` | `code` (the link as `invite.info` gave it); `kind`, `jid` and `name` of that answer may come along and are not read | `{jid}`, the chat's key | `invite_invalid`, `invite_not_allowed`, `request_sent` |
 | `link.open` | `url` (a link from a message: `t.me`, `telegram.me`, `telegram.dog` or `tg:`) | `{open: "browser"}`; `{person, name}`; `{member: true, jid, msg}`; `{member: false, join, kind, name, count}`; or `invite.info`'s | `link_invalid` |
@@ -457,6 +459,11 @@ there is none, or when the download fails: that is only logged). A TDLib error i
 `followers` is its member count (a number), `description` its description, `picture` the big chat photo, as
 `contact.info`'s.
 
+**`channel.discuss`:** a channel's discussion group, where its posts' comments are, for the chat page's Discuss button.
+`chat` is a channel, any other is `bad_chat`. `jid` is the group's chat id (`linked_chat_id` of the channel's full info; a
+decimal string) and `name` its title (`getChat`): both "" when the channel has none, or when TDLib can't give the group (only
+logged). Unlike `channel.info` it fetches no picture, so it costs nothing to ask at every open of a channel. See *Comments*.
+
 **`group.info`:** a group's page. `chat` is a basic group or a supergroup that is not a channel, any other is
 `bad_chat`. `subject` is the title, `description` the group's description, `picture` the big chat photo as above, and
 `membersAdd` whether the group's own permissions let every member invite people (an admin always may). `participants`
@@ -626,6 +633,27 @@ a JSON number, a whole number from 1; anything else is `bad_request`. Without it
   out, so a change that comes only as such an update in that short time is seen with the next message of the topic.
 - **Sorting the list:** `ORDER BY pinned DESC, CAST(ord AS INTEGER) DESC` (`ord` is TDLib's `order` for the topic, a decimal
   int64 as text: more than a QML number holds, so let SQLite sort it, never compare it in QML).
+
+**Comments.** A channel post can have comments: a thread of the channel's discussion group (`channel.discuss`).
+- **The count:** a post of a channel that has a discussion group has `extra.comments`, the number of its comments (0 too);
+  the member is absent when the channel has none. It changes with Telegram's update of the post's interactions (a `msgs`
+  event), as `extra.reactions` does.
+- **`msg.thread`:** `chat` is the channel and `id` the post (`getMessageThread`). The reply `{chat, thread, name, count}` names
+  the discussion group (`chat`, a decimal string, and `name`, its title, "" when the group is not mirrored), the thread's root
+  message in it (`thread`, a string with a message id) and the number of comments (`count`, a number). TDLib's errors, a post
+  of a channel with no discussion group among them, are the `td` error.
+- **The `thread` field:** `chat.open`, `chat.history`, `chat.newer`, `chat.read`, `chat.typing`, `msg.send`, `media.send`,
+  `media.album`, `sticker.send`, `voice.start`, `voice.send` and `poll.create` take it, with `chat` the discussion group and
+  `thread` the string `msg.thread` answered. It is optional; anything but a string with a message id is `bad_request`, and a
+  request that has `topic` as well is too. It pages (`getMessageThreadHistory`), reads (`viewMessages` with
+  `messageSourceMessageThreadHistory`), sends into (`sendMessage` and `sendMessageAlbum` with `messageTopicThread`) and shows
+  typing in (`sendChatAction`) that thread. `chat.read` without `upto` views the thread's last message (`getMessageThread`
+  first), and does nothing when the thread has no comments; the group's own read marker is not touched.
+- **Paging:** the topic's rules. A thread's pages always come from Telegram (TDLib keeps no local list of them), `chat.newer`'s
+  bound is the thread's last comment (`getMessageThread`), and the slicing is a topic's. `getMessageThreadHistory` leaves the
+  root out, so the first page that reaches the thread's start (an empty answer, `more` false) also gets the root post, the group's
+  copy of the channel post (`getMessageThread`, its messages of the group, older than the oldest comment); when that call fails the
+  page is the comments alone. Only the thread's rows in the page's id range are compared with it (`topic` column below).
 
 **`prefs.set`:** the fields given are merged into the stored ones, kept in `prefs.json` in the
 data folder. `mode` and `batchSecs` are the delivery mode's settings (below), `notifyPreview`
@@ -1020,9 +1048,9 @@ and for a photo that is not downloaded yet. The rows are never pruned, and a log
 | `path` | the downloaded file's absolute path with `media_state` 2 |
 | `played` | voice notes and round videos: 1 once listened to |
 | `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
-| `topic` | the forum topic the message belongs to: its id (General is 1); 0 in every chat that is not a forum. Index `messages_by_topic` on `(chat, topic, ts)`: a topic's page is `WHERE chat = ? AND topic = ? ORDER BY ts, CAST(id AS INTEGER)` |
+| `topic` | the forum topic the message belongs to: its id (General is 1); in a supergroup that is not a forum, the comment thread the message is in (the thread root's id, the root carrying its own: see *Comments*), 0 otherwise. A thread's page is `WHERE chat = ? AND topic = ?`. Index `messages_by_topic` on `(chat, topic, ts)`: a topic's page is `WHERE chat = ? AND topic = ? ORDER BY ts, CAST(id AS INTEGER)` |
 | `tr`, `tr_lang` | a translation (see *Translation*): `tr` is the text in the language `tr_lang`, '' when there is nothing to show (it is the same as `text`, or has no words); NULL, NULL when not asked. Cleared when the message's text changes |
-| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted`, `closed` and `fixed`; a message's `reactions`; a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs`; `ttl` and `expiresAt` of a self-destructing message; `album`, Telegram's album id as a string, shared by the album's messages |
+| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted`, `closed` and `fixed`; a message's `reactions`; a channel post's `comments` (the count, see *Comments*); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs`; `ttl` and `expiresAt` of a self-destructing message; `album`, Telegram's album id as a string, shared by the album's messages |
 
 **Reactions:** any kind's `extra` can carry `reactions: [{e, n, me}, …]`, one object for each emoji reaction on the message in
 TDLib's order: `e` the emoji, `n` how many reacted with it, `me: true` when one of them is ours (absent otherwise). Custom emoji

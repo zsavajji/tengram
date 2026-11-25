@@ -14,6 +14,13 @@ Page {
     // for any other chat.
     property int topic: 0
     property string topicName: ""
+    // A comment thread's root id in the discussion group (a string: ids exceed what QML's numbers hold), set before chat, with
+    // topicName: the page is that thread's messages only, as a topic's (ChatController.open). "" for any other chat.
+    property string thread: ""
+    // A group we are not in, as a channel's discussion group opened from Discuss: Join instead of the composer (Composer.qml)
+    // until we are. A group of ours is a row of chats.db's chats (the main or the archived list), so no row is not in. A comment
+    // thread stays open to write in: Telegram takes comments from anyone the group lets write.
+    property bool notJoined: page.chat ? page.chat.kind == 1 && thread == "" && !(chats.revision >= 0 && chats.chat(page.chat.jid).jid) : false
     // The composer's TextArea (Composer.qml): text, editor and requestFocus() are used all over this page.
     property variant composer: composerBar.field
     // Back is in the title bar and the composer is ours: nothing left for the bar. openActionMenu()
@@ -65,15 +72,16 @@ Page {
         }
     }
     onChatChanged: {
-        ctl.open(chat, topic)
+        ctl.open(chat, topic, thread)
         // The list starts hidden (listHidden): the guard shows it whatever happens, from the open on.
         revealGuard.start()
-        // Pinned messages, not in a secret chat (Telegram has no pins there), after Search as before.
-        if (!chat.secret) addAction(pinnedAction, ActionBarPlacement.InOverflow)
+        // Pinned messages, not in a secret chat (Telegram has no pins there), after Search as before. Not in a comment thread: the
+        // pins and the polls are the group's.
+        if (!chat.secret && thread == "") addAction(pinnedAction, ActionBarPlacement.InOverflow)
         // Translation is refused in a secret chat. Every other kind of chat, channels too.
         if (!chat.secret) addAction(translateAction, ActionBarPlacement.InOverflow)
         if (chat.kind != 2) addAction(infoAction, ActionBarPlacement.InOverflow)
-        if (chat.kind == 1) addAction(pollAction, ActionBarPlacement.InOverflow) // groups: Telegram refuses polls in a chat with a person
+        if (chat.kind == 1 && thread == "") addAction(pollAction, ActionBarPlacement.InOverflow) // groups: Telegram refuses polls in a chat with a person
         if (chat.secret) addAction(timerAction, ActionBarPlacement.InOverflow)
         ctl.messages.itemAdded.connect(page.added)
         ctl.messages.newestComing.connect(page.coming)
@@ -81,6 +89,10 @@ Page {
         ctl.messages.translateStalled.connect(page.translateStalled)
         ctl.mentionsChanged.connect(page.jumpCounts)
         ctl.unreadFound.connect(page.jump) // the @ and heart buttons' message: loaded if far back, scrolled to and tinted
+        // A channel's discussion group, for the bottom bar's Discuss (Composer.qml); asked again when the link comes back.
+        if (chat.kind == 3) discussInfo.ask(chat.jid)
+        ctl.threadFound.connect(page.commentsFound)
+        ctl.threadFailed.connect(commentsFailed.show)
         media.ready.connect(page.mediaReady)
         media.openFailed.connect(mediaFailed.show)
         media.saved.connect(savedToast.show)
@@ -99,6 +111,12 @@ Page {
         ChatController {
             id: ctl
             link: engine
+        },
+        // A channel's discussion group (channel.discuss): info.jid and info.name once the engine answers, "" when none.
+        ContactInfo {
+            id: discussInfo
+            link: engine
+            command: "channel.discuss"
         },
         // 300 ms after the list is positioned (loaded()): the list's own state goes to the controller, which
         // doesn't mark the chat read before. An atBeginningChanged alone isn't enough: a chat whose rows all fit
@@ -314,6 +332,10 @@ Page {
             id: forwardFailed
             body: qsTr("Couldn't forward this message")
         },
+        SystemToast {
+            id: commentsFailed
+            body: qsTr("Couldn't open the comments")
+        },
         // Delete for me: the card is already hidden, the request goes when the toast closes. Several
         // deletes while it shows join one batch (show() on a showing toast keeps it up), and Undo
         // takes them all back.
@@ -391,6 +413,15 @@ Page {
     }
     // The send-files page over this one (openFiles); only meant while nav.top is it (edited).
     property variant filesPage
+    // The comments of a channel's post (ctl.openThread's answer): the discussion group's chat page over this one (Back returns
+    // here), showing only that thread. The group is often not in the chat list (not joined), so its row is built as main.qml's
+    // showPerson builds a person's: the chat list's, else one from the name. The thread and its name are set before chat: its
+    // change opens the controller. Always the chat page: a discussion group is never a forum.
+    // The comments of a channel's post (ctl.openThread's answer): the discussion group's chat page over this one, showing
+    // only that thread (main.qml's openGroup).
+    function commentsFound(group, root, name) {
+        nav.openGroup(group, name, root, qsTr("Comments"))
+    }
     function player() {
         if (!playerObj) {
             var holder = playerDef.createObject()
@@ -518,6 +549,9 @@ Page {
         if (topic) {
             args.topic = topic
         }
+        if (thread != "") {
+            args.thread = thread
+        }
         if (ctl.quoteId()) {
             args.quote = ctl.quoteId()
         }
@@ -589,6 +623,9 @@ Page {
                 }
             }
             req.chat = chat.jid
+            if (thread != "") {
+                req.thread = thread // every request of the batch, whichever the first
+            }
             if (r == 0) {
                 if (topic) {
                     req.topic = topic
@@ -663,6 +700,9 @@ Page {
         var args = {"chat": chat.jid, "file": file}
         if (topic) {
             args.topic = topic
+        }
+        if (thread != "") {
+            args.thread = thread
         }
         if (ctl.quoteId()) {
             args.quote = ctl.quoteId()
@@ -1029,6 +1069,13 @@ Page {
                     function react(msg) {
                         page.reactBar().open(msg)
                     }
+                    // A channel post's Comments (its line under the card, or the menu's): the page asks which thread they are. Not
+                    // sent (the engine is down): nothing will answer, so the toast says it now.
+                    function openComments(id) {
+                        if (!ctl.openThread(id)) {
+                            commentsFailed.show()
+                        }
+                    }
                     function toggleReaction(id, emoji, mine) {
                         page.reactBar().toggle(id, emoji, mine)
                     }
@@ -1371,7 +1418,9 @@ Page {
                 mic: page.mic
                 recording: page.recording
                 // A channel; and a secret chat that can't take a message: pending (waiting for the other side) or closed.
-                readOnly: page.chat ? page.chat.kind == 3 || page.secret == 1 || page.secret == 3 : false
+                readOnly: page.chat ? page.chat.kind == 3 || page.secret == 1 || page.secret == 3 || page.notJoined : false
+                join: page.notJoined
+                onJoinTapped: engine.request("group.join", {"chat": page.chat.jid}) // main.qml's failedCmd words a refusal
                 notice: page.secret == 1 ? qsTr("Waiting for %1 to get online…").arg(page.chat ? (chats.revision >= 0 && chats.chat(page.chat.jid).name) || page.chat.name : "")
                       : page.secret == 3 ? qsTr("Secret chat cancelled") : ""
                 onEmoji: page.picking = !page.picking
@@ -1387,6 +1436,13 @@ Page {
                     ctl.composing(text)
                 }
                 onMenu: page.openActionMenu()
+                channel: page.chat ? page.chat.kind == 3 : false
+                muted: page.chat ? chats.revision >= 0 && !!chats.chat(page.chat.jid).muted : false
+                discuss: !!discussInfo.info.jid
+                onDiscussTapped: nav.openGroup(discussInfo.info.jid, discussInfo.info.name, "", "")
+                onSearchTapped: page.searchBar().open()
+                // Telegram's channel bar: on for good, or off; the chat list's menu has the timed mutes.
+                onMuteTapped: engine.request("chat.set", {"chat": page.chat.jid, "mute": muted ? 0 : -1})
             }
         }
         Container {

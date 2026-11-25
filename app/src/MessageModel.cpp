@@ -57,7 +57,7 @@ bool MessageModel::lessThan(const Msg &a, const Msg &b)
     return a.ts < b.ts || (a.ts == b.ts && a.rowid < b.rowid);
 }
 
-MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, bool secret, int topic, QObject *parent)
+MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, bool channel, bool secret, int topic, const QString &thread, QObject *parent)
     : DataModel(parent)
     , m_engine(engine)
     , m_chat(chat)
@@ -65,6 +65,7 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     , m_channel(channel)
     , m_secret(secret)
     , m_topic(topic)
+    , m_thread(thread.toLongLong())
     , m_translate(readTranslate())
     , m_retries(0)
     , m_floor(0)
@@ -411,6 +412,8 @@ void MessageModel::askOlder()
     ask["chat"] = m_chat;
     if (m_topic)
         ask["topic"] = m_topic;
+    if (m_thread)
+        ask["thread"] = QString::number(m_thread); // a string: ids exceed 2^53
     ask["before"] = QString::number(m_floor); // a string: ids exceed 2^53
     ask["limit"] = kPage;
     setAsked(m_historyId, m_engine->requestQuiet("chat.history", ask));
@@ -706,6 +709,8 @@ void MessageModel::askBridge(const QString &before)
     ask["chat"] = m_chat;
     if (m_topic)
         ask["topic"] = m_topic;
+    if (m_thread)
+        ask["thread"] = QString::number(m_thread); // a string: ids exceed 2^53
     ask["before"] = before; // a string: ids exceed 2^53
     ask["limit"] = kBridgeLimit;
     m_bridgeBefore = before.toLongLong();
@@ -769,6 +774,8 @@ void MessageModel::askWindow()
     ask["chat"] = m_chat;
     if (m_topic)
         ask["topic"] = m_topic;
+    if (m_thread)
+        ask["thread"] = QString::number(m_thread); // a string: ids exceed 2^53
     ask["after"] = QString::number(m_readInbox); // a string: ids exceed 2^53
     ask["limit"] = kPage;
     setAsked(m_newerId, m_engine->requestQuiet("chat.newer", ask));
@@ -852,6 +859,8 @@ void MessageModel::askNewer()
     ask["chat"] = m_chat;
     if (m_topic)
         ask["topic"] = m_topic;
+    if (m_thread)
+        ask["thread"] = QString::number(m_thread); // a string: ids exceed 2^53
     ask["after"] = QString::number(m_top); // a string: ids exceed 2^53
     ask["limit"] = kPage;
     setAsked(m_newerId, m_engine->requestQuiet("chat.newer", ask));

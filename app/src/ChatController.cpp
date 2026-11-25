@@ -99,7 +99,7 @@ QString ChatController::status() const
 {
     if (!m_typing.isEmpty())
         return m_typing;
-    if (m_topic)
+    if (m_topic || !m_thread.isEmpty())
         return m_name;
     return m_group ? m_participants : m_presence;
 }
@@ -207,8 +207,9 @@ void ChatController::onTopics(const QString &chat)
 
 void ChatController::readMentions()
 {
+    // A comment thread has no counts of its own: the group's are for the group's chat, not for one post's comments.
     QSqlDatabase db = ChatsDb::open("chats");
-    if (!db.isOpen())
+    if (!db.isOpen() || !m_thread.isEmpty())
         return;
     QSqlQuery q(db);
     if (m_topic) {
@@ -229,22 +230,25 @@ void ChatController::readMentions()
     }
 }
 
-// The topic's own requests carry it (docs/protocol.md, Forum topics).
+// The topic's own requests carry it (docs/protocol.md, Forum topics), and a comment thread's its thread (Comments).
 void ChatController::addTopic(QVariantMap &args) const
 {
     if (m_topic)
         args["topic"] = m_topic;
+    if (!m_thread.isEmpty())
+        args["thread"] = m_thread;
 }
 
-void ChatController::open(const QVariantMap &chat, int topic)
+void ChatController::open(const QVariantMap &chat, int topic, const QString &thread)
 {
     if (m_messages || !m_engine)
         return;
     m_jid = chat["jid"].toString();
     m_topic = topic;
+    m_thread = thread;
     m_name = chat["name"].toString();
     m_group = chat["kind"].toInt() == 1;
-    m_messages = new MessageModel(m_engine, m_jid, m_group, chat["kind"].toInt() == 3, chat["secret"].toInt() > 0, m_topic, this);
+    m_messages = new MessageModel(m_engine, m_jid, m_group, chat["kind"].toInt() == 3, chat["secret"].toInt() > 0, m_topic, m_thread, this);
     emit messagesChanged();
     connect(m_engine, SIGNAL(typing(QString, QString, bool, bool, int)), this,
             SLOT(onTyping(QString, QString, bool, bool, int)));
@@ -657,7 +661,8 @@ void ChatController::setTyping(const QString &text)
 // ponytail: in a group only the last one typing shows; keep a set of names if it matters.
 void ChatController::onTyping(const QString &chat, const QString &who, bool on, bool voice, int topic)
 {
-    if (chat != m_jid || topic != m_topic) // a topic's page shows only its own
+    // A topic's page shows only its own; a comment thread's none (the engine's typing event names forum topics only).
+    if (chat != m_jid || topic != m_topic || !m_thread.isEmpty())
         return;
     if (!on) {
         m_idle.stop();

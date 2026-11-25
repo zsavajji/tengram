@@ -94,12 +94,15 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_bang(0)
     , m_chip(0)
     , m_chipSpare(0)
+    , m_comments(0)
+    , m_commentsLabel(0)
     , m_edited(Card::tr(kContext, QT_TRANSLATE_NOOP("MessageItem", "edited")) + " ")
     , m_starMark(QString::fromUtf8("\xE2\x98\x85 "))
     , m_trMark(QString::fromUtf8("\xE2\x87\x84 "))
     , m_reply(0)
     , m_react(0)
     , m_forward(0)
+    , m_commentsItem(0)
     , m_votes(0)
     , m_download(0)
     , m_copy(0)
@@ -305,6 +308,8 @@ void MessageCard::show(const QVariantMap &msg)
         makeChip();
     if (chips > m_chipBoxes.size())
         growChips(chips);
+    if (!str("commentsText").isEmpty() && !m_comments)
+        makeComments();
     restyle(out);
 
     // Theirs at the left and ours at the right. A hidden spacer takes no part in the layout.
@@ -472,6 +477,10 @@ void MessageCard::restyle(bool out)
     if (m_chip) {
         foreach (Label *label, m_chipLabels)
             Card::style(label, m_list, body); // the text's size, not the small one (the user, 2026-11-08)
+    }
+    if (m_comments) {
+        Card::style(m_commentsLabel, m_list, body);
+        m_commentsLabel->textStyle()->setColor(m_ui->palette()->primary());
     }
 }
 
@@ -726,8 +735,43 @@ void MessageCard::makeChip()
     m_chipSpare = new Container();
     m_chipSpare->setVisible(false);
     m_chip->add(m_chipSpare);
-    m_root->add(m_chip);
+    // Above the comments line, which may be made first.
+    m_root->insert(m_comments ? m_root->indexOf(m_comments) : m_root->count(), m_chip);
     m_styled = false;
+}
+
+// A channel post's comments (docs/protocol.md, Comments), a line last under the card, after the reactions' chips: a tap on it
+// opens them (onComments), and so does the menu's Comments, which the trackpad can reach.
+void MessageCard::makeComments()
+{
+    m_comments = new Container();
+    m_comments->setHorizontalAlignment(HorizontalAlignment::Left);
+    m_comments->setTopMargin(m_ui->du(0.5));
+    m_commentsLabel = new Label();
+    m_commentsLabel->setTopMargin(0);
+    m_commentsLabel->setBottomMargin(0);
+    m_commentsLabel->setLeftMargin(0);
+    m_commentsLabel->setRightMargin(0);
+    m_comments->add(m_commentsLabel);
+    TapHandler *tap = new TapHandler(m_comments);
+    m_comments->addGestureHandler(tap);
+    connect(tap, SIGNAL(tapped(bb::cascades::TapEvent *)), this, SLOT(onComments()));
+    m_root->add(m_comments);
+    m_styled = false;
+}
+
+// The line, or hidden when the row has none (a recycled card). Placed as the chips are: at the card's outer edge, lined up
+// with its text.
+void MessageCard::fillComments()
+{
+    const QString text = str("commentsText");
+    m_comments->setVisible(!text.isEmpty());
+    if (text.isEmpty())
+        return;
+    const bool tile = m_avatar && m_avatar->isVisible();
+    m_comments->setHorizontalAlignment(flag("out") ? HorizontalAlignment::Right : HorizontalAlignment::Left);
+    m_comments->setLeftPadding(Card::side(m_ui, m_scale, m_round) + (tile ? tileSpace() : 0));
+    m_commentsLabel->setText(QString::fromUtf8("\xF0\x9F\x92\xAC ") + text); // U+1F4AC, a speech balloon
 }
 
 // Makes chips until the pool holds n; a tap on one is onChip(). Before restyle(), which sets the labels' size.
@@ -1091,6 +1135,8 @@ void MessageCard::fillFoot()
 
     if (m_chip)
         fillChips();
+    if (m_comments)
+        fillComments();
 }
 
 

@@ -15,10 +15,11 @@ namespace {
 
 using td_api::make_object;
 
-// The one recording: the chat (and forum topic, -1 for none) voice.start named and the WAV the recorder is writing.
-// 0 and "" when none.
+// The one recording: the chat (and forum topic, -1 for none, or comment thread, 0 for none) voice.start named and the
+// WAV the recorder is writing. 0 and "" when none.
 std::int64_t rec_chat = 0;
 std::int32_t rec_topic = -1;
+std::int64_t rec_thread = 0;
 std::string rec_path;
 // Telegram shows "recording" for about 5 s, so it goes out again every 4 s until the note is sent or cancelled.
 // A UI that died mid-recording sends neither: after 30 minutes the engine stops on its own.
@@ -26,8 +27,9 @@ constexpr auto kRecordingAgain = std::chrono::seconds(4);
 constexpr auto kRecordingAtMost = std::chrono::minutes(30);
 std::chrono::steady_clock::time_point rec_next, rec_until;
 
-void send_recording(std::int64_t chat, std::int32_t topic, std::function<void(Obj)> done = nullptr) {
-  tdlib.send(make_object<td_api::sendChatAction>(chat, topic_object(topic), "",
+void send_recording(std::int64_t chat, std::int32_t topic, std::int64_t thread,
+                    std::function<void(Obj)> done = nullptr) {
+  tdlib.send(make_object<td_api::sendChatAction>(chat, topic_object(topic, thread), "",
                                                  make_object<td_api::chatActionRecordingVoiceNote>()),
              std::move(done));
   rec_next = std::chrono::steady_clock::now() + kRecordingAgain;
@@ -53,10 +55,11 @@ bool wav_path(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
 void end_recording(const std::string &path) {
   unlink(path.c_str());
   if (path == rec_path) {
-    tdlib.send(make_object<td_api::sendChatAction>(rec_chat, topic_object(rec_topic), "",
+    tdlib.send(make_object<td_api::sendChatAction>(rec_chat, topic_object(rec_topic, rec_thread), "",
                                                    make_object<td_api::chatActionCancel>()));
     rec_chat = 0;
     rec_topic = -1;
+    rec_thread = 0;
     rec_path.clear();
   }
 }
@@ -71,7 +74,8 @@ std::string make_dir(const std::string &dir, const char *name) {
 void voice_start(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   std::string path;
   std::int32_t topic = -1;
-  if (!wav_path(conn, id, req, path) || !topic_field(conn, id, req, topic)) {
+  std::int64_t thread = 0;
+  if (!wav_path(conn, id, req, path) || !topic_thread_fields(conn, id, req, topic, thread)) {
     return;
   }
   if (!rec_path.empty()) {
@@ -79,16 +83,19 @@ void voice_start(std::uint64_t conn, const std::string &id, td::JsonObject &req,
   }
   rec_chat = chat;
   rec_topic = topic;
+  rec_thread = thread;
   rec_path = path;
   rec_until = std::chrono::steady_clock::now() + kRecordingAtMost;
-  send_recording(chat, topic, [conn, id](Obj o) { answer(conn, id, o); });
+  send_recording(chat, topic, thread, [conn, id](Obj o) { answer(conn, id, o); });
 }
 
 void voice_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   std::string path, why;
   td_api::object_ptr<td_api::InputMessageReplyTo> reply;
   std::int32_t topic = -1;
-  if (!wav_path(conn, id, req, path) || !quote_field(conn, id, req, reply) || !topic_field(conn, id, req, topic)) {
+  std::int64_t thread = 0;
+  if (!wav_path(conn, id, req, path) || !quote_field(conn, id, req, reply) ||
+      !topic_thread_fields(conn, id, req, topic, thread)) {
     return;
   }
   std::vector<std::int16_t> mono;
@@ -113,7 +120,7 @@ void voice_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, 
   const auto seconds = static_cast<std::int32_t>(std::max<std::size_t>(1, (mono.size() + rate / 2) / rate));
   const std::string waveform = waveform_bits(mono);
   end_recording(path);
-  send_content(conn, id, chat, topic, std::move(reply),
+  send_content(conn, id, chat, topic, thread, std::move(reply),
                make_object<td_api::inputMessageVoiceNote>(
                    make_object<td_api::inputVoiceNote>(make_object<td_api::inputFileLocal>(ogg), seconds, waveform),
                    nullptr, nullptr));
@@ -171,7 +178,7 @@ void voice_tick() {
     end_recording(rec_path);
     return;
   }
-  send_recording(rec_chat, rec_topic);
+  send_recording(rec_chat, rec_topic, rec_thread);
 }
 
 bool voice_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {

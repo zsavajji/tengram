@@ -14,7 +14,20 @@ Page {
     // The full size once the engine answers; the list's preview until then, or when there is no full one.
     property string picture: info.picture || (chat && chat.photo) || ""
     property bool hasPicture: picture != ""
-    onChatChanged: channel.ask(chat.jid)
+    onChatChanged: {
+        channel.ask(chat.jid)
+        discussInfo.ask(chat.jid)
+    }
+    // Discuss on the action bar (the user's ask, 2026-11-25), once channel.discuss names a group: an ActionItem has no visible,
+    // so it is added then, once.
+    property bool discussAdded: false
+    property string discussJid: discussInfo.info.jid || ""
+    onDiscussJidChanged: {
+        if (discussJid != "" && !discussAdded) {
+            discussAdded = true
+            addAction(discussAction, ActionBarPlacement.OnBar)
+        }
+    }
     titleBar: PageBar {
         title: qsTr("Channel info")
     }
@@ -31,6 +44,18 @@ Page {
             id: channel
             link: engine
             command: "channel.info"
+        },
+        // The channel's discussion group (channel.discuss), for Discuss.
+        ContactInfo {
+            id: discussInfo
+            link: engine
+            command: "channel.discuss"
+        },
+        ActionItem {
+            id: discussAction
+            title: qsTr("Discuss")
+            imageSource: "asset:///images/discuss.png"
+            onTriggered: nav.openGroup(discussInfo.info.jid, discussInfo.info.name, "", "")
         },
         SystemDialog {
             id: unfollowDialog

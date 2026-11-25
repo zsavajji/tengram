@@ -132,8 +132,9 @@ const td_api::file *message_preview_file(const td_api::message &m);
 void messages_queue(const td_api::message &m, const std::string &local = std::string());
 // A page of history, newest first, that must become the table's content for the chat from `oldest` up to but
 // not including `upper`: rows are added or changed, and rows in that range that are not in the page are deleted.
-// `topic` is the forum topic the page is of: only that topic's rows are compared. -1 is the whole chat.
-void messages_reconcile(std::int64_t chat, std::int32_t topic,
+// `topic` is the forum topic (or the comment thread's root id, in the topic column) the page is of: only its rows are
+// compared. -1 is the whole chat.
+void messages_reconcile(std::int64_t chat, std::int64_t topic,
                         const std::vector<td_api::object_ptr<td_api::message>> &page, std::int64_t oldest,
                         std::int64_t upper);
 // A message's translation (translate.cpp): written when the row still holds `source` as its text, and the chat's own
@@ -171,11 +172,17 @@ bool quote_field(std::uint64_t conn, const std::string &id, td::JsonObject &req,
 // The optional field "topic", a forum topic's id (a whole number from 1; General is 1). `topic` is -1 when the field is
 // missing. False after the bad_request reply.
 bool topic_field(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int32_t &topic);
-// The topic as TDLib takes it, or nullptr for no topic (-1).
-td_api::object_ptr<td_api::MessageTopic> topic_object(std::int32_t topic);
-// Sends the content as a new message of the chat, in the forum topic `topic` unless it is -1: its row is queued
-// (state 0, under a temporary id), the reply is `{id}`.
-void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat, std::int32_t topic,
+// The optional field "thread", the id of a comment thread's root in the discussion group (a message id in a string).
+// `thread` is 0 when the field is missing. False after the bad_request reply.
+bool thread_field(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t &thread);
+// Both fields of a request, topic_field and thread_field; a request may not carry both (bad_request, false).
+bool topic_thread_fields(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int32_t &topic,
+                         std::int64_t &thread);
+// The topic as TDLib takes it, or nullptr for no topic (-1): the comment thread when `thread` is given.
+td_api::object_ptr<td_api::MessageTopic> topic_object(std::int32_t topic, std::int64_t thread = 0);
+// Sends the content as a new message of the chat, in the forum topic `topic` unless it is -1, or in the comment thread
+// `thread` unless it is 0: its row is queued (state 0, under a temporary id), the reply is `{id}`.
+void send_content(std::uint64_t conn, const std::string &id, std::int64_t chat, std::int32_t topic, std::int64_t thread,
                   td_api::object_ptr<td_api::InputMessageReplyTo> reply,
                   td_api::object_ptr<td_api::InputMessageContent> content,
                   const std::string &local = std::string());

@@ -221,6 +221,15 @@ void add_reactions(Row &r, const td_api::message &m) {
   }
 }
 
+// A channel post whose channel has a discussion group carries the count of its comments as `comments` (0 too: the UI
+// shows the button when the member is there). TDLib sends reply_info only then, and updateMessageInteractionInfo
+// rewrites the row when the count changes.
+void add_comments(Row &r, const td_api::message &m) {
+  if (m.is_channel_post_ && m.interaction_info_ && m.interaction_info_->reply_info_) {
+    append_extra(r, "\"comments\":" + std::to_string(m.interaction_info_->reply_info_->reply_count_));
+  }
+}
+
 }  // namespace
 
 // The text, of those kinds of content that show a formatted one (a document's is its caption), or nullptr.
@@ -603,6 +612,7 @@ void content(Row &r, const td_api::message &m) {
                                                      static_cast<std::int64_t>(std::ceil(m.self_destruct_in_))));
   }
   add_reactions(r, m);
+  add_comments(r, m);
   add_entities(r, shown_text(c));
 }
 
@@ -614,6 +624,24 @@ std::int32_t topic_of(const td_api::message &m) {
   }
   ChatBrief chat = {};
   return chat_brief(m.chat_id_, chat) && chat.forum ? 1 : 0;
+}
+
+// What the topic column holds: the forum topic, or in a supergroup that is not a forum the comment thread the message
+// is in (its root's id). A thread's root carries its own id: TDLib gives it messageTopicThread(its id) when it has
+// reply_info, and a root whose topic_id_ is null is taken for its own thread all the same.
+std::int64_t column_topic(const td_api::message &m) {
+  if (const std::int32_t topic = topic_of(m)) {
+    return topic;
+  }
+  if (m.topic_id_ && m.topic_id_->get_id() == td_api::messageTopicThread::ID) {
+    return static_cast<const td_api::messageTopicThread &>(*m.topic_id_).message_thread_id_;
+  }
+  ChatBrief chat = {};
+  if (m.interaction_info_ && m.interaction_info_->reply_info_ && chat_brief(m.chat_id_, chat) && chat.kind == 1 &&
+      !chat.forum) {
+    return m.id_;
+  }
+  return 0;
 }
 
 Row row_of(const td_api::message &m) {
@@ -628,7 +656,7 @@ Row row_of(const td_api::message &m) {
   r.v[kTs] = m.date_;
   r.v[kOut] = m.is_outgoing_ ? 1 : 0;
   r.v[kEdited] = m.edit_date_ > 0 ? 1 : 0;
-  r.v[kTopic] = std::int64_t{topic_of(m)};
+  r.v[kTopic] = column_topic(m);
   r.v[kMediaState] = 0;
   r.v[kPlayed] = 0;
 
@@ -913,16 +941,16 @@ std::vector<std::int64_t> ids_of(Stmt which, std::int64_t chat, F &&bind, const 
 }
 
 // The ids of the chat's rows from `oldest` up to, not including, `upper`; only those of `topic` unless it is -1.
-std::vector<std::int64_t> ids_in_range(std::int64_t chat, std::int32_t topic, std::int64_t oldest,
+std::vector<std::int64_t> ids_in_range(std::int64_t chat, std::int64_t topic, std::int64_t oldest,
                                        std::int64_t upper) {
   return ids_of(kIdsInRange, chat, [&](td::SqliteStatement &s) {
     TRY_STATUS(s.bind_int64(2, oldest));
     TRY_STATUS(s.bind_int64(3, upper));
-    return s.bind_int32(4, topic);
+    return s.bind_int64(4, topic);
   }, "range");
 }
 
-void reconcile(std::int64_t chat, std::int32_t topic, const std::vector<Row> &rows, std::int64_t oldest,
+void reconcile(std::int64_t chat, std::int64_t topic, const std::vector<Row> &rows, std::int64_t oldest,
                std::int64_t upper) {
   std::set<std::int64_t> fetched;
   for (const Row &r : rows) {
@@ -1080,7 +1108,7 @@ void messages_translated(std::int64_t chat, std::int64_t id, const std::string &
   mark_dirty();
 }
 
-void messages_reconcile(std::int64_t chat, std::int32_t topic,
+void messages_reconcile(std::int64_t chat, std::int64_t topic,
                         const std::vector<td_api::object_ptr<td_api::message>> &page, std::int64_t oldest,
                         std::int64_t upper) {
   auto rows = std::make_shared<std::vector<Row>>();

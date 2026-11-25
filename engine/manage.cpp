@@ -240,11 +240,12 @@ void poll_create(std::uint64_t conn, const std::string &id, td::JsonObject &req,
     return bad_request(conn, id, "options holds 2 to 12 strings");
   }
   std::int32_t topic = -1;
-  if (!topic_field(conn, id, req, topic)) {
+  std::int64_t thread = 0;
+  if (!topic_thread_fields(conn, id, req, topic, thread)) {
     return;
   }
   const bool multiple = several.type() == td::JsonValue::Type::Boolean && several.get_boolean();
-  with_chat(conn, id, chat, [conn, id, chat, topic, multiple, ask = question.ok(), options](const td_api::chat &c) {
+  with_chat(conn, id, chat, [conn, id, chat, topic, thread, multiple, ask = question.ok(), options](const td_api::chat &c) {
     auto text = [](const std::string &s) {
       return make_object<td_api::formattedText>(s, std::vector<td_api::object_ptr<td_api::textEntity>>());
     };
@@ -259,7 +260,7 @@ void poll_create(std::uint64_t conn, const std::string &id, td::JsonObject &req,
     auto content = make_object<td_api::inputMessagePoll>(
         text(ask), std::move(choices), nullptr, nullptr, !person_of(c), multiple, true, false,
         std::vector<std::string>(), false, false, make_object<td_api::inputPollTypeRegular>(false), 0, 0, false);
-    send_content(conn, id, chat, topic, nullptr, std::move(content));
+    send_content(conn, id, chat, topic, thread, nullptr, std::move(content));
   });
 }
 
