@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.3-2AABEE">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0.4-2AABEE">
   <img alt="Platform" src="https://img.shields.io/badge/platform-BlackBerry%2010.3.3-222222">
   <img alt="UI" src="https://img.shields.io/badge/UI-Cascades%20%2F%20Qt%204.8-41CD52">
   <img alt="Engine" src="https://img.shields.io/badge/engine-C%2B%2B20%20%2F%20TDLib-00599C">
