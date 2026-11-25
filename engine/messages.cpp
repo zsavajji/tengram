@@ -644,6 +644,83 @@ std::int64_t column_topic(const td_api::message &m) {
   return 0;
 }
 
+// The name a message's origin (a reply's, TDLib's messageOrigin) goes by: "" when it has none.
+std::string origin_name(const td_api::MessageOrigin &o) {
+  switch (o.get_id()) {
+    case td_api::messageOriginUser::ID:
+      return user_name(static_cast<const td_api::messageOriginUser &>(o).sender_user_id_, true);
+    case td_api::messageOriginHiddenUser::ID:
+      return static_cast<const td_api::messageOriginHiddenUser &>(o).sender_name_;
+    case td_api::messageOriginChat::ID:
+      return chat_title(static_cast<const td_api::messageOriginChat &>(o).sender_chat_id_);
+    case td_api::messageOriginChannel::ID:
+      return chat_title(static_cast<const td_api::messageOriginChannel &>(o).chat_id_);
+    default:
+      return "";
+  }
+}
+
+std::set<std::pair<std::int64_t, std::int64_t>> refresh;   // (chat, id) edited: fetched again at the next flush
+
+// A reply to a message of another chat (docs/protocol.md, extra.qname and qkind). TDLib's reply object carries the
+// origin and the part quoted, if the user chose one, but not the message, so getRepliedMessage asks for it once; its
+// sender, kind and text are kept here by the replying message (chat, id), and the row is written again from them.
+// ponytail: never pruned, one small entry per cross-chat reply seen since the engine started.
+struct Foreign {
+  std::string name, text;
+  std::int64_t kind = 7;
+};
+std::map<std::pair<std::int64_t, std::int64_t>, Foreign> foreign;
+
+void foreign_quote(Row &r, const td_api::message &m, const td_api::messageReplyToMessage &q) {
+  const std::pair<std::int64_t, std::int64_t> key{m.chat_id_, m.id_};
+  auto found = foreign.find(key);
+  if (found == foreign.end()) {
+    Foreign f;
+    f.name = q.origin_ ? origin_name(*q.origin_) : chat_title(q.chat_id_);
+    const bool quoted = q.quote_ && q.quote_->text_;
+    if (quoted) {
+      f.text = q.quote_->text_->text_;
+    }
+    found = foreign.emplace(key, std::move(f)).first;
+    tdlib.send(td_api::make_object<td_api::getRepliedMessage>(m.chat_id_, m.id_), [key, quoted](Obj o) {
+      if (as_error(o)) {  // what the reply carried stays
+        return;
+      }
+      const auto &rm = static_cast<const td_api::message &>(*o);
+      Row t;
+      content(t, rm);
+      Foreign &f = foreign[key];
+      // The full name, as a row's sender_name and the name the reply carried (origin_name).
+      std::string name = rm.sender_id_ && rm.sender_id_->get_id() == td_api::messageSenderUser::ID
+                             ? user_name(static_cast<const td_api::messageSenderUser &>(*rm.sender_id_).user_id_, true)
+                             : sender_name(rm);
+      if (name.empty()) {
+        name = chat_title(rm.chat_id_);
+      }
+      if (!name.empty()) {
+        f.name = name;
+      }
+      if (const auto *kind = std::get_if<std::int64_t>(&t.v[kKind])) {
+        f.kind = *kind;
+      }
+      if (!quoted) {  // a part the user quoted is what Telegram shows
+        const auto *text = std::get_if<std::string>(&t.v[kText]);
+        f.text = text ? *text : "";
+      }
+      refresh.insert(key);
+      mark_dirty();
+    });
+  }
+  const Foreign &f = found->second;
+  set_text(r, kQuotePreview, one_line(f.text));
+  std::string member = "\"qkind\":" + std::to_string(f.kind);
+  if (!f.name.empty()) {
+    member = "\"qname\":" + td::json_encode<std::string>(td::JsonString(f.name)) + "," + member;
+  }
+  append_extra(r, member);
+}
+
 Row row_of(const td_api::message &m) {
   Row r;
   r.chat = m.chat_id_;
@@ -688,16 +765,9 @@ Row row_of(const td_api::message &m) {
     auto &q = static_cast<const td_api::messageReplyToMessage &>(*m.reply_to_);
     if (q.chat_id_ == m.chat_id_ && q.message_id_ != 0) {  // same chat only
       r.v[kQuoteId] = std::to_string(q.message_id_);
+    } else if (q.chat_id_ != 0 && q.chat_id_ != m.chat_id_ && q.message_id_ != 0) {
+      foreign_quote(r, m, q);
     }
-  }
-  // ponytail: diagnostic. In BerryFarm a reply to Jan's photo (27663 → 27490, Android shows it) comes with no usable
-  // reply_to (the user, 2026-11-25): this says what TDLib gives for a reply the row leaves out. Gone once that's settled.
-  // TDLib leaves reply_to out of a "topic message" whose reply is its topic's root (MessagesManager get_message_object):
-  // a forum topic in a chat that is no forum is that case.
-  const bool odd_topic = m.topic_id_ && m.topic_id_->get_id() == td_api::messageTopicForum::ID && !chat.forum;
-  if (!std::get_if<std::string>(&r.v[kQuoteId]) && (m.reply_to_ || odd_topic)) {
-    say("reply not kept: %lld in %lld: %s topic %s", static_cast<long long>(m.id_), static_cast<long long>(m.chat_id_),
-        td_api::to_string(m.reply_to_).c_str(), m.topic_id_ ? td_api::to_string(m.topic_id_).c_str() : "null");
   }
 
   content(r, m);
@@ -747,7 +817,6 @@ bool prepare() {
 }
 
 std::vector<std::function<void()>> ops;                    // what flush() is to do, in order
-std::set<std::pair<std::int64_t, std::int64_t>> refresh;   // (chat, id) edited: fetched again at the next flush
 std::map<std::int64_t, std::vector<std::int64_t>> changed;  // per chat: the ids written or deleted, event to come
 struct Reply {
   std::uint64_t conn;
@@ -848,7 +917,9 @@ Val quote_preview(const Row &r) {
 }
 
 void put(Row r) {
-  r.v[kQuotePreview] = quote_preview(r);
+  if (std::get_if<std::string>(&r.v[kQuoteId])) {  // a reply to another chat has none: row_of wrote the preview
+    r.v[kQuotePreview] = quote_preview(r);
+  }
   const std::int64_t sig = sig_of(r);
   const Key key(r.chat, r.id);
   bool row = false;

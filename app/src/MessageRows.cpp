@@ -215,6 +215,8 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     QString quote = q.value(9).toString();
     if (quote.isEmpty() && !q.value(32).isNull())
         quote = Pins::summary(q.value(32).toInt(), QString());
+    else if (quote.isEmpty() && extra.contains("qkind"))
+        quote = Pins::summary(extra.value("qkind").toInt(), QString());
     m.data["quote"] = quote;
     m.data["quoteId"] = q.value(26).toString(); // a tap on the quote jumps to it
     m.data["sender"] = sender;
@@ -268,6 +270,11 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
             quoteColor = known >= 0 && known < kSenderCount ? QString::fromLatin1(kSenders[known])
                                                             : pickColor(key, kSenders, kSenderCount);
         }
+    } else if (q.value(12).isNull() && !quote.isEmpty() && !extra.value("qname").toString().isEmpty()) {
+        // A reply to a message of another chat (docs/protocol.md, qname and qkind): its sender, in any chat, as the
+        // name says which message it is. Not in chats.db here, so the engine's name and the hash of it for the colour.
+        quoteName = extra.value("qname").toString();
+        quoteColor = pickColor(quoteName, kSenders, kSenderCount);
     }
     m.data["quoteName"] = quoteName;
     m.data["quoteColor"] = quoteColor;

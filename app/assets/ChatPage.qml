@@ -1079,6 +1079,7 @@ Page {
                     }
                     // A tap on a quote: the quoted message, tinted as a search match for a moment.
                     function openQuote(msg) {
+                        if (!msg.quoteId) return // a quote from another chat has nothing here to jump to
                         page.jump(msg.quoteId)
                         quoteFlash.target = msg.quoteId
                         quoteFlash.start()
