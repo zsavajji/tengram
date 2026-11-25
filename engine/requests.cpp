@@ -41,7 +41,7 @@ struct Page {
   std::string id;
   std::int64_t chat;
   std::size_t want;  // messages to collect
-  std::int64_t upper;  // the table's rows from the oldest message up to here are the page's to reconcile
+  std::int64_t upper;  // the table's rows from the oldest message up to here are the page's to reconcile (INT64_MAX: up to the newest, finish)
   std::vector<td_api::object_ptr<td_api::message>> got;  // newest first
   bool more = true;
   int calls = 0;
@@ -82,6 +82,13 @@ void finish(const std::shared_ptr<Page> &p) {
   std::int64_t upper = p->upper;
   if (p->newer) {  // the newest message itself is part of the page
     p->more = newest < newest_known(*p);
+  }
+  // chat.open's page (no upper of its own) and chat.newer's end at their newest message: a row above it came from an update
+  // after TDLib answered the first call (the later calls only page older), and the page can't speak for it. Up to
+  // INT64_MAX, a message that arrived while a slow open paged on was erased until something wrote it again, the next open at the
+  // latest (the user, 2026-11-25, a 1:1 chat on the Classic: chat.open took 8.6 s). Our own rows still sending (temporary ids
+  // above the newest) are spared too. A message deleted above it still goes: TDLib sends updateDeleteMessages.
+  if (p->newer || upper == INT64_MAX) {
     upper = newest + 1;
   }
   messages_reconcile(p->chat, p->thread > 0 ? p->thread : p->topic, p->got, oldest, upper);
