@@ -2,6 +2,7 @@
 
 #include <bb/cascades/Image>
 
+#include "BigEmoji.h"
 #include "ChatsDb.h"
 #include "EngineLink.h"
 #include "MediaData.h"
@@ -197,6 +198,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
         m.data["waveData"] = wave;
     }
     m.data["text"] = shown;
+    m.data["bigEmoji"] = kind == 0 && !deleted ? bigEmoji(shown) : 0; // 1 to 3 emoji alone: MessageCard draws them big
     // The same text with its mentions linked, "" for none (MessageKinds::html).
     const QString html = MessageKinds::html(shown, extra);
     m.data["html"] = html;

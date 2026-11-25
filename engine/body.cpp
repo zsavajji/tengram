@@ -153,6 +153,8 @@ std::string message_body(const td_api::message &m, bool &is_service) {
       auto &s = static_cast<const td_api::messageSticker &>(c);
       return s.sticker_ && !s.sticker_->emoji_.empty() ? s.sticker_->emoji_ + " Sticker" : "Sticker";
     }
+    case td_api::messageAnimatedEmoji::ID:
+      return static_cast<const td_api::messageAnimatedEmoji &>(c).emoji_;  // a text of one emoji, as it was written
     case td_api::messageLocation::ID:
       return "Location";
     case td_api::messageVenue::ID: {

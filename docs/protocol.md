@@ -1008,7 +1008,7 @@ and for a photo that is not downloaded yet. The rows are never pruned, and a log
 | `out` | 1 if ours |
 | `state` | ours only: 0 sending, 1 sent, 3 read, 4 failed (Telegram has no "delivered") |
 | `sender`, `sender_name` | groups only: the sender's user or chat id, and their name at the time |
-| `kind` | HyperBerry's numbers: 0 text, 1 photo, 2 video (also GIFs and round videos), 3 voice note, 4 document, 5 sticker, 6 service, 7 other, 8 audio file, 9 location, 10 contact, 11 poll, 13 notice |
+| `kind` | HyperBerry's numbers: 0 text, 1 photo, 2 video (also GIFs and round videos), 3 voice note, 4 document, 5 sticker (also a text of one emoji, which TDLib gives as Telegram's animated sticker of it, `extra.emoji` the emoji; a text when it has none), 6 service, 7 other, 8 audio file, 9 location, 10 contact, 11 poll, 13 notice |
 | `text` | the text, a photo's or video's caption, a document's file name, a location's title and address, a contact's name, a poll's question, a service message's English wording, a notice's code, "Message" for kind 7 |
 | `quote_id`, `quote_preview` | the message this one replies to (same chat only) and its one-line preview when `chats.db` holds it |
 | `edited` | 1 when edited |

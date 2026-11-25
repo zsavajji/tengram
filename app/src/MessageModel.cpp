@@ -1381,12 +1381,14 @@ void MessageModel::renameEntry(const QString &from, const QString &to)
 // Done in merge, before it takes the keys, and not as a removal and an addition: the same position, the same card, an itemUpdated.
 bool MessageModel::takeLocal(const Msg &m, QList<Msg> &all)
 {
-    if (m_locals.isEmpty() || m.kind != 0)
+    if (m_locals.isEmpty())
         return false;
     // The engine names the local row the message was sent from (msg.send's local, extra.local): that one and no other, so two
     // quick sends of the same words can't swap (the user, 2026-11-20). A tagged row whose local row is gone (expired, dropped)
     // is a new row. The words are matched only for a row with no tag (an engine from before the tag).
     const QString sentAs = m.data.value("sentAs").toString();
+    if (m.kind != 0 && sentAs.isEmpty())
+        return false;
     const QString said = words(m.data["text"].toString());
     for (int i = 0; i < m_locals.size(); ++i) {
         if (sentAs.isEmpty() ? m_locals[i].text != said : m_locals[i].id != sentAs)
@@ -1400,6 +1402,12 @@ bool MessageModel::takeLocal(const Msg &m, QList<Msg> &all)
         if (at < 0) { // the model was cleared under it: forgotten, and the next local row with these words has its turn
             --i;
             continue;
+        }
+        // A text of one emoji comes back as Telegram's animated sticker of it (kind 5): another card type, which an
+        // itemUpdated wouldn't change, so the local row goes (itemRemoved) and m is a new row (itemAdded).
+        if (m.kind != 0) {
+            all.removeAt(at);
+            return false;
         }
         Msg taken = m;
         keepPlace(taken, all.at(at));

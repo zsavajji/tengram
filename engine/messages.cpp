@@ -247,6 +247,18 @@ const td_api::formattedText *shown_text(const td_api::MessageContent &c) {
 
 namespace {
 
+// A sticker message's sticker, or an animated emoji's (nullptr when it has none); nullptr for any other content.
+const td_api::sticker *message_sticker(const td_api::MessageContent &c) {
+  if (c.get_id() == td_api::messageSticker::ID) {
+    return static_cast<const td_api::messageSticker &>(c).sticker_.get();
+  }
+  if (c.get_id() == td_api::messageAnimatedEmoji::ID) {
+    const auto &a = static_cast<const td_api::messageAnimatedEmoji &>(c).animated_emoji_;
+    return a ? a->sticker_.get() : nullptr;
+  }
+  return nullptr;
+}
+
 const td_api::photoSize *largest(const td_api::photo &p) {
   const td_api::photoSize *best = nullptr;
   for (const auto &s : p.sizes_) {
@@ -412,23 +424,35 @@ void content(Row &r, const td_api::message &m) {
       }
       break;
     }
-    case td_api::messageSticker::ID: {
-      auto &p = static_cast<const td_api::messageSticker &>(c);
+    case td_api::messageSticker::ID:
+    case td_api::messageAnimatedEmoji::ID: {
+      // A text of one emoji comes as messageAnimatedEmoji (TDLib's option disable_animated_emoji is off): Telegram's
+      // animated sticker of that emoji, a sticker row; without one (a custom emoji TDLib doesn't know yet), a text.
+      const td_api::sticker *s = message_sticker(c);
+      if (!s && c.get_id() == td_api::messageAnimatedEmoji::ID) {
+        r.v[kKind] = 0;
+        set_text(r, kText, static_cast<const td_api::messageAnimatedEmoji &>(c).emoji_);
+        break;
+      }
       r.v[kKind] = 5;
       r.v[kText] = Val();
-      if (const auto *s = p.sticker_.get()) {
-        r.v[kWidth] = s->width_;
-        r.v[kHeight] = s->height_;
-        const bool animated = s->format_ && s->format_->get_id() != td_api::stickerFormatWebp::ID;
-        r.v[kExtra] = extra_of([&](auto &o) {
-          if (!s->emoji_.empty()) {
-            o("emoji", s->emoji_);
-          }
-          if (animated) {
-            o("animated", td::JsonTrue());
-          }
-        });
+      if (!s) {
+        break;
       }
+      r.v[kWidth] = s->width_;
+      r.v[kHeight] = s->height_;
+      const bool animated = s->format_ && s->format_->get_id() != td_api::stickerFormatWebp::ID;
+      const std::string &emoji = c.get_id() == td_api::messageAnimatedEmoji::ID
+                                     ? static_cast<const td_api::messageAnimatedEmoji &>(c).emoji_
+                                     : s->emoji_;
+      r.v[kExtra] = extra_of([&](auto &o) {
+        if (!emoji.empty()) {
+          o("emoji", emoji);
+        }
+        if (animated) {
+          o("animated", td::JsonTrue());
+        }
+      });
       break;
     }
     case td_api::messageAudio::ID: {
@@ -978,8 +1002,9 @@ const td_api::file *message_file(const td_api::message &m) {
       const auto &a = static_cast<const td_api::messageAudio &>(c).audio_;
       return a ? a->audio_.get() : nullptr;
     }
-    case td_api::messageSticker::ID: {
-      const auto &t = static_cast<const td_api::messageSticker &>(c).sticker_;
+    case td_api::messageSticker::ID:
+    case td_api::messageAnimatedEmoji::ID: {
+      const td_api::sticker *t = message_sticker(c);
       return t ? t->sticker_.get() : nullptr;
     }
     default:
