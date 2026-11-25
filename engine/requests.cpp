@@ -1534,7 +1534,7 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
   static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.find", "chat.close",
                                      "chat.read", "chat.typing", "chat.set", "draft.get", "draft.set", "msg.send", "media.send", "media.album", "msg.delete",
                                      "msg.edit", "msg.forward", "msg.react", "msg.reactions", "msg.thread", "poll.vote",
-                                     "media.get", "media.cancel", "chat.mention", "chat.reaction", "debug.msg"};
+                                     "media.get", "media.cancel", "chat.mention", "chat.reaction"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
     return false;
   }
@@ -1639,16 +1639,6 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
     poll_vote(conn, id, req, chat);
   } else if (cmd == "media.cancel") {
     media_cancel(conn, id, req, chat);
-  } else if (cmd == "debug.msg") {
-    // ponytail: temporary, to read what TDLib holds for one message (BerryFarm 27663, 2026-11-25); remove once settled.
-    std::int64_t message = 0;
-    if (message_id(conn, id, req, "id", message)) {
-      tdlib.send(make_object<td_api::getMessage>(chat, message),
-                 [](Obj o) { say("debug.msg: %s", td_api::to_string(o).c_str()); });
-      tdlib.send(make_object<td_api::getRepliedMessage>(chat, message),
-                 [](Obj o) { say("debug.replied: %s", td_api::to_string(o).c_str()); });
-      server.reply_ok(conn, id);
-    }
   } else {
     media_get(conn, id, req, chat);
   }
