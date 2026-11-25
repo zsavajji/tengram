@@ -9,7 +9,10 @@
 # rlottie is Telegram Desktop's fork, at the pin below: Samsung's (ea06d2f) left parts of stickers out (nothing of
 # location.tgs after frame 33). Options: no image-loader plugin (dlopen), no render thread (a sticker renders on the
 # caller's thread), no cache; NEON on (the fork's default is off), pixman's asm assembled apart. LOT_BUILD makes the
-# C API visible in a static build. -O3 measured no faster than -O2 (2026-11-20).
+# C API visible in a static build. -O3 measured no faster than -O2 (2026-11-20). LOTTIE_THREAD_SAFE: without the render
+# thread, every render in the process shares one outline and stroker (vraster.cpp's RleTaskScheduler), and the UI draws
+# stickers on several threads at once (PreviewMaker's two jobs, the picker's grid, StickerPlayer): two at a time aborted
+# the UI in lottie_animation_render (Q10, 1.0.3.131, a chat of one-emoji stickers). With it each render has its own.
 set -euo pipefail
 
 readonly RLOTTIE_REPO="https://github.com/desktop-app/rlottie.git"
@@ -26,7 +29,7 @@ build_rlottie() {
     mkdir -p "$L"
     cmake -S /src/third_party/rlottie -B "$B" \
         -DCMAKE_TOOLCHAIN_FILE=/opt/bb10-cxx20/share/bb10-cxx20.cmake -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_FLAGS="-mfpu=neon" -DCMAKE_CXX_FLAGS="-mfpu=neon -DLOT_BUILD" \
+        -DCMAKE_C_FLAGS="-mfpu=neon" -DCMAKE_CXX_FLAGS="-mfpu=neon -DLOT_BUILD -DLOTTIE_THREAD_SAFE" \
         -DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG" -DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG" \
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=OFF \
         -DLOTTIE_MODULE=OFF -DLOTTIE_THREAD=OFF -DLOTTIE_CACHE=OFF -DLOTTIE_TEST=OFF -DLOTTIE_DISABLE_ARM_NEON=OFF >/dev/null
