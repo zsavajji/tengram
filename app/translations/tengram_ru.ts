@@ -974,6 +974,10 @@
 <context>
     <name>ChatRow</name>
     <message>
+        <source>Draft:</source>
+        <translation>Черновик:</translation>
+    </message>
+    <message>
         <source>Mark as read</source>
         <translation>Отметить как прочитанное</translation>
     </message>

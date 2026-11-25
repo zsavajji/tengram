@@ -36,6 +36,7 @@ struct Row {
   int mentions = 0;      // unread mentions and replies to us
   int mentions_off = 0;  // 1 while the chat's mention notifications are off
   int reactions = 0;     // unread reactions to our messages
+  std::string draft;     // the draft's text, "" is NULL (none)
 };
 
 // muted_until is the time the mute was learned plus what was left of it, so the same mute learned again a
@@ -48,7 +49,7 @@ bool same(const Row &a, const Row &b) {
          a.last_state == b.last_state && a.unread == b.unread && a.pinned == b.pinned && a.archived == b.archived &&
          a.read_inbox == b.read_inbox && a.forum == b.forum && a.secret == b.secret &&
          a.mentions == b.mentions && a.mentions_off == b.mentions_off &&
-         a.reactions == b.reactions &&
+         a.reactions == b.reactions && a.draft == b.draft &&
          (timed ? gap <= 2 : a.muted_until == b.muted_until);
 }
 
@@ -83,6 +84,8 @@ struct Chat {
   std::int64_t pinned = 0;  // 0 not pinned, else the main list's chatPosition.order (a pinned chat's follows the pin order)
   std::int64_t read_inbox = 0;   // last_read_inbox_message_id_
   std::int64_t read_outbox = 0;
+  std::string draft;  // the text of the chat's draft (draftMessageContentText), "" for none or another kind
+  std::int64_t draft_date = 0;  // when the draft was written, 0 for none: the chat sorts by it when it is newer (TDLib's order)
   bool dirty = false;
   enum class Stored { Unknown, Present, Absent } stored = Stored::Unknown;  // is there a row, and what is in it
   Row written;                                                              // valid when Present
@@ -154,6 +157,14 @@ void touch(Chat &c) {
 }
 
 }  // namespace
+
+std::string draft_text(const td_api::draftMessage *d) {
+  if (!d || !d->content_ || d->content_->get_id() != td_api::draftMessageContentText::ID) {
+    return "";
+  }
+  const auto &t = static_cast<const td_api::draftMessageContentText &>(*d->content_);
+  return t.text_ ? t.text_->text_ : "";
+}
 
 // Writes the chat's row again at the next flush: our own id has come (Saved Messages' name, chats announced before
 // getMe answered were written with ours), or chat.clear emptied the history (`emptied`: the preview goes).
@@ -235,6 +246,11 @@ void set_list(Chat &c, const td_api::ChatList &list, bool member) {
   }
 }
 
+void set_draft(Chat &c, const td_api::draftMessage *d) {
+  c.draft = draft_text(d);
+  c.draft_date = c.draft.empty() ? 0 : d->date_;
+}
+
 void set_mute(Chat &c, const td_api::chatNotificationSettings &n) {
   c.use_default_mute = n.use_default_mute_for_;
   c.mute_for = n.mute_for_;
@@ -305,6 +321,7 @@ void new_chat(const td_api::chat &t) {
     messages_queue(*t.last_message_);  // so a chat never opened still paints its newest message at once
   }
   set_photo(c, t.photo_.get());
+  set_draft(c, t.draft_message_.get());
   touch(c);
 }
 
@@ -501,6 +518,8 @@ Row row_of(const Chat &c) {
   r.mentions = c.mentions;
   r.reactions = c.reactions;
   r.mentions_off = (c.use_default_mentions ? scope_mentions_off[scope_of(c.kind)] : c.mentions_off) ? 1 : 0;
+  r.draft = c.draft;  // whole: the composer takes it back
+  r.last_ts = std::max(r.last_ts, c.draft_date);  // a newer draft lifts the chat, as Telegram's list
   return r;
 }
 
@@ -508,8 +527,8 @@ bool prepare() {
   if (insert_row.empty()) {
     insert_row = db.prepare(
         "INSERT OR REPLACE INTO chats(jid, kind, name, photo, last_ts, last_preview, last_out, last_state, unread, "
-        "muted_until, pinned, archived, read_inbox, forum, secret, mentions, mentions_off, reactions, translate) "
-        "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, "
+        "muted_until, pinned, archived, read_inbox, forum, secret, mentions, mentions_off, reactions, draft, translate) "
+        "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, "
         "COALESCE((SELECT translate FROM chats WHERE jid = ?1), ''))");
   }
   if (delete_row.empty()) {
@@ -518,7 +537,7 @@ bool prepare() {
   if (select_row.empty()) {
     select_row = db.prepare(
         "SELECT kind, name, photo, last_ts, last_preview, last_out, last_state, unread, muted_until, pinned, "
-        "archived, read_inbox, forum, secret, mentions, mentions_off, reactions FROM chats WHERE jid = ?1");
+        "archived, read_inbox, forum, secret, mentions, mentions_off, reactions, draft FROM chats WHERE jid = ?1");
   }
   return !insert_row.empty() && !delete_row.empty() && !select_row.empty();
 }
@@ -552,6 +571,7 @@ td::Status load_row(Chat &c) {
     r.mentions = s.view_int32(14);
     r.mentions_off = s.view_int32(15);
     r.reactions = s.view_int32(16);
+    r.draft = s.view_datatype(17) == td::SqliteStatement::Datatype::Null ? "" : s.view_string(17).str();
     c.stored = Chat::Stored::Present;
   }
   select_row.reset();
@@ -580,6 +600,7 @@ td::Status write_row(const Chat &c, const Row &r) {
   TRY_STATUS(s.bind_int32(16, r.mentions));
   TRY_STATUS(s.bind_int32(17, r.mentions_off));
   TRY_STATUS(s.bind_int32(18, r.reactions));
+  TRY_STATUS(r.draft.empty() ? s.bind_null(19) : s.bind_string(19, r.draft));
   auto status = s.step();
   s.reset();
   return status;
@@ -753,6 +774,15 @@ void chats_update(td_api::Object &update) {
       auto &u = static_cast<td_api::updateNewChat &>(update);
       if (u.chat_) {
         new_chat(*u.chat_);
+      }
+      break;
+    }
+    case td_api::updateChatDraftMessage::ID: {
+      auto &u = static_cast<td_api::updateChatDraftMessage &>(update);
+      if (Chat *c = find(u.chat_id_)) {
+        set_draft(*c, u.draft_message_.get());
+        set_positions(*c, u.positions_);
+        touch(*c);
       }
       break;
     }

@@ -93,6 +93,9 @@ public:
     Q_INVOKABLE void edit(const QVariantMap &msg);
     // Ends a reply or an edit.
     Q_INVOKABLE void cancelReply();
+    // Keeps the composer's text, with the message it replies to, as Telegram's draft of the chat, topic or thread, when it
+    // differs from the draft there ('' or blanks remove it). Not while editing a message.
+    Q_INVOKABLE void saveDraft(const QString &text);
     // The reply's message id, "" when not replying: a file sent as the reply carries it (step 6.4).
     Q_INVOKABLE QString quoteId() const { return m_quoteId; }
     Q_INVOKABLE void copy(const QString &text);
@@ -156,6 +159,10 @@ signals:
     void threadFound(const QString &chat, const QString &thread, const QString &name);
     // openThread() was refused or failed.
     void threadFailed();
+    // The draft found at open() (draft.get): its text and, when it replies to a message, that message as reply() takes it.
+    void draftFound(const QString &text, const QVariantMap &reply);
+    // The app went to the background (a thumbnail): the page keeps its draft then too, as an app closed from there never pops it.
+    void minimised();
     // The answer to find(): the ids of the messages found, a list of strings, newest first; empty when none matched or the
     // search failed.
     void found(const QVariant &ids);
@@ -217,6 +224,9 @@ private:
     QString m_threadId; // the msg.thread request we wait for
     QString m_findId; // the chat.find request we wait for (a newer one makes an older reply stale)
     QString m_mentionId; // the chat.mention or chat.reaction request we wait for (one at a time)
+    QString m_draftId; // the draft.get request we wait for
+    QString m_draftText; // the draft Telegram has, as found or last saved: saveDraft sends only a change
+    QString m_draftQuote; // and the message it replies to, "" for none
     int m_mentions;
     int m_reactions;
     QString m_participants; // "N participants", the status line of a group

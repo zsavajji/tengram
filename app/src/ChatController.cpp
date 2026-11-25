@@ -154,6 +154,16 @@ void ChatController::onReplied(const QString &id, const QString &cmd, const QVar
             emit unreadFound(found);
         return;
     }
+    if (cmd == "draft.get" && id == m_draftId) {
+        m_draftId.clear();
+        const QVariantMap r = result.toMap();
+        const QVariantMap reply = r["reply"].toMap();
+        m_draftText = r["text"].toString();
+        m_draftQuote = reply["id"].toString();
+        if (!m_draftText.isEmpty())
+            emit draftFound(m_draftText, reply);
+        return;
+    }
     if (cmd == "chat.pins" && id == m_pinsId) {
         emit pinsReady(Pins::previews(m_jid, result.toMap()["ids"].toStringList()));
         return;
@@ -312,6 +322,10 @@ void ChatController::open(const QVariantMap &chat, int topic, const QString &thr
     m_engine->setOpenChat(m_jid);
     readMentions();
     sendOpen();
+    QVariantMap draft;
+    draft["chat"] = m_jid;
+    addTopic(draft);
+    m_draftId = m_engine->requestQuiet("draft.get", draft);
     askGroupInfo();
     // A chat with unread messages opens at the first one, not at the newest, and is read once the list's
     // bottom is on screen: the page says so (setAtBottom) when it has positioned the list. Not before.
@@ -381,6 +395,8 @@ void ChatController::onFullscreenChanged()
         cancelVoice();
         emit voiceCancelled();
     }
+    if (m_engine && !m_engine->fullscreen())
+        emit minimised();
     if (!m_engine || !m_engine->connected())
         return;
     if (m_engine->fullscreen()) {
@@ -566,6 +582,26 @@ void ChatController::cancelReply()
     emit replyChanged();
 }
 
+void ChatController::saveDraft(const QString &text)
+{
+    if (!m_engine || !m_messages || editing())
+        return;
+    const QString t = text.trimmed().isEmpty() ? QString() : text;
+    const QString quote = t.isEmpty() ? QString() : m_quoteId;
+    if (t == m_draftText && quote == m_draftQuote)
+        return;
+    QVariantMap args;
+    args["chat"] = m_jid;
+    addTopic(args);
+    args["text"] = t;
+    if (!quote.isEmpty())
+        args["quote"] = quote;
+    if (m_engine->requestQuiet("draft.set", args).isEmpty())
+        return;
+    m_draftText = t;
+    m_draftQuote = quote;
+}
+
 void ChatController::copy(const QString &text)
 {
     bb::system::Clipboard clipboard;
@@ -630,6 +666,8 @@ void ChatController::composing(const QString &text)
         setComposing(false);
         return;
     }
+    if (!m_composing && text == m_draftText)
+        return; // the draft put in the composer at the open: not typing
     if (!m_composing || !m_composeRepeat.isActive())
         setComposing(true);
     m_composePause.start();

@@ -370,7 +370,13 @@ void ChatRow::show(const QVariantMap &chat)
     // app's fixed primary (Settings.cpp).
     // ponytail: the first ": " is taken for the sender's; a service line holding ": " would colour its start. An engine sender field fixes it.
     const int colon = m_chat.value("kind").toInt() == 1 ? line.indexOf(": ") : -1;
-    if (colon > 0) {
+    // A draft takes the line, "Draft:" in red, as Telegram's list.
+    const QString draft = str("draft").simplified();
+    if (!draft.isEmpty()) {
+        m_preview->setTextFormat(TextFormat::Html);
+        m_preview->setText("<span style=\"color:#E53935\">" + Markup::escaped(tr("Draft:")) + "</span> "
+                           + Markup::escaped(Card::noKeycaps(draft)));
+    } else if (colon > 0) {
         const QString rest = line.mid(colon + 2);
         const QString restHtml = Markup::html(rest);
         m_preview->setTextFormat(TextFormat::Html);

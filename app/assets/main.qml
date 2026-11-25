@@ -249,6 +249,9 @@ NavigationPane {
             if (page.filtersChats) {
                 at(0).closeSearch() // the share page's field filtered the chat list's model
             }
+            if (page.leaving) {
+                page.leaving() // a chat keeps what its composer holds as Telegram's draft
+            }
             page.destroy()
         }
     }

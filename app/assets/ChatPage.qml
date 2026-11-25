@@ -71,7 +71,27 @@ Page {
             page.reactBar() // its own failedCmd words these (ReactBar.qml)
         }
     }
+    // Telegram's draft of the chat, topic or thread (ChatController's draft.get): it fills the composer, with its reply, unless
+    // something was typed, quoted or put in edit meanwhile.
+    function fillDraft(text, reply) {
+        if (composerBar.readOnly || composer.text != "" || ctl.editing || ctl.quoteId() != "") {
+            return
+        }
+        composer.text = text
+        composer.editor.cursorPosition = text.length
+        if (reply.id) ctl.reply(reply)
+    }
+    // What the composer holds goes back as the draft (ctl.saveDraft sends only a change): at the pop (main.qml's leaving) and
+    // when the app goes to the background, since an app closed from there never pops the page.
+    function keepDraft() {
+        if (!composerBar.readOnly) ctl.saveDraft(composer.text)
+    }
+    function leaving() {
+        keepDraft()
+    }
     onChatChanged: {
+        ctl.draftFound.connect(page.fillDraft) // before open(), which asks for it
+        ctl.minimised.connect(page.keepDraft)
         ctl.open(chat, topic, thread)
         // The list starts hidden (listHidden): the guard shows it whatever happens, from the open on.
         revealGuard.start()

@@ -45,6 +45,7 @@ struct Row {
   std::string last_preview;
   int last_out = 0;
   std::int64_t muted_until = 0;
+  std::string draft;  // the topic's draft text, "" is NULL
   bool operator==(const Row &) const = default;
 };
 
@@ -85,6 +86,10 @@ bool row_of(std::int64_t chat, const td_api::forumTopic &t, Row &r) {
     r.last_out = m->is_outgoing_;
   }
   r.muted_until = t.notification_settings_ ? topic_muted_until(*t.notification_settings_) : 0;
+  r.draft = draft_text(t.draft_message_.get());
+  if (!r.draft.empty()) {
+    r.last_ts = std::max<std::int64_t>(r.last_ts, t.draft_message_->date_);  // as a chat's (ord counts the draft already)
+  }
   return true;
 }
 
@@ -94,8 +99,8 @@ enum Stmt { kInsert, kDelete, kIds, kChats, kStmts };
 
 const char *const kSql[kStmts] = {
     "INSERT OR REPLACE INTO topics(chat, topic, name, color, general, pinned, closed, hidden, ord, unread, mentions, "
-    "read_inbox, last_id, last_ts, last_preview, last_out, muted_until, reactions) "
-    "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+    "read_inbox, last_id, last_ts, last_preview, last_out, muted_until, reactions, draft) "
+    "VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)",
     "DELETE FROM topics WHERE chat = ?1 AND topic = ?2",
     "SELECT topic FROM topics WHERE chat = ?1",
     "SELECT DISTINCT chat FROM topics",
@@ -146,6 +151,7 @@ td::Status write_row(const Row &r) {
   TRY_STATUS(s.bind_int32(16, r.last_out));
   TRY_STATUS(s.bind_int64(17, r.muted_until));
   TRY_STATUS(s.bind_int32(18, r.reactions));
+  TRY_STATUS(r.draft.empty() ? s.bind_null(19) : s.bind_string(19, r.draft));
   auto status = s.step();
   s.reset();
   return status;

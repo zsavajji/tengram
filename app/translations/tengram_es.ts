@@ -973,6 +973,10 @@
 <context>
     <name>ChatRow</name>
     <message>
+        <source>Draft:</source>
+        <translation>Borrador:</translation>
+    </message>
+    <message>
         <source>Mark as read</source>
         <translation>Marcar como leído</translation>
     </message>

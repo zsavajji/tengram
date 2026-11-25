@@ -972,6 +972,10 @@
 <context>
     <name>ChatRow</name>
     <message>
+        <source>Draft:</source>
+        <translation>Draf:</translation>
+    </message>
+    <message>
         <source>Mark as read</source>
         <translation>Tandai sudah dibaca</translation>
     </message>

@@ -132,7 +132,7 @@ void TopicModel::reload()
         return;
     QSqlQuery q(db);
     q.prepare("SELECT topic, name, color, general, pinned, closed, unread, last_ts, last_preview, muted_until, "
-              "(SELECT muted_until FROM chats WHERE jid = topics.chat) FROM topics WHERE chat = ? AND hidden = 0 "
+              "(SELECT muted_until FROM chats WHERE jid = topics.chat), draft FROM topics WHERE chat = ? AND hidden = 0 "
               "ORDER BY pinned DESC, CAST(ord AS INTEGER) DESC");
     q.addBindValue(m_chat);
     if (!q.exec()) {
@@ -158,6 +158,7 @@ void TopicModel::reload()
         row["initials"] = q.value(3).toInt() != 0 || name.isEmpty() ? QString("#") : firstChar(name);
         row["color"] = color ? QString("#%1").arg(color, 6, 16, QChar('0')).toUpper() : QString();
         row["preview"] = q.value(8).toString();
+        row["draft"] = q.value(11).toString(); // the topic's draft: ChatRow shows it in the preview's place
         row["out"] = false; // a topic has no delivery state: "You: …" says it
         row["unread"] = q.value(6).toInt();
         row["muted"] = mute > now || (mute == 0 && q.value(10).toLongLong() > now);

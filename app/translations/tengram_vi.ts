@@ -972,6 +972,10 @@
 <context>
     <name>ChatRow</name>
     <message>
+        <source>Draft:</source>
+        <translation>Bản nháp:</translation>
+    </message>
+    <message>
         <source>Mark as read</source>
         <translation>Đánh dấu đã đọc</translation>
     </message>

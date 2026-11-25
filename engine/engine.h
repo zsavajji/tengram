@@ -108,6 +108,8 @@ bool user_color(std::int64_t user_id, int &color);
 // service messages ("Anna joined") and the calls: their previews take no name either.
 std::string message_body(const td_api::message &m, bool &is_service);
 bool call_missed(const td_api::message &m);  // m is a messageCall we did not place and nobody answered
+// A draft's text (draftMessageContentText); "" for none or another kind (a voice or video note).
+std::string draft_text(const td_api::draftMessage *d);
 std::string sender_name(const td_api::message &m);  // the sender's first name or the sender chat's title; "" unknown
 
 // messages.cpp: the `messages` table. Rows are queued and written by flush(), which then calls the other two.

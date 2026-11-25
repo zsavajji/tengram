@@ -10,7 +10,7 @@ When the code changes, this file changes with it.
 | file | what |
 |---|---|
 | `db/`, `files/` | TDLib's own database and files. Only the engine touches them. |
-| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2 to 9 are migrated in place to 10; the step to 4 empties `messages`, the step to 5 drops the unused `reactions` and `poll_votes` tables, the step to 6 adds `chats.secret`, the step to 7 `people`, the step to 8 `chats.mentions` and the step to 9 `chats.mentions_off`, `chats.reactions` and `topics.reactions` and the step to 10 `messages.tr`, `messages.tr_lang` and `chats.translate`, see *chats.db* and *Translation*), or `db.key` is new. |
+| `chats.db` | What the UI shows, written by the engine, read by the UI. SQLCipher 4, WAL. A cache: the engine deletes and rebuilds it when it can't be opened, its `user_version` isn't the engine's (versions 2 to 10 are migrated in place to 11; the step to 4 empties `messages`, the step to 5 drops the unused `reactions` and `poll_votes` tables, the step to 6 adds `chats.secret`, the step to 7 `people`, the step to 8 `chats.mentions` and the step to 9 `chats.mentions_off`, `chats.reactions` and `topics.reactions` and the step to 10 `messages.tr`, `messages.tr_lang` and `chats.translate` and the step to 11 `chats.draft` and `topics.draft`, see *chats.db* and *Translation*), or `db.key` is new. |
 | `db.key` | The key of both databases: 64 hex characters (32 bytes read from `/dev/random` at the first launch), mode 0600. The engine hands it to TDLib as its database key; the UI opens `chats.db` with `PRAGMA key = "x'<the 64 characters>'"` (a raw key: no key derivation). There is no setting to turn encryption off and no passcode. |
 | `engine.json` | `{"port": 41234, "token": "<32 hex characters>"}`, mode 0600, written as a temporary file and renamed, new at every start, removed at a clean stop. |
 
@@ -59,6 +59,8 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.read` | `chat`; optional `upto` (a message id), `topic` or `thread` | — | |
 | `chat.mention`, `chat.reaction` | `chat`; optional `topic` | `{id}` | |
 | `chat.typing` | `chat`, `on` (bool); optional `topic` or `thread` | — | |
+| `draft.get` | `chat`; optional `topic` or `thread` | `{text, reply?}` | Telegram's draft of the chat, the forum topic or the comment thread: `text` ("" for none, or for a draft that is not a text), and `reply` `{id, out, sender, text}`, the message it replies to as the reply bar shows it, when TDLib still has it |
+| `draft.set` | `chat`, `text` (plain; "" removes it: the UI sends "" for blanks); optional `quote` (a message id: the reply), `topic` or `thread` | — | Kept by Telegram for every client (`setChatDraftMessage`); formatting is not kept. `chats.draft` or `topics.draft` follows. A sent message clears its chat's or topic's draft (`msg.send`'s `clear_draft`) |
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool), `translate` (a language code, or "" for off: see *Translation*); at least one | — | |
 | `chat.readAll` | none (no `chat`) | — | |
 | `chat.pinOrder` | `ids` (the main list's pinned chats, as strings, in their new order, top first; at least one; no `chat`) | — | |
@@ -976,7 +978,7 @@ read on another device, and the delay while another device is in use are all Tel
 ## chats.db, as the UI reads it
 
 HyperBerry's tables and columns (`../hyperberry/docs/protocol.md`, *chats.db, as the UI reads
-it*), with these meanings for Telegram. `user_version` is 10. A file at version 2 to 9 is migrated in place when the engine starts;
+it*), with these meanings for Telegram. `user_version` is 11. A file at version 2 to 10 is migrated in place when the engine starts;
 the step from 3 to 4 adds `chats.forum`, `messages.topic` and `topics`, and **empties `messages`**:
 the old rows have no topic, and the table is a cache that TDLib refills (the engine writes each chat's newest message again
 when it starts, and a page of history when the UI opens a chat). `chats` and its rows stay. The step from 4 to 5 **drops the
@@ -988,7 +990,7 @@ tells it of users, so a group's messages from a user it has not written yet have
 7 to 8 adds `chats.mentions`, 0 in every old row until the engine writes the row again (the next start does, for every chat whose
 count is not 0). The step from 8 to 9 adds `chats.mentions_off`, `chats.reactions` and `topics.reactions`; version 8's `mentions` was 0 while
 the chat's mention notifications were off. The next start writes the chat rows that differ; a topic's row has 0 reactions
-until the UI next lists the forum's topics. The step from 9 to 10 adds `messages.tr` and `tr_lang` (NULL: not asked yet) and `chats.translate` ('' in every row), see *Translation*.
+until the UI next lists the forum's topics. The step from 9 to 10 adds `messages.tr` and `tr_lang` (NULL: not asked yet) and `chats.translate` ('' in every row), see *Translation*. The step from 10 to 11 adds `chats.draft` and `topics.draft`, NULL until the engine writes the row again (the next start does for each chat with a draft; a topic's row at its next fetch).
 
 **`chats`:** one row per chat in Telegram's main or archived chat list, and no others.
 
@@ -998,7 +1000,7 @@ until the UI next lists the forum's topics. The step from 9 to 10 adds `messages
 | `kind` | 0 a person (private and secret chats), 1 a group (basic groups and supergroups), 3 a channel |
 | `name` | the title |
 | `photo` | the absolute path of the small chat photo once TDLib has downloaded it, NULL before |
-| `last_ts`, `last_preview`, `last_out`, `last_state` | the newest message: unix seconds (0 when the chat is empty), the one-line preview ("You: hi", "Anna: Photo"; no name in a 1:1 chat or a channel), ours or not, its state |
+| `last_ts`, `last_preview`, `last_out`, `last_state` | the newest message: unix seconds (0 when the chat is empty; the draft's when it is newer, so a chat sorts as in Telegram's list and shows the draft's time), the one-line preview ("You: hi", "Anna: Photo"; no name in a 1:1 chat or a channel), ours or not, its state |
 | `unread` | the unread count; -1 for a chat marked unread with none |
 | `muted_until` | unix seconds; 0 not muted; 2^40 muted forever |
 | `pinned` | 0 when not pinned in the main list, else the position's `order` TDLib gives the chat there (an int64, near 2^63, larger is higher): a pinned chat's order follows the order the user gave the pins, not its last message, so `ORDER BY pinned DESC, last_ts DESC` lists the pins in their order and then the rest by time. A row written before the order was kept holds 1 until the engine next writes it (every pinned chat gets its position from TDLib at the next start, which writes the row); the tie falls back to `last_ts` |
@@ -1008,6 +1010,7 @@ until the UI next lists the forum's topics. The step from 9 to 10 adds `messages
 | `mentions` | the unread messages that mention us or reply to ours (TDLib's `unread_mention_count`). A mention is read only when its own message is viewed (`chat.mention`), not by `chat.read` |
 | `reactions` | our messages with reactions we have not seen (TDLib's `unread_reaction_count`), read only when that message is viewed (`chat.reaction`) |
 | `translate` | the language the chat's incoming messages are shown in (`chat.set`'s `translate`); '' when off. Never rewritten by the engine's own row writes, only by `chat.set` |
+| `draft` | the chat's draft, the whole text (Telegram's, written by any client; `draft.set` sets it, `draft.get` gives its reply too), NULL when none or not a text |
 | `mentions_off` | 1 while the chat's mention notifications are off (its own setting, or its kind's default), else 0. A muted chat's `mentions` notify (the Hub) unless this is 1; the Active Frame counts them for a muted chat in place of `unread` |
 | `secret` | 0 for any chat that is not a secret chat; for a secret chat 1 pending, 2 ready, 3 closed (see *Secret chats*); a `chats` event names the row when it changes. 0 in a database that was at `user_version` 5 until the engine next writes the row (no old row is a secret chat) |
 
@@ -1102,8 +1105,9 @@ current by the engine. Only chats with `chats.forum` 1 have rows.
 | `mentions` | the unread messages with a mention of us or a reply to us |
 | `reactions` | our messages in the topic with reactions we have not seen (0 in a row written before `user_version` 9) |
 | `read_inbox` | the id of the newest incoming message read in the topic; 0 when none |
-| `last_id`, `last_ts`, `last_preview`, `last_out` | the newest message: its id (text; NULL with `last_preview` when the topic has none), unix seconds (0 when none), the one-line preview as a group's chat list shows it ("Anna: Photo", "You: hi"), ours or not |
+| `last_id`, `last_ts`, `last_preview`, `last_out` | the newest message: its id (text; NULL with `last_preview` when the topic has none), unix seconds (0 when none; the draft's when it is newer, as `chats.last_ts`), the one-line preview as a group's chat list shows it ("Anna: Photo", "You: hi"), ours or not |
 | `muted_until` | the topic's own mute, as `chats.muted_until` (unix seconds; 0 not muted; 2^40 forever). A topic that follows the chat's setting has 0, and so does one unmuted on purpose in a muted chat: a topic is muted when this is in the future or, when it is 0, when `chats.muted_until` is |
+| `draft` | the topic's draft, the whole text, NULL when none or not a text (`draft.set` with `topic`) |
 
 A notice's `text` is `call`, `video_call`, `missed_call` or `missed_video_call`.
 `deleted`, `media` and `starred` are unused (0 or NULL).

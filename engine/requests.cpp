@@ -1444,9 +1444,88 @@ bool regular_file(const std::string &path, std::int64_t &size) {
   return true;
 }
 
+// ---- draft.get and draft.set: Telegram's draft of a chat, a forum topic or a comment thread, kept for every client
+
+// {text, reply?}: reply is the message the draft replies to as the reply bar shows it ({id, out, sender, text}), when it
+// is in this chat and TDLib still has it.
+void draft_answer(std::uint64_t conn, const std::string &id, std::int64_t chat, const td_api::draftMessage *d) {
+  const std::string text = draft_text(d);
+  std::int64_t quote = 0;
+  if (!text.empty() && d->reply_to_ && d->reply_to_->get_id() == td_api::inputMessageReplyToMessage::ID) {
+    quote = static_cast<const td_api::inputMessageReplyToMessage &>(*d->reply_to_).message_id_;
+  }
+  auto send = [conn, id, text](const td_api::message *m) {
+    server.reply_ok(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
+                      r("text", text);
+                      if (m) {
+                        bool service = false;
+                        const std::string body = one_line(message_body(*m, service));
+                        r("reply", td::json_object([&](auto &q) {
+                            q("id", std::to_string(m->id_));
+                            q("out", td::JsonBool(m->is_outgoing_));
+                            q("sender", sender_name(*m));
+                            q("text", body);
+                          }));
+                      }
+                    })));
+  };
+  if (quote == 0) {
+    return send(nullptr);
+  }
+  tdlib.send(make_object<td_api::getMessage>(chat, quote), [send](Obj o) {
+    send(as_error(o) ? nullptr : static_cast<const td_api::message *>(o.get()));
+  });
+}
+
+void draft_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  std::int32_t topic = -1;
+  std::int64_t thread = 0;
+  if (!topic_thread_fields(conn, id, req, topic, thread)) {
+    return;
+  }
+  auto got = [conn, id, chat, topic, thread](Obj o) {
+    if (auto e = as_error(o)) {
+      say("td error: %d %s", e->code_, e->message_.c_str());
+      return reply_td_error(conn, id, *e);
+    }
+    const td_api::draftMessage *d = thread > 0  ? static_cast<td_api::messageThreadInfo &>(*o).draft_message_.get()
+                                    : topic > 0 ? static_cast<td_api::forumTopic &>(*o).draft_message_.get()
+                                                : static_cast<td_api::chat &>(*o).draft_message_.get();
+    draft_answer(conn, id, chat, d);
+  };
+  if (thread > 0) {
+    tdlib.send(make_object<td_api::getMessageThread>(chat, thread), got);
+  } else if (topic > 0) {
+    tdlib.send(make_object<td_api::getForumTopic>(chat, topic), got);
+  } else {
+    tdlib.send(make_object<td_api::getChat>(chat), got);
+  }
+}
+
+// text '' removes the draft; quote, a message id, is the message it replies to. Plain text: formatting isn't kept.
+void draft_set(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
+  auto text = string_field(req, "text");
+  if (text.is_error()) {
+    return bad_request(conn, id, "need the field text, a string ('' removes the draft)");
+  }
+  td_api::object_ptr<td_api::InputMessageReplyTo> reply;
+  std::int32_t topic = -1;
+  std::int64_t thread = 0;
+  if (!quote_field(conn, id, req, reply) || !topic_thread_fields(conn, id, req, topic, thread)) {
+    return;
+  }
+  td_api::object_ptr<td_api::draftMessage> draft;
+  if (!text.ok().empty()) {
+    draft = make_object<td_api::draftMessage>(
+        std::move(reply), 0, make_object<td_api::draftMessageContentText>(plain_text(text.ok()), nullptr), 0, nullptr);
+  }
+  tdlib.send(make_object<td_api::setChatDraftMessage>(chat, topic_object(topic, thread), std::move(draft)),
+             [conn, id](Obj o) { answer(conn, id, o); });
+}
+
 bool requests_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req) {
   static const char *const ours[] = {"chat.open", "chat.history", "chat.newer", "chat.pins", "chat.find", "chat.close",
-                                     "chat.read", "chat.typing", "chat.set", "msg.send", "media.send", "media.album", "msg.delete",
+                                     "chat.read", "chat.typing", "chat.set", "draft.get", "draft.set", "msg.send", "media.send", "media.album", "msg.delete",
                                      "msg.edit", "msg.forward", "msg.react", "msg.reactions", "msg.thread", "poll.vote",
                                      "media.get", "media.cancel", "chat.mention", "chat.reaction"};
   if (std::find(std::begin(ours), std::end(ours), cmd) == std::end(ours)) {
@@ -1527,6 +1606,10 @@ bool requests_handle(std::uint64_t conn, const std::string &id, const std::strin
                [conn, id](Obj o) { answer(conn, id, o); });
   } else if (cmd == "chat.set") {
     chat_set(conn, id, req, chat);
+  } else if (cmd == "draft.get") {
+    draft_get(conn, id, req, chat);
+  } else if (cmd == "draft.set") {
+    draft_set(conn, id, req, chat);
   } else if (cmd == "msg.send") {
     msg_send(conn, id, req, chat);
   } else if (cmd == "media.send") {
