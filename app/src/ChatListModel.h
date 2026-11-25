@@ -95,7 +95,9 @@ class ChatListModel : public bb::cascades::DataModel
     Q_PROPERTY(bool empty READ empty NOTIFY emptyChanged)
     // The Active Frame's rows (step 5.2): what is unread in 1:1 chats, groups and channels ([0], [1], [2]), an
     // unmuted chat's unread messages and a muted one's unread mentions and replies to us (what the Hub
-    // notifies), and those chats' names, newest first. Only recomputed while the app isn't fullscreen.
+    // notifies), and those chats' names, newest first; [3], the Passport's fourth row, the missed calls not yet read
+    // (kind 13, text missed_*, above the chat's read_inbox) and their callers. Only recomputed while the app isn't
+    // fullscreen. unreadTotal counts the first three: a missed call is a 1:1 chat's unread message too.
     Q_PROPERTY(int unreadTotal READ unreadTotal NOTIFY frameChanged)
     Q_PROPERTY(QVariantList frameCounts READ frameCounts NOTIFY frameChanged)
     Q_PROPERTY(QStringList frameNames READ frameNames NOTIFY frameChanged)

@@ -173,6 +173,12 @@ Page {
         spareTimer.interval = page.spareLater ? 700 : 2000
         page.spareLater = true
         spareTimer.start()
+        refocus()
+    }
+    // The Passport's keyboard scrolls the list (ChatList.qml): it takes the focus when the page is the top one, and again
+    // when the page that was over it is gone (main.qml's onPopTransitionEnded), which may have kept it till then.
+    function refocus() {
+        if (screenWidth >= 1440) list.requestFocus()
     }
     // Telegram's search, on a page of its own (the user's ask, 2026-11-19); the filter is the Send to page's now.
     function openSearch() {
@@ -270,6 +276,7 @@ Page {
             verticalAlignment: VerticalAlignment.Fill
             ChatList {
                 id: list
+                refocusOnTouch: screenWidth >= 1440 && nav.top == page
                 dataModel: chats
                 emojiStyle: nav.emojiStyle
                 bodySize: nav.bodySize

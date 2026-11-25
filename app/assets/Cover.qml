@@ -22,6 +22,11 @@ SceneCover {
     property bool grey: !bright && settings.darkGrey
     property variant line: bright ? Color.create("#D0D0D0") : Color.create("#464646")
     property bool idle: chats.unreadTotal == 0
+    // The Passport (1440 px): its frame is 440 x 486 (440 x 195 short), and the Q10's sizes looked small there (the user,
+    // 2026-11-25). Glyph, type and spacing are k times the Q10's, and the rows fill the frame; the other phones keep 1.
+    property real k: screenWidth >= 1440 ? 1.35 : 1
+    // The text grows less than the rest: at 1.35 it was a little too big (the user, 2026-11-25).
+    property real kt: k > 1 ? 1.2 : 1
     content: Container {
         background: grey ? Color.create("#181818") : idle ? (bright ? Color.White : Color.Black) : panel
         preferredWidth: 310
@@ -34,24 +39,26 @@ SceneCover {
             visible: idle
             horizontalAlignment: HorizontalAlignment.Left
             verticalAlignment: VerticalAlignment.Top
-            leftPadding: 18
-            topPadding: 17
+            leftPadding: 18 * k
+            topPadding: 17 * k
             ImageView {
                 imageSource: "asset:///images/cover_glyph.png"
                 filterColor: accent
+                preferredWidth: 64 * k
+                preferredHeight: 64 * k
             }
         }
         Container {
             visible: idle
             horizontalAlignment: HorizontalAlignment.Left
             verticalAlignment: VerticalAlignment.Bottom
-            leftPadding: 18
-            bottomPadding: 20
+            leftPadding: 18 * k
+            bottomPadding: 20 * k
             Label {
                 text: engine.linked ? qsTr("All caught up") : "Tengram"
                 textStyle.base: SystemDefaults.TextStyles.BodyText
                 textStyle.fontSize: FontSize.PercentageValue
-                textStyle.fontSizeValue: 95
+                textStyle.fontSizeValue: 95 * kt
                 textStyle.color: ink
                 topMargin: 0
                 bottomMargin: 0
@@ -61,10 +68,10 @@ SceneCover {
                 textStyle.base: SystemDefaults.TextStyles.SmallText
                 textStyle.fontSize: FontSize.PercentageValue
                 // 47: at 55 HyperBerry's Italian line ran to the frame's edge.
-                textStyle.fontSizeValue: 47
+                textStyle.fontSizeValue: 47 * kt
                 textStyle.fontWeight: FontWeight.Bold
                 textStyle.color: quiet
-                topMargin: 4
+                topMargin: 4 * k
                 bottomMargin: 0
             }
         }
@@ -73,6 +80,8 @@ SceneCover {
             visible: !idle
             preferredWidth: 310
             preferredHeight: 211
+            horizontalAlignment: k > 1 ? HorizontalAlignment.Fill : HorizontalAlignment.Left
+            verticalAlignment: k > 1 ? VerticalAlignment.Fill : VerticalAlignment.Top
             layout: StackLayout {
             }
             CoverRow {
@@ -83,10 +92,14 @@ SceneCover {
                 quiet: cover.quiet
                 accent: cover.accent
                 emojiStyle: nav.emojiStyle
+                k: cover.k
+                kt: cover.kt
             }
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
-                preferredHeight: 2
+                // Fixed: the rows' share of the height squeezed it away (the user, 2026-11-25: no separators).
+                minHeight: 2
+                maxHeight: 2
                 background: line
                 topMargin: 0
                 bottomMargin: 0
@@ -99,10 +112,14 @@ SceneCover {
                 quiet: cover.quiet
                 accent: cover.accent
                 emojiStyle: nav.emojiStyle
+                k: cover.k
+                kt: cover.kt
             }
             Container {
                 horizontalAlignment: HorizontalAlignment.Fill
-                preferredHeight: 2
+                // Fixed: the rows' share of the height squeezed it away (the user, 2026-11-25: no separators).
+                minHeight: 2
+                maxHeight: 2
                 background: line
                 topMargin: 0
                 bottomMargin: 0
@@ -115,6 +132,30 @@ SceneCover {
                 quiet: cover.quiet
                 accent: cover.accent
                 emojiStyle: nav.emojiStyle
+                k: cover.k
+                kt: cover.kt
+            }
+            // The Passport's frame has room for a fourth: the missed calls not yet read (the user, 2026-11-25).
+            Container {
+                visible: k > 1
+                horizontalAlignment: HorizontalAlignment.Fill
+                minHeight: 2
+                maxHeight: 2
+                background: line
+                topMargin: 0
+                bottomMargin: 0
+            }
+            CoverRow {
+                visible: k > 1
+                count: chats.frameCounts[3]
+                label: qsTr("Calls")
+                detail: chats.frameNames[3]
+                ink: cover.ink
+                quiet: cover.quiet
+                accent: cover.accent
+                emojiStyle: nav.emojiStyle
+                k: cover.k
+                kt: cover.kt
             }
         }
     }

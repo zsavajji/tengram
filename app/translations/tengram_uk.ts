@@ -4427,36 +4427,41 @@
     </message>
 </context>
 <context>
-    <name>cover</name>
+    <name>Cover</name>
     <message>
-        <location filename="../assets/cover.qml" line="51"/>
+        <location filename="../assets/Cover.qml" line="51"/>
         <source>All caught up</source>
         <translation>Усе прочитано</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="60"/>
+        <location filename="../assets/Cover.qml" line="60"/>
         <source>No new messages</source>
         <translation>Немає нових повідомлень</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="60"/>
+        <location filename="../assets/Cover.qml" line="60"/>
         <source>Not logged in</source>
         <translation>Вхід не виконано</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="80"/>
+        <location filename="../assets/Cover.qml" line="80"/>
         <source>Private chats</source>
         <translation>Особисті чати</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="96"/>
+        <location filename="../assets/Cover.qml" line="96"/>
         <source>Groups</source>
         <translation>Групи</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="112"/>
+        <location filename="../assets/Cover.qml" line="112"/>
         <source>Channels</source>
         <translation>Канали</translation>
+    </message>
+    <message>
+        <location filename="../assets/Cover.qml" line="140"/>
+        <source>Calls</source>
+        <translation>Дзвінки</translation>
     </message>
 </context>
 <context>

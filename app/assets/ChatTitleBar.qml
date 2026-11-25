@@ -146,13 +146,14 @@ TitleBar {
                     }
                 }
                 // The stock white handset, tinted with the primary colour as the bar's other live
-                // marks are; 45 px in an 81 px bar.
+                // marks are; 45 px in an 81 px bar. On the Passport (1440 px) 7 du, beside the picture's 8.6 (the user,
+                // 2026-11-25: small there).
                 ImageView {
                     verticalAlignment: VerticalAlignment.Center
                     imageSource: "file:///usr/share/icons/ic_phone.png"
                     filterColor: ui.palette.primary
-                    preferredWidth: ui.du(5)
-                    preferredHeight: ui.du(5)
+                    preferredWidth: ui.du(screenWidth >= 1440 ? 7 : 5)
+                    preferredHeight: ui.du(screenWidth >= 1440 ? 7 : 5)
                     scalingMethod: ScalingMethod.AspectFit
                 }
             }
@@ -162,8 +163,10 @@ TitleBar {
                 id: barTile
                 verticalAlignment: VerticalAlignment.Center
                 leftMargin: ui.du(1.5)
-                preferredWidth: ui.px(69)
-                preferredHeight: ui.px(69)
+                // 69 px; on the Passport (1440 px) 8.6 du, which is 69 px on the Q20: 69 px there was small (the user,
+                // 2026-11-25).
+                preferredWidth: screenWidth >= 1440 ? ui.du(8.6) : ui.px(69)
+                preferredHeight: screenWidth >= 1440 ? ui.du(8.6) : ui.px(69)
                 tint: bar.chat ? bar.chat.color : ""
                 initials: bar.chat ? bar.chat.initials : ""
                 photo: bar.photo

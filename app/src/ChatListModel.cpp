@@ -583,8 +583,8 @@ void ChatListModel::updateFrame()
     if (!db.isOpen())
         return;
     const qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
-    int counts[3] = {0, 0, 0};
-    QStringList names[3];
+    int counts[4] = {0, 0, 0, 0};
+    QStringList names[4];
     QSqlQuery q(db);
     // ponytail: the first 10 names a row are more than its one line holds.
     q.prepare("SELECT name, jid, kind, CASE WHEN muted_until > ? THEN (CASE WHEN mentions_off THEN 0 ELSE mentions END) "
@@ -603,9 +603,22 @@ void ChatListModel::updateFrame()
             }
         }
     }
+    // The missed calls still unread, by caller, newest first (the user, 2026-11-25: a calls row on the Passport's frame).
+    QSqlQuery calls(db);
+    if (calls.exec("SELECT c.name, c.jid, COUNT(*) FROM messages m JOIN chats c ON c.jid = m.chat "
+                   "WHERE m.kind = 13 AND m.out = 0 AND m.deleted = 0 AND m.text IN ('missed_call', 'missed_video_call') "
+                   "AND CAST(m.id AS INTEGER) > c.read_inbox GROUP BY m.chat ORDER BY MAX(m.ts) DESC")) {
+        while (calls.next()) {
+            counts[3] += calls.value(2).toInt();
+            if (names[3].size() < 10) {
+                const QString name = calls.value(0).toString();
+                names[3] << (name.isEmpty() ? calls.value(1).toString().section('@', 0, 0) : name);
+            }
+        }
+    }
     QVariantList frameCounts;
     QStringList frameNames;
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 4; ++i) {
         frameCounts << counts[i];
         frameNames << names[i].join(", ");
     }

@@ -101,57 +101,100 @@ Page {
                 id: field
                 hintText: qsTr("Search")
                 input.submitKey: SubmitKey.Search
+                // The Passport: Enter hands the focus to the results, so the keyboard's swipes scroll them (KeyboardScroll;
+                // the field keeps its touches while it has it). A tap on the field takes it back (the user, 2026-11-25).
+                input.onSubmitted: if (screenWidth >= 1440) results.requestFocus()
                 onTextChanging: {
                     page.typed = text
                     search.query = text
                 }
             }
-            // The people the user writes to most: a square tile and the first name, a tap opens the chat.
-            ListView {
-                property variant emojiStyle: nav.emojiStyle
-                property int smallSize: nav.smallSize
-                property string pressColor: nav.pressColor
-                property variant look: settings // the tiles' Shape (Tile.qml)
+            // The people the user writes to most: a tile and the first name, a tap opens the chat. The strip is as tall as a
+            // cell: the text size varies (the system's and Settings'), and a height made of the parts squeezed the tiles on
+            // the Passport and cut the names on the Q20 (the user, 2026-11-25). A hidden copy of a cell behind the strip, made
+            // as the cells are, gives the height; a cell in the list is squeezed with it, so it can't measure itself.
+            Container {
                 visible: page.typed == "" && search.hasTop
                 horizontalAlignment: HorizontalAlignment.Fill
-                preferredHeight: ui.du(15)
-                dataModel: search.top
-                layout: StackListLayout {
-                    orientation: LayoutOrientation.LeftToRight
+                minHeight: cellProbe.measured // not squeezed by the results under it
+                layout: DockLayout {}
+                Container {
+                    id: cellProbe
+                    property real measured: ui.du(19)
+                    opacity: 0
+                    topPadding: ui.du(1)
+                    bottomPadding: ui.du(1)
+                    Tile {
+                        minWidth: ui.du(11)
+                        maxWidth: ui.du(11)
+                        minHeight: ui.du(11)
+                        maxHeight: ui.du(11)
+                        bottomMargin: ui.du(0.5)
+                    }
+                    Label {
+                        text: "Mg"
+                        textStyle.base: nav.emojiStyle
+                        textStyle.fontSize: FontSize.PercentageValue
+                        textStyle.fontSizeValue: nav.smallSize
+                    }
+                    attachedObjects: LayoutUpdateHandler {
+                        onLayoutFrameChanged: cellProbe.measured = layoutFrame.height
+                    }
                 }
-                scrollIndicatorMode: ScrollIndicatorMode.None
-                onTriggered: page.open(dataModel.data(indexPath))
-                listItemComponents: ListItemComponent {
-                    type: ""
-                    Container {
-                        id: cell
-                        preferredWidth: ui.du(12)
-                        topPadding: ui.du(1)
-                        bottomPadding: ui.du(1)
-                        background: cell.ListItem.active ? Color.create(cell.ListItem.view.pressColor) : Color.Transparent
-                        Tile {
-                            horizontalAlignment: HorizontalAlignment.Center
-                            preferredWidth: ui.du(9)
-                            preferredHeight: ui.du(9)
-                            look: cell.ListItem.view.look
-                            tint: ListItemData.color
-                            initials: ListItemData.initials
-                            photo: ListItemData.photo || ""
-                            emojiStyle: cell.ListItem.view.emojiStyle
-                        }
-                        Label {
-                            horizontalAlignment: HorizontalAlignment.Fill
-                            text: ListItemData.first
-                            textFormat: TextFormat.Plain
-                            textStyle.base: cell.ListItem.view.emojiStyle
-                            textStyle.fontSize: FontSize.PercentageValue
-                            textStyle.fontSizeValue: cell.ListItem.view.smallSize
-                            textStyle.textAlign: TextAlign.Center
+                ListView {
+                    property variant emojiStyle: nav.emojiStyle
+                    property int smallSize: nav.smallSize
+                    property string pressColor: nav.pressColor
+                    property variant look: settings // the tiles' Shape (Tile.qml)
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    preferredHeight: cellProbe.measured
+                    minHeight: cellProbe.measured
+                    dataModel: search.top
+                    layout: StackListLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    scrollIndicatorMode: ScrollIndicatorMode.None
+                    onTriggered: page.open(dataModel.data(indexPath))
+                    listItemComponents: ListItemComponent {
+                        type: ""
+                        Container {
+                            id: cell
+                            preferredWidth: ui.du(15)
+                            topPadding: ui.du(1)
+                            bottomPadding: ui.du(1)
+                            background: cell.ListItem.active ? Color.create(cell.ListItem.view.pressColor) : Color.Transparent
+                            Tile {
+                                horizontalAlignment: HorizontalAlignment.Center
+                                minWidth: ui.du(11)
+                                maxWidth: ui.du(11)
+                                minHeight: ui.du(11)
+                                maxHeight: ui.du(11)
+                                bottomMargin: ui.du(0.5)
+                                look: cell.ListItem.view.look
+                                tint: ListItemData.color
+                                initials: ListItemData.initials
+                                photo: ListItemData.photo || ""
+                                emojiStyle: cell.ListItem.view.emojiStyle
+                            }
+                            Label {
+                                horizontalAlignment: HorizontalAlignment.Fill
+                                text: ListItemData.first
+                                textFormat: TextFormat.Plain
+                                textStyle.base: cell.ListItem.view.emojiStyle
+                                textStyle.fontSize: FontSize.PercentageValue
+                                textStyle.fontSizeValue: cell.ListItem.view.smallSize
+                                textStyle.textAlign: TextAlign.Center
+                            }
                         }
                     }
                 }
             }
             ListView {
+                id: results
+                focusPolicy: screenWidth >= 1440 ? FocusPolicy.Key : FocusPolicy.Default
+                eventHandlers: KeyboardScroll {
+                    list: results
+                }
                 // The rows reach the shared emoji style and sizes through the view, as the chat list's do.
                 property variant emojiStyle: nav.emojiStyle
                 property int bodySize: nav.bodySize

@@ -1459,6 +1459,14 @@ Page {
                     ctl.composing(text)
                 }
                 onMenu: page.openActionMenu()
+                // The Classic's trackpad: the field has the focus, so a swipe moves its cursor. With nothing typed, an up or
+                // down swipe scrolls the messages instead (the user, 2026-11-25); sideways it still reaches the buttons. The
+                // Passport's keyboard doesn't scroll a chat: the field keeps its touches, and the user wants none here.
+                eventHandlers: TrackpadScroll {
+                    list: list
+                    bottomToTop: true
+                    on: !page.typed
+                }
                 channel: page.chat ? page.chat.kind == 3 : false
                 muted: page.chat ? chats.revision >= 0 && !!chats.chat(page.chat.jid).muted : false
                 discuss: !!discussInfo.info.jid

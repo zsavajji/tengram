@@ -4421,36 +4421,41 @@
     </message>
 </context>
 <context>
-    <name>cover</name>
+    <name>Cover</name>
     <message>
-        <location filename="../assets/cover.qml" line="51"/>
+        <location filename="../assets/Cover.qml" line="51"/>
         <source>All caught up</source>
         <translation>Todo al día</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="60"/>
+        <location filename="../assets/Cover.qml" line="60"/>
         <source>No new messages</source>
         <translation>Sin mensajes nuevos</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="60"/>
+        <location filename="../assets/Cover.qml" line="60"/>
         <source>Not logged in</source>
         <translation>Sesión no iniciada</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="80"/>
+        <location filename="../assets/Cover.qml" line="80"/>
         <source>Private chats</source>
         <translation>Chats privados</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="96"/>
+        <location filename="../assets/Cover.qml" line="96"/>
         <source>Groups</source>
         <translation>Grupos</translation>
     </message>
     <message>
-        <location filename="../assets/cover.qml" line="112"/>
+        <location filename="../assets/Cover.qml" line="112"/>
         <source>Channels</source>
         <translation>Canales</translation>
+    </message>
+    <message>
+        <location filename="../assets/Cover.qml" line="140"/>
+        <source>Calls</source>
+        <translation>Llamadas</translation>
     </message>
 </context>
 <context>

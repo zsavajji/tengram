@@ -7,6 +7,21 @@ import tengram 1.0
 // functions and properties, and the long-press menu calls the functions.
 ListView {
     id: list
+    // The Passport's keyboard scrolls the list (KeyboardScroll), which takes the focus for it (ChatsPage's refocus; the
+    // user, 2026-11-25: it did nothing), and on a touch too: it scrolled once, then stopped, the focus gone elsewhere. The
+    // Classic's trackpad steps through the rows as before.
+    focusPolicy: screenWidth >= 1440 ? FocusPolicy.KeyAndTouch : FocusPolicy.Default
+    // A touch on the list still lost it the focus (the user, 2026-11-25): set by the page while it is the top one, the
+    // list takes it back a moment after a touch ends. Not once a chat opened over it: its composer has the focus then.
+    property bool refocusOnTouch: false
+    onTouch: {
+        if (refocusOnTouch && (event.isUp() || event.isCancel())) {
+            refocusTimer.start()
+        }
+    }
+    eventHandlers: KeyboardScroll {
+        list: list
+    }
     // The shared emoji style and sizes (main.qml), set by the page.
     property variant emojiStyle
     property int bodySize
@@ -125,6 +140,16 @@ ListView {
         translateDialog.pick(chat.jid, chat.translate)
     }
     attachedObjects: [
+        Timer {
+            id: refocusTimer
+            singleShot: true
+            interval: 100
+            onTimeout: {
+                if (list.refocusOnTouch) {
+                    list.requestFocus()
+                }
+            }
+        },
         TranslatePicker {
             id: translateDialog
         },

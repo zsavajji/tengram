@@ -11,8 +11,12 @@ Container {
     horizontalAlignment: HorizontalAlignment.Fill
     background: row.ListItem.active ? Color.create(row.ListItem.view.pressColor) : Color.Transparent
     Container {
+        id: line
         horizontalAlignment: HorizontalAlignment.Fill
-        minHeight: ui.du(9.4)
+        // The chat list's sizes (ChatRows.cpp): Compact's 7 du tile in a 9.4 du row, else 9 in 11.4 (the user, 2026-11-25:
+        // search's pictures were small).
+        property bool compact: !!row.ListItem.view.look && row.ListItem.view.look.compact
+        minHeight: ui.du(compact ? 9.4 : 11.4)
         leftPadding: ui.du(1.5)
         rightPadding: ui.du(1.5)
         layout: StackLayout {
@@ -22,8 +26,8 @@ Container {
         // and the group page's). A disc in Round mode: the view carries `look` (Tile.qml).
         Tile {
             verticalAlignment: VerticalAlignment.Center
-            preferredWidth: ui.du(7)
-            preferredHeight: ui.du(7)
+            preferredWidth: ui.du(line.compact ? 7 : 9)
+            preferredHeight: ui.du(line.compact ? 7 : 9)
             look: row.ListItem.view.look
             tint: row.contact.color
             initials: row.contact.initials

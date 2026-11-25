@@ -41,15 +41,25 @@ Page {
                     id: search
                     hintText: qsTr("Search contacts")
                     input.submitKey: SubmitKey.Search
+                    // Enter opens the first match; on the Passport, with none, it hands the focus to the list, so the
+                    // keyboard's swipes scroll it (KeyboardScroll; the field keeps its touches). A tap on the field takes it
+                    // back (the user, 2026-11-25).
                     input.onSubmitted: {
                         if (picker.shown > 0) {
                             page.picked(picker.model.data([0]))
+                        } else if (screenWidth >= 1440) {
+                            contacts.requestFocus()
                         }
                     }
                     onTextChanging: picker.filter(text)
                 }
             }
             ListView {
+                id: contacts
+                focusPolicy: screenWidth >= 1440 ? FocusPolicy.Key : FocusPolicy.Default
+                eventHandlers: KeyboardScroll {
+                    list: contacts
+                }
                 // The rows reach the shared emoji style and sizes through the view, as the chat list's do.
                 property variant emojiStyle: nav.emojiStyle
                 property int bodySize: nav.bodySize

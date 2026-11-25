@@ -156,9 +156,13 @@ Page {
                 onClicked: nav.openRequested(row.group.jid)
                 onTouch: row.pressed = event.isDown() || event.isMove()
                 onTouchExit: row.pressed = false
+                // A 7 du tile in a 9.4 du row; on the Passport (1440 px), unless Compact, 9 in 11.4 (the user, 2026-11-25: small
+                // there).
                 Container {
+                    id: groupLine
+                    property bool big: screenWidth >= 1440 && !settings.compact
                     horizontalAlignment: HorizontalAlignment.Fill
-                    minHeight: ui.du(9.4)
+                    minHeight: ui.du(big ? 11.4 : 9.4)
                     leftPadding: ui.du(1.5)
                     rightPadding: ui.du(1.5)
                     layout: StackLayout {
@@ -166,8 +170,8 @@ Page {
                     }
                     Tile {
                         verticalAlignment: VerticalAlignment.Center
-                        preferredWidth: ui.du(7)
-                        preferredHeight: ui.du(7)
+                        preferredWidth: ui.du(groupLine.big ? 9 : 7)
+                        preferredHeight: ui.du(groupLine.big ? 9 : 7)
                         tint: row.group ? row.group.color : ""
                         initials: row.group ? row.group.initials : ""
                         photo: row.photo

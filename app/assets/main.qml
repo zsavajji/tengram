@@ -158,7 +158,7 @@ NavigationPane {
         },
         ComponentDefinition {
             id: coverDef
-            source: "cover.qml"
+            source: screenWidth >= 1440 ? "PassportCover.qml" : "Cover.qml"
         },
         ComponentDefinition {
             id: viewerDef
@@ -253,6 +253,9 @@ NavigationPane {
                 page.leaving() // a chat keeps what its composer holds as Telegram's draft
             }
             page.destroy()
+        }
+        if (nav.top && nav.top.refocus) {
+            nav.top.refocus()
         }
     }
     onLinkedChanged: show()

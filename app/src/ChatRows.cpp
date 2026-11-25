@@ -19,6 +19,7 @@
 #include <bb/cascades/TextAlign>
 #include <bb/cascades/TextFormat>
 #include <bb/cascades/TextStyleDefinition>
+#include <bb/device/DisplayInfo>
 #include <bb/cascades/UIConfig>
 #include <bb/cascades/UIPalette>
 #include <bb/cascades/VerticalAlignment>
@@ -29,6 +30,13 @@
 #include "Settings.h"
 
 using namespace bb::cascades;
+
+// The Passport, the only 1440 px BB10 phone: some sizes are its own (the user, 2026-11-25). Read once, at first use.
+static bool passport()
+{
+    static const bool on = bb::device::DisplayInfo().pixelSize().width() >= 1440;
+    return on;
+}
 
 namespace {
 // The QML file's name: the translations of ChatRow.qml's strings (tengram_it.ts) apply.
@@ -159,6 +167,11 @@ ChatRow::ChatRow(ListView *list)
     m_mute = new ImageView();
     m_mute->setVerticalAlignment(VerticalAlignment::Center);
     m_mute->setImageSource(Card::url("asset:///images/mute.png"));
+    // 27 px images, the Q20's size; on the Passport 1.5 times, as the ticks (the user, 2026-11-25).
+    if (passport()) {
+        m_pin->setPreferredSize(27 * 1.5f, 27 * 1.5f);
+        m_mute->setPreferredSize(27 * 1.5f, 27 * 1.5f);
+    }
     // Grows with the text size, as the name and preview do (MessageCard.cpp's time); its size is
     // set by show().
     m_time = new Label();
@@ -287,11 +300,13 @@ void ChatRow::show(const QVariantMap &chat)
         m_scale = scale;
         m_compact = compact;
         const float side = compact ? 1.5 : 2;
-        const float tile = compact ? 7 : 9; // Normal: 8.2 until the user asked for a bigger picture and a taller row, 2026-11-19
+        // Normal: 8.2 until the user asked for a bigger picture and a taller row, 2026-11-19; on the Passport (the only
+        // 1440 px BB10 phone) 10 in 14, as 9 in 12.6 looked small there beside the rest (2026-11-25), the Q20's unchanged.
+        const float tile = compact ? 7 : passport() ? 10 : 9;
         m_row->setLeftPadding(m_ui->du(side));
         m_row->setRightPadding(m_ui->du(side));
         m_col->setLeftMargin(m_ui->du(side));
-        m_row->setMinHeight(m_ui->du((compact ? 9.4 : 12.6) * scale));
+        m_row->setMinHeight(m_ui->du((compact ? 9.4 : passport() ? 14 : 12.6) * scale));
         m_tile->setPreferredSize(m_ui->du(tile * scale), m_ui->du(tile * scale));
         Card::style(m_initials, m_list, qRound(118 * scale));
         m_initials->textStyle()->setColor(Color::White);
@@ -358,6 +373,11 @@ void ChatRow::show(const QVariantMap &chat)
         m_ticks->setImageSource(Card::url(state == 0 ? "asset:///images/clock.png"
                                     : state == 1 ? "asset:///images/tick.png" : "asset:///images/ticks.png"));
         m_ticks->setFilterColor(state == 3 ? primary : quiet);
+        // The images' own px (27 tall; ticks.png 35 wide) are the Q20's; on the Passport, 1.5 times, as its du is (the
+        // user, 2026-11-25: too small there).
+        if (passport()) {
+            m_ticks->setPreferredSize((state >= 2 ? 35 : 27) * 1.5f, 27 * 1.5f);
+        }
     }
     m_bang->setVisible(out && state == 4);
 

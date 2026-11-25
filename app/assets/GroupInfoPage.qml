@@ -305,9 +305,12 @@ Page {
                                 }
                             }
                         ]
+                        // A 7 du tile in a 9.4 du row; on the Passport (1440 px), unless Compact, 9 in 11.4 (the user, 2026-11-25).
                         Container {
+                            id: memberLine
+                            property bool big: screenWidth >= 1440 && !(row.ListItem.view.look && row.ListItem.view.look.compact)
                             horizontalAlignment: HorizontalAlignment.Fill
-                            minHeight: ui.du(9.4)
+                            minHeight: ui.du(big ? 11.4 : 9.4)
                             leftPadding: ui.du(1.5)
                             rightPadding: ui.du(1.5)
                             layout: StackLayout {
@@ -315,8 +318,8 @@ Page {
                             }
                             Tile {
                                 verticalAlignment: VerticalAlignment.Center
-                                preferredWidth: ui.du(7)
-                                preferredHeight: ui.du(7)
+                                preferredWidth: ui.du(memberLine.big ? 9 : 7)
+                                preferredHeight: ui.du(memberLine.big ? 9 : 7)
                                 look: row.ListItem.view.look
                                 tint: ListItemData.color
                                 initials: ListItemData.initials

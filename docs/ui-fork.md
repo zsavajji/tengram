@@ -78,7 +78,7 @@ translation file names (`main.cpp` loads `"hyperberry_" + language`).
 
 **What:** `#1BD862` → `#24A1DE`, and its darker base `#14A249` → `#1B79A7` (the same ratio).
 **Where:** `bar-descriptor.xml:145` (`CASCADES_THEME`, both colours), `Settings.cpp:69-70`
-(`setVisualStyleAndPrimaryColor`, both colours), `cover.qml:36` and `:77`, `MessageCard.cpp:294`
+(`setVisualStyleAndPrimaryColor`, both colours), `Cover.qml` (bright, ink, accent), `MessageCard.cpp:294`
 (the search match, `#401bd862`), `CallSlider.qml:43` (not copied). The app icon, the splash
 screens and the Hub glyphs are Tengram's own (`scripts/gen-icon.py`).
 

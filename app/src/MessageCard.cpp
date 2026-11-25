@@ -34,9 +34,18 @@
 #include "MediaBubble.h"
 #include "PollBubble.h"
 #include "Settings.h"
+#include <bb/device/DisplayInfo>
 #include "VoiceBubble.h"
 
 using namespace bb::cascades;
+
+// The sender tile's side in du, before the text scale: 7; on the Passport (the only 1440 px BB10 phone) 9, the chat list's
+// Normal tile (ChatRows.cpp), as 7 was too small there for the picture and the initials (the user, 2026-11-25).
+static float tileDu()
+{
+    static const float du = bb::device::DisplayInfo().pixelSize().width() >= 1440 ? 9 : 7; // read once, at first use
+    return du;
+}
 
 namespace {
 // The QML file's name: the translations of MessageItem.qml's strings (tengram_it.ts) apply.
@@ -453,7 +462,7 @@ void MessageCard::restyle(bool out)
     }
     if (m_avatar) {
         // As the chat list's tile and initials (ChatRows.cpp). The height is fillTile's: a spacer has none.
-        m_avatar->setPreferredWidth(m_ui->du(7 * scale));
+        m_avatar->setPreferredWidth(m_ui->du(tileDu() * scale));
         Card::style(m_initials, m_list, qRound(118 * scale));
         m_initials->textStyle()->setColor(Color::White);
     }
@@ -557,7 +566,7 @@ void MessageCard::makeTile()
 // What the tile takes of the row's width, and so how far the reactions' chip, under the row, is moved in.
 float MessageCard::tileSpace() const
 {
-    return m_ui->du(7 * m_scale) + m_ui->du(1);
+    return m_ui->du(tileDu() * m_scale) + m_ui->du(1);
 }
 
 // on: the message has a tile at all (a group's incoming one). Then with the run's newest message it shows the picture
@@ -587,7 +596,7 @@ void MessageCard::fillTile(bool on)
     m_initials->setVisible(tile && shownPhoto.isEmpty());
     m_initials->setText(tile ? str("senderInitials") : QString());
     if (tile) {
-        m_avatar->setPreferredHeight(m_ui->du(7 * m_scale));
+        m_avatar->setPreferredHeight(m_ui->du(tileDu() * m_scale));
         if (round) {
             m_avatar->resetBackground();
             m_disc->setFilterColor(Card::color(str("senderColor")));
