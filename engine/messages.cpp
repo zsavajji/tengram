@@ -690,6 +690,15 @@ Row row_of(const td_api::message &m) {
       r.v[kQuoteId] = std::to_string(q.message_id_);
     }
   }
+  // ponytail: diagnostic. In BerryFarm a reply to Jan's photo (27663 → 27490, Android shows it) comes with no usable
+  // reply_to (the user, 2026-11-25): this says what TDLib gives for a reply the row leaves out. Gone once that's settled.
+  // TDLib leaves reply_to out of a "topic message" whose reply is its topic's root (MessagesManager get_message_object):
+  // a forum topic in a chat that is no forum is that case.
+  const bool odd_topic = m.topic_id_ && m.topic_id_->get_id() == td_api::messageTopicForum::ID && !chat.forum;
+  if (!std::get_if<std::string>(&r.v[kQuoteId]) && (m.reply_to_ || odd_topic)) {
+    say("reply not kept: %lld in %lld: %s topic %s", static_cast<long long>(m.id_), static_cast<long long>(m.chat_id_),
+        td_api::to_string(m.reply_to_).c_str(), m.topic_id_ ? td_api::to_string(m.topic_id_).c_str() : "null");
+  }
 
   content(r, m);
   return r;

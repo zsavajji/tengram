@@ -7,6 +7,7 @@
 #include "EngineLink.h"
 #include "MediaData.h"
 #include "MessageKinds.h"
+#include "Pins.h"
 #include "Sticker.h"
 #include "colors.h"
 #include "dates.h"
@@ -32,15 +33,16 @@ static const char *const kDb = "chats";
 // The three QUOTED are the quoted message's out, sender and sender_name, by its primary key. The
 // reactions are in extra (docs/protocol.md), read in read() below. The last two columns are the sender's colour and small
 // picture from `people` (the query joins it to messages on the sender's id: NULL for no sender, or one the engine hasn't
-// written yet). Then the quoted sender's colour from `people`, for the quote's name. The very last two are the message's
-// translation and the language it is in (docs/protocol.md, Translation): read() shows it in a chat with a language.
+// written yet). Then the quoted sender's colour from `people`, for the quote's name. Then come the message's
+// translation and the language it is in (docs/protocol.md, Translation): read() shows it in a chat with a language. Then the
+// quoted message's kind, for the quote's line when it has no text (a photo with no caption).
 #define QUOTED(col) "(SELECT " col " FROM messages q WHERE q.chat = messages.chat AND q.id = messages.quote_id)"
 static const char *const kColumns = "CAST(id AS INTEGER), id, ts, out, state, sender, sender_name, kind, "
                                     "text, quote_preview, edited, deleted, "
                                     QUOTED("out") ", " QUOTED("sender") ", " QUOTED("sender_name") ", duration, waveform, media_state, played, "
                                     "thumb, width, height, size, path, extra, starred, quote_id, people.color, people.photo, "
                                     "(SELECT color FROM people WHERE people.user = " QUOTED("sender") "), "
-                                    "messages.tr, messages.tr_lang";
+                                    "messages.tr, messages.tr_lang, " QUOTED("kind");
 #undef QUOTED
 
 MessageModel::Msg MessageModel::read(QSqlQuery &q)
@@ -208,7 +210,12 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     const QString html = MessageKinds::html(shown, extra);
     m.data["html"] = html;
     m.data["albumId"] = extra.value("album").toString(); // Telegram's album (Albums.h), "" for none
-    m.data["quote"] = q.value(9).toString();
+    // The engine's quote_preview is the quoted row's text: a photo, sticker or voice note with none says what it is, as a pin
+    // does (Pins::summary), so the reply still shows (the user, 2026-11-25: a reply to Jan's photo in BerryFarm had no quote).
+    QString quote = q.value(9).toString();
+    if (quote.isEmpty() && !q.value(32).isNull())
+        quote = Pins::summary(q.value(32).toInt(), QString());
+    m.data["quote"] = quote;
     m.data["quoteId"] = q.value(26).toString(); // a tap on the quote jumps to it
     m.data["sender"] = sender;
     // Who sent it, by id: the runs of one person's messages are made of it, and so is the tile beside them. Only an
@@ -249,7 +256,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     // the primary colour (quoteColor ""). ponytail: only when the quoted message is in
     // chats.db; store ContextInfo's participant (a quote_sender column) if older quotes need it.
     QString quoteName, quoteColor;
-    if (m_group && !q.value(9).toString().isEmpty() && !q.value(12).isNull()) {
+    if (m_group && !quote.isEmpty() && !q.value(12).isNull()) {
         if (q.value(12).toInt() != 0) {
             quoteName = tr("You");
         } else if (!q.value(14).toString().isEmpty()) {
