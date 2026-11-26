@@ -1209,12 +1209,15 @@ void messages_update(td_api::Object &update) {
     case td_api::updateNewMessage::ID: {
       auto &u = static_cast<td_api::updateNewMessage &>(update);
       if (u.message_) {
-        messages_queue(*u.message_);
         if (!u.message_->sending_state_) {  // ours, still sending: the topic is fetched when it is sent
+          messages_queue(*u.message_);
           topics_note(u.message_->chat_id_, topic_of(*u.message_));
         } else {
+          // Just sent here: the row is written by the request's answer (send_content, msg.album, the forward), which TDLib
+          // gives right after this update, msg.send's tagged with the UI's local row (extra.local). Written here too, the
+          // untagged row could reach the UI first, and one the UI can't pair by its words became a second message beside
+          // the local row (the user, 2026-11-26: a heart sent as text, which TDLib turns into its animated sticker).
           upload_watch(*u.message_);  // media.progress while its file goes up
-          mark_dirty(true);  // just sent here: its bubble shows without the 50 ms wait
         }
       }
       break;

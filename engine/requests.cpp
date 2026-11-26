@@ -873,6 +873,7 @@ void media_album(std::uint64_t conn, const std::string &id, td::JsonObject &req,
                    ids.push_back(std::to_string(m->id_));
                  }
                }
+               mark_dirty(true);  // just sent here: the bubbles show without the 50 ms wait
                queue_reply(conn, id, td::json_encode<std::string>(td::json_object([&](auto &r) {
                              r("ids", td::json_array(ids, [](const std::string &s) { return s; }));
                            })));
@@ -959,6 +960,7 @@ void msg_forward(std::uint64_t conn, const std::string &id, td::JsonObject &req,
                    }
                  }
                }
+               mark_dirty(true);  // just sent here: the bubble shows without the 50 ms wait
                if (first.empty()) {
                  return reply_td_error(conn, id, td_api::error(400, "the message can't be forwarded"));
                }
