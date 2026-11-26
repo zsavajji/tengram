@@ -481,6 +481,7 @@ void MessageModel::expectOpen(const QString &requestId)
 
 void MessageModel::onReplied(const QString &id, const QString &cmd, const QVariant &result)
 {
+    m_stickerAsks.remove(id); // the file is here: its row comes in a msgs event
     if (cmd == "msg.translate") {
         if (m_translating.remove(id) > 0) {
             m_retries = 0;
@@ -1156,6 +1157,8 @@ void MessageModel::onConnected()
     if (m_loading)
         return;
     m_asked.clear(); // a fetch the engine lost with its restart is asked again
+    m_stickerAsks.clear();
+    m_stickerFailed.clear(); // and a sticker's that failed
     m_refetch.clear();
     setAsked(m_historyId, QString()); // so is a chat.history
     m_bridgeId.clear(); // and a bridge: the chat.open that follows checks the gap again
@@ -1207,6 +1210,15 @@ void MessageModel::onChats(const QStringList &jids)
 // by itself: only the one timer (60 s, which the engine's own pause outlasts or nearly) re-reads the loaded rows.
 void MessageModel::onFailed(const QString &id, const QString &cmd, const QString &code)
 {
+    if (m_stickerAsks.contains(id)) {
+        const QString msg = m_stickerAsks.take(id);
+        // The engine going away is no failure: onConnected asks again.
+        if (code != "no_engine") {
+            m_stickerFailed.insert(msg);
+            reread(QStringList(msg));
+        }
+        return;
+    }
     if (cmd != "msg.translate" || !m_translating.contains(id))
         return;
     foreach (const QString &m, m_translating.take(id))
@@ -1419,9 +1431,10 @@ bool MessageModel::takeLocal(const Msg &m, QList<Msg> &all)
             --i;
             continue;
         }
-        // A text of one emoji comes back as Telegram's animated sticker of it (kind 5): another card type, which an
-        // itemUpdated wouldn't change, so the local row goes (itemRemoved) and m is a new row (itemAdded).
-        if (m.kind != 0) {
+        // Another card type than the local row's, which an itemUpdated wouldn't change: the local row goes (itemRemoved) and m
+        // is a new row (itemAdded). A one-emoji text's local sticker that comes back as a text (TDLib has no animated sticker
+        // of that emoji), or a text's local row that comes back as a sticker.
+        if (m.kind != all.at(at).kind) {
             all.removeAt(at);
             return false;
         }
@@ -1440,7 +1453,7 @@ bool MessageModel::takeLocal(const Msg &m, QList<Msg> &all)
 // time is the clock's, or the newest row's when the phone's clock is behind Telegram's, and its rowid the greatest, which also
 // keeps dropBelowFloor from taking it in a chat that opened empty (kNoFloor). The list is told as for a new row: refresh
 // emits newestComing and itemAdded([0]), and a day's header for a new day, as rebuild makes it for any row.
-QString MessageModel::addLocal(const QString &text, const QString &quoteId)
+QString MessageModel::addLocal(const QString &text, const QString &quoteId, bool sticker)
 {
     const QString said = words(text);
     // Not loading: the first page reads the rows from chats.db, and a row put in before it would meet that page's merge.
@@ -1448,7 +1461,7 @@ QString MessageModel::addLocal(const QString &text, const QString &quoteId)
         return QString();
     const qint64 ts = qMax<qint64>(QDateTime::currentDateTime().toTime_t(), m_all.isEmpty() ? 0 : m_all.last().ts);
     const QString id = QString("local-%1").arg(++m_localCount);
-    Msg m = localRow(id, text.trimmed(), quoteId, ts);
+    Msg m = localRow(id, text.trimmed(), quoteId, ts, sticker);
     if (m.id.isEmpty())
         return QString();
     m.rowid = kNoFloor;

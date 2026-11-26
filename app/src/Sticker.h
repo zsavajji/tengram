@@ -15,10 +15,12 @@ namespace Sticker {
 const int kStickerPx = 180;
 
 // The PNG, at most kStickerPx square, of the first frame (the whole picture, for a still one) of the WebP or TGS
-// file at path, kept in data/cache/previews/<id>.png. Returns the PNG's path when it is there. It is made the first time by
-// PreviewMaker, on a worker thread: until then, and when the file can't be read or decoded, "". MessageModel reads the row
-// again when the PNG is there.
+// file at path, kept in data/cache/previews/ under gridPicture's name: one per sticker file, whichever message shows it.
+// Returns the PNG's path when it is there. It is made the first time by PreviewMaker, on a worker thread: until then, and
+// when the file can't be read or decoded, "". MessageModel reads id's row again when the PNG is there.
 QString picture(const QString &id, const QString &path);
+// Whether picture's PNG of the file at path could not be made: it never will be, until the app restarts.
+bool pictureFailed(const QString &path);
 
 // The still picture of the file at path, at most side square: a WebP's first frame, a TGS's frame 0, or a JPEG or PNG
 // thumbnail. Null on failure. Safe on a worker thread (QImage, QFile, libwebp and rlottie only): PreviewMaker makes picture's

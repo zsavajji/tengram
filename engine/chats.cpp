@@ -807,7 +807,10 @@ void chats_update(td_api::Object &update) {
       if (Chat *c = find(u.chat_id_)) {
         set_last(*c, u.last_message_.get());
         set_positions(*c, u.positions_);
-        if (u.last_message_) {
+        // Not ours still sending: the send's answer writes that row, tagged with the UI's local row (extra.local), as
+        // messages_update's updateNewMessage leaves it to. TDLib gives this update before that answer, and an untagged row
+        // that reaches the UI first can't be paired with the local row (a one-emoji text, which TDLib turns into a sticker).
+        if (u.last_message_ && !u.last_message_->sending_state_) {
           messages_queue(*u.last_message_);
         }
         touch(*c);

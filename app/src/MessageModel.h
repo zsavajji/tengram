@@ -166,8 +166,9 @@ public:
     // A text of ours as a row at the bottom now, before the engine has written its own (the class comment): the quote's line
     // is the quoted row's, read from chats.db as a real row's is (localRow). Returns its id, "" when none was added: window
     // mode, still loading, a blank text, or chats.db isn't open. The text goes as it is typed; the row shows it trimmed, as
-    // Telegram keeps it.
-    QString addLocal(const QString &text, const QString &quoteId);
+    // Telegram keeps it. sticker: a text of one emoji, which TDLib sends as Telegram's animated sticker of it: the row is that
+    // sticker still on its way (MediaBubble's square with a spinner), never the emoji's text (the user, 2026-11-26).
+    QString addLocal(const QString &text, const QString &quoteId, bool sticker);
     // Takes a local row out at once: its request was not sent. Nothing when it is gone already (the engine's row took its place).
     void dropLocal(const QString &id);
     // Takes every local row out: msg.send failed.
@@ -280,7 +281,7 @@ private:
     void bindChat(QSqlQuery &q) const;
     Msg read(QSqlQuery &q);
     // The Msg of a local row: read() of a one-row table with messages' columns (MessageRows.cpp). id "" in the result: no chats.db.
-    Msg localRow(const QString &id, const QString &text, const QString &quoteId, qint64 ts);
+    Msg localRow(const QString &id, const QString &text, const QString &quoteId, qint64 ts, bool sticker);
     // oldestFirst: the oldest `limit` rows that match instead of the newest (still returned oldest first).
     QList<Msg> select(const QString &where, const QVariantList &args, int limit, bool oldestFirst = false, int budget = 0);
     QList<qint64> pageTimes(const QString &where, const QVariantList &args, int limit);
@@ -392,6 +393,8 @@ private:
     QSet<QString> m_hidden;
     QSet<QString> m_revealed; // the spoilers tapped open (unspoil)
     QSet<QString> m_asked; // the ids of the stickers, photos and videos asked for from the engine (Sticker::fetch)
+    QHash<QString, QString> m_stickerAsks; // the media.get of a sticker's file in flight, by request id: the message's id
+    QSet<QString> m_stickerFailed; // the stickers whose file the engine could not get: their word, not a spinner
     QHash<QString, QString> m_refetch; // the fetches of a picture whose file was gone, by request id: the message's id
     QHash<QString, Sender> m_senders; // a group's senders by user id, as senders.get answered
     QSet<QString> m_sendersAsked; // the user ids senders.get was sent for, and the ones it answered: asked once

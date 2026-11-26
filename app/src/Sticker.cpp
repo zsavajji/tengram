@@ -127,17 +127,30 @@ static QString cached(const QString &file, const QString &path, int side)
     return file;
 }
 
-// The cached picture's path. A picture not made yet is asked of PreviewMaker, which makes it on a worker thread (a TGS
-// takes 20 to 60 ms to parse) and tells the model when it is there, which reads the row again: "" until then, and for a
-// file that doesn't decode, which isn't tried again until the app restarts.
+// The PNG of path's still picture at side px, named by the path's hash: a sticker's file is shared by every message of it.
+static QString stillFile(const QString &path, int side)
+{
+    return QDir::homePath() + "/cache/previews/st-" + QString::number(side) + "-" + QString::number(qHash(path), 16) + ".png";
+}
+
+// The cached picture's path, by the sticker's file and not the message: a sent sticker's row keeps it when its temporary id
+// becomes its own (it vanished until a new one was made, the user, 2026-11-26). A picture not made yet is asked of
+// PreviewMaker, which makes it on a worker thread (a TGS takes 20 to 60 ms to parse) and tells the model when it is there,
+// which reads the rows waiting on it again: "" until then, and for a file that doesn't decode, which isn't tried again until
+// the app restarts.
 // ponytail: two at a time, in the order the rows were read; no priority for the ones on screen.
 QString Sticker::picture(const QString &id, const QString &path)
 {
-    const QString file = QDir::homePath() + "/cache/previews/" + id + ".png";
+    const QString file = stillFile(path, kStickerPx);
     if (QFile::exists(file))
         return file;
     PreviewMaker::instance()->want(id, PreviewMaker::StickerPicture, path, file);
     return QString();
+}
+
+bool Sticker::pictureFailed(const QString &path)
+{
+    return PreviewMaker::instance()->failed(stillFile(path, kStickerPx));
 }
 
 // The picker's grid and preview: the same, as the file's path, by the path's hash (a sticker's file is not a message's id) and the side, so the
@@ -145,9 +158,7 @@ QString Sticker::picture(const QString &id, const QString &path)
 // a worker thread may call it.
 QString Sticker::gridPicture(const QString &path, int side)
 {
-    return cached(QDir::homePath() + "/cache/previews/st-" + QString::number(side) + "-" + QString::number(qHash(path), 16)
-                      + ".png",
-                  path, side);
+    return cached(stillFile(path, side), path, side);
 }
 
 QString Sticker::fetch(EngineLink *engine, const QString &chat, const QString &id, QSet<QString> &asked, bool preview)

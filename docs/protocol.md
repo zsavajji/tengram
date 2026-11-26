@@ -64,7 +64,7 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `chat.set` | `chat`; optional `pin` (bool), `mute` (unix seconds until; 0 off; -1 always), `archive` (bool), `unread` (bool), `translate` (a language code, or "" for off: see *Translation*); at least one | — | |
 | `chat.readAll` | none (no `chat`) | — | |
 | `chat.pinOrder` | `ids` (the main list's pinned chats, as strings, in their new order, top first; at least one; no `chat`) | — | |
-| `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` or `thread` (optional) | `{id}` | |
+| `msg.send` | `chat`, `text`, `quote` (a message id, optional), `mentions` ([{`jid`, `name`}], optional), `topic` or `thread` (optional), `local` (the UI's name for the row it shows already, `[a-z0-9-]`, at most 32; optional) | `{id}` | |
 | `media.send` | `chat`, `path` (absolute path of a file), `quote` (a message id), `caption`, `width`, `height` (whole numbers), `thumb` (ignored), `topic`, `thread`, `file` (true: a document whatever the extension, e.g. a JPEG as it is); all but `chat` and `path` optional | `{id}` | |
 | `media.album` | `chat`, `items` (2 to 10 objects `{path, width, height, file}`, each as `media.send`'s of those names; `path` required), `caption` (on the first item), `quote` (a message id), `topic`, `thread`; all but `chat` and `items` optional | `{ids}`, the rows' temporary ids in order | |
 | `msg.delete` | `chat`, `ids` [message ids], `everyone` (bool) | — | |
@@ -231,6 +231,13 @@ mention of that user; one that is not in the text, or whose `jid` is not a user 
 before the reply comes, and `{id}` is that id. When Telegram takes the message the row is
 replaced by one with the final id; a `msgs` event names both ids. On failure the row stays,
 state 4.
+
+`local` comes back on our row as `extra.local`, so the UI puts the message exactly in the place of the row it showed at once
+(two quick sends of the same words can't swap; a text of one emoji, which TDLib sends as its animated sticker, has no words to
+match). The row is written only by the reply: not from `updateNewMessage` nor `updateChatLastMessage`, which TDLib gives
+first, untagged. Every later rewrite of that id keeps `extra.local`, and so does the row under the final id, which also has
+`extra.was`, the temporary id. A temporary id is never written again once its message has its final id (a late `getMessage`
+answer still named it).
 
 **`media.send`:** a file as a new message in the chat, sent as `msg.send` sends a text: the same `quote`,
 the same row (*sending*, state 0, under a temporary id) and the reply `{id}` with that id. `path` is the absolute
@@ -1055,7 +1062,7 @@ and for a photo that is not downloaded yet. The rows are never pruned, and a log
 | `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
 | `topic` | the forum topic the message belongs to: its id (General is 1); in a supergroup that is not a forum, the comment thread the message is in (the thread root's id, the root carrying its own: see *Comments*), 0 otherwise. A thread's page is `WHERE chat = ? AND topic = ?`. Index `messages_by_topic` on `(chat, topic, ts)`: a topic's page is `WHERE chat = ? AND topic = ? ORDER BY ts, CAST(id AS INTEGER)` |
 | `tr`, `tr_lang` | a translation (see *Translation*): `tr` is the text in the language `tr_lang`, '' when there is nothing to show (it is the same as `text`, or has no words); NULL, NULL when not asked. Cleared when the message's text changes |
-| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted`, `closed` and `fixed`; a message's `reactions`; a channel post's `comments` (the count, see *Comments*); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs`; `ttl` and `expiresAt` of a self-destructing message; `album`, Telegram's album id as a string, shared by the album's messages; a reply to a message of another chat: `qname`, the quoted message's sender (left out when unknown), and `qkind`, its kind as `kind` (7 when unknown) |
+| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted`, `closed` and `fixed`; a message's `reactions`; a channel post's `comments` (the count, see *Comments*); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs`; `ttl` and `expiresAt` of a self-destructing message; `album`, Telegram's album id as a string, shared by the album's messages; a reply to a message of another chat: `qname`, the quoted message's sender (left out when unknown), and `qkind`, its kind as `kind` (7 when unknown); ours sent by `msg.send` with `local`: `local`, and once sent `was`, the temporary id it replaced (see *`msg.send`*) |
 
 **Reactions:** any kind's `extra` can carry `reactions: [{e, n, me}, …]`, one object for each emoji reaction on the message in
 TDLib's order: `e` the emoji, `n` how many reacted with it, `me: true` when one of them is ours (absent otherwise). Custom emoji

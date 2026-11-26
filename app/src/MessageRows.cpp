@@ -95,8 +95,15 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     }
     // Photos, videos, stickers, audio files and documents are drawn by MediaBubble: no label, and a
     // document's text (its name) is the bubble's. A caption stays in the text.
-    if (kind == 5 && !deleted && mediaState == 1)
-        Sticker::fetch(m_engine, m_chat, m.id, m_asked); // a history sticker, asked once per page
+    if (kind == 5 && !deleted && mediaState == 1 && !isLocal(m.id)) {
+        const QString request = Sticker::fetch(m_engine, m_chat, m.id, m_asked); // a history sticker, asked once per page
+        if (!request.isEmpty())
+            m_stickerAsks.insert(request, m.id);
+    }
+    // A sticker whose picture won't come (no file, its download failed, or it doesn't decode) shows its word; one whose picture
+    // is on its way, a spinner in the sticker's square (MediaBubble; the user, 2026-11-26).
+    m.data["stickerFailed"] = kind == 5
+        && (mediaState == 0 || m_stickerFailed.contains(m.id) || (mediaState == 2 && Sticker::pictureFailed(path)));
     // A photo not downloaded and a video show Telegram's tiny blurred thumbnail until they are opened: ask once for
     // a display-size picture, which comes back as extra.preview. Not for our own message still sending.
     if (((kind == 1 && mediaState != 2) || kind == 2) && !deleted
@@ -551,9 +558,10 @@ QList<MessageModel::Msg> MessageModel::select(const QString &where, const QVaria
 // messages so kColumns reads it unchanged. So its map has exactly the keys a real row's has (the cards read them all), and the
 // quote's out, sender and name are the quoted row's by the same subselects; the quote's line is what the engine writes to
 // quote_preview, one_line()'s (docs/protocol.md): newlines and tabs to spaces, 150 characters here, bytes there. Ours, sending
-// (out 1, state 0), kind 0 with no extra. rowid is the caller's to set (CAST of "local-n" is 0). An empty Msg (no id) when
+// (out 1, state 0), kind 0 with no extra; with sticker, kind 5 with no text and its file still to come (media_state 1, which
+// read() doesn't ask the engine for: the id is the UI's). rowid is the caller's to set (CAST of "local-n" is 0). An empty Msg (no id) when
 // chats.db isn't open or the query fails. m_locale, m_clock and m_now are what select() sets before its reads.
-MessageModel::Msg MessageModel::localRow(const QString &id, const QString &text, const QString &quoteId, qint64 ts)
+MessageModel::Msg MessageModel::localRow(const QString &id, const QString &text, const QString &quoteId, qint64 ts, bool sticker)
 {
     Msg none;
     QSqlDatabase db = database();
@@ -565,20 +573,22 @@ MessageModel::Msg MessageModel::localRow(const QString &id, const QString &text,
     m_photoThere.clear();
     QSqlQuery q(db);
     q.prepare(QString("SELECT %1 FROM (SELECT ? AS chat, ? AS id, ? AS ts, 1 AS out, 0 AS state, NULL AS sender, "
-                      "NULL AS sender_name, 0 AS kind, ? AS text, "
+                      "NULL AS sender_name, ? AS kind, ? AS text, "
                       "(SELECT replace(replace(substr(p.text, 1, 150), ?, ' '), ?, ' ') FROM messages p "
                       "WHERE p.chat = ? AND p.id = ?) AS quote_preview, "
-                      "0 AS edited, 0 AS deleted, 0 AS duration, NULL AS waveform, 0 AS media_state, 0 AS played, "
+                      "0 AS edited, 0 AS deleted, 0 AS duration, NULL AS waveform, ? AS media_state, 0 AS played, "
                       "NULL AS thumb, 0 AS width, 0 AS height, 0 AS size, NULL AS path, NULL AS extra, 0 AS starred, "
                       "? AS quote_id, NULL AS tr, NULL AS tr_lang) messages LEFT JOIN people ON people.user = messages.sender").arg(kColumns));
     q.addBindValue(m_chat);
     q.addBindValue(id);
     q.addBindValue(ts);
-    q.addBindValue(text);
+    q.addBindValue(sticker ? 5 : 0);
+    q.addBindValue(sticker ? QVariant(QVariant::String) : QVariant(text)); // a sticker's text is NULL, as the engine writes it
     q.addBindValue(QString("\n")); // bound, not char(10): the quote's line is one line
     q.addBindValue(QString("\t"));
     q.addBindValue(m_chat);
     q.addBindValue(quoteId);
+    q.addBindValue(sticker ? 1 : 0);
     q.addBindValue(quoteId);
     if (!q.exec() || !q.next()) {
         qWarning() << "messages: local row:" << q.lastError().text();

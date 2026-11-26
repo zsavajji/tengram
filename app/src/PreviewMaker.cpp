@@ -57,9 +57,10 @@ PreviewMaker::PreviewMaker()
 
 void PreviewMaker::want(const QString &id, Job job, const QString &source, const QString &target)
 {
-    if (m_known.contains(target))
+    const bool queued = m_known.contains(target);
+    m_known[target].insert(id);
+    if (queued)
         return;
-    m_known.insert(target);
     const Want w = { id, job, source, target };
     m_queue.append(w);
     pump();
@@ -70,7 +71,6 @@ void PreviewMaker::pump()
     while (m_running < kJobs && !m_queue.isEmpty()) {
         const Want w = m_queue.takeFirst();
         QFutureWatcher<bool> *watcher = new QFutureWatcher<bool>(this);
-        watcher->setProperty("id", w.id);
         watcher->setProperty("target", w.target);
         connect(watcher, SIGNAL(finished()), this, SLOT(onMade()));
         watcher->setFuture(QtConcurrent::run(&make, w.job, w.source, w.target));
@@ -85,13 +85,17 @@ void PreviewMaker::onMade()
     --m_running;
     const QString target = watcher->property("target").toString();
     if (watcher->result()) {
-        m_known.remove(target);
-        m_done.insert(watcher->property("id").toString());
+        m_done += m_known.take(target);
         if (!m_flush.isActive())
             m_flush.start();
     } else {
-        // Stays in m_known: not tried again until the app restarts.
+        // Stays in m_known: not tried again until the app restarts. Its rows are read again all the same: a sticker's
+        // spinner gives way to its word (failed()).
         qDebug() << "preview: not made:" << target;
+        m_failed.insert(target);
+        m_done += m_known.value(target);
+        if (!m_flush.isActive())
+            m_flush.start();
     }
     pump();
 }

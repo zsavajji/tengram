@@ -4,7 +4,7 @@
          data/ (db/ holds the Telegram session, which would have to be linked again). -->
     <id>com.zsavajji.tengram</id>
     <name>Tengram</name>
-    <versionNumber>1.0.4</versionNumber>
+    <versionNumber>1.0.5</versionNumber>
     <!-- Overwritten at packaging by -buildIdFile (scripts/build-ui.sh): the installer keeps
          the old app when Package-Version (versionNumber.buildId) didn't change. -->
     <buildId>1</buildId>

@@ -93,6 +93,7 @@ private:
     bb::cascades::ImageView *m_photoRing;
     bb::cascades::Container *m_stickerBox; // the picture with its stamp over the bottom right
     bb::cascades::ImageView *m_stickerImage;
+    bb::cascades::ActivityIndicator *m_stickerSpin; // in the sticker's square while its picture is on its way
     bb::cascades::Container *m_stickerStamp;
     QString m_stickerId; // the id of the row whose TGS this plays or has played; "" for none
     bb::cascades::Label *m_stickerText;

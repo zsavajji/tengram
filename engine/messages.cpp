@@ -787,7 +787,7 @@ const char *const kSql[kStmts] = {
     "sig, tr, tr_lang) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, "
     "?23, ?24, (SELECT tr FROM messages WHERE chat = ?1 AND id = ?2 AND text IS ?9), "
     "(SELECT tr_lang FROM messages WHERE chat = ?1 AND id = ?2 AND text IS ?9))",
-    "SELECT sig FROM messages WHERE chat = ?1 AND id = ?2",
+    "SELECT sig, extra FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT text FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT kind FROM messages WHERE chat = ?1 AND id = ?2",
     "SELECT played FROM messages WHERE chat = ?1 AND id = ?2",
@@ -916,15 +916,47 @@ Val quote_preview(const Row &r) {
   return out;
 }
 
+// The `"local":"local-n"` member of a row's extra: msg.send's name for the UI's local row (msg_send keeps it to [a-z0-9-]), ""
+// when there is none. A quote inside a JSON string is escaped, so the search can't match a text.
+std::string local_member(const std::string &extra) {
+  const std::string tag = "\"local\":\"";
+  const auto at = extra.find(tag);
+  const auto end = at == std::string::npos ? at : extra.find('"', at + tag.size());
+  return end == std::string::npos ? std::string() : extra.substr(at, end + 1 - at);
+}
+
+// The local member of the stored row's extra, from kSelSig's second column; "" when there is no row or no member.
+std::string stored_local(bool row) {
+  auto &s = stmts[kSelSig];
+  return row && s.view_datatype(1) == td::SqliteStatement::Datatype::Text ? local_member(s.view_string(1).str())
+                                                                          : std::string();
+}
+
+// The temporary ids of ours swapped for their message's own id in this run (updateMessageSendSucceeded or Failed). A late answer
+// that still names one, a media.get's getMessage asked while the message was sending, wrote its row again after the swap had
+// erased it: a sticker that stayed "sending" beside the sent one (the user, 2026-11-26, 🥹 on the Classic).
+// ponytail: never pruned, one pair per message sent in a run.
+std::set<std::pair<std::int64_t, std::int64_t>> swapped;
+
 void put(Row r) {
+  if (swapped.count({r.chat, r.id})) {
+    return;
+  }
   if (std::get_if<std::string>(&r.v[kQuoteId])) {  // a reply to another chat has none: row_of wrote the preview
     r.v[kQuotePreview] = quote_preview(r);
   }
-  const std::int64_t sig = sig_of(r);
   const Key key(r.chat, r.id);
   bool row = false;
   check(step_once(kSelSig, key, row), "sig");
   auto &old = stmts[kSelSig];
+  // A row of ours keeps the UI's name for its local row (extra.local, msg.send's answer) through any rewrite of the same id (a
+  // media.get, a refresh, a history page), which comes untagged: the UI pairs the two only by it.
+  const std::string keep = stored_local(row);
+  const auto *now = std::get_if<std::string>(&r.v[kExtra]);
+  if (!keep.empty() && (!now || local_member(*now).empty())) {
+    append_extra(r, keep);
+  }
+  const std::int64_t sig = sig_of(r);
   const bool same = row && old.view_datatype(0) == td::SqliteStatement::Datatype::Integer && old.view_int64(0) == sig;
   old.reset();
   if (same) {
@@ -1237,7 +1269,18 @@ void messages_update(td_api::Object &update) {
       // were paired in order, and swapped places, the user's burst, 0.1.0.77).
       Row row = row_of(*sent);
       append_extra(row, "\"was\":\"" + std::to_string(old_id) + "\"");
-      ops.push_back([chat = sent->chat_id_, old_id, row = std::move(row)] {
+      ops.push_back([chat = sent->chat_id_, old_id, row = std::move(row)]() mutable {
+        // And the temporary row's extra.local: the UI may read this row before it ever read the temporary one (sent within
+        // the moment between the two), and the name is all that pairs it with the local row (the user, 2026-11-26: 👀 to Elia
+        // showed twice, the sticker beside the emoji's text).
+        bool had = false;
+        check(step_once(kSelSig, Key(chat, old_id), had), "local");
+        const std::string keep = stored_local(had);
+        stmts[kSelSig].reset();
+        if (!keep.empty()) {
+          append_extra(row, keep);
+        }
+        swapped.insert({chat, old_id});
         erase(chat, old_id, true);
         put(row);
       });

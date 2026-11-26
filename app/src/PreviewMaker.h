@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QObject>
+#include <QHash>
 #include <QSet>
 #include <QString>
 #include <QStringList>
@@ -27,6 +28,8 @@ public:
     // made, or that failed does nothing; a failed one is not tried again until the app restarts, so a file that doesn't
     // decode doesn't loop). The jobs run in the order asked, two at a time.
     void want(const QString &id, Job job, const QString &source, const QString &target);
+    // Whether target could not be made (until the app restarts): its row shows what it has for good, not a wait.
+    bool failed(const QString &target) const { return m_failed.contains(target); }
 
 signals:
     // The ids of the rows whose file was made in the last 100 ms, so a chat full of photos reads its rows a few times and
@@ -49,11 +52,13 @@ private:
     void pump();
 
     QList<Want> m_queue;
-    // The targets queued, being made or failed: one leaves it when its file is made, so a file the engine wipes from the
-    // cache is made again, and a failed one never does.
-    QSet<QString> m_known;
+    // The targets queued, being made or failed, with the rows waiting on each (a sticker's picture is one file for every
+    // row of that sticker): one leaves it when its file is made, so a file the engine wipes from the cache is made again,
+    // and a failed one never does.
+    QHash<QString, QSet<QString> > m_known;
+    QSet<QString> m_failed; // the targets that could not be made
     int m_running;
-    QSet<QString> m_done; // the ids made since the last ready
+    QSet<QString> m_done; // the ids made, or that failed, since the last ready
     QTimer m_flush;
 };
 

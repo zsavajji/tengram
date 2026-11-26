@@ -25,7 +25,18 @@ inline int bigEmoji(const QString &text)
             }
         }
     }
-    const QVector<uint> cps = text.toUcs4();
+    // Not text.toUcs4(): the phone's Qt leaves a 0 at the end of its vector for each surrogate pair (ui.log on the Classic,
+    // 2026-11-26: "1f525 0" for 🔥), so every emoji past U+FFFF read as an emoji and a character that is none.
+    QVector<uint> cps;
+    for (int i = 0; i < text.size(); ++i) {
+        const QChar c = text.at(i);
+        if (c.isHighSurrogate() && i + 1 < text.size() && text.at(i + 1).isLowSurrogate()) {
+            cps << QChar::surrogateToUcs4(c, text.at(i + 1));
+            ++i;
+        } else {
+            cps << c.unicode();
+        }
+    }
     int n = 0;
     bool joined = false; // after a ZWJ: the next one is part of the same emoji
     bool flagOpen = false; // after a flag's first regional indicator

@@ -1080,7 +1080,9 @@ void MessageCard::fillFoot()
     // the time at 85 %, whose baseline sits higher (Q10, 0.0.1.212: +3 was 1 px low; 0.0.1.216: 2 more).
     const bool small = !m_head && (named() || (!flag("deleted") && m_msg.value("forwarded").toInt() > 0) || !str("quote").isEmpty());
     const bool onPicture = m_head && !m_card->isVisible();
-    const bool onSticker = m_media && str("media") == "sticker" && flag("hasThumb");
+    // On the sticker's square whenever it shows: its picture, or the spinner while that is on its way (MediaBubble; the
+    // time stood above the spinner, the user's screenshot, 2026-11-26).
+    const bool onSticker = m_media && str("media") == "sticker" && (flag("hasThumb") || !flag("stickerFailed"));
     // An album with no caption: on its last tile, as on a photo (beside it, it took the time's width from the tiles,
     // cut at the left, the user's screenshot 2026-11-21).
     const bool onAlbum = m_album && !m_msg.value("album").toList().isEmpty();

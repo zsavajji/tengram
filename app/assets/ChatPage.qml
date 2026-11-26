@@ -1285,7 +1285,6 @@ Page {
                             interval: 1000
                             singleShot: true
                             onTimeout: {
-                                console.log("chat: slide guard, row '" + list.slideId + "' not measured")
                                 list.slideId = ""
                                 list.scrollToPosition(ScrollPosition.Beginning, ScrollAnimation.None)
                                 page.slidePin = false

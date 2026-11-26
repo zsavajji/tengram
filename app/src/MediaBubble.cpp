@@ -201,9 +201,12 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_stickerStamp = new Container();
     m_stickerStamp->setHorizontalAlignment(HorizontalAlignment::Right);
     m_stickerStamp->setVerticalAlignment(VerticalAlignment::Bottom);
+    m_stickerSpin = spinner();
+    m_stickerSpin->setPreferredSize(m_ui->du(9), m_ui->du(9));
     m_stickerBox->add(m_stickerImage);
+    m_stickerBox->add(m_stickerSpin);
     m_stickerBox->add(m_stickerStamp);
-    // Until it is here: no picture and no thumbnail.
+    // A picture that won't come: no file, or none that decodes.
     m_stickerText = new Label();
     m_stickerText->setTopMargin(0);
     m_stickerText->setBottomMargin(0);
@@ -340,28 +343,36 @@ void MediaBubble::show(const QVariantMap &msg)
         m_cover->setVisible(spoiler);
     }
 
-    m_stickerBox->setVisible(m_sticker && hasThumb);
+    // Its picture on its way (the file downloading, or its PNG being made): the sticker's square, empty, with a spinner in
+    // the middle (the user, 2026-11-26: not the word "Sticker" for a while).
+    const bool waiting = m_sticker && !hasThumb && !flag("stickerFailed");
+    m_stickerBox->setVisible(m_sticker && (hasThumb || waiting));
+    m_stickerSpin->setRunning(waiting);
     if (m_sticker) {
         // 30 du at Normal, Settings > Chats > Sticker size; set at each show, so the cards follow a change.
         // ponytail: drawn at 180 px (kStickerPx) and scaled, so Big is softer; draw at the view's size if it shows.
         const float side = m_ui->du(30 * Settings::stickerScale());
         m_stickerImage->setPreferredSize(side, side);
+        // The box too: an ImageView with no image takes no room, and the waiting square shrank to its spinner with the time
+        // beside it (the user, 2026-11-26).
+        m_stickerBox->setPreferredSize(side, side);
     }
-    m_stickerText->setVisible(m_sticker && !hasThumb);
+    m_stickerText->setVisible(m_sticker && !hasThumb && !waiting);
     const bool tgs = m_sticker && flag("tgs");
-    const QString stickerId = tgs ? str("id") : QString();
+    // Played once its picture shows (hasThumb: the box is hidden without one), so a sticker whose file or picture comes after
+    // its row doesn't play unseen and then show its still (the user, 2026-11-26: a sent 👍 did not play).
+    const QString stickerId = tgs && hasThumb ? str("id") : QString();
     StickerPlayer *player = StickerPlayer::instance();
-    // A new row in this card (a re-read of the same row happens at every update): the other row's sticker stops first.
-    const bool newRow = stickerId != m_stickerId;
-    if (newRow) {
+    // A new row in this card (a re-read of the same row happens at every update): the other row's sticker stops first. A sent
+    // sticker under its own id names its temporary one (wasId): the same message, which plays on (it started over, the user,
+    // 2026-11-26).
+    const bool newRow = stickerId != m_stickerId && (stickerId.isEmpty() || str("wasId") != m_stickerId);
+    if (newRow)
         player->release(m_stickerImage);
-        m_stickerId = stickerId;
-    }
+    m_stickerId = stickerId;
     const Image still = m_msg.value("thumb").value<Image>();
     if (m_sticker && !player->playing(m_stickerImage))
         m_stickerImage->setImage(still);
-    else if (m_sticker) // the picture can come while it plays: it is what shows when the animation ends (the user, 2026-11-26)
-        player->setStill(m_stickerImage, still);
     if (newRow && tgs && Settings::stickerPlayMode() != 2)
         player->play(m_stickerImage, still, str("path"), Settings::stickerPlayMode() == 0);
 
