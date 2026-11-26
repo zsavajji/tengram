@@ -216,6 +216,12 @@ bool StickerPlayer::playing(bb::cascades::ImageView *view) const
     return view && m_view == view;
 }
 
+void StickerPlayer::setStill(bb::cascades::ImageView *view, const bb::cascades::Image &still)
+{
+    if (view && m_view == view)
+        m_still = still;
+}
+
 void StickerPlayer::stop()
 {
     ++m_token; // what the worker has queued is stale now

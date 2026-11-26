@@ -360,6 +360,8 @@ void MediaBubble::show(const QVariantMap &msg)
     const Image still = m_msg.value("thumb").value<Image>();
     if (m_sticker && !player->playing(m_stickerImage))
         m_stickerImage->setImage(still);
+    else if (m_sticker) // the picture can come while it plays: it is what shows when the animation ends (the user, 2026-11-26)
+        player->setStill(m_stickerImage, still);
     if (newRow && tgs && Settings::stickerPlayMode() != 2)
         player->play(m_stickerImage, still, str("path"), Settings::stickerPlayMode() == 0);
 

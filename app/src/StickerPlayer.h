@@ -35,6 +35,9 @@ public:
     // Stops when view is the one playing; does nothing otherwise.
     void release(bb::cascades::ImageView *view);
     bool playing(bb::cascades::ImageView *view) const;
+    // The still view shows when it stops, when view is the one playing: the card's picture came after play() (a new row's
+    // PNG is made on a worker), and the still play() was given is empty.
+    void setStill(bb::cascades::ImageView *view, const bb::cascades::Image &still);
     // True while a page other than a chat covers the chats: what plays stops drawing (its view shows the still) and starts
     // again from its first frame when it turns false. Called through Settings::coverStickers.
     static void setCovered(bool covered);
