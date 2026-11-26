@@ -1,4 +1,5 @@
 #include "ChatController.h"
+#include "BigEmoji.h"
 
 #include "ChatsDb.h"
 #include "EngineLink.h"
@@ -475,9 +476,11 @@ bool ChatController::send(const QString &text, const QVariantList &mentions, boo
         args["mentions"] = mentions;
     // The row is in the list before the request goes, so it shows at once and the page slides it in; the engine's row takes
     // its place when it comes. After toLiveEnd: the window is gone, which addLocal won't add into. m_quoteId is read before
-    // cancelReply clears it.
+    // cancelReply clears it. Not for a text of one emoji: TDLib sends it as Telegram's animated sticker of it, and the local
+    // row would show the emoji's text before the sticker took its place (the user, 2026-11-26: never the text heart); the
+    // engine's row, a moment later, slides in as a new one.
     QString local;
-    if (instant && m_messages && m_editId.isEmpty())
+    if (instant && m_messages && m_editId.isEmpty() && bigEmoji(text) != 1)
         local = m_messages->addLocal(text, m_quoteId);
     if (!local.isEmpty())
         args["local"] = local; // the engine writes it on our row: the local row is renamed to it exactly (MessageModel::takeLocal)
