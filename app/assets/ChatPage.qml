@@ -429,8 +429,9 @@ Page {
         composer.requestFocus()
     }
     property variant playerObj
-    // A voice note plays at the ear (VoicePlayer.atEar: the sensor near, and on in Settings).
-    property bool atEar: page.playerObj ? page.playerObj.atEar : false
+    // The phone is at the ear with a voice note playing, or just ended there (VoicePlayer.covered: the sensor near, and on
+    // in Settings).
+    property bool atEar: page.playerObj ? page.playerObj.covered : false
     property variant recorderObj
     property variant searchObj
     property variant reactObj

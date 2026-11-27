@@ -3,6 +3,7 @@
 #include <bb/cascades/Application>
 #include <bb/cascades/Window>
 #include <bps/bps.h>
+#include <bps/screen_input_guard.h>
 #include <bps/sensor.h>
 #include <audio/audio_manager_device.h>
 #include <audio/audio_manager_routing.h>
@@ -20,6 +21,8 @@ Proximity::Proximity(QObject *parent)
 
 Proximity::~Proximity()
 {
+    if (!m_guards.isEmpty())
+        screen_input_guard_stop_events(0); // which also turns the guard off, whatever its count
     if (m_users > 0) {
         m_users = 1;
         drop();
@@ -73,6 +76,40 @@ void Proximity::drop()
     setNear(false);
 }
 
+// The first holder turns the guard on, the last one off. request_events starts the face detection and enable lets it turn
+// the screen and the touchscreen off; stop_events ends both (the header: "forcibly disable"). Its status events come to
+// event() below, which only logs them: `near`, and with it the sound's way to the ear, stays the proximity sensor's.
+void Proximity::guard(QObject *holder, bool on)
+{
+    if (!holder || on == m_guards.contains(holder))
+        return;
+    if (on) {
+        m_guards.insert(holder);
+        connect(holder, SIGNAL(destroyed(QObject *)), this, SLOT(guardGone(QObject *)));
+        if (m_guards.size() > 1)
+            return;
+        subscribe(screen_input_guard_get_domain());
+        if (screen_input_guard_request_events(0) != BPS_SUCCESS || screen_input_guard_enable() != BPS_SUCCESS)
+            qWarning("proximity: screen guard refused, errno %d", errno);
+        return;
+    }
+    disconnect(holder, SIGNAL(destroyed(QObject *)), this, SLOT(guardGone(QObject *)));
+    m_guards.remove(holder);
+    guardGone(0);
+}
+
+// A holder left (0), or was destroyed while it asked: with none left the guard goes off.
+void Proximity::guardGone(QObject *holder)
+{
+    if (holder && !m_guards.remove(holder))
+        return;
+    if (!m_guards.isEmpty())
+        return;
+    screen_input_guard_disable();
+    screen_input_guard_stop_events(0);
+    unsubscribe(screen_input_guard_get_domain());
+}
+
 unsigned int Proximity::earHandle()
 {
     if (m_ear)
@@ -92,6 +129,13 @@ unsigned int Proximity::earHandle()
 
 void Proximity::event(bps_event_t *event)
 {
+    if (bps_event_get_domain(event) == screen_input_guard_get_domain()) {
+        if (bps_event_get_code(event) == SCREEN_INPUT_GUARD_EVENT_STATUS)
+            qDebug("proximity: screen guard %s",
+                   screen_input_guard_event_get_status(event) == SCREEN_INPUT_GUARD_STATUS_ACTIVATED ? "on: the screen is off"
+                                                                                                   : "off");
+        return;
+    }
     if (bps_event_get_domain(event) != sensor_get_domain()
         || bps_event_get_code(event) != SENSOR_PROXIMITY_READING)
         return;

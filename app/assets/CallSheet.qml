@@ -28,6 +28,10 @@ Sheet {
     // At the ear: the screen goes black and takes no touch. Never on the loudspeaker, where the phone
     // is held away (a video call starts there).
     property bool atEar: held && proximity.near && !callAudio.speaker && settings.earSensor // off in Settings for a sensor that misreads
+    // While atEar could come true, the system's Screen Input Guard is on (Proximity.guard): at the ear the display and the
+    // touchscreen go off, where the cover below stops only the touches inside this sheet. Not on the speaker.
+    property bool guarded: held && !callAudio.speaker && settings.earSensor
+    onGuardedChanged: proximity.guard(sheet, guarded)
     // Our own preview hidden by the panel's toggle (the user's ask); our video still goes out. Shown
     // again with each call.
     property bool previewHidden: false

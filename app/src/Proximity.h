@@ -10,6 +10,11 @@
 // are requested on the first acquire and stopped on the last release. The screen also stays awake
 // while held, because an idle lock during a call would minimise the app and drop the audio (the
 // same reason as while recording, step 4.4b). Lives on the UI thread, where BPS delivers.
+// The black cover the pages draw at the ear stops the touches inside the page only: the system's gestures and whatever is
+// not under it still answered a cheek (the user, 2026-11-27: "the screen stays reactive to touch and i can trigger things").
+// guard() turns on the system's own Screen Input Guard (bps/screen_input_guard.h, what the phone's call screen uses): while
+// a holder asks for it, the system turns the display off and the touchscreen with it when a face is near, and back on when
+// it leaves; not with the phone lying face up. The cover stays, for when the guard does not act.
 class Proximity : public QObject, public bb::AbstractBpsEventHandler
 {
     Q_OBJECT
@@ -26,6 +31,9 @@ public:
     // argument: moc's per-arity clones are a known Qt 4 trap (pitfalls.md).
     Q_INVOKABLE void acquire(QObject *holder);
     Q_INVOKABLE void release(QObject *holder);
+    // The Screen Input Guard, on while any holder wants it: a page asks while the ear is where its sound would go (a voice
+    // note playing, a call not on the speaker, and Settings' ear sensor on). A holder destroyed while it asks stops asking.
+    Q_INVOKABLE void guard(QObject *holder, bool on);
     // The ear: an audio_manager handle routed to the handset, made on first use and kept for the
     // app's run (a MediaPlayer's audioManagerHandle; 0 if audio_manager refused).
     Q_INVOKABLE unsigned int earHandle();
@@ -37,6 +45,7 @@ signals:
 
 private slots:
     void holderGone(QObject *holder);
+    void guardGone(QObject *holder);
 
 private:
     void setNear(bool on);
@@ -44,6 +53,7 @@ private:
 
     int m_users;
     QSet<QObject *> m_holders;
+    QSet<QObject *> m_guards; // the holders that want the Screen Input Guard
     bool m_near;
     unsigned int m_ear;
 };
