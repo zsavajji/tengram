@@ -35,9 +35,9 @@ readonly OPUS_CONFIGURE_FLAGS="--enable-static --disable-shared --disable-rtcd -
 readonly JOBS="${JOBS:-4}"
 
 readonly IMAGE="tengram-build"
-# The toolchain image under it. LTO needs the driver's linker-plugin support (bb10-cxx20 with
-# docs/drafts/bb10-cxx20-lto.patch); with an older image set TD_LTO=OFF.
-readonly BASE_IMAGE="${BASE_IMAGE:-bb10-cxx20:emutls-lto}"
+# The toolchain image under it. LTO needs the driver's linker-plugin support (bb10-cxx20 19.1.7-5
+# or later); with an older image set TD_LTO=OFF.
+readonly BASE_IMAGE="${BASE_IMAGE:-bb10-cxx20:19.1.7-6-build}"
 # Link-time optimisation for TDLight (CMake picks thin LTO for clang). The libraries are then
 # LLVM bitcode, and the code is generated when a program is linked.
 readonly TD_LTO="${TD_LTO:-ON}"

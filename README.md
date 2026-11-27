@@ -108,7 +108,7 @@ since the headless engine has a capped heap. Animated stickers are drawn by
 
 ## Building
 
-You need Docker and the local images `bb10-cxx20` and `yamsergey/bb10-ndk:0.6`, and a Telegram API id and hash
+You need Docker and the local images `bb10-cxx20:19.1.7-6-build` and `yamsergey/bb10-ndk:0.6`, and a Telegram API id and hash
 from [my.telegram.org](https://my.telegram.org).
 
 ```sh

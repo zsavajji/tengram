@@ -84,7 +84,7 @@ Everything builds in Docker (OrbStack) from the Mac.
 
 | What | Command | Notes |
 |---|---|---|
-| TDLib, OpenSSL, zlib | `scripts/build-deps.sh` | Image `tengram-build` (`docker/Dockerfile`, base `bb10-cxx20:emutls-lto`). TDLight `ccf8956e…`, patches `patches/td/` 0001–0006, `patches/openssl/`. About 12 min, stamped. |
+| TDLib, OpenSSL, zlib | `scripts/build-deps.sh` | Image `tengram-build` (`docker/Dockerfile`, base `bb10-cxx20:19.1.7-6-build`). TDLight `ccf8956e…`, patches `patches/td/` 0001–0006, `patches/openssl/`. About 12 min, stamped. |
 | The engine | `engine/build.sh` | `build/tengramd` (37 MB, static), `build/dbq`. With `TG_API_ID`/`TG_API_HASH` in the environment they are compiled in (`-D`). |
 | The UI | `scripts/build-ui.sh` | Fetches, `lupdate` parse, `qmake`+`make` in `yamsergey/bb10-ndk:0.6` → `build/ui/app/libtengram.so`. Agents built in `build/ui-b` (the same `make`) to avoid clashing. |
 | **The package** | `TG_API_ID=… TG_API_HASH=… scripts/build-app.sh` | Engine + UI + `build/tengram.bar`, unsigned, next build id. Prints `Package-Version`. |

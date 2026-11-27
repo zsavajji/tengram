@@ -1,5 +1,5 @@
-# The toolchain image: bb10-cxx20 with the QNX emulated-TLS runtime and LTO (scripts/build-deps.sh passes it).
-ARG BASE=bb10-cxx20:emutls-lto
+# The toolchain image: bb10-cxx20 19.1.7-6: NEON by default, QNX emulated TLS, LTO (scripts/build-deps.sh passes it).
+ARG BASE=bb10-cxx20:19.1.7-6-build
 FROM $BASE
 # gperf: TDLib's generated sources. perl: full distribution (FindBin etc.) for OpenSSL's Configure.
 # libssl-dev, zlib1g-dev: the HOST pass of the TDLib build (prepare_cross_compiling runs on the build machine).
