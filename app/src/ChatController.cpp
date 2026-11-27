@@ -11,6 +11,7 @@
 #include <bb/cascades/Window>
 #include <bb/system/Clipboard>
 #include <bb/utility/i18n/Formatting>
+#include <QCoreApplication>
 #include <QDate>
 #include <QDateTime>
 #include <QDir>
@@ -561,6 +562,10 @@ void ChatController::reply(const QVariantMap &msg)
     m_replyText = msg["text"].toString();
     if (m_replyText.isEmpty()) // a photo or file with no caption has its summary (MediaData)
         m_replyText = msg.value("summary", msg["label"]).toString();
+    // A voice note has neither (it is no MediaData media): the words a card's quote of one has (Pins::summary), so the bar
+    // is not a name over an empty line (the user's screenshot, 2026-11-27).
+    if (m_replyText.isEmpty() && msg["voice"].toBool())
+        m_replyText = QCoreApplication::translate("Pins", "Voice message");
     emit replyChanged();
 }
 
