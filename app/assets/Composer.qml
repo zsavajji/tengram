@@ -1,4 +1,5 @@
 import bb.cascades 1.4
+import tengram 1.0
 
 // The chat's own composer row (user's choice, 2026-11-08): Emoji | field | Attach | Send | ⋮. The
 // system TextInputActionItem it replaces has no layout control: it grew a block taller than its
@@ -43,6 +44,171 @@ Container {
     signal searchTapped
     signal muteTapped
     signal joinTapped
+    // Telegram's Markdown marks around the field's selection (the engine reads them when the text is sent), from the
+    // field's context menu. By the time an item of that menu is tapped the field has no selection any more (the user,
+    // 1.0.5.193: the marks went in at the cursor "even when word is selected"; ui.log, 1.0.5.194: "selection 26-26 of 0,
+    // kept 0-27 of 27"), so the selection is remembered as it changes (selectionMoved) and taken when the menu opens
+    // (menuOpening): the one there, else one lost during the long press that opened the menu. With nothing selected the
+    // marks go in at the cursor, which is left between them. Link asks for the text and the address (linkDialog).
+    // ponytail: positions and lengths are taken as one unit a UTF-16 unit; if a selection holding an emoji is not wrapped, count code points.
+    property int selFrom: 0
+    property int selTo: 0
+    property string selText: ""
+    property double selLost: 0 // when that selection went (ms), 0 while it stands
+    property int markFrom: 0
+    property int markTo: 0
+    property string markText: "" // what the menu's items wrap, "" for nothing
+    function selectionMoved() {
+        var e = field.editor
+        var text = e.selectedText
+        // The start, the end and the text change one after the other: only a state in which they agree is kept.
+        if (text != "" && e.selectionEnd - e.selectionStart == text.length) {
+            selFrom = e.selectionStart
+            selTo = e.selectionEnd
+            selText = text
+            selLost = 0
+        } else if (text == "" && selText != "" && selLost == 0) {
+            selLost = new Date().getTime()
+        }
+    }
+    function menuOpening() {
+        selectionMoved()
+        var kept = selText != "" && (selLost == 0 || new Date().getTime() - selLost < 2000)
+        markFrom = kept ? selFrom : 0
+        markTo = kept ? selTo : 0
+        markText = kept ? selText : ""
+    }
+    // `words` in the place of the selection the menu was opened on, at the cursor when there was none; the cursor then
+    // goes `back` before their end. Not at once: set right after the insert it stayed at the end (the user, 1.0.5.194:
+    // a link's address was typed after its brackets).
+    property int cursorAt: 0
+    function put(words, back) {
+        var e = field.editor
+        var from = e.cursorPosition
+        if (markText != "") {
+            from = markFrom
+            e.setSelection(markFrom, markTo)
+        }
+        e.insertPlainText(words) // takes the selection's place
+        if (back > 0) {
+            cursorAt = from + words.length - back
+            cursorTimer.start()
+        }
+        markText = ""
+    }
+    function mark(open, close) {
+        if (field.editor.selectedText != "") {
+            menuOpening() // still selected: that one
+        }
+        put(open + markText + close, markText == "" ? close.length : 0)
+    }
+    // Link: the dialog starts with the selection as the link's text.
+    function askLink() {
+        if (field.editor.selectedText != "") {
+            menuOpening()
+        }
+        linkText.text = markText.trim()
+        linkUrl.text = ""
+        linkDialog.open()
+        if (linkText.text == "") {
+            linkText.requestFocus()
+        } else {
+            linkUrl.requestFocus()
+        }
+    }
+    // Add: "[text](address)", the address alone without a text; nothing without an address. The blanks the selection
+    // began and ended with (a selected word takes the space after it) stay outside the link.
+    function linkDone() {
+        var label = linkText.text.trim()
+        var url = linkUrl.text.trim()
+        linkDialog.close()
+        if (url != "") {
+            put(/^\s*/.exec(markText)[0] + (label == "" ? url : "[" + label + "](" + url + ")") + /\s*$/.exec(markText)[0], 0)
+        }
+        markText = ""
+        field.requestFocus()
+    }
+    onCreationCompleted: {
+        field.editor.selectedTextChanged.connect(bar.selectionMoved)
+        field.editor.selectionStartChanged.connect(bar.selectionMoved)
+        field.editor.selectionEndChanged.connect(bar.selectionMoved)
+    }
+    attachedObjects: [
+        Timer {
+            id: cursorTimer
+            interval: 100
+            singleShot: true
+            onTimeout: field.editor.cursorPosition = bar.cursorAt
+        },
+        // A link's text and address (the user, 2026-11-27: "a dialog to specify link and label"): a card at the top of a
+        // dimmed page, clear of the keyboard, as TranslateDialog's.
+        Dialog {
+            id: linkDialog
+            Container {
+                layout: DockLayout {}
+                horizontalAlignment: HorizontalAlignment.Fill
+                verticalAlignment: VerticalAlignment.Fill
+                Container {
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    verticalAlignment: VerticalAlignment.Fill
+                    background: Color.create("#B3000000")
+                    gestureHandlers: TapHandler {
+                        onTapped: linkDialog.close()
+                    }
+                }
+                Container {
+                    horizontalAlignment: HorizontalAlignment.Fill
+                    verticalAlignment: VerticalAlignment.Top
+                    topMargin: ui.du(4)
+                    leftMargin: ui.du(2)
+                    rightMargin: ui.du(2)
+                    background: Color.create(nav.pageColor)
+                    topPadding: ui.du(2)
+                    bottomPadding: ui.du(2)
+                    leftPadding: ui.du(2)
+                    rightPadding: ui.du(2)
+                    Label {
+                        text: qsTr("Link")
+                        textStyle.fontWeight: FontWeight.Bold
+                    }
+                    TextField {
+                        id: linkText
+                        hintText: qsTr("Text")
+                        textStyle.base: nav.emojiStyle
+                    }
+                    TextField {
+                        id: linkUrl
+                        hintText: qsTr("Address")
+                        inputMode: TextFieldInputMode.Url
+                        input {
+                            submitKey: SubmitKey.Done
+                            onSubmitted: bar.linkDone()
+                        }
+                    }
+                    Container {
+                        topMargin: ui.du(2)
+                        layout: StackLayout {
+                            orientation: LayoutOrientation.LeftToRight
+                        }
+                        Button {
+                            layoutProperties: StackLayoutProperties {
+                                spaceQuota: 1
+                            }
+                            text: qsTr("Cancel")
+                            onClicked: linkDialog.close()
+                        }
+                        Button {
+                            layoutProperties: StackLayoutProperties {
+                                spaceQuota: 1
+                            }
+                            text: qsTr("Add")
+                            onClicked: bar.linkDone()
+                        }
+                    }
+                }
+            }
+        }
+    ]
     // On the Passport the row is a quarter bigger, text and icons (the user, 2026-11-14, from a
     // Passport screenshot: both looked small on its 120 du of width), and on the Classic a fifth:
     // it is the Q10's 720 x 720 at 8 px a du, not 9, which is how it is told from the Q10 here.
@@ -129,6 +295,44 @@ Container {
                     onSubmitted: bar.submitted()
                 }
                 onTextChanging: bar.changing(text)
+                // In the field's long-press menu (the user, 2026-11-27); the icons are scripts/gen-format-icons.py's.
+                contextMenuHandler: ContextMenuHandler {
+                    onPopulating: bar.menuOpening()
+                }
+                contextActions: [
+                    ActionSet {
+                        ActionItem {
+                            title: qsTr("Bold")
+                            imageSource: "asset:///images/format_bold.png"
+                            onTriggered: bar.mark("**", "**")
+                        }
+                        ActionItem {
+                            title: qsTr("Italic")
+                            imageSource: "asset:///images/format_italic.png"
+                            onTriggered: bar.mark("__", "__")
+                        }
+                        ActionItem {
+                            title: qsTr("Strikethrough")
+                            imageSource: "asset:///images/format_strike.png"
+                            onTriggered: bar.mark("~~", "~~")
+                        }
+                        ActionItem {
+                            title: qsTr("Spoiler")
+                            imageSource: "asset:///images/format_spoiler.png"
+                            onTriggered: bar.mark("||", "||")
+                        }
+                        ActionItem {
+                            title: qsTr("Monospace")
+                            imageSource: "asset:///images/format_mono.png"
+                            onTriggered: bar.mark("`", "`")
+                        }
+                        ActionItem {
+                            title: qsTr("Link")
+                            imageSource: "asset:///images/format_link.png"
+                            onTriggered: bar.askLink()
+                        }
+                    }
+                ]
             }
             TapArea {
                 id: attachBtn

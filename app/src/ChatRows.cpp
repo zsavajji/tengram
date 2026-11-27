@@ -383,9 +383,7 @@ void ChatRow::show(const QVariantMap &chat)
 
     // Without U+20E3, a keycap's frame, as the message card's body (MessageCard.cpp).
     m_preview->textStyle()->setColor(quiet);
-    // WhatsApp's styles show in the preview as in the message (Markup.h); a line without any stays plain.
     const QString line = Card::noKeycaps(str("preview"));
-    const QString html = Markup::html(line);
     // A group's sender in the accent colour, as Telegram's list has it (the user's ask, 2026-11-18). #24A1DE is the
     // app's fixed primary (Settings.cpp).
     // ponytail: the first ": " is taken for the sender's; a service line holding ": " would colour its start. An engine sender field fixes it.
@@ -397,14 +395,12 @@ void ChatRow::show(const QVariantMap &chat)
         m_preview->setText("<span style=\"color:#E53935\">" + Markup::escaped(tr("Draft:")) + "</span> "
                            + Markup::escaped(Card::noKeycaps(draft)));
     } else if (colon > 0) {
-        const QString rest = line.mid(colon + 2);
-        const QString restHtml = Markup::html(rest);
         m_preview->setTextFormat(TextFormat::Html);
         m_preview->setText("<span style=\"color:#24A1DE\">" + Markup::escaped(line.left(colon + 1)) + "</span> "
-                           + (restHtml.isEmpty() ? Markup::escaped(rest) : restHtml));
+                           + Markup::escaped(line.mid(colon + 2)));
     } else {
-        m_preview->setTextFormat(html.isEmpty() ? TextFormat::Plain : TextFormat::Html);
-        m_preview->setText(html.isEmpty() ? line : html);
+        m_preview->setTextFormat(TextFormat::Plain);
+        m_preview->setText(line);
     }
 
     const Color badge = muted ? palette->plain() : primary;

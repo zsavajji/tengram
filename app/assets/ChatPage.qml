@@ -348,6 +348,10 @@ Page {
             body: qsTr("Couldn't open this file")
         },
         SystemToast {
+            id: copiedToast
+            body: qsTr("Copied")
+        },
+        SystemToast {
             id: savedToast
             body: qsTr("Saved to Downloads")
         },
@@ -1088,6 +1092,11 @@ Page {
                     function copy(text) {
                         ctl.copy(text)
                     }
+                    // A tap on code in a message (the user, 2026-11-27): copied, and said so, as nothing else shows it.
+                    function copyCode(text) {
+                        ctl.copy(text)
+                        copiedToast.show()
+                    }
                     // Translate: a message already shown translated gives its original, any other its translation.
                     function translate(msg) {
                         if (msg.translated) {
@@ -1100,13 +1109,13 @@ Page {
                     function forward(msg) {
                         nav.forwardPick({"chat": page.chat.jid, "id": msg.id})
                     }
-                    // Edit (ours, a text): the composer takes its text, the bar above says so, Send replaces it.
+                    // Edit (ours, a text): the composer takes its text (its formatting as Markdown), the bar above says so, Send replaces it.
                     function edit(msg) {
                         page.unstage()
-                        ctl.edit(msg)
-                        composer.text = msg.text
+                        var text = ctl.edit(msg)
+                        composer.text = text
                         composer.requestFocus()
-                        composer.editor.cursorPosition = msg.text.length
+                        composer.editor.cursorPosition = text.length
                     }
                     // A tap on a quote: the quoted message, tinted as a search match for a moment.
                     function openQuote(msg) {

@@ -972,6 +972,11 @@
         <source>Couldn&apos;t send the location</source>
         <translation>Gagal mengirim lokasi</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="352"/>
+        <source>Copied</source>
+        <translation>Disalin</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -1231,24 +1236,74 @@
 <context>
     <name>Composer</name>
     <message>
-        <location filename="../assets/Composer.qml" line="89"/>
+        <location filename="../assets/Composer.qml" line="276"/>
         <source>Message</source>
         <translation>Pesan</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="215"/>
+        <location filename="../assets/Composer.qml" line="407"/>
         <source>Mute notifications</source>
         <translation>Bisukan notifikasi</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="215"/>
+        <location filename="../assets/Composer.qml" line="407"/>
         <source>Unmute notifications</source>
         <translation>Aktifkan notifikasi</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="250"/>
+        <location filename="../assets/Composer.qml" line="417"/>
         <source>Join</source>
         <translation>Gabung</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="305"/>
+        <source>Bold</source>
+        <translation>Tebal</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="310"/>
+        <source>Italic</source>
+        <translation>Miring</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="315"/>
+        <source>Strikethrough</source>
+        <translation>Coret</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="320"/>
+        <source>Spoiler</source>
+        <translation>Spoiler</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="325"/>
+        <source>Monospace</source>
+        <translation>Monospace</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="171"/>
+        <source>Link</source>
+        <translation>Tautan</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="176"/>
+        <source>Text</source>
+        <translation>Teks</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="181"/>
+        <source>Address</source>
+        <translation>Alamat</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="197"/>
+        <source>Cancel</source>
+        <translation>Batal</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="204"/>
+        <source>Add</source>
+        <translation>Tambah</translation>
     </message>
 </context>
 <context>

@@ -90,7 +90,8 @@ public:
     // msg is a MessageModel "msg" map; the next send quotes it.
     Q_INVOKABLE void reply(const QVariantMap &msg);
     // msg is a MessageModel "msg" map of ours; the next send is its new text (msg.edit).
-    Q_INVOKABLE void edit(const QVariantMap &msg);
+    // Returns the composer's text: the message's, its formatting as Markdown (Markup::source), which msg.edit reads again.
+    Q_INVOKABLE QString edit(const QVariantMap &msg);
     // Ends a reply or an edit.
     Q_INVOKABLE void cancelReply();
     // Keeps the composer's text, with the message it replies to, as Telegram's draft of the chat, topic or thread, when it

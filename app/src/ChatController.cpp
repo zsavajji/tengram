@@ -3,6 +3,7 @@
 
 #include "ChatsDb.h"
 #include "EngineLink.h"
+#include "Markup.h"
 #include "colors.h"
 #include "MessageModel.h"
 #include "Waveform.h"
@@ -569,13 +570,14 @@ void ChatController::reply(const QVariantMap &msg)
     emit replyChanged();
 }
 
-void ChatController::edit(const QVariantMap &msg)
+QString ChatController::edit(const QVariantMap &msg)
 {
     m_quoteId.clear();
     m_editId = msg["id"].toString();
     m_replyName = tr("You");
     m_replyText = msg["text"].toString();
     emit replyChanged();
+    return Markup::source(msg["text"].toString(), msg["ent"].toList());
 }
 
 void ChatController::cancelReply()

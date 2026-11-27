@@ -973,6 +973,11 @@
         <source>Couldn&apos;t send the location</source>
         <translation>Impossibile inviare la posizione</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="352"/>
+        <source>Copied</source>
+        <translation>Copiato</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -1233,24 +1238,74 @@
 <context>
     <name>Composer</name>
     <message>
-        <location filename="../assets/Composer.qml" line="89"/>
+        <location filename="../assets/Composer.qml" line="276"/>
         <source>Message</source>
         <translation>Messaggio</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="215"/>
+        <location filename="../assets/Composer.qml" line="407"/>
         <source>Mute notifications</source>
         <translation>Disattiva notifiche</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="215"/>
+        <location filename="../assets/Composer.qml" line="407"/>
         <source>Unmute notifications</source>
         <translation>Riattiva notifiche</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="250"/>
+        <location filename="../assets/Composer.qml" line="417"/>
         <source>Join</source>
         <translation>Unisciti</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="305"/>
+        <source>Bold</source>
+        <translation>Grassetto</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="310"/>
+        <source>Italic</source>
+        <translation>Corsivo</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="315"/>
+        <source>Strikethrough</source>
+        <translation>Barrato</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="320"/>
+        <source>Spoiler</source>
+        <translation>Spoiler</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="325"/>
+        <source>Monospace</source>
+        <translation>Monospazio</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="171"/>
+        <source>Link</source>
+        <translation>Link</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="176"/>
+        <source>Text</source>
+        <translation>Testo</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="181"/>
+        <source>Address</source>
+        <translation>Indirizzo</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="197"/>
+        <source>Cancel</source>
+        <translation>Annulla</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="204"/>
+        <source>Add</source>
+        <translation>Aggiungi</translation>
     </message>
 </context>
 <context>

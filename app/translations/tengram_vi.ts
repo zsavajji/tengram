@@ -972,6 +972,11 @@
         <source>Couldn&apos;t send the location</source>
         <translation>Không thể gửi vị trí</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="352"/>
+        <source>Copied</source>
+        <translation>Đã sao chép</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -1231,24 +1236,74 @@
 <context>
     <name>Composer</name>
     <message>
-        <location filename="../assets/Composer.qml" line="89"/>
+        <location filename="../assets/Composer.qml" line="276"/>
         <source>Message</source>
         <translation>Tin nhắn</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="215"/>
+        <location filename="../assets/Composer.qml" line="407"/>
         <source>Mute notifications</source>
         <translation>Tắt thông báo</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="215"/>
+        <location filename="../assets/Composer.qml" line="407"/>
         <source>Unmute notifications</source>
         <translation>Bật thông báo</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="250"/>
+        <location filename="../assets/Composer.qml" line="417"/>
         <source>Join</source>
         <translation>Tham gia</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="305"/>
+        <source>Bold</source>
+        <translation>In đậm</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="310"/>
+        <source>Italic</source>
+        <translation>In nghiêng</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="315"/>
+        <source>Strikethrough</source>
+        <translation>Gạch ngang</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="320"/>
+        <source>Spoiler</source>
+        <translation>Spoiler</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="325"/>
+        <source>Monospace</source>
+        <translation>Đơn cách</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="171"/>
+        <source>Link</source>
+        <translation>Liên kết</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="176"/>
+        <source>Text</source>
+        <translation>Văn bản</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="181"/>
+        <source>Address</source>
+        <translation>Địa chỉ</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="197"/>
+        <source>Cancel</source>
+        <translation>Hủy</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="204"/>
+        <source>Add</source>
+        <translation>Thêm</translation>
     </message>
 </context>
 <context>

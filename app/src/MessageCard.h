@@ -85,6 +85,7 @@ private slots:
     void onRevoke();
     void onDeleteMe();
     void onChip();
+    void onBlock();
     void onJoin();
     void onQuote();
     void onTile();
@@ -96,6 +97,7 @@ private:
     Invites *joiner() const;
 
     void makeSender();
+    void fillBlocks(const QVariantList &parts);
     void makeTile();
     void fillTile(bool on);
     float tileSpace() const;
@@ -195,6 +197,7 @@ private:
     bb::cascades::Label *m_quoteText;
     bb::cascades::ImageView *m_quoteThumb;
     bb::cascades::Label *m_label;
+    bb::cascades::Container *m_blocks; // a text's code blocks and the text before each (fillBlocks), made when a message first has one
     bb::cascades::Container *m_words; // the text, and the time over its last line's end
     bb::cascades::Label *m_text;
     bb::cascades::Button *m_join;

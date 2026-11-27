@@ -6,6 +6,7 @@
 #include "ChatsDb.h"
 #include "EngineLink.h"
 #include "MediaData.h"
+#include "Markup.h"
 #include "MessageKinds.h"
 #include "Pins.h"
 #include "Sticker.h"
@@ -87,6 +88,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     if (m.service) {
         m.data["text"] = shown;
         m.data["html"] = QString(); // set on every row (below too), so QML never reads undefined
+        m.data["veiled"] = false; // nor MessageCard's tap
         m.data["canTranslate"] = false; // nor does the menu's Translate read undefined
         m.data["wantTr"] = false;
         m.data["translated"] = false;
@@ -247,9 +249,29 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     }
     m.data["text"] = shown;
     m.data["bigEmoji"] = kind == 0 && !deleted ? bigEmoji(shown) : 0; // 1 to 3 emoji alone: MessageCard draws them big
-    // The same text with its mentions linked, "" for none (MessageKinds::html).
-    const QString html = MessageKinds::html(shown, extra);
+    // The same text with Telegram's formatting (extra.ent, Markup.h) as rich text, "" for none. The formatting is the
+    // text's own: not a translation's, nor the note over a deleted message, nor a document's caption's (extra.caption,
+    // which MediaBubble draws). A spoiler in it is covered until tapped (unspoil, as a picture's). ent goes along for
+    // ChatController::edit.
+    const QVariantList ents = !deleted && shown == text && !extra.contains("caption") ? extra.value("ent").toList()
+                                                                                     : QVariantList();
+    // A code block is a box of its own in the card (MessageCard::fillBlocks): parts is the text cut at its blocks, but for
+    // what follows the last one, which stays the card's text (tailText, and html), where the time is. veiled: a spoiler
+    // of it is covered, which a tap on the card takes off.
+    const bool revealed = m_revealed.contains(m.id);
+    QVariantList parts = Markup::parts(shown, ents, revealed);
+    QString html = parts.isEmpty() ? Markup::html(shown, ents, revealed) : QString();
+    QString tail;
+    if (!parts.isEmpty() && !parts.last().toMap().value("code").toBool()) {
+        const QVariantMap last = parts.takeLast().toMap();
+        tail = last.value("text").toString();
+        html = last.value("html").toString();
+    }
     m.data["html"] = html;
+    m.data["parts"] = parts;
+    m.data["tailText"] = tail;
+    m.data["veiled"] = !revealed && Markup::has(ents, "sp");
+    m.data["ent"] = ents;
     m.data["albumId"] = extra.value("album").toString(); // Telegram's album (Albums.h), "" for none
     // The engine's quote_preview is the quoted row's text: a photo, sticker or voice note with none says what it is, as a pin
     // does (Pins::summary), so the reply still shows (the user, 2026-11-25: a reply to Jan's photo in BerryFarm had no quote).

@@ -974,6 +974,11 @@
         <source>Couldn&apos;t send the location</source>
         <translation>Не удалось отправить геопозицию</translation>
     </message>
+    <message>
+        <location filename="../assets/ChatPage.qml" line="352"/>
+        <source>Copied</source>
+        <translation>Скопировано</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -1235,24 +1240,74 @@
 <context>
     <name>Composer</name>
     <message>
-        <location filename="../assets/Composer.qml" line="89"/>
+        <location filename="../assets/Composer.qml" line="276"/>
         <source>Message</source>
         <translation>Сообщение</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="215"/>
+        <location filename="../assets/Composer.qml" line="407"/>
         <source>Mute notifications</source>
         <translation>Отключить уведомления</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="215"/>
+        <location filename="../assets/Composer.qml" line="407"/>
         <source>Unmute notifications</source>
         <translation>Включить уведомления</translation>
     </message>
     <message>
-        <location filename="../assets/Composer.qml" line="250"/>
+        <location filename="../assets/Composer.qml" line="417"/>
         <source>Join</source>
         <translation>Вступить</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="305"/>
+        <source>Bold</source>
+        <translation>Жирный</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="310"/>
+        <source>Italic</source>
+        <translation>Курсив</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="315"/>
+        <source>Strikethrough</source>
+        <translation>Зачёркнутый</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="320"/>
+        <source>Spoiler</source>
+        <translation>Спойлер</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="325"/>
+        <source>Monospace</source>
+        <translation>Моноширинный</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="171"/>
+        <source>Link</source>
+        <translation>Ссылка</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="176"/>
+        <source>Text</source>
+        <translation>Текст</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="181"/>
+        <source>Address</source>
+        <translation>Адрес</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="197"/>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
+        <location filename="../assets/Composer.qml" line="204"/>
+        <source>Add</source>
+        <translation>Добавить</translation>
     </message>
 </context>
 <context>

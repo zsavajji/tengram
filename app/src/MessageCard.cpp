@@ -91,6 +91,7 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_quoteText(0)
     , m_quoteThumb(0)
     , m_label(0)
+    , m_blocks(0)
     , m_join(0)
     , m_voice(0)
     , m_media(0)
@@ -975,11 +976,15 @@ void MessageCard::fillColumn()
             m_label->setText(label);
     }
 
-    // With mentions or WhatsApp's styles the html has them linked or styled (MessageKinds::html, which
+    // With Telegram's formatting the html has it styled and linked (Markup::html, which
     // drops the keycaps too); else the plain text. Links, numbers and addresses are tappable, opened by the system
     // (the user's request, 0.0.1.132: a YouTube link did nothing), but not on a deleted message's note.
+    // A message with code blocks: they, and the text before each, are fillBlocks' boxes and labels above this text, which
+    // is then what follows the last block (MessageRows' tailText).
+    const QVariantList parts = m_msg.value("parts").toList();
+    fillBlocks(parts);
     const QString html = str("html");
-    const QString text = str("text");
+    const QString text = parts.isEmpty() ? str("text") : str("tailText");
     if (m_rich)
         m_words->setVisible(!text.isEmpty());
     // Room for the time at the last line's end: U+2800, the blank Braille cell, which only the

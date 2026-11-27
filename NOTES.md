@@ -42,7 +42,7 @@ Rough split of the UI's ~22.5k lines (13.2k C++, 9.4k QML): about 65% unchanged,
 | Engine | large | A rewrite. HyperBerry's Go engine is 14.2k lines (+10k tests), almost all WhatsApp. TDLib does the heavy work (sync, encryption, files), so expect 5–8k lines of C++. `meegram2/src/daemon` (main.cpp, Notifier.cpp) and `../tele10/PLAN.md` §4–§6 are the starting design. |
 | Login | small | QR or pairing code becomes phone → code → 2FA password → registration, plus TDLib's QR login. `LinkNumberPage.qml` mostly survives. |
 | History | medium, the main shift | WhatsApp pushes history once, at linking; Telegram loads it on demand. The UI needs a "load older" command when scrolling up. `chats.db` stops being "the only copy, never rebuilt" and becomes a cache the engine can rebuild from TDLib (tele10's `view.db`). |
-| Text styles | small–medium | `app/src/Markup.h` parses WhatsApp's `*bold*` markup. Telegram sends entities (bold, italic, links, spoilers, custom emoji): store them in `extra`, render from them. |
+| Text styles | done | Telegram's entities are in `extra.ent` and `app/src/Markup.h` renders them (bold, italic, underline, strike, code, links, mentions, spoilers; not quotes or custom emoji). A sent text's Markdown (`**bold**`, `__italic__`, …) is read by TDLib's `parseMarkdown` in the engine. |
 | Message kinds | medium | New: TGS animated stickers (rlottie, as meegram2), WebM video stickers, GIFs as MP4, round video notes, dice, quizzes, many more service messages. |
 | Reactions, receipts | small | Telegram gives reaction counts, not a row per reactor. No "delivered" state: sent and read only. |
 | Groups, channels | medium | Supergroups and channels can be huge: the member list must page. Forum topics are new; folders optional. |

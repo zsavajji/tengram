@@ -249,6 +249,12 @@ first, untagged. Every later rewrite of that id keeps `extra.local`, and so does
 `extra.was`, the temporary id. A temporary id is never written again once its message has its final id (a late `getMessage`
 answer still named it).
 
+**Formatting:** the `text` of `msg.send` and `msg.edit` and the `caption` of `media.send` and `media.album` are read as
+Telegram's Markdown (TDLib's `parseMarkdown`): `**bold**`, `__italic__`, `~~strikethrough~~`, `||spoiler||`, `` `code` ``,
+a block between two ` ``` ` (a first line of letters is its language) and `[text](url)`; `[name](tg://user?id=N)` is a
+mention of that user. Marks that don't pair stay text. The row has the text without the marks and the formatting as
+`extra.ent`. `draft.set` keeps the text as typed.
+
 **`media.send`:** a file as a new message in the chat, sent as `msg.send` sends a text: the same `quote`,
 the same row (*sending*, state 0, under a temporary id) and the reply `{id}` with that id. `path` is the absolute
 path of an existing regular file of at most 2000 MB (2000 x 2^20 bytes). `caption` is a string, `width` and `height`

@@ -371,6 +371,10 @@ QVariantMap MessageModel::albumData(const Entry &e) const
         if (!captioned && !m_all[i].data["text"].toString().isEmpty()) {
             d["text"] = m_all[i].data["text"];
             d["html"] = m_all[i].data["html"];
+            d["ent"] = m_all[i].data["ent"];
+            d["parts"] = m_all[i].data["parts"];
+            d["tailText"] = m_all[i].data["tailText"];
+            d["veiled"] = m_all[i].data["veiled"];
             captioned = true;
         }
     }

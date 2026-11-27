@@ -540,7 +540,7 @@ void chat_set(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
 
 // ---- msg.send, msg.edit, msg.delete
 
-// A text as the UI typed it, with the entities it has (the mentions: none else).
+// A text exactly as given, with the entities it has. A draft's: its marks stay as typed, so the composer gets them back.
 td_api::object_ptr<td_api::formattedText> plain_text(
     const std::string &text, std::vector<td_api::object_ptr<td_api::textEntity>> entities = {}) {
   return make_object<td_api::formattedText>(text, std::move(entities));
@@ -595,6 +595,18 @@ std::vector<td_api::object_ptr<td_api::textEntity>> mention_entities(
   return entities;
 }
 
+// A text as the UI typed it, for a message or a caption: Telegram's Markdown in it (**bold**, __italic__, ~~strike~~,
+// ||spoiler||, `code`, ```pre``` and [text](url)) becomes entities, by TDLib's own parser (parseMarkdown runs only
+// synchronously). It moves the entities given (the mentions) to their new places, and marks that don't pair stay text.
+td_api::object_ptr<td_api::formattedText> typed_text(
+    const std::string &text, std::vector<td_api::object_ptr<td_api::textEntity>> entities = {}) {
+  Obj parsed = td::ClientManager::execute(make_object<td_api::parseMarkdown>(plain_text(text, std::move(entities))));
+  if (parsed && parsed->get_id() == td_api::formattedText::ID) {
+    return td_api::move_object_as<td_api::formattedText>(parsed);
+  }
+  return plain_text(text);
+}
+
 void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, std::int64_t chat) {
   auto text = string_field(req, "text");
   if (text.is_error() || text.ok().empty()) {
@@ -640,7 +652,7 @@ void msg_send(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
     return bad_request(conn, id, "local is a string");
   }
   auto content = make_object<td_api::inputMessageText>(
-      plain_text(text.ok(), mention_entities(text.ok(), mentions)), nullptr, true);
+      typed_text(text.ok(), mention_entities(text.ok(), mentions)), nullptr, true);
   send_content(conn, id, chat, topic, thread, std::move(reply), std::move(content), local);
 }
 
@@ -751,7 +763,7 @@ constexpr std::int64_t kMaxFile = std::int64_t{2000} << 20;
 td_api::object_ptr<td_api::InputMessageContent> file_content(const std::string &path, bool document, std::int32_t width,
                                                              std::int32_t height, const std::string &text) {
   auto caption = [&]() -> td_api::object_ptr<td_api::formattedText> {
-    return text.empty() ? nullptr : plain_text(text);  // null is TDLib's empty caption
+    return text.empty() ? nullptr : typed_text(text);  // null is TDLib's empty caption
   };
   auto file = [&] { return make_object<td_api::inputFileLocal>(path); };
 
@@ -918,10 +930,10 @@ void msg_edit(std::uint64_t conn, const std::string &id, td::JsonObject &req, st
   }
   auto done = [conn, id](Obj o) { answer(conn, id, o); };
   if (kind == 0) {
-    auto content = make_object<td_api::inputMessageText>(plain_text(text.ok()), nullptr, false);
+    auto content = make_object<td_api::inputMessageText>(typed_text(text.ok()), nullptr, false);
     tdlib.send(make_object<td_api::editMessageText>(chat, message, nullptr, std::move(content)), done);
   } else if (kind == 1 || kind == 2) {
-    tdlib.send(make_object<td_api::editMessageCaption>(chat, message, nullptr, plain_text(text.ok()), false), done);
+    tdlib.send(make_object<td_api::editMessageCaption>(chat, message, nullptr, typed_text(text.ok()), false), done);
   } else {
     bad_request(conn, id, "only a text, a photo or a video can be edited");
   }

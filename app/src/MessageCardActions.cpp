@@ -12,6 +12,7 @@
 #include "CardStyle.h"
 #include "VoiceBubble.h"
 #include "Invites.h"
+#include "MessageModel.h"
 
 using namespace bb::cascades;
 
@@ -179,8 +180,14 @@ void MessageCard::onTouch(TouchEvent *event)
             m_root->setTranslationX(qBound(-full, dx, 0.0f));
         return;
     }
-    if (m_swipe != 1) // up or cancel
+    if (m_swipe != 1) { // up or cancel
+        // A tap (no move) on a card whose text has a covered spoiler takes the cover off, wherever on the card it lands,
+        // as Telegram's apps open every spoiler of a message at once.
+        MessageModel *model = qobject_cast<MessageModel *>(m_list->dataModel());
+        if (m_swipe == 0 && event->isUp() && model && flag("veiled"))
+            model->unspoil(str("id"));
         return;
+    }
     m_swipe = 0;
     // A cancel counts as a let-go: it is the list taking the touch once a long swipe drifts up or down (the user,
     // 2026-11-17: two swipes in three missed, every one cancelled 270-720 px out, none let go short).
@@ -235,9 +242,24 @@ void MessageCard::onJoin()
         invites->openCard(str("invite"), str("id"), str("text").split("\n").first());
 }
 
+// A tap on a code block's box (fillBlocks) copies its code; the page says so (copyCode).
+void MessageCard::onBlock()
+{
+    QObject *box = sender() ? sender()->parent() : 0;
+    if (box)
+        Card::call(m_list, "copyCode", box->property("code").toString());
+}
+
 void MessageCard::onLink(ActiveTextTriggeredEvent *event)
 {
     const QString href = event->href().toString();
+    qDebug("link: a tap on a %s link", qPrintable(href.section(':', 0, 0))); // the kind alone: a spoiler's own link never came (1.0.5.192)
+    if (href.startsWith("hbcopy:")) {
+        event->abort(); // ours: code (Markup.h), which a tap copies
+        const QStringList at = href.mid(7).split(',');
+        Card::call(m_list, "copyCode", str("text").mid(at.value(0).toInt(), at.value(1).toInt()));
+        return;
+    }
     if (href.startsWith("hbmention:")) {
         event->abort(); // ours: the system can't open it
         Card::call(m_list, "openPerson", href.mid(10), event->text());

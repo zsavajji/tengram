@@ -319,8 +319,8 @@ the ten `.ts` files, replaced in one pass so sources and translations still matc
   the engine says:
   - delete for everyone within about 2.5 days, edit within 15 minutes (`MessageRows.cpp:107`,
     `:112`); Telegram allows edits for 48 hours and deletes without a limit in most chats;
-  - text styles typed as `*bold* _italic_ ~strike~` and "`mono`" (`Markup.h`, `MessageKinds.h`,
-    `ChatRows.cpp:255`); Telegram's formatting comes as `extra.ent`;
+  - text styles typed as `*bold* _italic_ ~strike~` and "`mono`": done, `Markup.h` now renders
+    Telegram's formatting from `extra.ent`, and the engine reads Telegram's Markdown in a sent text;
   - typing: cleared after 25 s, re-sent every 5 s (`ChatController.cpp:38`, `:42`);
   - a poll's 12 options (`PollPage.qml`); pins holding 7 days (`Pins.h`); "forwarded many
     times" at a score of 5 (`MessageCard.cpp:534`); the 1600 px shrink of a sent picture
@@ -353,7 +353,7 @@ What HyperBerry's UI sends and listens for, where tengramd stands, and what to m
 | Channel info | `channel.info`, `channel.unfollow` | no | The separate Channels page and `channels.sync` are gone (§3.7b). |
 | Starred messages | `msg.star`; `starred` | Telegram has none | The page and the card's Star action go. |
 | Pins, forwards, albums, spoilers | notice rows with `extra.msg`/`until`, `extra.forwarded`, album grouping, `extra.spoiler` | not written yet | `Albums.h` has the grouping rule the rows must satisfy. |
-| Mentions, links, formatting | `extra.mentions` | `extra.ent` (UTF-16 offsets) | The cards read `mentions` today (`MessageKinds`, `Markup.h`); they learn `ent`, which also carries bold, links and code. |
+| Mentions, links, formatting | `extra.mentions` | `extra.ent` (UTF-16 offsets) | Done: the cards render `ent` (`Markup.h`): styles, code, links, mentions and spoilers. |
 | Calls | `call.*`; `call` | later | |
 | Stories | `story.*` | out | |
 

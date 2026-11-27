@@ -31,14 +31,6 @@ QVariantMap parse(const QString &json);
 bool fill(int kind, const QString &chat, const QString &text,
           const QVariantMap &extra, bool out, const QString &sender, const QString &time,
           const QLocale &locale, QVariantMap &data, QString &label, QString &shown);
-
-// The bubble's text as HTML, when `extra` (parse()'s map) has mentions with a page to open
-// and `shown` (the text the bubble finally shows, so after fill and MediaData) has their "@name", or
-// when `shown` has WhatsApp's styles (*bold* _italic_ ~strike~ `mono`, see Markup.h): escaped, a
-// newline a <br/>, U+20E3 dropped as the Label does, each "@name" an anchor to "hbmention:<key>"
-// (MessageCard.cpp opens that person's page), each style a tag. "" otherwise: the Label then shows
-// `shown` as plain text. MessageRows::read sets it as data["html"] beside data["text"], for every row.
-QString html(const QString &shown, const QVariantMap &extra);
 }
 
 #endif

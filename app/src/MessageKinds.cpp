@@ -1,7 +1,6 @@
 #include "MessageKinds.h"
 
 #include "MediaData.h"
-#include "Markup.h"
 #include "Polls.h"
 #include "dates.h"
 
@@ -9,8 +8,6 @@
 #include <bb/utility/i18n/Formatting>
 #include <QCoreApplication>
 #include <QDateTime>
-#include <QMap>
-#include <QRegExp>
 #include <QStringList>
 #include <QVariantMap>
 
@@ -51,58 +48,6 @@ static QString notice(const QString &code, int secs, bool out, const QString &se
     if (code == "on_phone")
         return QCoreApplication::translate("MessageKinds", "This message can only be seen on your phone.");
     return QCoreApplication::translate("MessageKinds", "Message");
-}
-
-static bool longer(const QString &a, const QString &b)
-{
-    return a.size() > b.size();
-}
-
-QString MessageKinds::html(const QString &shown, const QVariantMap &extra)
-{
-    const QString text = QString(shown).remove(QChar(0x20E3)); // as the bubble's plain text drops it
-
-    // "@name" -> the key of the page it opens. Ours has no key (the profile is another page), so
-    // it stays plain text. Two people of one name share a link: the last wins.
-    QMap<QString, QString> pages;
-    foreach (const QVariant &v, extra.value("mentions").toList()) {
-        const QVariantMap m = v.toMap();
-        if (!m.value("jid").toString().isEmpty() && !m.value("name").toString().isEmpty())
-            pages.insert("@" + m.value("name").toString(), m.value("jid").toString());
-    }
-
-    // One pass over the text, longest name first, so "@Ann" never takes the start of "@Anna". Each
-    // hit becomes one private-use char, so the styles (Markup) see a mention as a single word and
-    // can't cut an anchor; the anchors go back in once the text is escaped and styled.
-    QString plain = text;
-    QStringList anchors;
-    if (!pages.isEmpty()) {
-        QStringList names = pages.keys();
-        qSort(names.begin(), names.end(), longer);
-        QStringList alternatives;
-        foreach (const QString &n, names)
-            alternatives << QRegExp::escape(n);
-        const QRegExp any(alternatives.join("|"));
-        plain.clear();
-        int from = 0, at;
-        while ((at = any.indexIn(text, from)) != -1 && anchors.size() < 0x800) {
-            const QString hit = any.cap(0);
-            plain += text.mid(from, at - from) + QChar(0xE000 + anchors.size());
-            anchors << "<a href=\"hbmention:" + Markup::escaped(pages.value(hit)) + "\">" + Markup::escaped(hit) + "</a>";
-            from = at + hit.length();
-        }
-        plain += text.mid(from);
-    }
-
-    QString out = Markup::html(plain);
-    if (out.isEmpty()) {
-        if (anchors.isEmpty())
-            return QString();
-        out = Markup::escaped(plain);
-    }
-    for (int i = 0; i < anchors.size(); ++i)
-        out.replace(QChar(0xE000 + i), anchors.at(i));
-    return out;
 }
 
 QVariantMap MessageKinds::parse(const QString &json)
