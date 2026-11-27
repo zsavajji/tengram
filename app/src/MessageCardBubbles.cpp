@@ -133,8 +133,15 @@ void MessageCard::fillBlocks(const QVariantList &parts)
         m_col->insert(m_col->indexOf(m_words), m_blocks);
     }
     const Color ink = m_ui->palette()->textOnPlain();
-    foreach (const QVariant &v, parts) {
-        const QVariantMap part = v.toMap();
+    // The air around a box (the user's screenshot, 1.0.5.200: "pad it correctly"): above the card's first one as much as
+    // the card leaves at its sides, where a line of text has its own; under the last one none when no text follows, as
+    // the time's line is there; and inside it 1 du above and below the code, as a quote's box has.
+    // As the column's own padding: a top margin on its first box did nothing (the user's screenshot, 1.0.5.201: "top
+    // edge still close", the 10 px of 1.0.5.200).
+    const float above = qMax(0.0f, Card::side(m_ui, m_scale, m_round) - m_ui->du(1 * m_scale));
+    m_blocks->setTopPadding(parts.first().toMap().value("code").toBool() ? above : 0);
+    for (int i = 0; i < parts.size(); ++i) {
+        const QVariantMap part = parts.at(i).toMap();
         const QString text = part.value("text").toString();
         if (!part.value("code").toBool()) {
             Label *label = new Label();
@@ -160,8 +167,8 @@ void MessageCard::fillBlocks(const QVariantList &parts)
         box->setHorizontalAlignment(HorizontalAlignment::Fill);
         box->setLayout(new DockLayout());
         box->setBackground(Color::fromARGB(0x40000000));
-        box->setTopMargin(0);
-        box->setBottomMargin(m_ui->du(0.75));
+        box->setTopMargin(i == 0 ? 0 : m_ui->du(0.5));
+        box->setBottomMargin(i == parts.size() - 1 && str("tailText").isEmpty() ? 0 : m_ui->du(1));
         box->setProperty("code", text);
 
         Container *bar = new Container();
@@ -185,10 +192,10 @@ void MessageCard::fillBlocks(const QVariantList &parts)
             head->setHorizontalAlignment(HorizontalAlignment::Fill);
             head->setLayout(new DockLayout());
             head->setBackground(Color::fromARGB(0x20FFFFFF));
-            head->setLeftPadding(m_ui->du(1));
-            head->setRightPadding(m_ui->du(1));
-            head->setTopPadding(m_ui->du(0.25));
-            head->setBottomPadding(m_ui->du(0.25));
+            head->setLeftPadding(m_ui->du(1.5));
+            head->setRightPadding(m_ui->du(1.5));
+            head->setTopPadding(m_ui->du(0.5));
+            head->setBottomPadding(m_ui->du(0.5));
             Label *name = new Label();
             name->setText(lang);
             Card::style(name, m_list, qRound(m_body * 0.8));
@@ -212,10 +219,10 @@ void MessageCard::fillBlocks(const QVariantList &parts)
             inside->add(head);
         }
         Container *padded = new Container();
-        padded->setLeftPadding(m_ui->du(1));
-        padded->setRightPadding(m_ui->du(1));
-        padded->setTopPadding(m_ui->du(0.5));
-        padded->setBottomPadding(m_ui->du(0.5));
+        padded->setLeftPadding(m_ui->du(1.5));
+        padded->setRightPadding(m_ui->du(1.5));
+        padded->setTopPadding(m_ui->du(1));
+        padded->setBottomPadding(m_ui->du(1));
         Label *code = new Label();
         code->setMultiline(true);
         Card::style(code, m_list, qRound(m_body * 0.85));
