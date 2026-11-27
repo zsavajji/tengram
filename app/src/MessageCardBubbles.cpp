@@ -5,6 +5,7 @@
 #include <bb/cascades/Button>
 #include <bb/cascades/Color>
 #include <bb/cascades/Container>
+#include <bb/cascades/DockLayout>
 #include <bb/cascades/FontWeight>
 #include <bb/cascades/HorizontalAlignment>
 #include <bb/cascades/ImageView>
@@ -114,6 +115,8 @@ void MessageCard::fillBubbles()
 // Telegram's: an accent bar at its left, its language and a copy mark over the code when it has a language, the code in
 // the phone's monospace font; the text before a block is a label like the card's own. A tap on a box copies its code
 // (onBlock). Made again at each fill, and only by a message that has a block.
+// As wide as what it holds, or as the text around it when that is wider: docked and filled, with no share of a row's free
+// space anywhere in it, which made the bubble as wide as it may be for two short lines (the user's screenshot, 1.0.5.199).
 void MessageCard::fillBlocks(const QVariantList &parts)
 {
     if (m_blocks) {
@@ -155,13 +158,14 @@ void MessageCard::fillBlocks(const QVariantList &parts)
         }
         Container *box = new Container();
         box->setHorizontalAlignment(HorizontalAlignment::Fill);
-        box->setLayout(Card::across());
+        box->setLayout(new DockLayout());
         box->setBackground(Color::fromARGB(0x40000000));
         box->setTopMargin(0);
         box->setBottomMargin(m_ui->du(0.75));
         box->setProperty("code", text);
 
         Container *bar = new Container();
+        bar->setHorizontalAlignment(HorizontalAlignment::Left);
         bar->setVerticalAlignment(VerticalAlignment::Fill);
         bar->setPreferredWidth(m_ui->du(0.5));
         bar->setMinWidth(m_ui->du(0.5));
@@ -173,13 +177,13 @@ void MessageCard::fillBlocks(const QVariantList &parts)
         box->add(bar);
 
         Container *inside = new Container();
-        Card::quota(inside, 1);
-        inside->setLeftMargin(0);
+        inside->setHorizontalAlignment(HorizontalAlignment::Fill);
+        inside->setLeftPadding(m_ui->du(0.5)); // the bar's
         const QString lang = part.value("lang").toString();
         if (!lang.isEmpty()) {
             Container *head = new Container();
             head->setHorizontalAlignment(HorizontalAlignment::Fill);
-            head->setLayout(Card::across());
+            head->setLayout(new DockLayout());
             head->setBackground(Color::fromARGB(0x20FFFFFF));
             head->setLeftPadding(m_ui->du(1));
             head->setRightPadding(m_ui->du(1));
@@ -190,13 +194,18 @@ void MessageCard::fillBlocks(const QVariantList &parts)
             Card::style(name, m_list, qRound(m_body * 0.8));
             name->textStyle()->setFontWeight(FontWeight::Bold);
             name->textStyle()->setColor(m_ui->palette()->primary());
-            name->setVerticalAlignment(VerticalAlignment::Center);
-            Card::quota(name, 1);
-            head->add(name);
+            // Room for the copy mark at the row's right end, so a short block's language never runs under it.
+            Container *named = new Container();
+            named->setHorizontalAlignment(HorizontalAlignment::Left);
+            named->setVerticalAlignment(VerticalAlignment::Center);
+            named->setRightPadding(m_ui->du(5));
+            named->add(name);
+            head->add(named);
             ImageView *copy = new ImageView();
             copy->setImageSource(Card::url("asset:///images/copy.png"));
-            copy->setPreferredSize(m_ui->du(3), m_ui->du(3));
+            copy->setPreferredSize(m_ui->du(4), m_ui->du(4));
             copy->setScalingMethod(ScalingMethod::AspectFit);
+            copy->setHorizontalAlignment(HorizontalAlignment::Right);
             copy->setVerticalAlignment(VerticalAlignment::Center);
             copy->setFilterColor(ink);
             head->add(copy);
