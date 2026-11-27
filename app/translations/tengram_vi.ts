@@ -968,6 +968,10 @@
         <source>Comments</source>
         <translation>Bình luận</translation>
     </message>
+    <message>
+        <source>Couldn&apos;t send the location</source>
+        <translation>Không thể gửi vị trí</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -2159,6 +2163,178 @@
     </message>
 </context>
 <context>
+    <name>LiveActions</name>
+    <message>
+        <source>Stop sharing</source>
+        <translation>Dừng chia sẻ</translation>
+    </message>
+    <message>
+        <source>Add 15 minutes</source>
+        <translation>Thêm 15 phút</translation>
+    </message>
+    <message>
+        <source>Add 1 hour</source>
+        <translation>Thêm 1 giờ</translation>
+    </message>
+    <message>
+        <source>Add 8 hours</source>
+        <translation>Thêm 8 giờ</translation>
+    </message>
+    <message>
+        <source>Proximity alert…</source>
+        <translation>Cảnh báo khoảng cách…</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Tắt</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 m</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 km</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>Vị trí trực tiếp</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Hủy</translation>
+    </message>
+    <message>
+        <source>Proximity alert</source>
+        <translation>Cảnh báo khoảng cách</translation>
+    </message>
+    <message>
+        <source>Share your live location in this chat first</source>
+        <translation>Hãy chia sẻ vị trí trực tiếp của bạn trong cuộc trò chuyện này trước</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t change the live location</source>
+        <translation>Không thể thay đổi vị trí trực tiếp</translation>
+    </message>
+</context>
+<context>
+    <name>LiveBar</name>
+    <message>
+        <source>You are sharing your live location</source>
+        <translation>Bạn đang chia sẻ vị trí trực tiếp</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>Dừng</translation>
+    </message>
+</context>
+<context>
+    <name>LocationAction</name>
+    <message>
+        <source>Location</source>
+        <translation>Vị trí</translation>
+    </message>
+</context>
+<context>
+    <name>LocationPage</name>
+    <message>
+        <source>Location</source>
+        <translation>Vị trí</translation>
+    </message>
+    <message>
+        <source>Send location</source>
+        <translation>Gửi vị trí</translation>
+    </message>
+    <message>
+        <source>Share live</source>
+        <translation>Chia sẻ trực tiếp</translation>
+    </message>
+    <message>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Chưa gửi: Tengram đang kết nối lại. Hãy thử lại sau giây lát.</translation>
+    </message>
+    <message>
+        <source>Share my live location for</source>
+        <translation>Chia sẻ vị trí trực tiếp của tôi trong</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Hủy</translation>
+    </message>
+    <message>
+        <source>15 minutes</source>
+        <translation>15 phút</translation>
+    </message>
+    <message>
+        <source>1 hour</source>
+        <translation>1 giờ</translation>
+    </message>
+    <message>
+        <source>8 hours</source>
+        <translation>8 giờ</translation>
+    </message>
+    <message>
+        <source>Until I turn it off</source>
+        <translation>Đến khi tôi tắt</translation>
+    </message>
+    <message>
+        <source>Your position</source>
+        <translation>Vị trí của bạn</translation>
+    </message>
+    <message>
+        <source>accurate to %1</source>
+        <translation>chính xác đến %1</translation>
+    </message>
+    <message>
+        <source>The point under the pin</source>
+        <translation>Điểm dưới ghim</translation>
+    </message>
+    <message>
+        <source>Location Services are off. Turn them on to send where you are.</source>
+        <translation>Dịch vụ vị trí đang tắt. Hãy bật để gửi vị trí của bạn.</translation>
+    </message>
+    <message>
+        <source>Location settings</source>
+        <translation>Cài đặt vị trí</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t load the map.</source>
+        <translation>Không thể tải bản đồ.</translation>
+    </message>
+    <message>
+        <source>Try again</source>
+        <translation>Thử lại</translation>
+    </message>
+    <message>
+        <source>Looking for your position…</source>
+        <translation>Đang tìm vị trí của bạn…</translation>
+    </message>
+    <message>
+        <source>Looking for your position. It comes from GPS satellites alone, which takes a few minutes and a view of the sky. Meanwhile you can search for an address above, or move the map.</source>
+        <translation>Đang tìm vị trí của bạn. Vị trí chỉ đến từ vệ tinh GPS: cần vài phút và phải nhìn thấy bầu trời. Trong lúc đó bạn có thể tìm một địa chỉ ở trên hoặc di chuyển bản đồ.</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t ask for your position. Try again in a moment.</source>
+        <translation>Không thể hỏi vị trí của bạn. Hãy thử lại sau giây lát.</translation>
+    </message>
+    <message>
+        <source>Search an address or a place</source>
+        <translation>Tìm địa chỉ hoặc địa điểm</translation>
+    </message>
+    <message>
+        <source>No place found</source>
+        <translation>Không tìm thấy địa điểm nào</translation>
+    </message>
+    <message>
+        <source>No answer from the place search. Check the connection.</source>
+        <translation>Tìm kiếm địa điểm không trả lời. Hãy kiểm tra kết nối.</translation>
+    </message>
+    <message>
+        <source>The place search failed. Try again.</source>
+        <translation>Tìm kiếm địa điểm thất bại. Hãy thử lại.</translation>
+    </message>
+</context>
+<context>
     <name>MapChooser</name>
     <message>
         <location filename="../src/MapChooser.cpp" line="79"/>
@@ -2200,6 +2376,10 @@
     <message>
         <source>Spoiler</source>
         <translation>Spoiler</translation>
+    </message>
+    <message>
+        <source>Location</source>
+        <translation>Vị trí</translation>
     </message>
 </context>
 <context>
@@ -2382,6 +2562,10 @@
         <source>Comments</source>
         <translation>Bình luận</translation>
     </message>
+    <message>
+        <source>Live location…</source>
+        <translation>Vị trí trực tiếp…</translation>
+    </message>
 </context>
 <context>
     <name>MessageKinds</name>
@@ -2553,6 +2737,38 @@
         <location filename="../src/MessageRows.cpp" line="164"/>
         <source>Leave a comment</source>
         <translation>Để lại bình luận</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 m</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 km</translation>
+    </message>
+    <message>
+        <source>Live location ended</source>
+        <translation>Vị trí trực tiếp đã kết thúc</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>Vị trí trực tiếp</translation>
+    </message>
+    <message>
+        <source>Updated just now</source>
+        <translation>Vừa cập nhật</translation>
+    </message>
+    <message>
+        <source>Updated %1 ago</source>
+        <translation>Cập nhật %1 trước</translation>
+    </message>
+    <message>
+        <source>%1 left</source>
+        <translation>còn %1</translation>
+    </message>
+    <message>
+        <source>Alert within %1</source>
+        <translation>Cảnh báo trong vòng %1</translation>
     </message>
 </context>
 <context>

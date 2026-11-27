@@ -37,7 +37,9 @@ static const int kCostText = 1;     // any other row
 // words it). A "msg" is a map of id, out, state, edited, starred, deleted, revocable, time, label, text, quote,
 // sender (the name), senderId, senderColor, senderTag, senderPhoto, senderInitials, showName, showTile (see "Group
 // chats" below), and media ("photo", "video", "doc", "sticker", "audio" or "") with the keys
-// MediaData.h lists. Reading a sticker row that is still on the server asks the engine for its file,
+// MediaData.h lists. A live location's label is worded by data() as of the moment it is drawn (liveLabel), with liveOn true
+// while it runs (false on every other row), and m_liveTick draws those cards again every 30 s. Reading a location row
+// asks the engine for its map once per point (m_askedMaps). Reading a sticker row that is still on the server asks the engine for its file,
 // once per page. Every "msg" has album, a list: empty, or for an album (step 6.5g, Albums.h's rule) the
 // members' maps oldest first. An album is ONE entry, keyed "album:" and its first member's id, whose
 // map is that first member's plus album, albumCount, media "" (so MediaBubble isn't built) and the
@@ -177,6 +179,10 @@ public:
     // The chat's (or topic's) unread count as chats.db has it now; 0 for a comment thread, which has no row.
     int unread() const;
 
+    // A distance as the live label and the send-location page word it: "500 m" under a kilometre, else "1.5 km" (one decimal
+    // unless whole), the number in the locale's digits and separator.
+    static QString distance(int metres, const QLocale &locale);
+
     // How many of the newest messages chat.open verifies: 50, more when the unread ones reach back further.
     int openLimit() const { return m_openLimit; }
 
@@ -218,6 +224,7 @@ private slots:
     void onPhoto(const QString &jid, const QString &path);
     void giveUp();
     void tickExpiry();
+    void tickLive();
     void tickLocal();
     void onFullscreen();
     void retryHistory();
@@ -330,6 +337,9 @@ private:
     QString longDay(const QDate &date, const QLocale &locale);
     // A time as the foot shows it: "10 s", "5 min", "1 h", "7 d" (rounded up).
     static QString span(qint64 secs);
+    // A live location's label (d is its row's map, live true) as of now: "Live location ended", or "Live location", when it
+    // was last updated and how long it has left, and our proximity alert's distance; locale words the distance.
+    static QString liveLabel(const QVariantMap &d, const QLocale &locale);
     QString dayTitle(const Msg &m);
     QString readTranslate() const;
     // Every loaded row read again, or the first page when none is loaded: onConnected, a new language, the retry.
@@ -388,6 +398,7 @@ private:
     QElapsedTimer m_newerAt; // when it was sent; invalid until the first
     QTimer m_windowGiveUp; // the window's first reply never came: open at the newest instead
     QTimer m_expiry; // once a second while a row has an expiresAt and the app is in front: those cards are drawn again
+    QTimer m_liveTick; // every 30 s while a live location runs and the app is in front: the live rows' cards are drawn again
     int m_low; // the lowest visible entry the list last reported: whether the bottom is within reach
     QList<Msg> m_all;
     QSet<QString> m_hidden;
@@ -396,6 +407,8 @@ private:
     QHash<QString, QString> m_stickerAsks; // the media.get of a sticker's file in flight, by request id: the message's id
     QSet<QString> m_stickerFailed; // the stickers whose file the engine could not get: their word, not a spinner
     QHash<QString, QString> m_refetch; // the fetches of a picture whose file was gone, by request id: the message's id
+    QSet<QString> m_askedMaps; // the locations' maps asked for, by id "@" lat "," lon: a live location's every point once
+    QHash<QString, QString> m_lastMap; // the map a location's card last showed, by message id: kept while a new point's comes
     QHash<QString, Sender> m_senders; // a group's senders by user id, as senders.get answered
     QSet<QString> m_sendersAsked; // the user ids senders.get was sent for, and the ones it answered: asked once
     QSet<QString> m_sendersWanted; // the user ids of the rows read that nothing was asked for yet (askSenders)

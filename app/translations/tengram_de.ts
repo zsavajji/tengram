@@ -969,6 +969,10 @@
         <source>Comments</source>
         <translation>Kommentare</translation>
     </message>
+    <message>
+        <source>Couldn&apos;t send the location</source>
+        <translation>Standort konnte nicht gesendet werden</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -2162,6 +2166,178 @@
     </message>
 </context>
 <context>
+    <name>LiveActions</name>
+    <message>
+        <source>Stop sharing</source>
+        <translation>Teilen beenden</translation>
+    </message>
+    <message>
+        <source>Add 15 minutes</source>
+        <translation>15 Minuten hinzufügen</translation>
+    </message>
+    <message>
+        <source>Add 1 hour</source>
+        <translation>1 Stunde hinzufügen</translation>
+    </message>
+    <message>
+        <source>Add 8 hours</source>
+        <translation>8 Stunden hinzufügen</translation>
+    </message>
+    <message>
+        <source>Proximity alert…</source>
+        <translation>Näherungsalarm…</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Aus</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 m</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 km</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>Live-Standort</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
+    </message>
+    <message>
+        <source>Proximity alert</source>
+        <translation>Näherungsalarm</translation>
+    </message>
+    <message>
+        <source>Share your live location in this chat first</source>
+        <translation>Teile zuerst deinen Live-Standort in diesem Chat</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t change the live location</source>
+        <translation>Live-Standort konnte nicht geändert werden</translation>
+    </message>
+</context>
+<context>
+    <name>LiveBar</name>
+    <message>
+        <source>You are sharing your live location</source>
+        <translation>Du teilst deinen Live-Standort</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>Beenden</translation>
+    </message>
+</context>
+<context>
+    <name>LocationAction</name>
+    <message>
+        <source>Location</source>
+        <translation>Standort</translation>
+    </message>
+</context>
+<context>
+    <name>LocationPage</name>
+    <message>
+        <source>Location</source>
+        <translation>Standort</translation>
+    </message>
+    <message>
+        <source>Send location</source>
+        <translation>Standort senden</translation>
+    </message>
+    <message>
+        <source>Share live</source>
+        <translation>Live teilen</translation>
+    </message>
+    <message>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Nicht gesendet: Tengram stellt die Verbindung wieder her. Versuche es gleich noch einmal.</translation>
+    </message>
+    <message>
+        <source>Share my live location for</source>
+        <translation>Meinen Live-Standort teilen für</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
+    </message>
+    <message>
+        <source>15 minutes</source>
+        <translation>15 Minuten</translation>
+    </message>
+    <message>
+        <source>1 hour</source>
+        <translation>1 Stunde</translation>
+    </message>
+    <message>
+        <source>8 hours</source>
+        <translation>8 Stunden</translation>
+    </message>
+    <message>
+        <source>Until I turn it off</source>
+        <translation>Bis ich es beende</translation>
+    </message>
+    <message>
+        <source>Your position</source>
+        <translation>Deine Position</translation>
+    </message>
+    <message>
+        <source>accurate to %1</source>
+        <translation>auf %1 genau</translation>
+    </message>
+    <message>
+        <source>The point under the pin</source>
+        <translation>Der Punkt unter der Markierung</translation>
+    </message>
+    <message>
+        <source>Location Services are off. Turn them on to send where you are.</source>
+        <translation>Die Ortungsdienste sind aus. Schalte sie ein, um deinen Standort zu senden.</translation>
+    </message>
+    <message>
+        <source>Location settings</source>
+        <translation>Standorteinstellungen</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t load the map.</source>
+        <translation>Die Karte konnte nicht geladen werden.</translation>
+    </message>
+    <message>
+        <source>Try again</source>
+        <translation>Erneut versuchen</translation>
+    </message>
+    <message>
+        <source>Looking for your position…</source>
+        <translation>Dein Standort wird gesucht…</translation>
+    </message>
+    <message>
+        <source>Looking for your position. It comes from GPS satellites alone, which takes a few minutes and a view of the sky. Meanwhile you can search for an address above, or move the map.</source>
+        <translation>Dein Standort wird gesucht. Er kommt nur von GPS-Satelliten: Das dauert einige Minuten und braucht freie Sicht zum Himmel. Inzwischen kannst du oben eine Adresse suchen oder die Karte verschieben.</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t ask for your position. Try again in a moment.</source>
+        <translation>Dein Standort konnte nicht abgefragt werden. Versuche es gleich noch einmal.</translation>
+    </message>
+    <message>
+        <source>Search an address or a place</source>
+        <translation>Adresse oder Ort suchen</translation>
+    </message>
+    <message>
+        <source>No place found</source>
+        <translation>Kein Ort gefunden</translation>
+    </message>
+    <message>
+        <source>No answer from the place search. Check the connection.</source>
+        <translation>Keine Antwort von der Ortssuche. Prüfe die Verbindung.</translation>
+    </message>
+    <message>
+        <source>The place search failed. Try again.</source>
+        <translation>Die Ortssuche ist fehlgeschlagen. Versuche es noch einmal.</translation>
+    </message>
+</context>
+<context>
     <name>MapChooser</name>
     <message>
         <location filename="../src/MapChooser.cpp" line="79"/>
@@ -2203,6 +2379,10 @@
     <message>
         <source>Spoiler</source>
         <translation>Spoiler</translation>
+    </message>
+    <message>
+        <source>Location</source>
+        <translation>Standort</translation>
     </message>
 </context>
 <context>
@@ -2385,6 +2565,10 @@
         <source>Comments</source>
         <translation>Kommentare</translation>
     </message>
+    <message>
+        <source>Live location…</source>
+        <translation>Live-Standort…</translation>
+    </message>
 </context>
 <context>
     <name>MessageKinds</name>
@@ -2558,6 +2742,38 @@
         <location filename="../src/MessageRows.cpp" line="164"/>
         <source>Leave a comment</source>
         <translation>Kommentar schreiben</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 m</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 km</translation>
+    </message>
+    <message>
+        <source>Live location ended</source>
+        <translation>Live-Standort beendet</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>Live-Standort</translation>
+    </message>
+    <message>
+        <source>Updated just now</source>
+        <translation>Gerade aktualisiert</translation>
+    </message>
+    <message>
+        <source>Updated %1 ago</source>
+        <translation>Vor %1 aktualisiert</translation>
+    </message>
+    <message>
+        <source>%1 left</source>
+        <translation>noch %1</translation>
+    </message>
+    <message>
+        <source>Alert within %1</source>
+        <translation>Alarm im Umkreis von %1</translation>
     </message>
 </context>
 <context>

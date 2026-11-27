@@ -69,6 +69,8 @@ Page {
             forwardFailed.show()
         } else if (failedCmd == "poll.vote" || failedCmd == "poll.create") {
             page.reactBar() // its own failedCmd words these (ReactBar.qml)
+        } else if (failedCmd == "location.send" || failedCmd == "location.live") {
+            locationFailed.show() // sent from the location page, which is gone by then
         }
     }
     // Telegram's draft of the chat, topic or thread (ChatController's draft.get): it fills the composer, with its reply, unless
@@ -103,6 +105,9 @@ Page {
         if (chat.kind != 2) addAction(infoAction, ActionBarPlacement.InOverflow)
         if (chat.kind == 1 && thread == "") addAction(pollAction, ActionBarPlacement.InOverflow) // groups: Telegram refuses polls in a chat with a person
         if (chat.secret) addAction(timerAction, ActionBarPlacement.InOverflow)
+        // Every chat we write in: not a channel, nor a group we are not in (notJoined's test, made here: that binding may not
+        // have followed chat yet when this runs).
+        if (chat.kind != 3 && !(chat.kind == 1 && thread == "" && !chats.chat(chat.jid).jid)) addAction(locationAction, ActionBarPlacement.InOverflow)
         ctl.messages.itemAdded.connect(page.added)
         ctl.messages.newestComing.connect(page.coming)
         ctl.messages.loadingChanged.connect(page.loaded)
@@ -208,6 +213,19 @@ Page {
             chatCtl: ctl
         },
         PollAction { id: pollAction; jid: page.chat ? page.chat.jid : ""; topic: page.topic },
+        // Added for every chat we write in. Sent as a sticker is: the reply goes, and the list follows our row.
+        LocationAction {
+            id: locationAction
+            jid: page.chat ? page.chat.jid : ""
+            topic: page.topic
+            thread: page.thread
+            chatCtl: ctl
+            onSent: {
+                ctl.messages.toLiveEnd()
+                ctl.cancelReply()
+                page.followOwn = true
+            }
+        },
         // Added for secret chats (a secret chat's timer), enabled once it is ready.
         TimerAction { id: timerAction; jid: page.chat ? page.chat.jid : ""; ready: page.secret == 2 },
         // Added for every chat but a secret one (ActionItem has no visible).
@@ -356,6 +374,10 @@ Page {
         SystemToast {
             id: commentsFailed
             body: qsTr("Couldn't open the comments")
+        },
+        SystemToast {
+            id: locationFailed
+            body: qsTr("Couldn't send the location")
         },
         // Delete for me: the card is already hidden, the request goes when the toast closes. Several
         // deletes while it shows join one batch (show() on a showing toast keeps it up), and Undo
@@ -1028,10 +1050,18 @@ Page {
                 id: searchSlot
                 horizontalAlignment: HorizontalAlignment.Fill
             }
-            // Holds the player's and the recorder's containers; nothing in it shows.
+            // While we share our live location in this chat: Stop.
+            LiveBar {
+                jid: page.chat ? page.chat.jid : ""
+            }
+            // Holds the player's and the recorder's containers, and the live location's menu; nothing in it shows.
             Container {
                 id: partSlot
                 visible: false
+                LiveActions {
+                    id: liveActions
+                    chat: page.chat
+                }
             }
             // The list, and over it the note of an empty chat. No wallpaper (taken off at the user's ask, 2026-11-18): the page's
             // own colour, painted here so that the picture cards' corner masks (MediaBubble) match what is behind the cards.
@@ -1156,6 +1186,10 @@ Page {
                     // Downloads; savedToast or saveFailed answers.
                     function download(msg) {
                         media.get(page.chat.jid, msg.id, msg.media, true)
+                    }
+                    // The menu's "Live location…" on a live location still running (LiveActions.qml).
+                    function liveMenu(msg) {
+                        liveActions.open(msg)
                     }
                     function showAlbum(members) {
                         nav.showAlbum(list, members)

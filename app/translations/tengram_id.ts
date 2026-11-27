@@ -968,6 +968,10 @@
         <source>Comments</source>
         <translation>Komentar</translation>
     </message>
+    <message>
+        <source>Couldn&apos;t send the location</source>
+        <translation>Gagal mengirim lokasi</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -2159,6 +2163,178 @@
     </message>
 </context>
 <context>
+    <name>LiveActions</name>
+    <message>
+        <source>Stop sharing</source>
+        <translation>Berhenti berbagi</translation>
+    </message>
+    <message>
+        <source>Add 15 minutes</source>
+        <translation>Tambah 15 menit</translation>
+    </message>
+    <message>
+        <source>Add 1 hour</source>
+        <translation>Tambah 1 jam</translation>
+    </message>
+    <message>
+        <source>Add 8 hours</source>
+        <translation>Tambah 8 jam</translation>
+    </message>
+    <message>
+        <source>Proximity alert…</source>
+        <translation>Peringatan kedekatan…</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Nonaktif</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 m</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 km</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>Lokasi real-time</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Batal</translation>
+    </message>
+    <message>
+        <source>Proximity alert</source>
+        <translation>Peringatan kedekatan</translation>
+    </message>
+    <message>
+        <source>Share your live location in this chat first</source>
+        <translation>Bagikan lokasi real-time Anda di obrolan ini terlebih dahulu</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t change the live location</source>
+        <translation>Gagal mengubah lokasi real-time</translation>
+    </message>
+</context>
+<context>
+    <name>LiveBar</name>
+    <message>
+        <source>You are sharing your live location</source>
+        <translation>Anda sedang membagikan lokasi real-time</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>Berhenti</translation>
+    </message>
+</context>
+<context>
+    <name>LocationAction</name>
+    <message>
+        <source>Location</source>
+        <translation>Lokasi</translation>
+    </message>
+</context>
+<context>
+    <name>LocationPage</name>
+    <message>
+        <source>Location</source>
+        <translation>Lokasi</translation>
+    </message>
+    <message>
+        <source>Send location</source>
+        <translation>Kirim lokasi</translation>
+    </message>
+    <message>
+        <source>Share live</source>
+        <translation>Bagikan langsung</translation>
+    </message>
+    <message>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Tidak terkirim: Tengram sedang menyambung ulang. Coba lagi sebentar lagi.</translation>
+    </message>
+    <message>
+        <source>Share my live location for</source>
+        <translation>Bagikan lokasi real-time saya selama</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Batal</translation>
+    </message>
+    <message>
+        <source>15 minutes</source>
+        <translation>15 menit</translation>
+    </message>
+    <message>
+        <source>1 hour</source>
+        <translation>1 jam</translation>
+    </message>
+    <message>
+        <source>8 hours</source>
+        <translation>8 jam</translation>
+    </message>
+    <message>
+        <source>Until I turn it off</source>
+        <translation>Sampai saya matikan</translation>
+    </message>
+    <message>
+        <source>Your position</source>
+        <translation>Posisi Anda</translation>
+    </message>
+    <message>
+        <source>accurate to %1</source>
+        <translation>akurat hingga %1</translation>
+    </message>
+    <message>
+        <source>The point under the pin</source>
+        <translation>Titik di bawah pin</translation>
+    </message>
+    <message>
+        <source>Location Services are off. Turn them on to send where you are.</source>
+        <translation>Layanan Lokasi nonaktif. Aktifkan untuk mengirim lokasi Anda.</translation>
+    </message>
+    <message>
+        <source>Location settings</source>
+        <translation>Pengaturan lokasi</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t load the map.</source>
+        <translation>Tidak dapat memuat peta.</translation>
+    </message>
+    <message>
+        <source>Try again</source>
+        <translation>Coba lagi</translation>
+    </message>
+    <message>
+        <source>Looking for your position…</source>
+        <translation>Mencari posisi Anda…</translation>
+    </message>
+    <message>
+        <source>Looking for your position. It comes from GPS satellites alone, which takes a few minutes and a view of the sky. Meanwhile you can search for an address above, or move the map.</source>
+        <translation>Mencari posisi Anda. Posisi hanya berasal dari satelit GPS: perlu beberapa menit dan pandangan ke langit. Sementara itu Anda dapat mencari alamat di atas atau menggeser peta.</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t ask for your position. Try again in a moment.</source>
+        <translation>Tidak dapat meminta posisi Anda. Coba lagi sebentar lagi.</translation>
+    </message>
+    <message>
+        <source>Search an address or a place</source>
+        <translation>Cari alamat atau tempat</translation>
+    </message>
+    <message>
+        <source>No place found</source>
+        <translation>Tempat tidak ditemukan</translation>
+    </message>
+    <message>
+        <source>No answer from the place search. Check the connection.</source>
+        <translation>Pencarian tempat tidak menjawab. Periksa koneksi.</translation>
+    </message>
+    <message>
+        <source>The place search failed. Try again.</source>
+        <translation>Pencarian tempat gagal. Coba lagi.</translation>
+    </message>
+</context>
+<context>
     <name>MapChooser</name>
     <message>
         <location filename="../src/MapChooser.cpp" line="79"/>
@@ -2200,6 +2376,10 @@
     <message>
         <source>Spoiler</source>
         <translation>Spoiler</translation>
+    </message>
+    <message>
+        <source>Location</source>
+        <translation>Lokasi</translation>
     </message>
 </context>
 <context>
@@ -2382,6 +2562,10 @@
         <source>Comments</source>
         <translation>Komentar</translation>
     </message>
+    <message>
+        <source>Live location…</source>
+        <translation>Lokasi real-time…</translation>
+    </message>
 </context>
 <context>
     <name>MessageKinds</name>
@@ -2553,6 +2737,38 @@
         <location filename="../src/MessageRows.cpp" line="164"/>
         <source>Leave a comment</source>
         <translation>Tinggalkan komentar</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 m</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 km</translation>
+    </message>
+    <message>
+        <source>Live location ended</source>
+        <translation>Lokasi real-time berakhir</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>Lokasi real-time</translation>
+    </message>
+    <message>
+        <source>Updated just now</source>
+        <translation>Baru saja diperbarui</translation>
+    </message>
+    <message>
+        <source>Updated %1 ago</source>
+        <translation>Diperbarui %1 yang lalu</translation>
+    </message>
+    <message>
+        <source>%1 left</source>
+        <translation>sisa %1</translation>
+    </message>
+    <message>
+        <source>Alert within %1</source>
+        <translation>Peringatan dalam jarak %1</translation>
     </message>
 </context>
 <context>

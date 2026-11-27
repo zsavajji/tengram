@@ -85,6 +85,7 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     , m_styled(false)
     , m_body(0)
     , m_small(0)
+    , m_pinLive(-1)
 {
     // A caption follows a picture, with no margin of its own: the bottom margin is set by show().
     setTopMargin(0);
@@ -112,6 +113,16 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_none = cover();
     m_noneText = docked(HorizontalAlignment::Center, VerticalAlignment::Center);
     m_none->add(m_noneText);
+
+    // A location's pin over its map: the pin's tip is the image's centre (scripts/gen-pin.py), so it points at the map's
+    // centre, which is the location's point.
+    m_pin = new ImageView();
+    m_pin->setHorizontalAlignment(HorizontalAlignment::Center);
+    m_pin->setVerticalAlignment(VerticalAlignment::Center);
+    m_pin->setPreferredSize(m_ui->du(12), m_ui->du(12));
+    m_pin->setScalingMethod(ScalingMethod::AspectFit);
+    m_pin->setLoadEffect(ImageViewLoadEffect::None);
+    m_pin->setVisible(false);
 
     // The play mark of the Stories tiles (StoryTile.qml), not the U+25B6 glyph, which showed as an emoji.
     m_play = new ImageView();
@@ -162,6 +173,7 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
 
     m_photo->add(m_thumb);
     m_photo->add(m_none);
+    m_photo->add(m_pin);
     m_photo->add(m_play);
     m_photo->add(m_cover);
     m_photo->add(m_dim);
@@ -217,7 +229,7 @@ MediaBubble::MediaBubble(ListView *list, bool wide)
     m_file = new Container();
     m_file->setHorizontalAlignment(HorizontalAlignment::Fill);
     m_file->setLayout(Card::across());
-    // The system's icon in the emoji's place, for a contact and a location.
+    // The system's icon in the emoji's place, for a contact.
     m_icon = new ImageView();
     m_icon->setVerticalAlignment(VerticalAlignment::Center);
     m_icon->setPreferredWidth(m_ui->du(5));
@@ -317,7 +329,7 @@ void MediaBubble::show(const QVariantMap &msg)
     const bool video = media == "video";
     const bool spoiler = flag("spoiler");
     const bool hasThumb = flag("hasThumb");
-    m_picture = media == "photo" || video || (location && hasThumb);
+    m_picture = media == "photo" || video || location;
     m_sticker = media == "sticker";
     restyle();
 
@@ -332,13 +344,24 @@ void MediaBubble::show(const QVariantMap &msg)
     m_photo->setVisible(m_picture);
     if (m_picture) {
         // A tall photo is cut at 50 du; AspectFill crops it. In the picture card it is square,
-        // cropped the same way, and seen whole when opened (the user, 2026-11-08).
-        m_photo->setPreferredHeight(m_wide ? m_wide
-                                           : qMin(m_ui->du(50), m_ui->du(40) * float(m_msg.value("ratio").toDouble())));
+        // cropped the same way, and seen whole when opened (the user, 2026-11-08). A location's map is half as tall as wide,
+        // in both.
+        m_photo->setPreferredHeight(location ? (m_wide ? m_wide : m_ui->du(40)) / 2
+                                    : m_wide ? m_wide
+                                             : qMin(m_ui->du(50), m_ui->du(40) * float(m_msg.value("ratio").toDouble())));
         m_thumb->setVisible(hasThumb);
         m_thumb->setImage(m_msg.value("thumb").value<Image>());
         m_none->setVisible(!hasThumb);
-        m_noneText->setText(video ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Video")) : Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Photo")));
+        m_noneText->setText(video ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Video"))
+                            : location ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Location"))
+                                       : Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Photo")));
+        // Red, or Tengram's blue while a live location runs; set only when that changes.
+        m_pin->setVisible(location && hasThumb);
+        const int pinLive = flag("liveOn") ? 1 : 0;
+        if (location && hasThumb && pinLive != m_pinLive) {
+            m_pinLive = pinLive;
+            m_pin->setImageSource(Card::url(pinLive ? "asset:///images/map_pin_live.png" : "asset:///images/map_pin.png"));
+        }
         m_play->setVisible(video && !spoiler);
         m_cover->setVisible(spoiler);
     }
@@ -379,25 +402,22 @@ void MediaBubble::show(const QVariantMap &msg)
     const bool file = !m_picture && !m_sticker;
     m_file->setVisible(file);
     if (file) {
-        // "" for the files, which are not loaded then.
-        const char *icon = contact ? "file:///usr/share/icons/ic_add_contact.png"
-                           : location ? "file:///usr/share/icons/ic_map_all.png" : "";
-        m_icon->setVisible(*icon != 0);
-        if (*icon)
-            m_icon->setImageSource(Card::url(icon));
-        m_emoji->setVisible(*icon == 0);
+        // The files have no icon: it is not loaded then.
+        m_icon->setVisible(contact);
+        if (contact)
+            m_icon->setImageSource(Card::url("file:///usr/share/icons/ic_add_contact.png"));
+        m_emoji->setVisible(!contact);
         // U+1F3B5 and U+1F4C4
         m_emoji->setText(QString::fromUtf8(media == "audio" ? "\xF0\x9F\x8E\xB5" : "\xF0\x9F\x93\x84"));
 
         const QString fileName = str("fileName");
         m_name->setText(contact ? str("summary")
-                        : location ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Show on map"))
                         : media == "audio" ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Audio file"))
                         : (fileName.isEmpty() ? Card::tr(kContext, QT_TRANSLATE_NOOP("MediaBubble", "Document")) : fileName));
 
         // The size, and the length of an audio file when it is known; a contact's number.
         const QString contactInfo = str("contactInfo");
-        m_info->setVisible(!location && (!contact || !contactInfo.isEmpty()));
+        m_info->setVisible(!contact || !contactInfo.isEmpty());
         QStringList parts;
         if (!str("sizeText").isEmpty())
             parts << str("sizeText");

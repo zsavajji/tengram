@@ -34,6 +34,7 @@ EngineLink::EngineLink(QObject *parent)
     , m_counter(0)
     , m_connected(false)
     , m_conn("offline")
+    , m_sharingRevision(0)
     , m_fullscreen(true) // the app opens fullscreen
 {
     // Qt 4.8's QElapsedTimer has no constructor: left alone it holds stack garbage, which can
@@ -66,6 +67,23 @@ QString EngineLink::conn() const { return m_conn; }
 bool EngineLink::linked() const { return m_linked; }
 QVariantMap EngineLink::failure() const { return m_failure; }
 QVariantMap EngineLink::call() const { return m_call; }
+
+QVariantMap EngineLink::sharingIn(const QString &chat) const
+{
+    foreach (const QVariant &v, m_sharing) {
+        const QVariantMap item = v.toMap();
+        if (item.value("chat").toString() == chat)
+            return item;
+    }
+    return QVariantMap();
+}
+
+void EngineLink::setSharing(const QVariantList &items)
+{
+    m_sharing = items;
+    ++m_sharingRevision;
+    emit sharingChanged();
+}
 
 bool EngineLink::fullscreen() const { return m_fullscreen; }
 QString EngineLink::openChat() const { return m_openChat; }
@@ -257,6 +275,9 @@ void EngineLink::readLines()
                     m_connected = true;
                     m_invokedAt.invalidate();
                     m_retryDelay = RetryMinMs;
+                    // The engine says `live` after hello only when it shares something: none until it does.
+                    if (!m_sharing.isEmpty())
+                        setSharing(QVariantList());
                     setLink(map["result"].toMap());
                     emit connectedChanged();
                     sendUiState(); // a restart loses this device's availability
@@ -320,7 +341,9 @@ void EngineLink::readLines()
                 emit callChanged();
                 if (map["state"].toString() == "ringing" && !fullscreen())
                     toFront(map["chat"].toString());
-            } else if (ev == "presence")
+            } else if (ev == "live")
+                setSharing(map["items"].toList());
+            else if (ev == "presence")
                 emit presence(map["chat"].toString(), map["online"].toBool(),
                               map["lastSeen"].toLongLong());
             else if (ev == "photo")
@@ -375,6 +398,9 @@ void EngineLink::lost()
             m_call["reason"] = "offline";
             emit callChanged();
         }
+        // Our live locations are the next engine's to tell: it sends `live` after hello when it has any.
+        if (!m_sharing.isEmpty())
+            setSharing(QVariantList());
     }
     const QHash<QString, QString> pending = m_pending;
     m_pending.clear();

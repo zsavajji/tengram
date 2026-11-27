@@ -81,6 +81,16 @@ Error codes every command can give: `bad_request` (a field is missing or of the 
 | `stickers.file` | `file` (a TDLib file id, a decimal string from 1; no `chat`) | `{path}`, the absolute path of the file once it is downloaded (at once when it is here already) | `unlinked`, `bad_request`, `not_found` (TDLib has no such file), `download_failed` |
 | `sticker.send` | `chat`, `file` (the sticker's `file`), `quote` (a message id), `topic`, `thread`; both optional | `{id}`, as `media.send` | |
 | `sticker.fave` | `file` (the sticker's `file`), `on` (bool: true adds it to Favourites, false removes it; no `chat`) | — | `unlinked`, `bad_request` |
+| `location.get` | — (no `chat`) | `{lat, lon, accuracy}`, numbers: the phone's position now (degrees; `accuracy` metres, 0 when the fix has none); see *Locations* | `unlinked`, `location_off` (location services are off, or Tengram may not use them), `no_fix` (no position in 30 s) |
+| `location.last` | — (no `chat`) | `{lat, lon}`: where the phone last was as far as the engine knows, for a map to start from before any fix; see *Locations* | `unlinked`, `not_found` (the engine has had no position in this run) |
+| `location.search` | `query` (an address or a place's name, 1 to 200 bytes; no `chat`) | `{places: [{name, lat, lon}]}`, up to 8, best first; `[]` when nothing matches; see *Locations* | `unlinked`, `bad_request`, `offline` (no answer in 15 s), `search_failed` |
+| `map.get` | `lat` (-90 to 90), `lon` (-180 to 180), `zoom` (a whole number, 13 to 20), `width`, `height` (whole numbers, 16 to 1024); optional `chat` (a chat key) | `{path}`, the absolute path of Telegram's map picture of that point, `width` x `height` at scale 2 (so twice as many pixels), where TDLib keeps it | `unlinked`, `bad_request`, `td`, `download_failed` |
+| `location.send` | `chat`, `lat`, `lon`; optional `accuracy` (metres, 0 to 1500, default 0), `quote` (a message id), `topic` or `thread` | `{id}`, as `media.send` | `unlinked`, `bad_request` |
+| `location.live` | as `location.send`, and `period`: 0 for "until I turn it off", else whole seconds from 60 to 86400; optional `heading` (a whole number of degrees, 0 to 360, default 0) | `{id}`, as `media.send` | `unlinked`, `bad_request` |
+| `location.stop` | `chat`, `id` (our live location's message id) | — | `unlinked`, `bad_request`, `td` |
+| `location.extend` | `chat`, `id` (our live location's message id), `add` (whole seconds, 60 to 86400) | — | `unlinked`, `bad_request` (also for a live location with no end), `not_found` (not a live location of ours that is running), `td` |
+| `location.alert` | `chat`, `radius` (whole metres, 0 to 100000; 0 turns the alert off) | — | `unlinked`, `bad_request`, `not_sharing` (share your live location in this chat first), `td` |
+| `location.active` | — (no `chat`) | `{items}`, our live locations that run, as the `live` event lists them | `unlinked` |
 | `voice.start` | `chat`, `path` (the `.wav` the recorder is writing, inside the data folder); optional `topic` or `thread` | — | |
 | `voice.send` | `chat`, `path` (as `voice.start`), `quote` (a message id, optional), `topic` or `thread` (optional) | `{id}`, the message's id | |
 | `voice.cancel` | `path` (as `voice.start`) | — | |
@@ -301,6 +311,8 @@ file: for a photo its display size (the smallest size whose shorter side is at l
 reaches that: it can be the photo's own file), for a video, GIF or round video its thumbnail when that is a JPEG.
 Anything else, or a video with no JPEG thumbnail, is `not_found`. The row then has `extra.preview` (a `msgs` event
 follows) and the answer is `{path}` of that picture. Without `preview` nothing changes.
+
+For a location, venue or live location message (a row of kind 9), `preview: true` fetches Telegram's map picture of its point, as *Locations* tells.
 
 With `save: true` (ignored with `preview`) a document or audio file is also copied to the phone's Downloads
 (`/accounts/1000/shared/downloads`, where File Manager shows it) under its own name, made file-system safe (`name (2).ext`
@@ -812,6 +824,67 @@ once and whatever their age (no cap, no one-day protection), and answers the byt
 told TDLib: `mobile` (mobile and roaming), `wifi`, `other` (the rest). **`network.reset`:** `resetNetworkStatistics`.
 All four answer TDLib's error as `td` when it has one.
 
+## Locations
+
+A location is a message of kind 9 (`extra.lat`, `extra.lon`). `location.send` sends one, `location.live` sends a live location:
+the same message, but the sender's position is kept current for the period. TDLib lists our live locations as active as soon
+as they are sent; the engine follows that list (`updateActiveLiveLocationMessages`), so the `live` event, `location.active`
+and the engine's own work all come from it. Only the live locations started on this device are in that list and are kept
+current: one started on another device of the account is that device's to update. TDLib keeps the list in its database and
+sends it again at its start when it is not empty (it has no request for it), so a live location goes on after a restart of
+the engine.
+
+**The position.** The phone's position comes from the system's geolocation service (BPS), from its satellite provider alone
+(GNSS): the default provider also asks BlackBerry's server where the Wi-Fi networks around are, and that server is gone (on the
+Q10, 2026-11-27, it failed to connect every 2 s for as long as a request was out). So a fix takes the time a GPS takes, minutes
+from cold, and a view of the sky: indoors there may be none. It is asked on a thread of the engine's
+own, and only while someone wants it: a `location.get` asked for one fix, or a live location of ours runs, which wants a fix
+every 30 s, in the background. Nothing runs otherwise, and the thread ends by itself when nothing is wanted. `location.get`
+answers `location_off` when the service is off, has no provider, or Tengram may not use it (the answer comes with the first
+such error the service reports), and `no_fix` when no position came in 30 s. While we share a live location and the last fix is
+under 60 s old, `location.get` answers with it at once. After a `no_fix` the request stays out and the GPS goes on looking: a
+`location.get` that comes while it does waits on that same search (asked again, the GPS would start over), so a page that wants
+the position asks again after each `no_fix` for as long as it is open. The search ends when nobody waits and no live location
+runs.
+
+**`location.last`** is where the phone last was as far as the engine knows, at once: its last fix of this run, else what it last
+sent of a live location that runs; `not_found` when it has neither. It is for a map's first centre, not for sending as "where I
+am". The system's own "last known position" is not asked: through BPS the location manager refused that request as malformed
+(the Q10, 1.0.5.189), and the phone had none. The UI keeps the last point it showed (settings.ini, `map/lat`, `map/lon`,
+`map/zoom`) for a start the engine has nothing for.
+
+**`location.search`** finds an address or a place by name. The query goes to OpenStreetMap's Nominatim
+(`nominatim.openstreetmap.org/search`, HTTPS, checked against the phone's own root certificates), with the UI's language for the
+names and the app's name as its User-Agent, as its usage policy asks; nothing else is sent, and one request is made for each
+search the user submits. `name` is the place's full name as Nominatim words it ("Via Roma, Padova, Veneto, Italia"). The phone's
+own geocoder was BlackBerry's and is gone, and Telegram has none (its venue search needs a position first). Results are
+OpenStreetMap's data: the UI names it where it lists them. When the service refuses while a live location runs, the engine asks
+it again every minute, so the sharing goes on once Location Services are turned back on.
+
+**Keeping a live location current.** Each fix is sent as an edit of the message when the position moved 20 m or more from
+what Telegram has, when someone has just looked at the message (Telegram says so: the next fix goes out whatever the
+distance), and in any case at least once every 5 minutes. With the 30 s between fixes that is at most one edit in 30 s. The
+period is not touched by these edits. The engine never ends a live location by itself: TDLib's list says when one is over
+(its period ran out, or `location.stop`), and the `live` event follows.
+
+**The network stays on** while a live location of ours runs, whatever the delivery mode (see *Delivery mode*).
+
+**`location.stop`** ends one of ours. **`location.extend`** adds `add` seconds to its period (the period counts from the
+message's date); a live location with no end can't be extended. **`location.alert`** sets the proximity alert of our live
+location in the chat: Telegram tells both sides when another member of the chat who shares theirs comes within `radius`
+metres. It is a property of our live location, so `not_sharing` when there is none in that chat. The radius is `alert` in
+the `live` event and in the row's `extra.alert`. When the alert goes off the chat gets a service message ("Anna is within
+300 m of you", "You are within 1.5 km of Anna", the distance in metres under 1000, else in kilometres).
+
+**The map picture.** `media.get` with `preview` on a kind 9 row asks Telegram for the picture of the message's point (zoom 15,
+a 640 x 320 PNG: 320 x 160 at scale 2, half as tall as wide), keeps it in `cache/maps/<lat>_<lon>.png` (degrees in
+millionths) and answers `{path}`. The row is then written again with `extra.preview` set to that path, and the `msgs` event
+follows. The file is the engine's own copy, so TDLib's pruning does not take it. A live location that moves has no
+`extra.preview` for its new point until the UI asks again, so the UI asks again when `extra.lat` or `extra.lon` changes.
+
+**`map.get`** is the picture of any point at any size, for a page that picks one: TDLib's file, shown where it is. Nothing
+is copied or kept.
+
 ## Events
 
 | ev | fields | meaning |
@@ -825,6 +898,7 @@ All four answer TDLib's error as `td` when it has one.
 | `presence` | `chat`, `online`, `lastSeen` (unix seconds, 0 when hidden) | the other person's online status in a 1:1 chat, once after `chat.open` and at every change until `chat.close` |
 | `photo` | `jid` (a user id), `photo` (the absolute path of the user's small profile photo) | a photo that `group.info`, `contacts.list` or `senders.get` left out is downloaded: put it on that person's row |
 | `media.progress` | `chat`, `id` (the message), `done`, `size` (bytes, numbers; `size` is the expected size when TDLib has no exact one yet), `up` (true for an upload, absent for a download) | the file a `media.get` (not a preview) is downloading has grown, or the file of a message of ours still sending (`id` is its temporary id) has gone up further; at most every 200 ms per file, so a fast transfer may skip some; an upload's last event has `done` equal to `size`; none after a download is complete or cancelled, or once the message is sent |
+| `live` | `items`: [{`chat`, `id` (a message key and its id), `until` (unix seconds, 0 for one with no end), `alert` (the proximity alert's metres, 0 off)}] | the list of our live locations that run changed (one started, ended, extended, or its alert changed); the whole list each time, `[]` when none. A connection that says `hello` gets it once when the list is not empty |
 | `call` | `id` (the call, a string), `chat` (the person's chat key), `out` (bool: we placed it), `video` (bool: a video call), `videoOurs` (bool: our video is on), `videoTheirs` (bool: the other person's video is on), `state`, `reason` (only with `ended`), `since` (unix ms the call became `active`, 0 before) | the call changed state or either video went on or off; see "Calls" |
 
 `chats`, `msgs` and `topics` come after the engine commits, at most every 50 ms. `photo` does not wait for that: it comes when
@@ -965,6 +1039,9 @@ How quickly messages reach the phone while the UI is closed, against the battery
   our user says online, which can only be another session since ours is `online=false`),
   instant otherwise. A sync that finds us offline elsewhere goes back to instant.
 
+A live location of ours that runs keeps the connection open, as a call does, whatever the mode: the engine has to send its
+position (see *Locations*).
+
 ## Notifications: the Hub account
 
 No request of its own. The engine keeps a "Tengram" account in the BlackBerry Hub while logged
@@ -1062,7 +1139,7 @@ and for a photo that is not downloaded yet. The rows are never pruned, and a log
 | `sig` | the engine's own: a hash of the row's other values, so an unchanged message is not written again. Not for the UI. |
 | `topic` | the forum topic the message belongs to: its id (General is 1); in a supergroup that is not a forum, the comment thread the message is in (the thread root's id, the root carrying its own: see *Comments*), 0 otherwise. A thread's page is `WHERE chat = ? AND topic = ?`. Index `messages_by_topic` on `(chat, topic, ts)`: a topic's page is `WHERE chat = ? AND topic = ? ORDER BY ts, CAST(id AS INTEGER)` |
 | `tr`, `tr_lang` | a translation (see *Translation*): `tr` is the text in the language `tr_lang`, '' when there is nothing to show (it is the same as `text`, or has no words); NULL, NULL when not asked. Cleared when the message's text changes |
-| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`; a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted`, `closed` and `fixed`; a message's `reactions`; a channel post's `comments` (the count, see *Comments*); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs`; `ttl` and `expiresAt` of a self-destructing message; `album`, Telegram's album id as a string, shared by the album's messages; a reply to a message of another chat: `qname`, the quoted message's sender (left out when unknown), and `qkind`, its kind as `kind` (7 when unknown); ours sent by `msg.send` with `local`: `local`, and once sent `was`, the temporary id it replaced (see *`msg.send`*) |
+| `extra` | JSON, NULL when empty: `gif: true`; a sticker's `animated: true` and `emoji`; a location's `lat`, `lon`, and a live location's `live: true`, `until` (unix seconds the sharing ends, 0 for no end), `at` (unix seconds of its last update), `heading` (degrees, 1 to 360, left out when 0) and `alert` (the proximity alert's metres, left out when off), and the map picture's `preview` (see *Locations*); a contact's `contacts: [{name, tel: [number]}]`; a poll's `options`, `max` (1, or 0 for several), `votes`, `mine`, `voted`, `closed` and `fixed`; a message's `reactions`; a channel post's `comments` (the count, see *Comments*); a text's link preview `title`, `desc`, `url`; a document's `caption`; an audio file's `title`, `performer`; a call's `secs`; `ttl` and `expiresAt` of a self-destructing message; `album`, Telegram's album id as a string, shared by the album's messages; a reply to a message of another chat: `qname`, the quoted message's sender (left out when unknown), and `qkind`, its kind as `kind` (7 when unknown); ours sent by `msg.send` with `local`: `local`, and once sent `was`, the temporary id it replaced (see *`msg.send`*) |
 
 **Reactions:** any kind's `extra` can carry `reactions: [{e, n, me}, …]`, one object for each emoji reaction on the message in
 TDLib's order: `e` the emoji, `n` how many reacted with it, `me: true` when one of them is ours (absent otherwise). Custom emoji
@@ -1080,6 +1157,8 @@ video, `spoiler: true` (Telegram covers it until tapped).
 A message that self-destructs (a secret chat's, whatever its kind) carries `ttl`, the seconds of the timer it was sent with (a whole
 number; a message that disappears after one view has none), and `expiresAt` once its countdown runs: unix seconds, when
 it disappears (rounded up). TDLib deletes the message when the time is up (see *Secret chats*).
+
+A location's `extra` can carry `preview`, the absolute path of the map picture of its point, once `media.get` with `preview` has fetched it (see *Locations*). `edited` is 0 for a live location: Telegram edits it at every move.
 
 A photo's or video's `extra` can carry `preview`, the absolute path of the picture the bubble shows before the file
 is opened, once `media.get` with `preview` has downloaded it (or it is here for another reason): a photo's display

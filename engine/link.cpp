@@ -276,6 +276,7 @@ void on_closed() {
       notifier_reset();
       live_reset();
       data_reset();
+      location_reset();
     }
     done = true;
     return;
@@ -288,6 +289,7 @@ void on_closed() {
   notifier_reset();
   live_reset();
   data_reset();
+  location_reset();
   mode_reset();
   logging_out = false;
   cur = Link{};

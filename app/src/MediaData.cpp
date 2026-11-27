@@ -134,6 +134,9 @@ bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QStri
     } else if (kind == 2 && !previewPath.isEmpty() && QFile::exists(previewPath)) {
         // A video's own JPEG thumbnail, drawn as it is; a file TDLib has since dropped leaves the minithumbnail.
         file = previewPath;
+    } else if (kind == 9) {
+        // A location's map, the PNG the engine fetched for its point (the caller has checked it is there), drawn as it is.
+        file = previewPath;
     } else if (kind == 5 && mediaState == 2 && !path.isEmpty()) {
         file = Sticker::picture(id, path); // "" until PreviewMaker has made it: the thumbnail in shown stands
     }
@@ -144,14 +147,10 @@ bool MediaData::fill(QVariantMap &data, const QString &id, int kind, const QStri
         file.clear();
         shown = blurred(shown);
     }
-    // A location has no width or height columns: its map picture is a JPEG, sized by its own header.
-    if (kind == 9 && !thumb.isEmpty()) {
-        QBuffer buffer;
-        buffer.setData(thumb);
-        buffer.open(QIODevice::ReadOnly);
-        const QSize size = QImageReader(&buffer).size();
-        width = size.width();
-        height = size.height();
+    // A location's map is always twice as wide as tall (640 x 320, docs/protocol.md), here or still to come.
+    if (kind == 9) {
+        width = 2;
+        height = 1;
     }
     // Always an Image, an empty one without a thumbnail: a recycled card assigned undefined would
     // keep the picture of the row it showed before.

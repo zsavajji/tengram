@@ -39,6 +39,7 @@
 #include "EngineLink.h"
 #include "Invites.h"
 #include "MapChooser.h"
+#include "MapPicker.h"
 #include "MediaOpener.h"
 #include "MemoryPatch.h"
 #include "MessageCards.h"
@@ -206,6 +207,7 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     qmlRegisterType<ContactInfo>("tengram", 1, 0, "ContactInfo");
     qmlRegisterType<ContactPicker>("tengram", 1, 0, "ContactPicker");
     qmlRegisterType<MapChooser>("tengram", 1, 0, "MapChooser");
+    qmlRegisterType<MapPicker>("tengram", 1, 0, "MapPicker");
     qmlRegisterType<MediaOpener>("tengram", 1, 0, "MediaOpener");
     qmlRegisterType<MessageCards>("tengram", 1, 0, "MessageCards");
     qmlRegisterType<Privacy>("tengram", 1, 0, "Privacy");

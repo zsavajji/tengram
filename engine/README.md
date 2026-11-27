@@ -16,6 +16,7 @@ decisions and measurements are in `NOTES.md`.
 | `data.cpp` | `storage.*`, `network.*`; automatic download, the gallery copy, the cap on downloaded media |
 | `mode.cpp` | delivery mode (instant, batched, auto), `ui.state`, `prefs.set` |
 | `notifier.cpp`, `hub*.cpp` | notifications from TDLib's groups to the Hub (or to the log) |
+| `location.cpp` | `location.*`, `map.get`: the phone's position (BPS, on a thread of its own) and our live locations kept current |
 | `bb10.cpp` | `--service` only: navigator and network events |
 | `db.cpp`, `server.cpp` | encrypted `chats.db`, the socket |
 

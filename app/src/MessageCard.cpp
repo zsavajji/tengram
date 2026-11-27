@@ -114,6 +114,7 @@ MessageCard::MessageCard(ListView *list, bool rich, bool picture)
     , m_commentsItem(0)
     , m_votes(0)
     , m_download(0)
+    , m_live(0)
     , m_copy(0)
     , m_translate(0)
     , m_edit(0)
@@ -705,6 +706,7 @@ void MessageCard::makeLabel()
     m_label = new Label();
     m_label->setTopMargin(0);
     m_label->setBottomMargin(0);
+    m_label->setMultiline(true); // a live location's has two or three lines (MessageModel::liveLabel)
     m_label->textStyle()->setFontStyle(FontStyle::Italic);
     m_col->insert(m_col->indexOf(m_words), m_label);
     m_styled = false;

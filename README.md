@@ -50,6 +50,7 @@ stickers are all there, and a background engine keeps them current after you clo
 - Send several photos and videos at once, as an album or as files, edited first in the phone's picture editor
 - Voice notes: waveform playback, at your ear with the proximity sensor, and recording from the composer
 - Share files and text into Tengram from other apps
+- Locations on a map: send where you are or a point you pick, share your live location, and set a proximity alert
 
 **Calls**
 - 1:1 voice and video calls, with Telegram's own call library

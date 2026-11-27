@@ -24,8 +24,10 @@ class UIConfig;
 // its picture alone, small, with no caption: the model fetches its file by itself. A TGS sticker
 // plays (StickerPlayer, docs/stickers-plan.md G2, as Settings > Chats > Animated stickers says), and
 // a tap plays it again; any other sticker does nothing on a tap. A
-// location (6.5c) is its map picture as a photo's, or without one a row to tap; the card's label
-// and text under it are the card's, and a tap asks which maps app opens it. A contact (6.5d) is a
+// location (6.5c) is a picture too, half as tall as wide: its map (the engine's PNG, fetched after the row) with a pin
+// whose tip is on the map's centre, red, or blue while a live location runs (liveOn), or until the map is here the
+// page's colour with "Location" on it; the card's label (a live location's) and text (a venue's name and address) under it
+// are the card's, and a tap asks which maps app opens it. A contact (6.5d) is a
 // row of the system's add-contact icon, its names and its number (or "N contacts"); a tap imports
 // it into the Contacts app. A spoiler (6.6d) is a photo or video under a blurred cover with
 // "Spoiler" on it and no play mark or length: a tap takes the cover off (the model's unspoil), the
@@ -82,6 +84,8 @@ private:
     bb::cascades::ImageView *m_thumb;
     bb::cascades::Container *m_none;
     bb::cascades::Label *m_noneText;
+    bb::cascades::ImageView *m_pin; // a location's, over its map
+    int m_pinLive; // the pin m_pin has: -1 none yet, 0 red, 1 the live one's blue
     bb::cascades::ImageView *m_play;
     bb::cascades::Label *m_length;
     bb::cascades::Container *m_lengthBox; // m_length in from the corner

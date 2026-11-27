@@ -36,6 +36,15 @@ std::string span(int secs) {
   return std::to_string(secs) + " seconds";  // not reached: every time is a whole number of seconds
 }
 
+// A distance as the proximity alert words it: "800 m", "1 km", "1.5 km".
+std::string distance_text(int metres) {
+  if (metres < 1000) {
+    return std::to_string(metres) + " m";
+  }
+  const int tenths = (metres + 50) / 100;  // kilometres in tenths, rounded
+  return std::to_string(tenths / 10) + (tenths % 10 ? "." + std::to_string(tenths % 10) : "") + " km";
+}
+
 // The service messages: "Anna joined", "Anna removed Bob". Unknown people read "Someone".
 std::string service_text(const td_api::message &m, const std::string &who, std::int64_t sender_id) {
   auto name_of = [](std::int64_t user_id) { return or_default(user_name(user_id, false), "Someone"); };
@@ -81,6 +90,30 @@ std::string service_text(const td_api::message &m, const std::string &who, std::
         return who + (secret ? " disabled the self-destruct timer" : " disabled the auto-delete timer");
       }
       return who + (secret ? " set the self-destruct timer to " : " set messages to auto-delete in ") + span(secs);
+    }
+    case td_api::messageProximityAlertTriggered::ID: {
+      const auto &alert = static_cast<const td_api::messageProximityAlertTriggered &>(*m.content_);
+      const std::int64_t me = link_me_id();
+      // A sender is us when it is a user with our id; a chat's name is its title.
+      auto is_me = [me](const td_api::MessageSender *s) {
+        return s && s->get_id() == td_api::messageSenderUser::ID &&
+               static_cast<const td_api::messageSenderUser &>(*s).user_id_ == me;
+      };
+      auto who_is = [&](const td_api::MessageSender *s) {
+        if (s && s->get_id() == td_api::messageSenderUser::ID) {
+          return name_of(static_cast<const td_api::messageSenderUser &>(*s).user_id_);
+        }
+        return s ? or_default(chat_title(static_cast<const td_api::messageSenderChat &>(*s).chat_id_), "Someone")
+                 : std::string("Someone");
+      };
+      const std::string d = distance_text(alert.distance_);
+      if (is_me(alert.watcher_id_.get())) {
+        return who_is(alert.traveler_id_.get()) + " is within " + d + " of you";
+      }
+      if (is_me(alert.traveler_id_.get())) {
+        return "You are within " + d + " of " + who_is(alert.watcher_id_.get());
+      }
+      return who_is(alert.traveler_id_.get()) + " is within " + d + " of " + who_is(alert.watcher_id_.get());
     }
     default:
       return "";
@@ -157,6 +190,8 @@ std::string message_body(const td_api::message &m, bool &is_service) {
       return static_cast<const td_api::messageAnimatedEmoji &>(c).emoji_;  // a text of one emoji, as it was written
     case td_api::messageLocation::ID:
       return "Location";
+    case td_api::messageLiveLocation::ID:
+      return "Live location";
     case td_api::messageVenue::ID: {
       auto &v = static_cast<const td_api::messageVenue &>(c);
       return or_default(v.venue_ ? v.venue_->title_ : "", "Location");

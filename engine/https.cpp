@@ -66,10 +66,9 @@ int retry_after_of(const std::string &head) {
   return at == std::string::npos ? 0 : std::max(0, std::atoi(head.c_str() + at + 14));
 }
 
-}  // namespace
-
-HttpsAnswer https_post(const std::string &host, const std::string &path, const std::vector<std::string> &headers,
-                       const std::string &body, int timeout_s) {
+// One request and its answer. A POST carries `body` as JSON; a GET carries nothing.
+HttpsAnswer exchange(bool post, const std::string &host, const std::string &path, const std::vector<std::string> &headers,
+                     const std::string &body, int timeout_s) {
   HttpsAnswer answer;
   const int fd = dial(host, timeout_s);
   if (fd < 0) {
@@ -84,9 +83,11 @@ HttpsAnswer https_post(const std::string &host, const std::string &path, const s
   }
   if (ssl && SSL_set_fd(ssl, fd) == 1 && SSL_set_tlsext_host_name(ssl, host.c_str()) == 1 &&
       SSL_set1_host(ssl, host.c_str()) == 1 && SSL_connect(ssl) == 1) {
-    std::string request = "POST " + path + " HTTP/1.0\r\nHost: " + host +
-                          "\r\nContent-Type: application/json\r\nContent-Length: " + std::to_string(body.size()) +
-                          "\r\nConnection: close\r\n";
+    std::string request = std::string(post ? "POST " : "GET ") + path + " HTTP/1.0\r\nHost: " + host + "\r\n";
+    if (post) {
+      request += "Content-Type: application/json\r\nContent-Length: " + std::to_string(body.size()) + "\r\n";
+    }
+    request += "Connection: close\r\n";
     for (const std::string &h : headers) {
       request += h + "\r\n";
     }
@@ -123,4 +124,16 @@ HttpsAnswer https_post(const std::string &host, const std::string &path, const s
   SSL_CTX_free(ctx);
   close(fd);
   return answer;
+}
+
+}  // namespace
+
+HttpsAnswer https_post(const std::string &host, const std::string &path, const std::vector<std::string> &headers,
+                       const std::string &body, int timeout_s) {
+  return exchange(true, host, path, headers, body, timeout_s);
+}
+
+HttpsAnswer https_get(const std::string &host, const std::string &path, const std::vector<std::string> &headers,
+                      int timeout_s) {
+  return exchange(false, host, path, headers, std::string(), timeout_s);
 }

@@ -57,6 +57,17 @@ void MessageCard::onPopulating()
         m_votes->setEnabled(flag("poll") && !deleted);
     if (m_download)
         m_download->setEnabled(!deleted && !flag("secret") && (str("media") == "doc" || str("media") == "audio"));
+    // A live location still running: ours to stop, extend or alert from, theirs to alert from where we may write. In the menu
+    // only then, before Copy, and out of it for every other row this card shows (a photo, a video, a place): populating is
+    // where the set is changed before the menu shows, and a removed action stays the set's child, to go back in.
+    if (m_live) {
+        const bool wanted = flag("liveOn") && !deleted && (flag("out") || !readOnly);
+        const bool there = m_menu->indexOf(m_live) >= 0;
+        if (wanted && !there)
+            m_menu->insert(m_menu->indexOf(m_copy), m_live);
+        else if (!wanted && there)
+            m_menu->remove(m_live);
+    }
     m_copy->setEnabled(!deleted && !str("text").isEmpty());
     m_translate->setEnabled(flag("canTranslate"));
     m_translate->setTitle(Card::tr(kContext, flag("translated") ? QT_TRANSLATE_NOOP("MessageItem", "Show original") : QT_TRANSLATE_NOOP("MessageItem", "Translate")));
@@ -107,6 +118,11 @@ void MessageCard::makeActions()
         // A file into the phone's Downloads, where File Manager shows it (the user's ask, 2026-11-18).
         m_download = action(QT_TRANSLATE_NOOP("MessageItem", "Download"), "asset:///images/save_action.png", SLOT(onDownload()), "s");
     }
+    // A live location's stop, extension and proximity alert (the page's liveMenu, LiveActions.qml). A location is always the
+    // picture card, so only that one has it.
+    if (m_head)
+        m_live = action(QT_TRANSLATE_NOOP("MessageItem", "Live location…"), "file:///usr/share/icons/ic_map_all.png",
+                        SLOT(onLiveMenu()), "l");
     // /usr/share/icons has no copy icon: this one is the stock Text Messages app's.
     m_copy = action(QT_TRANSLATE_NOOP("MessageItem", "Copy"), "asset:///images/copy.png", SLOT(onCopy()), "c");
     // Opens the translation dialog, or the original of a message already shown translated (onPopulating).
@@ -180,6 +196,7 @@ void MessageCard::onReact() { Card::call(m_list, "react", m_msg); }
 void MessageCard::onForward() { Card::call(m_list, "forward", m_msg); }
 void MessageCard::onComments() { Card::call(m_list, "openComments", str("id")); }
 void MessageCard::onDownload() { Card::call(m_list, "download", m_msg); }
+void MessageCard::onLiveMenu() { Card::call(m_list, "liveMenu", m_msg); }
 void MessageCard::onVotes() { Card::call(m_list, "showVoters", str("votesText")); }
 void MessageCard::onCopy() { Card::call(m_list, "copy", str("text")); }
 void MessageCard::onTranslate() { Card::call(m_list, "translate", m_msg); }

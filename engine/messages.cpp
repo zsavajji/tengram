@@ -7,6 +7,8 @@
 
 #include "engine.h"
 
+#include <unistd.h>
+
 #include <algorithm>
 #include <cmath>
 #include <ctime>
@@ -322,6 +324,8 @@ void content(Row &r, const td_api::message &m) {
     return;
   }
   const td_api::MessageContent &c = *m.content_;
+  bool has_point = false;  // a location, venue or live location with its point (for extra.preview below)
+  double point_lat = 0, point_lon = 0;
   switch (c.get_id()) {
     case td_api::messageText::ID: {
       auto &t = static_cast<const td_api::messageText &>(c);
@@ -483,20 +487,40 @@ void content(Row &r, const td_api::message &m) {
       break;
     }
     case td_api::messageLocation::ID:
-    case td_api::messageVenue::ID: {
+    case td_api::messageVenue::ID:
+    case td_api::messageLiveLocation::ID: {
       const td_api::location *where = nullptr;
+      const td_api::liveLocation *live = nullptr;
       r.v[kKind] = 9;
       r.v[kText] = Val();
       if (c.get_id() == td_api::messageLocation::ID) {
         where = static_cast<const td_api::messageLocation &>(c).location_.get();
+      } else if (c.get_id() == td_api::messageLiveLocation::ID) {
+        live = static_cast<const td_api::messageLiveLocation &>(c).location_.get();
+        where = live ? live->location_.get() : nullptr;
+        r.v[kEdited] = 0;  // row_of set kEdited before it called us: a live location is edited at every move, not "edited"
       } else if (const auto *v = static_cast<const td_api::messageVenue &>(c).venue_.get()) {
         where = v->location_.get();
         r.v[kText] = v->title_ + "\n" + v->address_;
       }
       if (where) {
+        has_point = true;
+        point_lat = where->latitude_;
+        point_lon = where->longitude_;
         r.v[kExtra] = extra_of([&](auto &o) {
           o("lat", where->latitude_);
           o("lon", where->longitude_);
+          if (live) {
+            o("live", td::JsonTrue());
+            o("until", live->live_period_ == INT32_MAX ? std::int64_t{0} : std::int64_t{m.date_} + live->live_period_);
+            o("at", m.edit_date_ > 0 ? m.edit_date_ : m.date_);  // when the position was last updated
+            if (live->heading_ > 0) {
+              o("heading", live->heading_);
+            }
+            if (live->proximity_alert_radius_ > 0) {
+              o("alert", live->proximity_alert_radius_);
+            }
+          }
         });
       }
       break;
@@ -587,6 +611,14 @@ void content(Row &r, const td_api::message &m) {
   }
   const td_api::file *full = message_file(m);
   set_file(r, full);
+  // extra.preview of a location is the map picture media.get with preview fetched (location_map) for this point: a live
+  // location that moved has none until the UI asks for the new point's.
+  if (has_point) {
+    const std::string map = map_path(point_lat, point_lon);
+    if (access(map.c_str(), F_OK) == 0) {
+      append_extra(r, "\"preview\":" + td::json_encode<std::string>(td::JsonString(map)));
+    }
+  }
   // extra.preview: the picture a bubble shows before its file is opened, when it is here. A photo's goes away once
   // the photo itself is here: the UI makes a sharper one from that.
   const td_api::file *preview = message_preview_file(m);

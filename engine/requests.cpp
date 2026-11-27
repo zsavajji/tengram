@@ -1171,6 +1171,11 @@ void media_get(std::uint64_t conn, const std::string &id, td::JsonObject &req, s
     if (!preview && m.self_destruct_type_ && !m.is_outgoing_) {
       tdlib.send(make_object<td_api::openMessageContent>(chat, message));
     }
+    if (preview && m.content_ &&
+        (m.content_->get_id() == td_api::messageLocation::ID || m.content_->get_id() == td_api::messageVenue::ID ||
+         m.content_->get_id() == td_api::messageLiveLocation::ID)) {
+      return location_map(conn, id, m);  // a map picture, not a file of the message
+    }
     const td_api::file *file = preview ? message_preview_file(m) : message_file(m);
     if (!file) {
       return server.reply_error(conn, id, "not_found",

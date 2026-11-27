@@ -969,6 +969,10 @@
         <source>Comments</source>
         <translation>टिप्पणियाँ</translation>
     </message>
+    <message>
+        <source>Couldn&apos;t send the location</source>
+        <translation>लोकेशन भेजी नहीं जा सकी</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -2162,6 +2166,178 @@
     </message>
 </context>
 <context>
+    <name>LiveActions</name>
+    <message>
+        <source>Stop sharing</source>
+        <translation>शेयर करना बंद करें</translation>
+    </message>
+    <message>
+        <source>Add 15 minutes</source>
+        <translation>15 मिनट जोड़ें</translation>
+    </message>
+    <message>
+        <source>Add 1 hour</source>
+        <translation>1 घंटा जोड़ें</translation>
+    </message>
+    <message>
+        <source>Add 8 hours</source>
+        <translation>8 घंटे जोड़ें</translation>
+    </message>
+    <message>
+        <source>Proximity alert…</source>
+        <translation>नज़दीकी अलर्ट…</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>बंद</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 मी</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 किमी</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>लाइव लोकेशन</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>रद्द करें</translation>
+    </message>
+    <message>
+        <source>Proximity alert</source>
+        <translation>नज़दीकी अलर्ट</translation>
+    </message>
+    <message>
+        <source>Share your live location in this chat first</source>
+        <translation>पहले इस चैट में अपनी लाइव लोकेशन शेयर करें</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t change the live location</source>
+        <translation>लाइव लोकेशन बदली नहीं जा सकी</translation>
+    </message>
+</context>
+<context>
+    <name>LiveBar</name>
+    <message>
+        <source>You are sharing your live location</source>
+        <translation>आप अपनी लाइव लोकेशन शेयर कर रहे हैं</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>रोकें</translation>
+    </message>
+</context>
+<context>
+    <name>LocationAction</name>
+    <message>
+        <source>Location</source>
+        <translation>लोकेशन</translation>
+    </message>
+</context>
+<context>
+    <name>LocationPage</name>
+    <message>
+        <source>Location</source>
+        <translation>लोकेशन</translation>
+    </message>
+    <message>
+        <source>Send location</source>
+        <translation>लोकेशन भेजें</translation>
+    </message>
+    <message>
+        <source>Share live</source>
+        <translation>लाइव शेयर करें</translation>
+    </message>
+    <message>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>भेजा नहीं गया: Tengram दोबारा कनेक्ट हो रहा है। थोड़ी देर में फिर कोशिश करें।</translation>
+    </message>
+    <message>
+        <source>Share my live location for</source>
+        <translation>मेरी लाइव लोकेशन शेयर करें</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>रद्द करें</translation>
+    </message>
+    <message>
+        <source>15 minutes</source>
+        <translation>15 मिनट</translation>
+    </message>
+    <message>
+        <source>1 hour</source>
+        <translation>1 घंटा</translation>
+    </message>
+    <message>
+        <source>8 hours</source>
+        <translation>8 घंटे</translation>
+    </message>
+    <message>
+        <source>Until I turn it off</source>
+        <translation>जब तक मैं बंद न करूँ</translation>
+    </message>
+    <message>
+        <source>Your position</source>
+        <translation>आपकी स्थिति</translation>
+    </message>
+    <message>
+        <source>accurate to %1</source>
+        <translation>%1 तक सटीक</translation>
+    </message>
+    <message>
+        <source>The point under the pin</source>
+        <translation>पिन के नीचे का बिंदु</translation>
+    </message>
+    <message>
+        <source>Location Services are off. Turn them on to send where you are.</source>
+        <translation>लोकेशन सेवाएँ बंद हैं। अपनी जगह भेजने के लिए इन्हें चालू करें।</translation>
+    </message>
+    <message>
+        <source>Location settings</source>
+        <translation>लोकेशन सेटिंग</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t load the map.</source>
+        <translation>मानचित्र लोड नहीं हो सका।</translation>
+    </message>
+    <message>
+        <source>Try again</source>
+        <translation>फिर कोशिश करें</translation>
+    </message>
+    <message>
+        <source>Looking for your position…</source>
+        <translation>आपकी स्थिति खोजी जा रही है…</translation>
+    </message>
+    <message>
+        <source>Looking for your position. It comes from GPS satellites alone, which takes a few minutes and a view of the sky. Meanwhile you can search for an address above, or move the map.</source>
+        <translation>आपकी स्थिति खोजी जा रही है। यह केवल GPS उपग्रहों से मिलती है: इसमें कुछ मिनट लगते हैं और खुला आसमान चाहिए। तब तक आप ऊपर कोई पता खोज सकते हैं या मानचित्र खिसका सकते हैं।</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t ask for your position. Try again in a moment.</source>
+        <translation>आपकी स्थिति नहीं पूछी जा सकी। थोड़ी देर में फिर कोशिश करें।</translation>
+    </message>
+    <message>
+        <source>Search an address or a place</source>
+        <translation>पता या जगह खोजें</translation>
+    </message>
+    <message>
+        <source>No place found</source>
+        <translation>कोई जगह नहीं मिली</translation>
+    </message>
+    <message>
+        <source>No answer from the place search. Check the connection.</source>
+        <translation>जगह की खोज से कोई जवाब नहीं आया। कनेक्शन जाँचें।</translation>
+    </message>
+    <message>
+        <source>The place search failed. Try again.</source>
+        <translation>जगह की खोज विफल रही। फिर कोशिश करें।</translation>
+    </message>
+</context>
+<context>
     <name>MapChooser</name>
     <message>
         <location filename="../src/MapChooser.cpp" line="79"/>
@@ -2203,6 +2379,10 @@
     <message>
         <source>Spoiler</source>
         <translation>स्पॉइलर</translation>
+    </message>
+    <message>
+        <source>Location</source>
+        <translation>लोकेशन</translation>
     </message>
 </context>
 <context>
@@ -2385,6 +2565,10 @@
         <source>Comments</source>
         <translation>टिप्पणियाँ</translation>
     </message>
+    <message>
+        <source>Live location…</source>
+        <translation>लाइव लोकेशन…</translation>
+    </message>
 </context>
 <context>
     <name>MessageKinds</name>
@@ -2558,6 +2742,38 @@
         <location filename="../src/MessageRows.cpp" line="164"/>
         <source>Leave a comment</source>
         <translation>टिप्पणी करें</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 मी</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 किमी</translation>
+    </message>
+    <message>
+        <source>Live location ended</source>
+        <translation>लाइव लोकेशन समाप्त</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>लाइव लोकेशन</translation>
+    </message>
+    <message>
+        <source>Updated just now</source>
+        <translation>अभी अपडेट किया गया</translation>
+    </message>
+    <message>
+        <source>Updated %1 ago</source>
+        <translation>%1 पहले अपडेट किया गया</translation>
+    </message>
+    <message>
+        <source>%1 left</source>
+        <translation>%1 बाकी</translation>
+    </message>
+    <message>
+        <source>Alert within %1</source>
+        <translation>%1 के भीतर अलर्ट</translation>
     </message>
 </context>
 <context>

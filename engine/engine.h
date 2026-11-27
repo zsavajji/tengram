@@ -257,6 +257,9 @@ bool manage_handle(std::uint64_t conn, const std::string &id, const std::string 
 // contacts.clearImported, contacts.book and topchats.set, the rows of Settings → Privacy and security. They have no chat.
 bool account_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
 
+// data.cpp: copies a file (a blocking copy, to `to`'s .part first, renamed when whole; mode 0644). False when it failed.
+bool copy_file(const std::string &from, const std::string &to);
+
 // The preferences of data.cpp (docs/protocol.md, "Data and storage"); mode.cpp keeps and saves them with the others.
 struct DataPrefs {
   std::string auto_net = "wifi";  // the network automatic download is allowed on: none, wifi (Wi-Fi only) or all
@@ -330,6 +333,23 @@ void calls_audio_attach(int fd);                      // the audio link, after i
 bool calls_video_wanted(const std::string &call_id);  // the same for the video link's hello
 void calls_video_attach(int fd);                      // the video link, after its ok reply: the call owns the fd now
 void calls_hello();                                   // a connection said hello: it gets the live call's event, if any
+
+// location.cpp: location.get, map.get, location.send, location.live, location.stop, location.extend, location.alert and
+// location.active, the `live` event, the phone's position (BPS geolocation, on a thread of its own while it is wanted) and
+// our live locations kept current while they run (docs/protocol.md, "Locations").
+void location_start(int wake_fd);              // keeps the wake fd for the position thread
+void location_drain();                         // runs what that thread posted (main thread)
+void location_update(td_api::Object &update);  // updateActiveLiveLocationMessages, updateMessageContent of one of ours, updateMessageLiveLocationViewed
+bool location_handle(std::uint64_t conn, const std::string &id, const std::string &cmd, td::JsonObject &req);
+void location_reset();                         // a new client after a logout: nothing is shared, nobody waits
+void location_hello();                         // a connection said hello: it gets the `live` event when we share any
+bool location_live();                          // we share a live location: the network must stay on
+// Where a bubble's map picture of this point is kept, <data>/cache/maps/<lat>_<lon>.png (micro-degrees): there once
+// media.get with preview has fetched it. Only the engine words this name.
+std::string map_path(double lat, double lon);
+// media.get with preview for a location, venue or live location message (requests.cpp hands it over): Telegram's map
+// picture of the message's point, fetched into map_path, the row written again (extra.preview), the answer {path}.
+void location_map(std::uint64_t conn, const std::string &id, const td_api::message &m);
 
 // ring.cpp: what an incoming call does until it stops ringing: the phone's ringtone, and the Hub's call item. Both from
 // the main thread; the tone plays on a thread of its own.

@@ -114,6 +114,35 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
         if (gone && !request.isEmpty())
             m_refetch.insert(request, m.id);
     }
+    // A location's map (docs/protocol.md, kind 9): the engine's 640 x 320 PNG with the point at its centre, asked once for
+    // each point the row has had, which comes back as extra.preview. Not for a local row or our own still sending.
+    // ponytail: every move of a live location in a loaded chat fetches a map (about 50 KB); a floor of N seconds between asks
+    // per message if a busy live location shows in the data use.
+    if (kind == 9 && !deleted) {
+        if (previewPath.isEmpty() && m_engine && !isLocal(m.id) && !(out && q.value(4).toInt() == 0)) {
+            const QString key = m.id + "@" + QString::number(extra.value("lat").toDouble(), 'f', 6) + ","
+                                + QString::number(extra.value("lon").toDouble(), 'f', 6);
+            if (!m_askedMaps.contains(key)) {
+                QVariantMap args;
+                args["chat"] = m_chat;
+                args["id"] = m.id;
+                args["preview"] = true;
+                const QString request = m_engine->requestQuiet("media.get", args);
+                if (!request.isEmpty()) {
+                    m_askedMaps.insert(key);
+                    // As a photo's: a file that was gone comes back where the row says, so no msgs event; the reply reads it.
+                    if (gone)
+                        m_refetch.insert(request, m.id);
+                }
+            }
+        }
+        // No blink while a live location moves: its row comes again with the new point and no map until the engine has that
+        // point's, so the card keeps the last map it showed, and its pin, meanwhile.
+        if (!previewPath.isEmpty())
+            m_lastMap.insert(m.id, previewPath);
+        else if (m_lastMap.contains(m.id) && QFile::exists(m_lastMap.value(m.id)))
+            previewPath = m_lastMap.value(m.id);
+    }
     // Covered until a tap takes the cover off (unspoil), for as long as this chat stays open.
     const bool covered = m.data["spoiler"].toBool() && !deleted && !m_revealed.contains(m.id);
     m.data["spoiler"] = covered;
@@ -125,6 +154,7 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     if (deleted) {
         label = QString();
         shown = tr("This message was deleted");
+        m.data["live"] = false; // data() words no live label over the note, and the tick passes it by
     }
     QString sender;
     if (m_group && !out)
@@ -195,6 +225,10 @@ MessageModel::Msg MessageModel::read(QSqlQuery &q)
     m.data["ttlText"] = ttl > 0 ? span(ttl) : QString();
     if (expires > 0 && !deleted && !m_expiry.isActive())
         m_expiry.start();
+    // A live location still running: its label follows the clock (tickLive).
+    const qint64 liveUntil = m.data.value("liveUntil").toLongLong();
+    if (m.data.value("live").toBool() && (liveUntil <= 0 || m_now < liveUntil) && !m_liveTick.isActive())
+        m_liveTick.start();
     // The long-press menu's title: the day in full and the time.
     m.data["stamp"] = longDay(when.date(), locale) + ", " + time;
     m.data["label"] = label;

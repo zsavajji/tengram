@@ -148,6 +148,8 @@
     <permission>record_audio</permission>
     <permission>use_camera</permission>
     <permission>play_audio</permission>
+    <!-- The phone's position, which the engine reads for Send location and live locations (location.get, location.live). -->
+    <permission>access_location_services</permission>
     <!-- The phone's address book, read by the UI (src/ContactBook.cpp) and handed to the engine, so
          a person saved on the Q10 shows under that name. -->
     <permission>access_pimdomain_contacts</permission>

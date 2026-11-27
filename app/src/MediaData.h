@@ -25,7 +25,8 @@ QImage previewImage(const QString &path);
 // deleted row. A downloaded photo's thumb is its 640 px preview, made from the file (step 6.3), a
 // sticker's its 180 px picture (Sticker.h, step 6.5b), else the row's thumbnail, which also stands in until the file is
 // made: PreviewMaker makes both on a worker thread and MessageModel reads the row again then; a location's is its map
-// picture, its ratio from the JPEG's own size (step 6.5c). A contact (step 6.5d) is media too, drawn as
+// picture, the PNG in previewPath, with no thumb until the engine has fetched it, and its ratio always 0.5 (step 6.5c). A
+// contact (step 6.5d) is media too, drawn as
 // a row; its summary is the names, and MessageKinds adds its vcard and contactInfo. A text (kind 0, also
 // a deleted row's) gets linkThumb, an Image of the row's thumbnail (empty without one), and hasLinkThumb
 // for its link preview (step 6.5f); MessageKinds has the preview's text.
@@ -34,8 +35,8 @@ QImage previewImage(const QString &path);
 // sizeText, durationText, fileName) only for media; tgs is true for a downloaded sticker whose file is a TGS (Lottie).
 // Returns whether it is media. blur (step 6.6d) shows the picture blurred, for a spoiler under its cover. previewPath
 // is the row's extra.preview ("" when it has none): the display-size file the engine fetched for a photo not downloaded
-// yet (the thumb is made from it, as from the photo, under another cache name), or a video's JPEG thumbnail (the thumb
-// is that file).
+// yet (the thumb is made from it, as from the photo, under another cache name), a video's JPEG thumbnail (the thumb
+// is that file), or a location's map PNG (the thumb is that file; the caller has checked it is there).
 bool fill(QVariantMap &data, const QString &id, int kind, const QString &text,
           const QByteArray &thumb, int width, int height, qint64 size, int duration,
           int mediaState, const QString &path, const QString &previewPath, const QLocale &locale,

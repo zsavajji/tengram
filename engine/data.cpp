@@ -130,6 +130,8 @@ bool make_folder(const std::string &dir) {
   return err == EEXIST && stat(dir.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
 }
 
+}  // namespace
+
 // ponytail: a blocking copy on the main thread, 64 KiB at a time: a video of a few hundred MB holds the engine for as
 // long as the flash takes. A copy in slices from data_tick() if that is ever felt.
 bool copy_file(const std::string &from, const std::string &to) {
@@ -159,6 +161,8 @@ bool copy_file(const std::string &from, const std::string &to) {
   }
   return ok;
 }
+
+namespace {
 
 // ---- pruning
 

@@ -139,6 +139,14 @@ bool MessageKinds::fill(int kind, const QString &chat, const QString &text,
     // And an empty options list: a recycled card's PollBubble reads msg.options for its new row
     // before the delegate holding it goes (Q10 ui.log, 2026-11-02 and 11-04, six TypeErrors).
     data["options"] = QVariantList();
+    // A live location's (docs/protocol.md, kind 9): when it ends (unix s, 0 none), its last position's time and our
+    // proximity alert's metres. Set for every kind, as poll is; liveOn is MessageModel::data()'s, false here.
+    const bool live = kind == 9 && extra.value("live").toBool();
+    data["live"] = live;
+    data["liveUntil"] = live ? extra.value("until").toLongLong() : qint64(0);
+    data["liveAt"] = live ? extra.value("at").toLongLong() : qint64(0);
+    data["liveAlert"] = live ? extra.value("alert").toInt() : 0;
+    data["liveOn"] = false;
     switch (kind) {
     case 6:
         shown = text;
@@ -148,8 +156,9 @@ bool MessageKinds::fill(int kind, const QString &chat, const QString &text,
         shown = QString();
         break;
     case 9:
-        label = extra.value("live").toBool() ? QCoreApplication::translate("MessageKinds", "Live location")
-                                              : QCoreApplication::translate("MessageKinds", "Location");
+        // The map picture alone says what it is (MediaBubble); a venue's title and address stay the text. A live location's
+        // label is worded when the row is drawn (MessageModel::liveLabel): this one stands until then.
+        label = live ? QCoreApplication::translate("MessageKinds", "Live location") : QString();
         // What a tap on the card opens (MapChooser); the name is the text's first line.
         data["lat"] = extra.value("lat").toDouble();
         data["lon"] = extra.value("lon").toDouble();

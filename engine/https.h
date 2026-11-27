@@ -1,4 +1,4 @@
-// One blocking HTTPS POST, callable from any thread. OpenSSL and POSIX sockets only: no TDLib, no engine.h.
+// One blocking HTTPS POST or GET, callable from any thread. OpenSSL and POSIX sockets only: no TDLib, no engine.h.
 #pragma once
 
 #include <string>
@@ -14,3 +14,6 @@ struct HttpsAnswer {
 // against the phone's own roots; `timeout_s` bounds the connect and each read and write.
 HttpsAnswer https_post(const std::string &host, const std::string &path, const std::vector<std::string> &headers,
                        const std::string &body, int timeout_s);
+// GET https://host/path (the path with its query, already encoded) with the extra `headers`; the rest as https_post.
+HttpsAnswer https_get(const std::string &host, const std::string &path, const std::vector<std::string> &headers,
+                      int timeout_s);

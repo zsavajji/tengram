@@ -970,6 +970,10 @@
         <source>Comments</source>
         <translation>Коментарі</translation>
     </message>
+    <message>
+        <source>Couldn&apos;t send the location</source>
+        <translation>Не вдалося надіслати геолокацію</translation>
+    </message>
 </context>
 <context>
     <name>ChatRow</name>
@@ -2165,6 +2169,178 @@
     </message>
 </context>
 <context>
+    <name>LiveActions</name>
+    <message>
+        <source>Stop sharing</source>
+        <translation>Припинити ділитися</translation>
+    </message>
+    <message>
+        <source>Add 15 minutes</source>
+        <translation>Додати 15 хвилин</translation>
+    </message>
+    <message>
+        <source>Add 1 hour</source>
+        <translation>Додати 1 годину</translation>
+    </message>
+    <message>
+        <source>Add 8 hours</source>
+        <translation>Додати 8 годин</translation>
+    </message>
+    <message>
+        <source>Proximity alert…</source>
+        <translation>Сповіщення про наближення…</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Вимк.</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 м</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 км</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>Геолокація в реальному часі</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <source>Proximity alert</source>
+        <translation>Сповіщення про наближення</translation>
+    </message>
+    <message>
+        <source>Share your live location in this chat first</source>
+        <translation>Спершу поділіться геолокацією в реальному часі в цьому чаті</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t change the live location</source>
+        <translation>Не вдалося змінити геолокацію в реальному часі</translation>
+    </message>
+</context>
+<context>
+    <name>LiveBar</name>
+    <message>
+        <source>You are sharing your live location</source>
+        <translation>Ви ділитеся геолокацією в реальному часі</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>Стоп</translation>
+    </message>
+</context>
+<context>
+    <name>LocationAction</name>
+    <message>
+        <source>Location</source>
+        <translation>Геолокація</translation>
+    </message>
+</context>
+<context>
+    <name>LocationPage</name>
+    <message>
+        <source>Location</source>
+        <translation>Геолокація</translation>
+    </message>
+    <message>
+        <source>Send location</source>
+        <translation>Надіслати геолокацію</translation>
+    </message>
+    <message>
+        <source>Share live</source>
+        <translation>У реальному часі</translation>
+    </message>
+    <message>
+        <source>Not sent: Tengram is reconnecting. Try again in a moment.</source>
+        <translation>Не надіслано: Tengram відновлює з’єднання. Повторіть спробу трохи пізніше.</translation>
+    </message>
+    <message>
+        <source>Share my live location for</source>
+        <translation>Ділитися моєю геолокацією протягом</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <source>15 minutes</source>
+        <translation>15 хвилин</translation>
+    </message>
+    <message>
+        <source>1 hour</source>
+        <translation>1 година</translation>
+    </message>
+    <message>
+        <source>8 hours</source>
+        <translation>8 годин</translation>
+    </message>
+    <message>
+        <source>Until I turn it off</source>
+        <translation>Доки я не вимкну</translation>
+    </message>
+    <message>
+        <source>Your position</source>
+        <translation>Ваше місцезнаходження</translation>
+    </message>
+    <message>
+        <source>accurate to %1</source>
+        <translation>точність %1</translation>
+    </message>
+    <message>
+        <source>The point under the pin</source>
+        <translation>Точка під маркером</translation>
+    </message>
+    <message>
+        <source>Location Services are off. Turn them on to send where you are.</source>
+        <translation>Служби геолокації вимкнено. Увімкніть їх, щоб надіслати, де ви перебуваєте.</translation>
+    </message>
+    <message>
+        <source>Location settings</source>
+        <translation>Налаштування геолокації</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t load the map.</source>
+        <translation>Не вдалося завантажити карту.</translation>
+    </message>
+    <message>
+        <source>Try again</source>
+        <translation>Повторити</translation>
+    </message>
+    <message>
+        <source>Looking for your position…</source>
+        <translation>Визначаю ваше місцезнаходження…</translation>
+    </message>
+    <message>
+        <source>Looking for your position. It comes from GPS satellites alone, which takes a few minutes and a view of the sky. Meanwhile you can search for an address above, or move the map.</source>
+        <translation>Визначаю ваше місцезнаходження. Воно надходить лише із супутників GPS: на це потрібно кілька хвилин і відкрите небо. Тим часом можна знайти адресу в полі вище або пересунути карту.</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t ask for your position. Try again in a moment.</source>
+        <translation>Не вдалося запитати ваше місцезнаходження. Спробуйте ще раз за мить.</translation>
+    </message>
+    <message>
+        <source>Search an address or a place</source>
+        <translation>Знайти адресу або місце</translation>
+    </message>
+    <message>
+        <source>No place found</source>
+        <translation>Місце не знайдено</translation>
+    </message>
+    <message>
+        <source>No answer from the place search. Check the connection.</source>
+        <translation>Пошук місць не відповідає. Перевірте з’єднання.</translation>
+    </message>
+    <message>
+        <source>The place search failed. Try again.</source>
+        <translation>Не вдалося виконати пошук місць. Спробуйте ще раз.</translation>
+    </message>
+</context>
+<context>
     <name>MapChooser</name>
     <message>
         <location filename="../src/MapChooser.cpp" line="79"/>
@@ -2206,6 +2382,10 @@
     <message>
         <source>Spoiler</source>
         <translation>Спойлер</translation>
+    </message>
+    <message>
+        <source>Location</source>
+        <translation>Геолокація</translation>
     </message>
 </context>
 <context>
@@ -2388,6 +2568,10 @@
         <source>Comments</source>
         <translation>Коментарі</translation>
     </message>
+    <message>
+        <source>Live location…</source>
+        <translation>Геолокація в реальному часі…</translation>
+    </message>
 </context>
 <context>
     <name>MessageKinds</name>
@@ -2563,6 +2747,38 @@
         <location filename="../src/MessageRows.cpp" line="164"/>
         <source>Leave a comment</source>
         <translation>Залишити коментар</translation>
+    </message>
+    <message>
+        <source>%1 m</source>
+        <translation>%1 м</translation>
+    </message>
+    <message>
+        <source>%1 km</source>
+        <translation>%1 км</translation>
+    </message>
+    <message>
+        <source>Live location ended</source>
+        <translation>Трансляцію геолокації завершено</translation>
+    </message>
+    <message>
+        <source>Live location</source>
+        <translation>Геолокація в реальному часі</translation>
+    </message>
+    <message>
+        <source>Updated just now</source>
+        <translation>Оновлено щойно</translation>
+    </message>
+    <message>
+        <source>Updated %1 ago</source>
+        <translation>Оновлено %1 тому</translation>
+    </message>
+    <message>
+        <source>%1 left</source>
+        <translation>залишилось %1</translation>
+    </message>
+    <message>
+        <source>Alert within %1</source>
+        <translation>Сповіщення в радіусі %1</translation>
     </message>
 </context>
 <context>

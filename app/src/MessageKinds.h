@@ -16,7 +16,10 @@ QVariantMap parse(const QString &json);
 // JSON), out and sender (the sender's name, "" when none) are the row's; time is the message's time as
 // the model words it, the locale the phone's. Sets label (the card's grey line) and shown (the text
 // under it) for kinds 7, 9 to 12 and 14, and leaves them alone for the others (shown starts as text).
-// A location (9) also puts lat, lon and place (its name) in data, for MapChooser (step 6.5c). A contact
+// A location (9) also puts lat, lon and place (its name) in data, for MapChooser (step 6.5c); it has no label (its map is
+// the picture card's), but a live one has "Live location" until MessageModel::data() words it. live, liveUntil, liveAt and
+// liveAlert (a live location's extra.live, until, at and alert) and liveOn (false; data() sets it) are set for every
+// kind, so QML and the cards never read undefined. A contact
 // (10) has no label and an empty shown (MediaBubble draws it): data gets vcard (every card's vCard
 // joined by "\r\n", for MediaOpener::importContact) and contactInfo (the first number, "N contacts"
 // for several; step 6.5d). A poll (11) keeps the question as shown; its label says whether one option

@@ -121,6 +121,9 @@ MessageModel::MessageModel(EngineLink *engine, const QString &chat, bool group, 
     connect(&m_restTimer, SIGNAL(timeout()), this, SLOT(loadRest()));
     m_expiry.setInterval(1000);
     connect(&m_expiry, SIGNAL(timeout()), this, SLOT(tickExpiry()));
+    // The same for a live location's label, which counts in minutes: started by read() when a running one is read.
+    m_liveTick.setInterval(30000);
+    connect(&m_liveTick, SIGNAL(timeout()), this, SLOT(tickLive()));
     connect(engine, SIGNAL(fullscreenChanged()), this, SLOT(onFullscreen()));
     // Started by addLocal, stopped by tickLocal when none is left.
     m_localExpiry.setInterval(1000);
@@ -201,12 +204,11 @@ QString MessageModel::itemType(const QVariantList &indexPath)
     const Msg &m = m_all[e.msg];
     if (m.service)
         return "service";
-    // Plain text gets the plain MessageCard, a photo, video or map picture the one the picture spans
-    // (the user, 2026-11-08: as Android shows them). A row's type never changes: its kind, media,
-    // link preview and a location's map picture (inline, never fetched) don't.
+    // Plain text gets the plain MessageCard, a photo, video or location the one the picture spans
+    // (the user, 2026-11-08: as Android shows them). A row's type never changes: its kind, media and
+    // link preview don't, and a location is a picture with or without its map, which the engine fetches after the row.
     const QString media = m.data["media"].toString();
-    if (e.members.isEmpty() && (media == "photo" || media == "video"
-                                || (media == "location" && m.data["hasThumb"].toBool())))
+    if (e.members.isEmpty() && (media == "photo" || media == "video" || media == "location"))
         return "picture";
     return e.members.isEmpty() && m.kind == 0 && m.data["linkTitle"].toString().isEmpty() ? "text" : "msg";
 }
@@ -229,6 +231,12 @@ QVariant MessageModel::data(const QVariantList &indexPath)
     const qint64 until = d.value("expiresAt").toLongLong();
     if (until > 0)
         d["ttlText"] = span(qMax<qint64>(0, until - QDateTime::currentMSecsSinceEpoch() / 1000));
+    // A live location: its label and whether it still runs, as of now (tickLive makes the list ask every 30 s).
+    if (d.value("live").toBool()) {
+        const qint64 ends = d.value("liveUntil").toLongLong();
+        d["label"] = liveLabel(d, m_locale);
+        d["liveOn"] = ends <= 0 || QDateTime::currentMSecsSinceEpoch() / 1000 < ends;
+    }
     if (!m_group)
         return d;
     // A group's cards: the runs' flags, and what the engine said of the sender. Set on every row that has a sender id,
@@ -269,6 +277,54 @@ QString MessageModel::span(qint64 secs)
     return tr("%1 d").arg((secs + 86399) / 86400);
 }
 
+QString MessageModel::distance(int metres, const QLocale &locale)
+{
+    if (metres < 1000)
+        return tr("%1 m").arg(locale.toString(metres));
+    return tr("%1 km").arg(metres % 1000 == 0 ? locale.toString(metres / 1000) : locale.toString(metres / 1000.0, 'f', 1));
+}
+
+// "Live location ended"; or "Live location", then "Updated 5 min ago · 1 h left" (no end: no "left"), then for ours with a
+// proximity alert "Alert within 500 m". The times are the foot's spans, rounded up.
+QString MessageModel::liveLabel(const QVariantMap &d, const QLocale &locale)
+{
+    const qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
+    const qint64 until = d.value("liveUntil").toLongLong();
+    if (until > 0 && now >= until)
+        return tr("Live location ended");
+    const qint64 ago = now - d.value("liveAt").toLongLong();
+    QString label = tr("Live location") + "\n" + (ago < 60 ? tr("Updated just now") : tr("Updated %1 ago").arg(span(ago)));
+    if (until > 0)
+        label += QString::fromUtf8(" · ") + tr("%1 left").arg(span(until - now));
+    const int alert = d.value("liveAlert").toInt();
+    if (d.value("out").toBool() && alert > 0)
+        label += "\n" + tr("Alert within %1").arg(distance(alert, locale));
+    return label;
+}
+
+// Every live location's card is drawn again every 30 s while the app is in front, so its label and its ended state follow the
+// clock; the timer stops when none is left running (read() starts it again for one that is read).
+void MessageModel::tickLive()
+{
+    if (!m_engine || !m_engine->fullscreen()) {
+        m_liveTick.stop();
+        return;
+    }
+    const qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
+    bool running = false;
+    for (int i = 0; i < m_entries.size(); ++i) {
+        const Entry &e = m_entries.at(i);
+        if (e.msg < 0 || !m_all.at(e.msg).data.value("live").toBool())
+            continue;
+        const qint64 until = m_all.at(e.msg).data.value("liveUntil").toLongLong();
+        if (until <= 0 || now < until)
+            running = true;
+        emit itemUpdated(QVariantList() << i);
+    }
+    if (!running)
+        m_liveTick.stop();
+}
+
 // The cards that count down are drawn again, once a second, while the app is in front; the timer stops with the last
 // of them. A card that reaches 0 stays at 0 until the engine's deletion takes its row (docs/protocol.md, Secret chats).
 void MessageModel::tickExpiry()
@@ -289,12 +345,15 @@ void MessageModel::tickExpiry()
         m_expiry.stop();
 }
 
-// Coming to the front draws the countdowns again at once and restarts the ticks (tickExpiry stops them with none).
+// Coming to the front draws the countdowns and the live locations again at once and restarts the ticks (tickExpiry and
+// tickLive stop theirs with none).
 void MessageModel::onFullscreen()
 {
     if (m_engine && m_engine->fullscreen()) {
         m_expiry.start();
         tickExpiry();
+        m_liveTick.start();
+        tickLive();
     }
 }
 
@@ -1157,6 +1216,7 @@ void MessageModel::onConnected()
     if (m_loading)
         return;
     m_asked.clear(); // a fetch the engine lost with its restart is asked again
+    m_askedMaps.clear(); // a location's map too
     m_stickerAsks.clear();
     m_stickerFailed.clear(); // and a sticker's that failed
     m_refetch.clear();

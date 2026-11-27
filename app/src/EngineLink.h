@@ -35,6 +35,9 @@ class EngineLink : public QObject
     // The live call, the last `call` event's {id, chat, out, state, reason, since} (docs/plan/phase7.md);
     // empty until the first call. After state "ended" it stays until the next call.
     Q_PROPERTY(QVariantMap call READ call NOTIFY callChanged)
+    // Counts up at every change of our live locations running now (the `live` event's items, docs/protocol.md): QML binds to
+    // it and reads sharingIn(), as it does chats.revision and chats.chat().
+    Q_PROPERTY(int sharingRevision READ sharingRevision NOTIFY sharingChanged)
 public:
     explicit EngineLink(QObject *parent = 0);
     ~EngineLink();
@@ -51,6 +54,10 @@ public:
     bool linked() const;
     QVariantMap failure() const;
     QVariantMap call() const;
+    int sharingRevision() const { return m_sharingRevision; }
+    // Our live location in that chat, {chat, id, until, alert} as the `live` event has it; an empty map when we share none
+    // there.
+    Q_INVOKABLE QVariantMap sharingIn(const QString &chat) const;
     // Where the engine listens and the token its hello wants, as last read from engine.json (0 and "" before the first read): the audio link (CallAudio) says hello itself.
     int port() const { return m_port; }
     QString token() const { return m_token; }
@@ -110,6 +117,7 @@ signals:
     void linkedChanged();
     void failureChanged();
     void callChanged();
+    void sharingChanged();
     // Emitted after ui.state went out, so it reaches the engine before a chat.close/chat.open.
     void fullscreenChanged();
 
@@ -133,6 +141,7 @@ private:
     void setFullscreen(bool on);
     void sendUiState();
     void fail(const QString &cmd, const QString &code, const QString &message);
+    void setSharing(const QVariantList &items);
 
     QTcpSocket m_socket;
     QTimer m_retry;
@@ -152,6 +161,8 @@ private:
     bool m_linked;
     QVariantMap m_failure;
     QVariantMap m_call;
+    QVariantList m_sharing; // the last `live` event's items; emptied when the link goes and when it comes back
+    int m_sharingRevision;
     bool m_fullscreen;
     QString m_openChat;
     QTimer m_beat; // the stall detector, while in front (beat())

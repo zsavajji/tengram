@@ -77,6 +77,7 @@ private slots:
     void onForward();
     void onComments();
     void onDownload();
+    void onLiveMenu();
     void onVotes();
     void onCopy();
     void onTranslate();
@@ -242,6 +243,7 @@ private:
     bb::cascades::ActionItem *m_commentsItem;
     bb::cascades::ActionItem *m_votes;
     bb::cascades::ActionItem *m_download;
+    bb::cascades::ActionItem *m_live; // the picture card's only (a location is one): 0 in the others
     bb::cascades::ActionItem *m_copy;
     bb::cascades::ActionItem *m_translate;
     bb::cascades::ActionItem *m_edit;

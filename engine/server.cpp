@@ -268,6 +268,7 @@ void Server::hello(Conn &c, const std::string &id, const std::string &cmd, td::J
   reply_ok(c.id, id, link_body());  // queued before authed is set, so no event comes first
   c.authed = true;
   calls_hello();
+  location_hello();
 }
 
 Server::Conn *Server::find(std::uint64_t id) {
